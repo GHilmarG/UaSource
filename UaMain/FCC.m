@@ -109,7 +109,7 @@ for Iint=1:MUA.nip
     C=C_node*fun;
     m=m_node*fun;
 
- 
+
 
     Psix=Psi_x_node*fun;
     Psiy=Psi_y_node*fun;
@@ -208,8 +208,8 @@ KFCC=sparse(Iind,Jind,Xval,nNodes,nNodes);
 % now I have the matrix Hpp, this includes second-order derivatives with respect to either A or C, but I now need those
 % derivatives with respect log_{10}(A) and/or log_{10}(C)
 
-if CtrlVar.log10Derivatives
 
+if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
     %% Convert Hpp (currently in C-space, since d2fdxdx above is the C-kernel)
     %  to log10(C)-space, using the nodal post-assembly formula:
     %
@@ -232,11 +232,10 @@ KFCC=-KFCC;
 %% Test against finite differences
 
 
-TestAgainstFiniteDifferences=true;
 
-if TestAgainstFiniteDifferences
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
-    iColumn=7;  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
+    iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
 
     CtrlVar.log10Derivatives=true;
 
@@ -306,8 +305,8 @@ if TestAgainstFiniteDifferences
     title("$\mathcal{F}^{pp}_{CC,lm} = \langle \Psi_x,\delta^2_{CC}\mathcal{F}_x[\phi_l,\phi_m] \rangle  + \langle \Psi_y , \delta^2_{CC}\mathcal{F}_y[\phi_l,\phi_m] \rangle$",Interpreter="latex")
     subtitle("Comparison is here for one random column",Interpreter="latex")
 
-    fprintf("                                                  AD                        FD \n")
-    n=10 ; [(1:n)' full(KFCC(1:n,iColumn)) HFCC_col_FD(1:n) full(KFCC(1:n,iColumn))-HFCC_col_FD(1:n)]
+    drawnow
+    input("Inspect, and then press RET to continue")
 
 
 end

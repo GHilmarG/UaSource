@@ -189,9 +189,7 @@ end
 % change of variables should be done on nodal values!
 % I learned this the hard way by doing extensive tests on dJ/dgamma
 if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-    if CtrlVar.log10Derivatives
         dIdC=log(10)*F.C.*dIdC;
-    end
 end
 
 

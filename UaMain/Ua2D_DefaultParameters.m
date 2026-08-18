@@ -1252,7 +1252,8 @@ CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse ste
 %
 % The derivatives obtained with the adjoint method can be compared with those obtained from brute force finite difference
 % calculations.
-CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation
+CtrlVar.Inverse.TestAdjoint.isTrue=0;        % If true then perform a brute force calculation
+CtrlVar.Inverse.TestDirectAdjoint.isTrue=0;  % Flag to test the direct-adjoint for selected columns against finite differences
 % of the directional derivative of the objective function.
 %
 % The brute-force gradient can be calculated using first-order forward differences, second-order central differences, or

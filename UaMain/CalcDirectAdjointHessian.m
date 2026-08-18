@@ -270,7 +270,7 @@ end
 
 
 
-%% sensitivity matrix, \xi = \partial q / \partial p
+%% sensitivity matrix, \xi = \partial q / \partial p   % tested
 if GetSensitivites
 
     if  ~contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
@@ -317,12 +317,11 @@ if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     end
 
 
-
     if contains(HessianTerms,"-xi Fqq xi-")
         if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
             error("Case not implemented")
         end
-        KFqq=Fqq(CtrlVar,MUA,F,Psi_x,Psi_y);
+        KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
     end
 
     KJqqFqq=KJqq+KFqq;
@@ -331,7 +330,7 @@ if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     % the numerical sparsity of xi is close to 1 (ie not sparse at all)
     % much better to use full matrix in the multiplication
     %
-    %
+    % requires 
     %
 
     % tMult=tic;
@@ -355,15 +354,13 @@ if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
 
-%%
-% H^{pp}  (but only the F^pp contribution)
+%%  H^{pp}  (but only the F^pp contribution)  : Tested
 %
 % $$H^{p}=J^{pp}+\mathcal{F}^{pp}$$
 %
 %
 if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
-    %Fpp=PsiTimesddFuvdpdp(CtrlVar,MUA,F,Psi_x,Psi_y);
 
     KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
     H=H+KFpp; % Here missing is the Jpp contribution, but this is added in the Regularisation.m function
@@ -371,7 +368,7 @@ if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 end
 
 
-%% H^{pq}+H^{qp}
+%% H^{pq}+H^{qp}  : Tested
 %
 % $$H^{pq}+H^{qp}=\big(J^{pq}+\mathcal{F}^{pq}\big)\xi \;+\; \Big[\big(J^{pq}+\mathcal{F}^{pq}\big)\xi\Big]^T$$
 %
@@ -380,7 +377,8 @@ end
 %
 if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
-    KHess_qp=Hess_qp(CtrlVar,MUA,F,Psi_x,Psi_y,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
+                 
+   [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
     H=H+KHess_qp ;
 
 end

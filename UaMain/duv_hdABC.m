@@ -79,17 +79,15 @@ end
 
 
 
-TestSensitivites=false;
 
-if TestSensitivites
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     %% Test
 
 
     Funperturbed=F;
-    NodeTest=804;
-    NodeTest=500;
-    %NodeTest=1500;
+
+    NodeTest=randi(MUA.Nnodes);
 
     %% A
     if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
@@ -147,5 +145,7 @@ if TestSensitivites
         %%
     end
 
+    drawnow
+    input("Inspect, and then press RET to continue")
 
 end

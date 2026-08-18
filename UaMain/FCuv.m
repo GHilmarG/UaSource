@@ -3,9 +3,9 @@
 
 
 
-function [Psid2FdCdu,Psid2FdCdv]=Psi_d2FdCdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y)
+function [KFCu,KFCv]=FCuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
-narginchk(5,5)
+narginchk(7,7)
 
 %%
 %
@@ -25,21 +25,17 @@ narginchk(5,5)
 %
 % For
 %
-% $$ H^{\#8}_{ij}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
+% $$ H_{ij}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
 %
 % and
 %
-% $$ H^{\#6}_{ij} = \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
-%
-% we have
-%
-% $$ [H^{\#8}]^T=H^{\#8}_{ji}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_i} \xi_{kj} =\Psi_n \frac{\partial^2 F_n}{\partial p_i \,\partial q_k} \xi_{kj} = H^{\#6}_{ij}= [H^{\#6}] $$
+% $$ H_{ij} = \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
 %
 % So these two terms are just the transpose of each other, and both are calculated here.
 %
-% Also, here $q$ is both $u$ and $v$
+% Also, here $q$ is both $u$ and $v$, and this is done for $p=C$.
 %
-% $$ H^{\#8}_{ij}=
+% $$ H_{ij}=
 % \Psi^x_n \frac{\partial^2 F^x_n}{ \partial C_i \, \partial u_k} \frac{\partial u_k}{\partial C_j} + \Psi^x_n \frac{\partial^2 F^x_n}{ \partial C_i \, \partial v_k} \frac{\partial v_k}{\partial C_j}
 % +\Psi^y_n \frac{\partial^2 F^y_n}{ \partial C_i \, \partial u_k} \frac{\partial u_k}{\partial C_j} + \Psi^y_n \frac{\partial^2 F^y_n}{ \partial C_i \, \partial v_k} \frac{\partial v_k}{\partial C_j}
 % $$
@@ -102,7 +98,7 @@ narginchk(5,5)
 %
 % There are two components to $F=(F^x,F^y)$ and two components to $q=(v_x,v_y)$, so we get
 %
-% $$ \langle \Psi_x | \delta^2_{v_x C} F_x \rangle \, \delta_c v_x + \langle  \Psi_x | \delta^2_{v_y C} F_x   \rangle \, \delta_C v_y   
+% $$ \langle \Psi_x | \delta^2_{v_x C} F_x \rangle \, \delta_c v_x + \langle  \Psi_x | \delta^2_{v_y C} F_x   \rangle \, \delta_C v_y
 % +  \langle \Psi_y | \delta^2_{v_x C} F_y \rangle \, \delta_C v_x + \langle  \Psi_y | \delta^2_{v_y C} F_y   \rangle \, \delta_C v_y $$
 %
 %
@@ -110,8 +106,8 @@ narginchk(5,5)
 
 
 if ~contains(CtrlVar.Inverse.InvertFor,"logC",IgnoreCase=true)
-    Psid2FdCdu=[];
-    Psid2FdCdv=[];
+    KFCu=[];
+    KFCv=[];
     return
 end
 
@@ -179,7 +175,7 @@ for Iint=1:MUA.nip
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
     detJw=detJ*MUA.weights(Iint);
-    
+
     % dcFx=G.*(-1./m).* (C+C0).^(-1./m-1) .*  (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)).*u ;
     % dcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .*  (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)).*v ;
 
@@ -196,13 +192,13 @@ for Iint=1:MUA.nip
 
     %% Testing
     % u_e=sqrt(u.*u + v.*v+u0^2) ;
-    % 
-    % 
+    %
+    %
     % Pi = -((1-m)*log(10))./(m.^2) .* C .* (C+C0).^(-1./m-1) .* u_e.^((1-3.*m)./m) ;
     % Sigma = -(log(10))./m .* C .* (C+C0).^(-1./m-1) .* u_e.^((1-m)./m) ;
-    % 
-    % Ku=G.*((Pi.*u.*u+ Sigma).*lx  +   Pi.*u.*v        .*ly) ;
-    % Kv=G.*( Pi.*u.*v        .*lx  +  (Pi.*v.*v+Sigma) .*ly ) ;
+    %
+    % Ku=G.*((Pi.*u.*u+ Sigma).*Psix  +   Pi.*u.*v        .*Psiy) ;
+    % Kv=G.*( Pi.*u.*v        .*Psix  +  (Pi.*v.*v+Sigma) .*Psiy ) ;
     % norm(Ku-l_d2FdudC) % is zero
     % norm(Kv-l_d2FdvdC) % is zero
 
@@ -241,23 +237,96 @@ for Inod=1:MUA.nod
     end
 end
 
-Psid2FdCdu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  
-Psid2FdCdv=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ; 
+KFCu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;
+KFCv=sparseUA(Iind,Jind,HvVal,nNodes,nNodes) ;
+
+KFCu = -KFCu;
+KFCv = -KFCv;
+
+%% Test Against Finite-Differences
+
+
+
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
+
+    iColumn=randi(MUA.Nnodes); % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
+
+    CtrlVar.log10Derivatives=true;
+
+
+    %% FCu test
+    u0 = F.ub;
+    hstep = 1e-6*max(abs(u0));
+
+    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
+    bMinus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) + hstep;
+    bPlus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.ub = u0;
+
+    HCu_col_FD = (bPlus - bMinus)/(2*hstep);
+    Diff=norm(KFCu(:,iColumn) - HCu_col_FD)/norm(HCu_col_FD);
+    fprintf("FCu: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+
+    % FCv test
+    v0 = F.vb;
+    hstep = 0.01;
+
+    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
+    bMinus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) + hstep;
+    bPlus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.vb = v0;
+
+    HCv_col_FD = (bPlus - bMinus)/(2*hstep);
+    Diff=norm(KFCv(:,iColumn) - HCv_col_FD)/norm(HCv_col_FD);
+    fprintf("FCv: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+    %% Plots
+    FCuTest=FindOrCreateFigure("FCu Test") ;
+
+    plot(KFCu(:,iColumn),HCu_col_FD,"or") ; axis equal ;
+    hold on ;
+    plot([min(HCu_col_FD) max(HCu_col_FD)],[min(HCu_col_FD) max(HCu_col_FD)],"--k")
+
+    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+    xlabel("Direct-Adjoint",Interpreter="latex")  ;
+    ylabel("Finite difference",Interpreter="latex")
+    title("$\langle \Psi_x | \delta^2_{v_x C} F_x \rangle $",Interpreter="latex")
+    subtitle("Comparison is here for one random column",Interpreter="latex")
+
+
+    FCvTest=FindOrCreateFigure("FCv Test") ;
+
+    plot(KFCv(:,iColumn),HCv_col_FD,"or") ; axis equal ;
+    hold on ;
+    plot([min(HCv_col_FD) max(HCv_col_FD)],[min(HCv_col_FD) max(HCv_col_FD)],"--k")
+
+    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+    xlabel("Direct-Adjoint",Interpreter="latex")  ;
+    ylabel("Finite difference",Interpreter="latex")
+    title("$\langle  \Psi_y | \delta^2_{v_y C} F_y   \rangle $",Interpreter="latex")
+    subtitle("Comparison is here for one random column",Interpreter="latex")
+
+    drawnow
+    input("Inspect, and then press RET to continue")
+
+    %%
+
+
+end
+
+
 
 return
 
-% 
-% 
-% Psi_d2FduC_dudC=Psid2FdCdu*KdudC;  % this will be full matrix,
-% Psi_d2FdvC_dvdC=Psid2FdCdv*KdvdC;
-% 
-% Psi_d2FduC_dudC=full(Psi_d2FduC_dudC);
-% Psi_d2FdvC_dvdC=full(Psi_d2FdvC_dvdC);
-% 
-% Psi_d2FduC_dudC=Psi_d2FduC_dudC+Psi_d2FduC_dudC';
-% Psi_d2FdvC_dvdC=Psi_d2FdvC_dvdC+Psi_d2FdvC_dvdC';
-% 
-% Psi_d2FdCq=Psi_d2FduC_dudC+Psi_d2FdvC_dvdC;
 
 
 end

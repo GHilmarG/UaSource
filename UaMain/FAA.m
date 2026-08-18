@@ -186,8 +186,8 @@ KFAA=sparse(Iind,Jind,Xval,nNodes,nNodes);
 % now I have the matrix Hpp, this includes second-order derivatives with respect to either A or C, but I now need those
 % derivatives with respect log_{10}(A) and/or log_{10}(C)
 
-if CtrlVar.log10Derivatives
 
+if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
     %% Convert Hpp (currently in A-space, since d2fdxdx above is the A-kernel)
    
     ln10 = log(10);
@@ -204,12 +204,12 @@ end
 %% Test against finite differences
 
 
-TestAgainstFiniteDifferences=true;  % This is a flag to test against finite-differences, get-rid of this in production
 
-if TestAgainstFiniteDifferences
+
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
   
-    iColumn=5;  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
+    iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
 
     CtrlVar.log10Derivatives=true;
 
@@ -281,10 +281,10 @@ if TestAgainstFiniteDifferences
     title("$\mathcal{F}^{pp}_{AA,lm} = \langle \Psi_x,\delta^2_{AA}\mathcal{F}_x[\phi_l,\phi_m] \rangle  + \langle \Psi_y , \delta^2_{AA}\mathcal{F}_y[\phi_l,\phi_m] \rangle$",Interpreter="latex")
     subtitle("Comparison is here for one random column",Interpreter="latex")
 
-    fprintf("                                                  AD                        FD \n")
-    l=10 ; [(1:l)' full(KFAA(1:l,iColumn)) HFAA_col_FD(1:l) full(KFAA(1:l,iColumn))-HFAA_col_FD(1:l)]
-  
-
+    drawnow
+    prompt = "Inspect, and press RET to continue: ";
+    input(prompt,"s");
+ 
   
 end
 

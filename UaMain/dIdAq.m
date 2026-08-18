@@ -6,7 +6,7 @@
 
 
 
-function dIdA=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint)
+function dIdA=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
 
 narginchk(7,7)
@@ -128,8 +128,8 @@ ndim=2;
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
-uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psixnod=reshape(Psi_x(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psiynod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
 nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -160,10 +160,10 @@ for Iint=1:MUA.nip
         exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod));
 
 
-        dlxdx=dlxdx+Deriv(:,1,Inod).*uAdjointnod(:,Inod);
-        dlydx=dlydx+Deriv(:,1,Inod).*vAdjointnod(:,Inod);
-        dlxdy=dlxdy+Deriv(:,2,Inod).*uAdjointnod(:,Inod);
-        dlydy=dlydy+Deriv(:,2,Inod).*vAdjointnod(:,Inod);
+        dlxdx=dlxdx+Deriv(:,1,Inod).*Psixnod(:,Inod);
+        dlydx=dlydx+Deriv(:,1,Inod).*Psiynod(:,Inod);
+        dlxdy=dlxdy+Deriv(:,2,Inod).*Psixnod(:,Inod);
+        dlydy=dlydy+Deriv(:,2,Inod).*Psiynod(:,Inod);
 
     end
 

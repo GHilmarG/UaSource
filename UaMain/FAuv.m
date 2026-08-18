@@ -1,29 +1,29 @@
 
 
 
-function [Psid2FdAdu,Psid2FdAdv]=Psi_d2FdAdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y)
+function [KFAu,KFAv]=FAuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
-narginchk(5,5)
+narginchk(7,7)
 
 
 
 
 if ~contains(CtrlVar.Inverse.InvertFor,"logAGlen",IgnoreCase=true)
-    Psid2FdAdu=[];
-    Psid2FdAdv=[];
+    KFAu=[];
+    KFAv=[];
     return
 end
 
 
 if CtrlVar.SlidingLaw~="Weertman"
 
-    error("Psi_d2Fdpdq_xi:NotImplemented","only implemented for Weertman sliding law.")
+    error("FAuv:NotImplemented","only implemented for Weertman sliding law.")
 
 end
 
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
 
-    error("Psi_d2FdCdq_xi:NotImplemented","not implemented for dhdt meas")
+    error("FAuv:NotImplemented","not implemented for dhdt meas")
 
 end
 
@@ -117,18 +117,14 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Lnod=1:MUA.nod
 
-      
-      
-            phi_l=fun(Lnod);
-           % phi_i=fun(Inod) ;
-           
-           % dphldx_l=Deriv(:,1,Lnod);
-           % dphidy_l=Deriv(:,2,Lnod);
-            dphidx_i=Deriv(:,1,Inod);
-            dphidy_i=Deriv(:,2,Inod);
             
-            Hu(:,Inod,Lnod)=Hu(:,Inod,Lnod) + phi_l .* (K1.*dphidx_i + K2.*dphidy_i) .*detJw;
-            Hv(:,Inod,Lnod)=Hv(:,Inod,Lnod) + phi_l .* (K2.*dphidx_i + K3.*dphidy_i) .*detJw;
+            phi_i=fun(Inod);
+
+            dphidx_l=Deriv(:,1,Lnod);
+            dphidy_l=Deriv(:,2,Lnod);
+
+            Hu(:,Inod,Lnod)=Hu(:,Inod,Lnod) - phi_i .* (K1.*dphidx_l + K2.*dphidy_l) .*detJw;
+            Hv(:,Inod,Lnod)=Hv(:,Inod,Lnod) - phi_i .* (K2.*dphidx_l + K3.*dphidy_l) .*detJw;
             
           
 
@@ -159,24 +155,96 @@ for Inod=1:MUA.nod
     end
 end
 
-Psid2FdAdu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
-Psid2FdAdv=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
+KFAu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  
+KFAv=sparseUA(Iind,Jind,HvVal,nNodes,nNodes) ;  
+
+
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
+
+
+    iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
+
+    CtrlVar.log10Derivatives=true;
+
+
+    %% FCu test
+    u0 = F.ub;
+    hstep = 1e-6*max(abs(u0));
+
+    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
+    bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) + hstep;
+    bPlus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.ub = u0;
+
+    HAu_col_FD = (bPlus - bMinus)/(2*hstep);
+    Diff=norm(KFAu(:,iColumn) - HAu_col_FD)/norm(HAu_col_FD);
+    fprintf("FAu: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+
+    % FCv test
+    v0 = F.vb;
+    hstep = 0.01;
+
+    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
+    bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) + hstep;
+    bPlus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+    F.vb = v0;
+
+    HAv_col_FD = (bPlus - bMinus)/(2*hstep);
+    Diff=norm(KFAv(:,iColumn) - HAv_col_FD)/norm(HAv_col_FD);
+    fprintf("FAv: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+    FAuTest=FindOrCreateFigure("FAu Test") ; 
+
+    plot(KFAu(:,iColumn),HAu_col_FD,"or") ; axis equal ;
+    hold on ;
+    plot([min(HAu_col_FD) max(HAu_col_FD)],[min(HAu_col_FD) max(HAu_col_FD)],"--k")
+
+    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+    xlabel("Direct-Adjoint",Interpreter="latex")  ;
+    ylabel("Finite difference",Interpreter="latex")
+    title("$\langle \Psi_x | \delta^2_{v_x A} F_x \rangle $",Interpreter="latex")
+    subtitle("Comparison is here for one random column",Interpreter="latex")
+
+
+    FAvTest=FindOrCreateFigure("FAv Test") ; 
+
+    plot(KFAv(:,iColumn),HAv_col_FD,"or") ; axis equal ;
+    hold on ;
+    plot([min(HAv_col_FD) max(HAv_col_FD)],[min(HAv_col_FD) max(HAv_col_FD)],"--k")
+
+    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+    xlabel("Direct-Adjoint",Interpreter="latex")  ;
+    ylabel("Finite difference",Interpreter="latex")
+    title("$\langle  \Psi_y | \delta^2_{v_y A} F_y   \rangle $",Interpreter="latex")
+    subtitle("Comparison is here for one random column",Interpreter="latex")
+
+    drawnow
+    prompt = "Inspect and press RET to continue: ";
+    input(prompt,"s");
+
+end
+
+
+
+
+
+
+
+
+
 
 
 return
 
-% For A/C mixing, must do this outside together with the C matrix
-% 
-% Psi_d2FduA_dudA=Psid2FdAdu*KdudA;  % this will be full matrix,
-% Psi_d2FdvA_dvdA=Psid2FdAdv*KdvdA;
-% 
-% Psi_d2FduA_dudA=full(Psi_d2FduA_dudA);
-% Psi_d2FdvA_dvdA=full(Psi_d2FdvA_dvdA);
-% 
-% Psi_d2FduA_dudA=Psi_d2FduA_dudA+Psi_d2FduA_dudA';
-% Psi_d2FdvA_dvdA=Psi_d2FdvA_dvdA+Psi_d2FdvA_dvdA';
-% 
-% Psi_d2FdAq=Psi_d2FduA_dudA+Psi_d2FdvA_dvdA;
 
 
 end
