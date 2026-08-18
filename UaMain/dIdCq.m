@@ -158,11 +158,10 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
 
-    %% this is a temporary change which only works for Weertman sliding law, done here to make all calculations as visible as
-    % possible for Claude 
-    speed=sqrt(uint.*uint+vint.*vint+u0^2);
-    Um=speed.^(1./mint-1) ;
-    Ctemp =  Heint.*    (1./mint).*(Cint+C0).^(-1./mint-1)   .*Um;  % Um=speed.^(1./m-1) ; This is the same Ctemp as returned by BasalDrag for Weertman sliding law, 
+    % this is a temporary change which only works for Weertman sliding law, 
+    % speed=sqrt(uint.*uint+vint.*vint+u0^2);
+    % Um=speed.^(1./mint-1) ;
+    % Ctemp =  Heint.*    (1./mint).*(Cint+C0).^(-1./mint-1)   .*Um;  % Um=speed.^(1./m-1) ; This is the same Ctemp as returned by BasalDrag for Weertman sliding law, 
     % but the BasalDrag function is more general and will return this quantity for various other sliding laws as well 
     %%
 

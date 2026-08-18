@@ -256,7 +256,8 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     %% FCu test
     u0 = F.ub;
-    hstep = 1e-6*max(abs(u0));
+    v0=  F.vb; 
+    hstep = 1e-6*max(abs(u0)+abs(v0));
 
     F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
     bMinus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
@@ -273,8 +274,8 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     % FCv test
     v0 = F.vb;
-    hstep = 0.01;
-
+  
+ 
     F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
     bMinus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
@@ -316,7 +317,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     subtitle("Comparison is here for one random column",Interpreter="latex")
 
     drawnow
-    input("Inspect, and then press RET to continue")
+    input("FCuv: Inspect, and then press RET to continue")
 
     %%
 

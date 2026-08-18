@@ -15,7 +15,10 @@ narginchk(4,4)
 %
 % [J,g,H]=func(p)
 %
-% returns the cost (J), gradient (G) and Hessian (H). (Only cost, J, is used here.)
+% returns the cost (J), gradient (G) and Hessian (H). But here only the [J,g]=func(p) form is used in estimating the Hessian
+% independently using finite-differences of the gradient. 
+% 
+% The Hessian finite-difference estimates is calculated from the gradient, g. 
 %
 % The function returns a finite-differences estimate of dJ/dp for selected elements of p in the range iRange
 %
@@ -27,8 +30,6 @@ narginchk(4,4)
 %
 % see also color.m in \MATLAB\R2025b\toolbox\shared\optimlib\private\color.m 
 % which seems to do color partition for sparse finite differences. 
-%
-% The finite differences are then done by sfd
 %
 %%
 

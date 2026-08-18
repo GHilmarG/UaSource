@@ -115,7 +115,8 @@ end
 
 
 
-
+drawnow
+input("PlotModelAndFiniteDifferenceSensitivities: Inspect, and then press RET to continue")
 
 
 

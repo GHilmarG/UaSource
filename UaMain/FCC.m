@@ -306,7 +306,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     subtitle("Comparison is here for one random column",Interpreter="latex")
 
     drawnow
-    input("Inspect, and then press RET to continue")
+    input("FCC: Inspect, and then press RET to continue")
 
 
 end

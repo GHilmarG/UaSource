@@ -228,7 +228,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     subtitle("Comparison is here for one random column",Interpreter="latex")
 
     drawnow
-    prompt = "Inspect and press RET to continue: ";
+    prompt = "FAuv: Inspect and press RET to continue: ";
     input(prompt,"s");
 
 end
