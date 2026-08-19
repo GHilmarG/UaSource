@@ -404,7 +404,11 @@ if CtrlVar.Inverse.CalcGradI
 
     end
 
+end
 
+
+if CtrlVar.Inverse.CalcHessI
+    
     %% Hessians
 
     if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
@@ -532,10 +536,6 @@ if CtrlVar.Inverse.CalcGradI
     % end
 
 
-
-else
-
-    dIdp=0;
 
 end
 

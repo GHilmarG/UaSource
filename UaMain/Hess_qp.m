@@ -26,6 +26,7 @@ KFpq=[KFAu KFAv ; ...
 xi=[KdudA KdudC ;...
     KdvdA KdvdC] ; 
 
+
 K=KFpq*xi; 
 
 KHess_qp=K+K' ; 

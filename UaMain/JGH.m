@@ -47,18 +47,30 @@ elseif nargout==1
 
 end
 
-%fprintf("\rJGH: 1 %i \t 2 %i \t 3 %i",JGH1,JGH2,JGH3)
 
+CtrlVar.Inverse.CalcGrad=false;
+CtrlVar.Inverse.CalcGradI=false;
+CtrlVar.Inverse.CalcGradR=false;
+
+CtrlVar.Inverse.CalcHess=false;
+CtrlVar.Inverse.CalcHessI=false;
+CtrlVar.Inverse.CalcHessR=false;
 
 if nargout==1
-    CtrlVar.Inverse.CalcGradI=false;
-    CtrlVar.Inverse.CalcGradR=false;
     dJdp=[] ; Hessian=[] ; JGHouts=[] ;
-else
+end
+
+if nargout>=2
+    CtrlVar.Inverse.CalcGrad=true;
     CtrlVar.Inverse.CalcGradI=true;
     CtrlVar.Inverse.CalcGradR=true;
 end
 
+if nargout>= 3
+    CtrlVar.Inverse.CalcHess=false;
+    CtrlVar.Inverse.CalcHessI=true;
+    CtrlVar.Inverse.CalcHessR=true;
+end
 
 if CtrlVar.Inverse.ResetPersistentVariables
     ubP=[];
