@@ -42,28 +42,30 @@ end
 
 if contains(CtrlVar.Inverse.InvertForField,"C")
     if CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile
-        fprintf(CtrlVar.fidlog,' saving retrieved sliding-law parameters  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate) ;
+        fprintf(CtrlVar.fidlog,' saving retrieved sliding-law parameters and a scattered interpolant for C in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate) ;
         C=F.C;
         m=F.m;
         muk=F.muk ;
         q=F.q ;
-        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','q','muk','xC','yC','MUA','CtrlVarInRestartFile')
+        FCretrieved=scatteredInterpolant(F.x,F.y,F.C);
+        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,"C","m","q","muk","xC","yC","MUA","CtrlVarInRestartFile","FCretrieved")
     end
 end
 
 if contains(CtrlVar.Inverse.InvertForField,"A")
     if CtrlVar.Inverse.SaveAGlenEstimateInSeperateFile
-        fprintf(CtrlVar.fidlog,' saving retrieved AGlen and n in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
+        fprintf(CtrlVar.fidlog,' saving retrieved AGlen and a scattered interpolant for AGlen in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
         AGlen=F.AGlen;
         n=F.n;
-        save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA','CtrlVarInRestartFile')
+        FAretrieved=scatteredInterpolant(F.x,F.y,F.AGlen);
+        save(CtrlVar.NameOfFileForSavingAGlenEstimate,"AGlen","n","xA","yA","MUA","CtrlVarInRestartFile","FAretrieved")
     end
 end
 
 if isfield(CtrlVar,"NameOfFileForSavingBedrockEstimate")
 
     if contains(CtrlVar.Inverse.InvertForField,"B")
-        fprintf(CtrlVar.fidlog,' saving retrieved geometry in file %s \n ',CtrlVar.NameOfFileForSavingBedrockEstimate) ;
+        fprintf(CtrlVar.fidlog,' saving retrieved geometry and scattered interpolant for B in file %s \n ',CtrlVar.NameOfFileForSavingBedrockEstimate) ;
         B=F.B;
         b=F.b;
         s=F.s;
@@ -71,7 +73,8 @@ if isfield(CtrlVar,"NameOfFileForSavingBedrockEstimate")
         yB=F.y;
         rho=F.rho;
         rhow=F.rhow;
-        save(CtrlVar.NameOfFileForSavingBedrockEstimate,"s","b","B","xB","yB","rho","rhow","CtrlVarInRestartFile")
+        FBretrieved=scatteredInterpolant(F.x,F.y,F.B);
+        save(CtrlVar.NameOfFileForSavingBedrockEstimate,"s","b","B","xB","yB","rho","rhow","MUA","CtrlVarInRestartFile","FBretrieved")
     end
     
 end

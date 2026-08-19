@@ -1,0 +1,452 @@
+
+
+
+
+function [x,l,R2,r2,Qslope0,dxNorm,dlNorm,residual,g,h,output] = lsqNewton(CtrlVar,fun,x,l,Aeq,beq)
+
+
+
+%%
+%
+% Solves the least-squares non-linear problem
+%
+% $$ \min_x \| \mathbf{f}(\mathbf{x}) \|^2 $$
+%
+% where $\mathbf{f}$ is a vector-valued function and $\mathbf{x}$ a vector.
+%
+% subject to
+%
+% $$ \mathbf{A}_{\mathrm{eq}} \mathbf{x} = \mathbf{b}_{\mathrm{eq}} $$
+%
+% and where
+%
+% $$ \mathbf{A} \in R^{m\times n}$$
+%
+% $$ \mathbf{f} \in R^{n} $$
+%
+% On return:
+%
+% x is the solution.
+%
+% l is the vector of Lagrange multipliers.
+%
+% R2 is the residual norm
+%
+% r2 is the norm of the right-hand side of the KKT equations. This a a first-order optimality measure.
+%
+% Qslope0 is the slope at origin of the local quadratic approximation along the search direction.
+%
+% The function fun returns
+%
+% [f,J,outs]=fun(x)
+%
+%
+% $J$ is the Jacobian of $f$
+%
+%%
+
+
+ItMax=250;
+FirstOrderOptimialityTol=1e-20;
+ResnormTol=1e-20; 
+dR2Tol=1e-7;    % change in Resnorm between iterations. 
+dxTol=1e-20;
+Normalize=false ;
+SaveIterate=false;
+
+StepString="  ";
+
+if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
+
+    if isfield(CtrlVar.lsqUa,"ItMax")
+        ItMax=CtrlVar.lsqUa.ItMax ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"gTol")
+        FirstOrderOptimialityTol=CtrlVar.lsqUa.gTol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"dR2Tol")
+
+        dR2Tol=CtrlVar.lsqUa.dR2Tol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"dxTol")
+        dxTol=CtrlVar.lsqUa.dxTol ;
+    end
+
+
+    if isfield(CtrlVar.lsqUa,"Normalize")
+        Normalize=CtrlVar.lsqUa.Normalize;
+    end
+    if isfield(CtrlVar.lsqUa,"SaveIterate")
+        SaveIterate=CtrlVar.lsqUa.SaveIterate;
+    end
+
+
+end
+
+
+R2Array=nan(ItMax+1,1) ;  % value of the sum of squares of the FE right-hand system
+r2Array=nan(ItMax+1,1) ;  % right-hand side of the lsq KKT system, first-order optimality
+
+dxArray=nan(ItMax+1,1) ;
+Slope0Array=nan(ItMax+1,1) ;
+% WorkArray=nan(ItMax+1,1) ;
+dR2=[inf ; inf ] ; % stores the changes in R2=0.5*R'*R  over last two iterations
+dxNorm=0 ; dlNorm=0;
+
+
+%% If constraints provided, make iterate feasible
+
+if ~isempty(Aeq) && ~isempty(beq)   % if the user has not provided an initial estimate of l, but specifies constraints, set l=0
+
+    BCres=norm(Aeq*x-beq);
+    if BCres>1e-6   % make feasible
+        x=Aeq\beq ;
+    end
+    if isempty(l)  || anynan(l)
+        l=beq*0;
+    end
+end
+
+if ~isempty(Aeq)
+    LTl=Aeq'*l ;
+else
+    LTl=0;
+end
+%% test
+l=l*0; 
+
+%% Normalisation
+if Normalize
+    x0=x*0 ;
+    R=fun(x0) ;
+
+    g =- (R + LTl) ;
+    Normalisation=full(g'*g);
+else
+    Normalisation=1;
+
+end
+
+% Evaluate cost function, don't solve system
+[R,K]=fun(x) ;
+
+
+
+g =- (K'*R + LTl) ;
+
+if ~isempty(Aeq)
+    h =- (Aeq*x-beq);
+else
+    h=[];
+end
+
+R2=0.5*full(R'*R);
+r2 = full([g;h]'*[g;h])/Normalisation;
+
+
+r2Array(1)=r2;
+R2Array(1)=R2;
+
+
+if SaveIterate
+    xVector=nan(numel(x),100);
+    xVector(:,1)=x(:) ;
+else
+    xVector=[];
+end
+iteration=0 ;
+
+%
+
+Delta=nan ; % trust-region radius (if used)
+alpha=0;
+TrustRegionSubProblem=false; % the current approach works only for small problems
+dx=[];
+
+
+useMATLABquadprog=true;
+
+if ~isempty(Aeq)
+    TrustRegionSubProblem=false;  % not yet implemented for constrained problem
+end
+
+
+while iteration <= ItMax
+
+    iteration=iteration+1 ;
+
+    x0=x ;
+    l0=l ;
+
+    R20=R2;
+    r20=r2 ;
+
+
+    KK=K'*K;
+
+    gamma=nan;
+
+
+
+    if TrustRegionSubProblem
+        if ~isnan(Delta)
+            E=speye(size(KK))  ;
+            alpha=TrustRegionSubproblem(KK,E,g,alpha,Delta);
+            E=speye(size(KK)) ;
+            KK=KK+alpha*E;
+        end
+    end
+
+
+
+
+    if useMATLABquadprog
+
+        optionsQuad=optimoptions('quadprog',display='none') ;
+
+        [dx,fval,exitflag,outputMAT,lambda]=quadprog(KK,-g,[],[],Aeq,h,[],[],dx,optionsQuad);
+        dl=lambda.eqlin;
+        % KK*dx+Aeq'*dl - g ; % this should be zero
+
+        %% lsq (same answer, but need to test for performance on large problems, this might be faster, although it seems that MATLAB just reformulates this as a quadprog
+        % optionslsq=optimoptions('lsqlin',display='iter') ;
+        % ws = optimwarmstart(dx,optionslsq);  % apparently  only supported for the active-set algorithm
+        % [xlsq,resnormlsq,residual,exitflaglsq,outputlsq,lambdalsq]=lsqlin(K,-R-Aeq'*l,[],[],Aeq,-Aeq*x+beq,[],[],dx,optionslsq) ;
+        % dllsq=lambdalsq.eqlin  ;
+        %%
+
+    else
+
+        % Solve the KKT Newton system. [dx;dl] is the Newton direction
+
+        [dx,dl]=solveKApeSymmetric(KK,Aeq,g,h,x0,l0,CtrlVar);
+
+        dl=full(dl);
+    end
+
+
+
+    if isnan(Delta) || alpha==0
+        Delta=norm(dx); % If I have not set the trust-region radius, set it to the norm of the previous solution, which here will be the full Newton step
+    end
+
+    [Qslope0,QgammaMin,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gamma) ;
+
+
+    if Qslope0>0
+
+        fprintf("Slope of quadradic model at origin in the search direction is positive, with slope0=%g \n",Qslope0)
+
+    end
+
+    CtrlVar.BacktrackIteration=iteration  ;
+
+
+    CtrlVar.BacktrackingGammaMin=0.001;
+
+    funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dl,fun,Aeq,beq,x0,l0) ;
+
+
+    J0=funcBackTrack(0) ;
+    J1=funcBackTrack(1) ;
+
+  
+
+
+
+    gammaNewton=1;
+    CtrlVar.LineSearchAllowedToUseExtrapolation=true;
+    [gammamin,Jmin,BackTrackInfo]=BackTracking(Qslope0,gammaNewton,J0,J1,funcBackTrack,CtrlVar);
+
+
+
+    if isnan(gammamin) || gammamin ==0
+        % There is a special case when the backtracking does not find a minimum and either returns gamma as nan or as zero
+        % In case of the trust-region approach, one could try to decrease the trust-region radius.
+        % Otherwise, one need to exit the optimization loop
+
+        if TrustRegionSubProblem
+
+            gammamin=0;  % this can happen if, for example, the slope at gamma=0 is positive.
+            % this might also be a numerical issue if the slope is very small
+            % Basically, either exit the iteration, or try new Delta/alpha update when using the Trust-Region algorithm
+
+            Delta=0.01*Delta;
+            fprintf("Backtracking resulted in gamma=%g . Trust-region radius set to Delta=%g and repeating step. \n",gammamin,Delta)
+
+            r2Array(iteration+1)=r2;
+            R2Array(iteration+1)=R2;
+            dxArray(iteration)=dxNorm ;
+
+            continue
+
+        else
+            if isnan(gammamin)  || gammamin==0
+                fprintf("Backtracking resulted in gamma=%g . Exiting Newton iteration. \n",gammamin)
+                break
+            end
+        end
+    end
+
+
+
+    [~,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gammamin) ;
+
+    x=x0+gammamin*dx ; l=l0+gammamin*dl ;
+
+    if Jmin < ResnormTol
+        fprintf("lsqUa: Exiting iteration because resnorm, |R|^2=%g, is within set tolerance of %g \n",Jmin,ResnormTol)
+        R2=Jmin;
+        r2Array(iteration+1)=nan;
+        R2Array(iteration+1)=R2;
+        dxArray(iteration)=norm(dx);
+        Slope0Array(iteration)=Qslope0;   % This is the slope based on R0, K0 and dx. Note the slope in dx direction at the end of the step
+        break
+    end
+
+
+
+
+    % Now I've updated x and I need to recalculate K and R
+    [R,K]=fun(x) ; % This is the only call within the NR loop. But I guess I could check if the returned J from line minimization already fulfills exit criterion?
+
+
+    if ~isempty(Aeq)
+        h =- (Aeq*x-beq);
+        g =- (K'*R + Aeq'*l) ;
+    else
+        g =- K'*R  ;
+        h=[];
+    end
+
+    dxNorm=norm(dx);
+    dlNorm=norm(dl);
+    BCsNorm=norm(h) ;
+
+    R2=0.5*full(R'*R); % If all goes well, this should be same a Jmin returned by backtracking
+    r2 = 0.5*full([g;h]'*[g;h])/Normalisation;
+
+
+    r2Ratio=r2/r20 ;
+    R2Ratio=R2/R20 ;
+    dR2=[abs(R2-R20); dR2(1)] ;
+
+
+    if gammamin==0 || Qreduction==0
+        rho=0;
+    else
+        rho=(R2-R20)/Qreduction;
+    end
+
+
+    if TrustRegionSubProblem
+
+        % I'm here combining backtracking and trust-region approaches, which is not the commonly used approach.
+        % However, I found by experimentation, in combination with my great insight and intelligence, that the step size in the
+        % backtracking can be used to update the trust-region radius. Must allow for extrapolation. This works wonders for difficult
+        % problems such as the Rosenbrock function where this leads in the end to full Newton steps being taken. The Matlab
+        % optimization could not improve on this results.
+        Delta=gammamin*Delta;
+        %Delta=TrustRegionRadiusUpdate(Delta,rho) ;
+        fprintf("Backtracking resulted in gamma=%g . Setting trust-region radius to Delta=%g. \n",gammamin,Delta)
+
+    end
+
+
+    r2Array(iteration+1)=r2;
+    R2Array(iteration+1)=R2;
+    dxArray(iteration)=dxNorm ;
+    Slope0Array(iteration)=Qslope0;   % This is the slope based on R0, K0 and dx. Note the slope in dx direction at the end of the step
+    % If doing a line search, the slope at the end of the step should always be close to zero in
+    % the direction dx.
+
+
+    %  WorkArray(iteration+1)=[dx;dl]'*[g ; h] ;
+
+    if SaveIterate
+        xVector(:,iteration+1)=x(:) ;
+    end
+
+
+    fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-7g \t gamma=%-13g \t |r|^2=%-13g \t |r|^2/|r0|^2=%-7g \t |dx|=%-13g \t |dl|=%-7g \t |BCs|=%-5g \t rho=%-5f \t slope0 =%g \n",...
+        iteration,StepString,R2,R2Ratio,gammamin,r2,r2Ratio,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
+
+
+    if R2 < ResnormTol
+        fprintf("lsqUa: Exiting iteration because resnorm, |R|^2=%g, is within set tolerance of %g \n",r2,ResnormTol)
+        break
+    end
+
+    if r2 < FirstOrderOptimialityTol
+        fprintf("lsqUa: Exiting iteration because firstorder optimality measure, |r|^2=%g, is within set tolerance of %g \n",r2,FirstOrderOptimialityTol)
+        break
+    end
+
+    if dxNorm < dxTol
+        fprintf("lsqUa: Exiting iteration because change in step size |x|=%g within the set tolerance of %g \n",dxNorm,dxTol)
+        break
+    end
+
+
+    maxdR2=max(dR2);
+    if maxdR2 < dR2Tol
+        fprintf("lsqUa: Exiting iteration because max change in resnorm, |R|^2=%g over last two iterations, less than the set tolerance of %g \n",maxdR2,dR2Tol)
+        break
+    end
+
+    if iteration >= ItMax
+        fprintf("lsqUa: [\b Exiting]\b  iteration because number of iterations has reached the set maximum of %i \n",ItMax)
+        break
+
+    end
+
+
+end
+
+
+Slope0Array(iteration+1)=Qslope0;  % This is the slope in the direction dx based on final R and K values
+
+% fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
+
+
+residual=R2;
+
+
+
+output.r2Array=r2Array;
+output.R2Array=R2Array;
+output.dxArray=dxArray;
+output.Slope0Array=Slope0Array;
+% output.WorkArray=WorkArray;
+
+output.xVector=xVector;
+output.nIt=iteration;
+%output.fun=funOuts ; % missing this, need to add
+
+
+%%
+if CtrlVar.InfoLevelNonLinIt>= 10 && CtrlVar.doplots
+    FigNL=FindOrCreateFigure("Non-lin Convergence") ;  clf(FigNL)
+    hold off
+    yyaxis left
+    plot(0:iteration,output.r2Array(1:iteration+1),"bo-",DisplayName="$r^2$ (first-order optimality)")
+    FigNL.CurrentAxes.YScale="log"   ;
+    ylabel("$r^2$, first-order optimality",Interpreter="latex")
+    hold on
+    yyaxis right
+    plot(0:iteration,output.R2Array(1:iteration+1),"ro-",DisplayName="$\|R\|^2$")
+    FigNL.CurrentAxes.YScale="log"   ;
+    ylabel("Resnorm $\|R\|^2$",Interpreter="latex")
+    lg=legend(Interpreter="latex");
+end
+%%
+
+
+
+end
+
+
+

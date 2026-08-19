@@ -52,7 +52,7 @@ classdef BoundaryConditions
         hPosNodeDeActivated=[] ;
 
         % Boundary conditions for the level set field
-        % Only need when using the level-set method (currenlty under development, so don't
+        % Only need when using the level-set method (currently under development, so don't
         % use!)
         LSFFixedNode=[];
         LSFFixedValue=[];
@@ -61,14 +61,31 @@ classdef BoundaryConditions
         LSFL=[] ; 
         LSFrhs=[] ; 
 
-        % rate of thickness change - only used when using calculating dh/dt in combination with the ajoint methods
+        % rate of thickness change - only used when using calculating dh/dt in combination with the adjoint methods
         %                            for example when using measurements of dh/dt in an inversion
         dhdtFixedNode=[];
         dhdtFixedValue=[];
         dhdtTiedNodeA=[];
         dhdtTiedNodeB=[];
-        
-        
+
+        % BCs for update in A, B and C when performing inversions
+        dAFixedNode=[];
+        dAFixedValue=[];
+        dATiedNodeA=[];
+        dATiedNodeB=[];
+
+        dBFixedNode=[];
+        dBFixedValue=[];
+        dBTiedNodeA=[];
+        dBTiedNodeB=[];
+
+        dCFixedNode=[];
+        dCFixedValue=[];
+        dCTiedNodeA=[];
+        dCTiedNodeB=[];
+
+
+
     end
-    
+
 end

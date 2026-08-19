@@ -2,7 +2,7 @@ function [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,
     
     narginchk(8,8)
 
-    nargoutchk(4,4)
+    nargoutchk(3,4)
     tAssembly=tic;
     
     if CtrlVar.Parallel.uvhAssembly.spmd.isOn

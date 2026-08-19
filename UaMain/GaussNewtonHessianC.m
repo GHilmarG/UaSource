@@ -4,7 +4,7 @@ function [ddIdCC,UserVar]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,dIdC,F,Meas)
 % Gauss Newton estimate of ddIdCC
 
 %
-% Straightforward differentaion of I=I(u(C)) = 0.5 ((u-umeas)/uerr)^2
+% Straightforward differentiation of I=I(u(C)) = 0.5 ((u-umeas)/uerr)^2
 % 
 %  dI/dC= dI/du  du/dC   = (u-umes) uerr^{-2}    du/dC
 % 

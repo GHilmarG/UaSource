@@ -78,29 +78,61 @@ for Iint=1:MUA.nip
     
     %T=gradSurf.^(n-1).*(rhoint.*g.*hint).^n;
     
-    Dd=2*AGlen.* (gradSurf.^(n-1)) .* (hint.^(n+1)) .* ((rhoint.*g).^n) ./(n+1);
+    % there is a surprising numerical issue that can happen here. If gradSurf is essentially zero and n is just shy of 1 then we
+    % can have the situation gradsurf^(n-1)=0^{-eps)=Inf, whereas 0^0=1;
+    %
+    % 
+    %
+  
+    nm1=n-1; 
+    I=abs(n-1) < 10*eps ; nm1(I)=0; 
+
+  
+    Dd=2*AGlen.* (gradSurf.^(nm1)) .* (hint.^(n+1)) .* ((rhoint.*g).^n) ./(n+1);
     
-    Db=C.*(gradSurf.^(m-1)) .* ((rhoint.*g.*hint).^m) ;
+    mm1=m-1;
+    I=abs(m-1) < 10*eps ; mm1(I)=0;
+
+    Db=C.*(gradSurf.^(mm1)) .* ((rhoint.*g.*hint).^m) ;
     
     for Inod=1:MUA.nod
-        
+
         % Deformational
         rhsd=Dd.*fun(Inod);
         rhsxd=-rhsd.*dsdx;
         rhsyd=-rhsd.*dsdy;
-        
+
+        if any(isnan(rhsd))
+            fprintf("HM\n")
+        end
+
+        if any(isnan(dsdx))
+            fprintf("HM\n")
+        end
+        if any(isnan(dsdy))
+            fprintf("HM\n")
+        end
+        if any(isnan(rhsxd))
+            fprintf("HM\n")
+        end
+
+
         bxd(:,Inod)=bxd(:,Inod)+rhsxd.*detJw;
         byd(:,Inod)=byd(:,Inod)+rhsyd.*detJw;
-        
-        
+
+
         % basal
         rhsb=Db.*fun(Inod);
         rhsxb=-rhsb.*dsdx;
         rhsyb=-rhsb.*dsdy;
-        
+
+        if any(isnan(rhsd))
+            fprintf("HM\n")
+        end
+
         bxb(:,Inod)=bxb(:,Inod)+rhsxb.*detJw;
         byb(:,Inod)=byb(:,Inod)+rhsyb.*detJw;
-        
+
     end
 end
 

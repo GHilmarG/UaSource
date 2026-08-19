@@ -7,12 +7,24 @@ function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,p
 %  Func is func evaluated as a function of step-size gamma in the direction of
 %  the gradient: Func=@(gamma) func(p-gamma*dJdp);
 %
-
+%
+% A very short and concise overview over some of the ideas used is found in:
+%
+% https://www.epfl.ch/labs/anchp/wp-content/uploads/2018/05/part5-1.pdf
+%
+%%
 narginchk(8,8)
 nargoutchk(3,3)
 
 
-if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+
+if  contains(CtrlVar.Inverse.MinimisationMethod,"-BruteForceHessian-") || contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
+
+    
+     [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub); 
+     
+
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     
     [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
 

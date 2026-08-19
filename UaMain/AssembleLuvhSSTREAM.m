@@ -2,14 +2,32 @@
 
 
 
-function [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs,l)
+function [Luvh,cuvh,luvh,l]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs,l)
+
+
+
+if nargin==4 && nargout~=4
+
+    error("AssembleLuvhSSTREAM:IncorrectNumberOfArguments","If number of input arguments is 4 the number of output arguments must also be 4")
+end
 
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
+
+
 Luv=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
+
 Lh=MLC.hL;
 ch=MLC.hRhs;
 
+
+
+if nargin<4 || isempty(l)
+
+    l.ubvb=zeros(numel(cuv),1);
+    l.h=zeros(numel(ch),1) ; 
+
+end
 
 % Luv  : #uv constrains x 2MUA.Nnodes
 % Lh  : #h constrains x MUA.Nnodes
@@ -52,21 +70,24 @@ end
 
 
 if isempty(Lh) && ~isempty(Luv)
-    L=[Luv sparse(nu,MUA.Nnodes)] ;
+    Luvh=[Luv sparse(nu,MUA.Nnodes)] ;
     cuvh=cuv ;
     luvh=l.ubvb;
 elseif ~isempty(Lh) && isempty(Luv)
-    L=[sparse(nh,2*MUA.Nnodes) Lh] ;
+    Luvh=[sparse(nh,2*MUA.Nnodes) Lh] ;
     cuvh=ch ;
     luvh=l.h;
 elseif ~isempty(Lh) && ~isempty(Luv)
     
-    L=[ Luv sparse(nu,MUA.Nnodes) ; sparse(nh,2*MUA.Nnodes) Lh];
+    Luvh=[ Luv sparse(nu,MUA.Nnodes) ; sparse(nh,2*MUA.Nnodes) Lh];
     cuvh=[cuv;ch];
     luvh=[l.ubvb;l.h];
 else
-    L=[] ; cuvh=[] ; luvh=[];
+    Luvh=[] ; cuvh=[] ; luvh=[];
 end
+
+
+
 
 
 end

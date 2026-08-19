@@ -57,7 +57,7 @@ IterationMax=CtrlVar.ALSIterationMax;
 n=size(A,1) ; m=size(B,1);
 x0=zeros(n,1);
 
-
+[nf,mf]=size(f); 
 
 % The following seems a good way of selecting iW
 %k=round(log10(mean(abs(diag(A))))) ; w=10^(k+ALSpower);  % w=1;
@@ -76,7 +76,7 @@ luvector=CtrlVar.Solve.LUvector;
 
 if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
     [L,D,p,S]=ldl(T,'vector');   % LDL factorisation using MA57, MA57 is a multifrontal sparse direct solver using AMD ordering
-    sol=zeros(m+n,1);
+    sol=zeros(m+n,mf);
 elseif luvector
     
     if isdistributed(T)
@@ -88,7 +88,7 @@ elseif luvector
         % sol(q)=U\(L\(R(:,p)\fg)) ;
     end
     
-    sol=zeros(m+n,1);
+    sol=zeros(m+n,mf);
     
 else
     
@@ -155,7 +155,9 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
     % sol=Q*(U\(L\(P*(R\fg))));
     
     if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
-        fg=S*fg ; sol(p)=L'\(D\(L\(fg(p)))); sol=S*sol;  % if using the vector format
+        fg=S*fg ; 
+        sol(p,:)=L'\(D\(L\(fg(p,:))));      % this does works for multiple right-hand sides
+        sol=S*sol;  % if using the vector format
         
     elseif luvector
         if isdistributed(T)
@@ -167,7 +169,8 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
         if isdistributed(T)
             sol=U\(L\(P*fg)) ;  % not sure if correct, could not test because lu not yet implemented for distributed sparse matrices!
         else
-            sol=Q*(U\(L\(P*(R\fg))));   % P*(R\A)*Q = L*U for sparse non-empty A.
+            sol=Q*(U\(L\(P*(R\fg))));   % P*(R\A)*Q = L*U for sparse non-empty A.  This works for multiple right-hand sides
+                           
         end
     end
     
@@ -176,25 +179,25 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
         error('AugmentedLagrangianSolver:NaN','NaN in sol. All variables writen to TestSave.mat')
     end
     
-    x=sol(1:n) ; y=sol(n+1:end);
+    x=sol(1:n,:) ; y=sol(n+1:end,:);
     
     %[A B'] [x]=[f]
     %[B 0 ] [y]=[g]
-    resAbsolute=norm([A B' ; B sparse(m,m)]*sol-[f ; g])/norm([f;g]);
-    resRelative=resAbsolute/norm([f;g]);
+    resAbsolute=norm([A B' ; B sparse(m,m)]*sol-[f ; g],'fro')/norm([f;g],'fro');
+    resRelative=resAbsolute/norm([f;g],'fro');
     
     
-    yDiff=norm(y-y0)/norm(y);
-    xDiff=norm(x-x0)/norm(x);
+    yDiff=norm(y-y0,'fro')/norm(y,'fro');
+    xDiff=norm(x-x0,'fro')/norm(x,'fro');
     %res=norm([A B' ; B sparse(m,m)]*sol-[f ; g]);
     
     if CtrlVar.InfoLevelLinSolve>=10 
-        res1=norm(A*x+B'*y-f)/norm(f);
-        ng=norm(g);
+        res1=norm(A*x+B'*y-f,'fro')/norm(f,'fro');
+        ng=norm(g,'fro');
         if ng>0
-            res2=norm(B*x-g)/norm(g);
+            res2=norm(B*x-g,'fro')/norm(g,'fro');
         else
-            res2=norm(B*x-g);
+            res2=norm(B*x-g,'fro');
         end
         
         
@@ -238,13 +241,13 @@ if Iteration > IterationMax
 end
 
 if resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10
-    res1=norm(A*x+B'*y-f)/norm(f);
+    res1=norm(A*x+B'*y-f,'fro')/norm(f,'fro');
     
     ng=norm(g);
     if ng>0
-        res2=norm(B*x-g)/norm(g);
+        res2=norm(B*x-g,'fro')/norm(g,'fro');
     else
-        res2=norm(B*x-g);
+        res2=norm(B*x-g,'fro');
     end
     fprintf(' relative residuals=%-g \t absolute residuals=%-g \t first equation %-g \t second equation %-g \n',resRelative,resAbsolute,res1,res2);
     warning('ALS:MaxIterationReached','Augmented Lagrangian Solver did not fully converge to prescribed tolerance of %-g \n',CtrlVar.LinSolveTol)
@@ -255,14 +258,14 @@ end
 
 if CtrlVar.InfoLevelLinSolve>=10
     fprintf(' --------------------------- AugmentedLagrangianLinSolver: ----------------------------------------------------------------------------------------------\n ')
-    fprintf(' solves a system on the form [A B'' ; B 0] [x;y] =[f;g]  iterativily \n')
+    fprintf(' solves a system on the form [A B'' ; B 0] [x;y] =[f;g]  iteratively \n')
     fprintf(' starting with [A B'' ; B iW]=[f;g]  , where iW=1/10^(k+CtrlVar.ALSpower)  using k=%g and CtrlVar.ALSpower=%g \n ',...
         full(k),CtrlVar.ALSpower)
     ng=norm(g);
     if ng>0
-        fprintf(' Iteration           |x-x0|/|x|                  |y-y0|/|y|           |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|    |A*x+B''*y-f|/|f|        |B*x-g|/|g| \n')
+        fprintf(' Iteration           |x-x0|/|x|           \t       |y-y0|/|y|       \t    |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|  \t  |A*x+B''*y-f|/|f|        |B*x-g|/|g| \n')
     else
-        fprintf(' Iteration           |x-x0|/|x|                  |y-y0|/|y|           |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|    |A*x+B''*y-f|/|f|        |B*x-g|\n')
+        fprintf(' Iteration           |x-x0|/|x|           \t       |y-y0|/|y|       \t    |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|  \t  |A*x+B''*y-f|/|f|        |B*x-g|\n')
     end
     for I=1:Iteration
         fprintf('%10i \t %20.10g \t \t %20.10g \t \t %30.10g \t %20.10g \t %20.10g \n',...
@@ -284,6 +287,11 @@ if CtrlVar.InfoLevelLinSolve>=10
 
 end
 
+%% test, get rid of later 
+res1 = norm(A*x + B'*y - f)/norm(x);
+res2 = norm(B*x - g)/norm(x);
+fprintf('Stationarity  ||H*x + A''*lambda - g||/||x||= %.2e\n', res1);
+fprintf('Feasibility   ||A*x - b||/||x||             = %.2e\n', res2);
 
 end
 

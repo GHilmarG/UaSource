@@ -1,6 +1,6 @@
 
 
-function UaPlotProfile(CtrlVar,MUA,F,xyProfile)
+function UaProfilePlot(CtrlVar,MUA,F,xyProfile)
 
 
 if nargin<4

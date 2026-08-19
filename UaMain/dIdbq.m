@@ -1,4 +1,8 @@
-function dFdhlambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp)
+
+
+
+function dFdhlambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp)
+        
 
 %%
 %
@@ -33,6 +37,8 @@ function dFdhlambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp)
 % and some possible additional boundary terms.
 %
 %%
+
+narginchk(10,10)
 
 ndim=2;
 
@@ -366,9 +372,9 @@ for Inod=1:MUA.nod
     dFdhlambda=dFdhlambda+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-P=MUA.M/MUA.Area;
-dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,P,dFdhlambda);
 
+dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dFdhlambda);
+ 
 end
 
 

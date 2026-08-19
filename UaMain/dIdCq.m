@@ -1,11 +1,35 @@
 
 
 
-function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
+function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 
-narginchk(7,7)
+narginchk(9,9)
 
 %%
+% Calculates:
+%
+%
+% $$ \langle  \delta_{C_i} F^x | \lambda_x \rangle + \langle  \delta_{C_i} F^y | \lambda_y \rangle $$
+%
+%
+% For example, for Weertman
+%
+% $$F_x= -t_x=-\mathcal{G} \beta^2 \, v_x $$
+%
+% $$F_y=- t_y=-\mathcal{G} \beta^2 \, v_y $$
+%
+% $$\beta^2=(C+C_0)^{-1/m} \; v^{1/m-1} $$
+% 
+% $$ v=\sqrt{v_x^2+v_y^2+v_0} $$
+%
+% $$\delta_C F_x = \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, u \; \delta C$$
+%
+% $$
+% \langle \lambda |  \delta_C F \rangle = \int \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
+% $$
+%
+% This is a vector.
+%
 %
 % When performing an inversion with respect to a parameter p we minimize a
 % cost function J, on the form
@@ -17,7 +41,7 @@ narginchk(7,7)
 %    F(d(p),p)=0
 %
 %
-% Here F is the forward model, wich allows us to solve for d given p.
+% Here F is the forward model, which allows us to solve for d given p.
 %
 % p are the model parameters we want to invert for, and \tilde{p} are
 % direct estimates/measurements of those parameters, i.e. the priors.
@@ -49,8 +73,12 @@ narginchk(7,7)
 %
 % if dC=phi then : <u l phi_q | phi >
 %
-% nodal based gradient
-
+% directional derivative.
+%
+%
+%
+%
+%%
 ndim=2;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
@@ -120,19 +148,21 @@ for Iint=1:MUA.nip
     %
     % beta2= (C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
     %
-    
+
     % setting this CtrlVar field to true ensures that BasalDrag.m returns the (point) derivative
     CtrlVar.Inverse.dFuvdClambda=true;
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
-    
- 
-    
+
+    % Note: I include the u and v in the adjoint calculation itself below, so I just need the
+    % derivative without the u and the v. Therefore 
+    %
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
 
-        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;
+
+        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;  
 
     end
 end
@@ -151,7 +181,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
 end
 
 
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdC);
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dIdC);
 
 
 

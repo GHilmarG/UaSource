@@ -12,17 +12,21 @@ if ~isempty(Priors.TrueB)
     % the True B field is not empty. This could, for example, be a synthetic test case.
 
     figB=FindOrCreateFigure("True and estimated B"); clf(figB)
-    TB=tiledlayout(2,3) ;
+    TB=tiledlayout("flow") ;
 
     ax1=nexttile;
-    UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
+    cbar1=UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("True B")
+    subtitle("") ; title(cbar1,"(m a.s.l.)")
+    cl1=clim; 
 
     ax2=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
+    cbar2=UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("Retrieved B")
+    subtitle("") ; title(cbar2,"(m a.s.l.)")
+    clim(cl1)
 
 
     if isempty(Priors.TrueB)
@@ -31,26 +35,34 @@ if ~isempty(Priors.TrueB)
 
 
     ax3=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
+    cbar3=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("B retrieved - B true")
-
+    subtitle("") ; title(cbar3,"(m)")
+    %clim(cl1)
 
     ax4=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
+    cbar4=UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B at start of current inversion")
+    title("B at start of current inversion run")
+    subtitle("") ; title(cbar4,"(m a.s.l.)")
+    clim(cl1)
 
     ax5=nexttile;
-    UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
+    cbar5=UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B prior")
+    title(cbar5,"(m a.s.l.)")
+    title("B prior") ; subtitle("") ; 
+    clim(cl1)
+
 
     ax6=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
+    cbar6=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("Retrieved B -  Prior B ")
-
+    subtitle("") ; 
+    title(cbar6,"(m)")
+    % clim(cl1)
 
     % feels a bit clumsy way of ensuring that each tile as its own colorbar, but I can't think of a simpler approach
     set(figB,CurrentAxes=ax1) ;
@@ -107,7 +119,10 @@ if ~isempty(Priors.TrueB)
     % figB.Position=[200 200 1300 800];
     TB.TileSpacing="tight";
     TB.Padding="tight";
-    %colormap(othercolor("Mdarkterrain",32))
+    % colormap(othercolor("Mdarkterrain",32))
+    CM=cmocean('ice',15) ; colormap(CM);
+    set(figB,CurrentAxes=ax3) ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(ax3,CM);
+    set(figB,CurrentAxes=ax6) ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(ax6,CM);
 
 end
 
@@ -122,13 +137,14 @@ if ~isempty(Meas.B)
 
 
     figB=FindOrCreateFigure("Measured and estimated B"); clf(figB)
-    TB=tiledlayout(2,3) ;
+    TB=tiledlayout("flow") ;
 
     ax1=nexttile;
     UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);
     climMeasured=clim;
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("Measured B (projected onto nodes)")
+    title("$B_{\mathrm{Meas}}$ (projected onto nodes)",Interpreter="latex")
+    subtitle("")
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
     lg=legend;
@@ -138,7 +154,8 @@ if ~isempty(Meas.B)
     ax2=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("Retrieved B")
+    title("$B_{\mathrm{Retrieved}}$",Interpreter="latex")
+    subtitle("")
     clim(climMeasured);
 
 
@@ -146,8 +163,8 @@ if ~isempty(Meas.B)
     UaPlots(CtrlVar,MUA,F,BDiff,CreateNewFigure=false);
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
-    %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B estimated - B measured")
+    title("$B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}}$",Interpreter="latex")
+    subtitle("")
     lg=legend;
     lg.String{1}="$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})$";
     lg.Interpreter="latex";
@@ -161,6 +178,7 @@ if ~isempty(Meas.B)
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
     % hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})/B_{\mathrm{Error}}$",Interpreter="latex")
+    subtitle("")
     lg=legend;
     lg.String{1}="$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})/B_{\mathrm{Error}}$";
     lg.Interpreter="latex";
@@ -168,13 +186,13 @@ if ~isempty(Meas.B)
 
     ax5=nexttile;
     UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
-    hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B prior")
+    title("$B_{\mathrm{Prior}}$",Interpreter="latex")
+    subtitle("");
 
     ax6=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
-    hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("Retrieved B -  Prior B ")
+    title("$B_{\mathrm{Retrieved}}-B_{\mathrm{Prior}}$",Interpreter="latex")
+    subtitle("");
 
 
     % feels a bit clumsy way of ensuring that each tile as its own colorbar, but I can't think of a simpler approach
@@ -236,7 +254,28 @@ if ~isempty(Meas.B)
 
 end
 
+%%
+figh=FindOrCreateFigure("h retrieved"); clf(figh)
 
+Th=tiledlayout("flow") ;
 
+axh1=nexttile;
+UaPlots(CtrlVar,MUA,F,F.h,CreateNewFigure=false);
+title("Retrieved ice thickness") ; subtitle("");
+CM=cmocean('-ice',15) ; colormap(CM);
+%set(gca,'ColorScale','log')
+
+axh2=nexttile;
+UaPlots(CtrlVar,MUA,F,F.s-Priors.B,CreateNewFigure=false);
+title("s-B prior") ; subtitle("");
+CM=cmocean('-ice',15) ; colormap(CM);
+%set(gca,'ColorScale','log')
+
+CbarLink=linkprop([axh1 axh2],'CLim') ; assignin('base','CbarLink_clim',CbarLink)
+
+Th.TileSpacing="tight";
+Th.Padding="tight";
+
+%%
 
 end

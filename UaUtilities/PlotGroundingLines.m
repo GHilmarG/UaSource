@@ -96,12 +96,17 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 narginchk(0,inf)
 
 
-if nargin==0 
+if nargin==0
 
     CtrlVar=[]; 
+end
+
+if nargin<=1 
+
     MUA="Bedmachine" ; 
 
 end
+
 
 if isempty(CtrlVar)
     CtrlVar(1).PlotXYscale=1000;

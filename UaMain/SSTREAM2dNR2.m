@@ -3,10 +3,16 @@
 function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
     
     
-    % Solves SSA/SSTREAM for u and v
+%% Solves SSA/SSTREAM for u and v
+%
+%
+% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_x B =0 $$
+%
+% $$ F_y=\partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_y B =0 $$
+% 
+%%
 
-
-    nargoutchk(7,7)
+nargoutchk(7,7)
     narginchk(7,7)
     
     
@@ -58,7 +64,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
     
     if anynan(F.S) ; save TestSave ; error( ' S nan ') ; end
-    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
+%    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
     if anynan(F.ub) ; save TestSave ; error( ' ub nan ') ; end
     if anynan(F.vb) ; save TestSave ; error( ' vb nan ') ; end
     if anynan(l.ubvb) ; save TestSave ; error( ' ubvbLambda nan ') ; end
@@ -98,7 +104,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
 
     %% Make sure iterate is feasible, at least with respect to directs BCs
-    if CtrlVar.uvMakeInitialIterateFeasible
+    if isfield(CtrlVar,"uvMakeInitialIterateFeasible") &&  CtrlVar.uvMakeInitialIterateFeasible
         F.ub(BCs.ubFixedNode)=BCs.ubFixedValue;
         F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
     end
@@ -222,8 +228,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
             if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
         end
         
-        if anynan(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
-        if anynan(L) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
+     
         
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
 

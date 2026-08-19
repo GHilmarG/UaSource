@@ -16,7 +16,7 @@ function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,Ctrl
 %
 % $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  =  \rho \, a(h)$$
 %
-%  $$a(h)$$ is a function of $h$ when using the level set with automated mass-balance feedback, and if using the thickness
+% $$a(h)$$ is a function of $h$ when using the level set with automated mass-balance feedback, and if using the thickness
 %  barrier term to (approximately) enforce positive ice thicknesses.
 %
 % Assembly
@@ -277,7 +277,7 @@ for Iint=1:MUA.nip  %Integration points
                     +(rhoint.*fun(Jnod)...
                     -dt*theta*rhoint.*da1dhint.*fun(Jnod)...
                     +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
-                    +rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
+                               +rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
                     .*SUPG.*detJw;
 
             end

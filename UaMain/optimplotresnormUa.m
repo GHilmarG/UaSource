@@ -1,54 +1,35 @@
-function stop = optimplotresnormUa(x,optimValues,state,varargin)
-% OPTIMPLOTRESNORM Plot value of the norm of residuals at each iteration.
-%
-%   STOP = OPTIMPLOTRESNORM(X,OPTIMVALUES,STATE) plots OPTIMVALUES.resnorm.
-%
-%   Example:
-%   Create an options structure that will use OPTIMPLOTRESNORM as the plot
-%   function
-%     options = optimoptions('lsqnonlin','PlotFcn',@optimplotresnorm);
-%
-%   Pass the options into an optimization problem to view the plot
-%     lsqnonlin(@(x) sin(3*x),[1 4],[],[],options);
+function stop = optimplotresnorm(~,optimValues,state,varargin)
+    % OPTIMPLOTRESNORM Plot value of the norm of residuals at each iteration.
+    %
+    %   STOP = OPTIMPLOTRESNORM(X,OPTIMVALUES,STATE) plots OPTIMVALUES.resnorm.
+    %
+    %   Example:
+    %   Create an options structure that will use OPTIMPLOTRESNORM as the plot
+    %   function
+    %     options = optimoptions('lsqnonlin','PlotFcn',@optimplotresnorm);
+    %
+    %   Pass the options into an optimization problem to view the plot
+    %     lsqnonlin(@(x) sin(3*x),[1 4],[],[],options);
 
-%   Copyright 2006-2015 The MathWorks, Inc.
+    %   Copyright 2006-2023 The MathWorks, Inc
 
-persistent plotavailable
-stop = false;
+    % Always return a "stop" flag of false
+    stop = false;
 
-switch state
-    case 'init'
-        if isfield(optimValues,'resnorm')
-            plotavailable = true;
-        else
-            plotavailable = false;
-            title(getString(message('optim:optimplot:TitleNormResid', ...
-                getString(message('optim:optimplot:NotAvailable')))),'interp','none');
-        end
-    case 'iter'
-        if plotavailable
+    % Persistent variables
+    persistent thePlot
+
+    switch state
+        case "iter"
             if optimValues.iteration == 0
-                % The 'iter' case is  called during the zeroth iteration,
-                % but it now has values that were empty during the 'init' case
-                %plotresnorm = plot(optimValues.iteration,optimValues.resnorm,'kd', ...
-                %    'MarkerFaceColor',[1 0 1]);
+                thePlot = matlab.internal.optimfun.plotfcns.Factory.optimplotresnorm(optimValues);
+                thePlot.Axes.YScale='log'    ;
 
-                plotresnorm = semilogy(optimValues.iteration,optimValues.resnorm,'kd', ...
-                    'MarkerFaceColor',[1 0 1]);
-
-                xlabel(getString(message('optim:optimplot:XlabelIter')),'interp','none');
-                set(plotresnorm,'Tag','optimplotresnorm');
-                ylabel(getString(message('optim:optimplot:YlabelNormResid')),'interp','none');
-                title(getString(message('optim:optimplot:TitleNormResid', ...
-                    sprintf('%g',norm(optimValues.resnorm)))),'interp','none');
             else
-                plotresnorm = findobj(get(gca,'Children'),'Tag','optimplotresnorm');
-                newX = [get(plotresnorm,'Xdata') optimValues.iteration];
-                newY = [get(plotresnorm,'Ydata') optimValues.resnorm];
-                set(plotresnorm,'Xdata',newX, 'Ydata',newY);
-                set(get(gca,'Title'),'String', ...
-                    getString(message('optim:optimplot:TitleNormResid', ...
-                    sprintf('%g',optimValues.resnorm))));
+                thePlot.update(optimValues);
             end
-        end
+
+    end 
+  
+
 end

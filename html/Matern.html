@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>Matern</title>
-<meta name="generator" content="MATLAB 23.2">
+<meta name="generator" content="MATLAB 26.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2023-12-11">
+<meta name="DC.date" content="2026-07-16">
 <meta name="DC.source" content="Matern.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -77,96 +77,190 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <body>
 <div class="content">
 <pre class="codeinput">
-<span class="keyword">function</span> [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
+<span class="keyword">function</span> [C,nu,kappa,sigma2,tau,Cov,Realisation,coords]=Matern(sigma2,alpha,rho,r,DoPlots,CreateRealisations)
 </pre>
+<p>Remark: Noticed in July 2026, that I had done this for <img src="Matern_eq11687378826802161069.png" alt="$\tau=1$" style="width:31px;height:10px;">, which is OK, but not the most general expression Now I've included arbitrary <img src="Matern_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:6px;">. I also clarified which parameters are considered independent (sigma2,alpha,rho). Also, the realizations are now in the plane, i.e. 2D, which gives a better feeling for how they look. Previously I only did this as a function of the distance, r.</p>
+<p>The Matern covariance function does not have a finite non-zero limit for <img src="Matern_eq15489379837491365969.png" alt="$\nu \to 0$" style="width:36px;height:10px;">, and since <img src="Matern_eq00410619837380935068.png" alt="$\nu=\alpha - d/2 $" style="width:70px;height:10px;"> one must have <img src="Matern_eq11752746721436303060.png" alt="$\alpha > d/2$" style="width:46px;height:11px;">. Thus, for <img src="Matern_eq02638629191477373823.png" alt="$d=2$" style="width:34px;height:10px;">. Setting <img src="Matern_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:10px;"> for <img src="Matern_eq02638629191477373823.png" alt="$d=2$" style="width:34px;height:10px;"> gives <img src="Matern_eq10600573021215760490.png" alt="$\nu=0$" style="width:33px;height:10px;"> so this is then right at the limit.</p>
+<p>
+<b>Mat\'ern Covariance</b>
+</p>
+<p>If we solve the equation:</p>
+<p>
+<img src="Matern_eq11075031211218712334.png" alt="$$\tau \; (\kappa^2 - \Delta)^{\alpha/2} \;  B(x) = W(x) $$" style="width:154px;height:16px;"></p>
+<p>
+<img src="Matern_eq00469658022559654006.png" alt="$$x \in \mathcal{R}^d $$" style="width:46px;height:14px;"></p>
+<p>with <img src="Matern_eq05601851732682867927.png" alt="$W(x)$" style="width:30px;height:13px;"> uncorrelated Gaussian white noise. Then the resulting covariance is</p>
+<p>
+<img src="Matern_eq13889111297579959240.png" alt="$$ C(r) = \frac{\sigma^2}{2^{\nu - 1}\, \Gamma(\nu)} \;  \left(\kappa \|r\|\right)^{\nu} \; K_{\nu}\!\left(\kappa  \|r\|\right) $$" style="width:203px;height:36px;"></p>
+<p>where</p>
+<p>
+<img src="Matern_eq12800007198663933260.png" alt="$r=(x-x_0,y-y_0) $" style="width:112px;height:14px;"> as the covariance is isotropic.</p>
+<p>
+<img src="Matern_eq05601851732682867927.png" alt="$W(x)$" style="width:30px;height:13px;"> is not a function, but a generalized field defined by its action on test functions,</p>
+<p>
+<img src="Matern_eq05860272048995275223.png" alt="$$E \left[\langle\mathcal{W},\phi_i\rangle\langle\mathcal{W},\phi_j\rangle\right] = (\phi_i,\phi_j)_{L^2} =  M_{ij}$$" style="width:223px;height:16px;"></p>
+<p>Here we have</p>
+<p>
+<img src="Matern_eq01730420093463028391.png" alt="$$\nu = \alpha - \frac{d}{2}$$" style="width:58px;height:29px;"></p>
+<p>where <img src="Matern_eq10517210026693618754.png" alt="$d$" style="width:9px;height:10px;"> is the dimension, i.e <img src="Matern_eq02638629191477373823.png" alt="$d=2$" style="width:34px;height:10px;"> in the xy plane, and the marginal variance is</p>
+<p>
+<img src="Matern_eq07947498266450867675.png" alt="$$\sigma^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \tau^2} $$" style="width:136px;height:33px;"></p>
+<p>The correlation function <img src="Matern_eq12003377787796829500.png" alt="$\rho(r)$" style="width:25px;height:14px;"> is simply the covariance normalized to give</p>
+<p>
+<img src="Matern_eq07489678662520085021.png" alt="$$\rho(r=0)=1$$" style="width:75px;height:14px;"></p>
+<p>and is</p>
+<p>
+<img src="Matern_eq02339715741936944088.png" alt="$$ \rho(r) = \frac{C(r)}{\sigma^2}= \frac{1}{2^{\nu - 1}\, \Gamma(\nu)} \; \left(\kappa \|r\|\right)^{\nu} \; K_{\nu}\!\left(\kappa  \|r\|\right) $$" style="width:247px;height:33px;"></p>
+<p>
+<b>Selecting hyper-parameters</b>
+</p>
+<p>We have several parameters that need to be selected. Of those <img src="Matern_eq10517210026693618754.png" alt="$d$" style="width:9px;height:10px;"> is not really a free parameter but given by the physical dimension of the problem.</p>
+<p>I can select <img src="Matern_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;">, <img src="Matern_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:6px;"> and <img src="Matern_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:6px;"> with <img src="Matern_eq02638629191477373823.png" alt="$d=2$" style="width:34px;height:10px;"> and then set</p>
+<p>
+<img src="Matern_eq01730420093463028391.png" alt="$$\nu = \alpha - \frac{d}{2}$$" style="width:58px;height:29px;"></p>
+<p>and</p>
+<p>
+<img src="Matern_eq07947498266450867675.png" alt="$$\sigma^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \tau^2} $$" style="width:136px;height:33px;"></p>
+<p>This makes sense if I'm thinking about the parameters of the differential operator as independent.</p>
+<p>Alternatively, I can select <img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:16px;height:15px;"> and <img src="Matern_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:6px;"> with <img src="Matern_eq02638629191477373823.png" alt="$d=2$" style="width:34px;height:10px;">, but this is not enough and I will additionally need to fix <img src="Matern_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;">. This is often done by selecting the distance over which the correlation drops to 0.1 which turns out to be related to <img src="Matern_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> and <img src="Matern_eq11111621859577524724.png" alt="$\nu$" style="width:7px;height:6px;">, so this is really just another way of selecting <img src="Matern_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;">. This gives (approximately)</p>
+<p>
+<img src="Matern_eq13404251335405118097.png" alt="$$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$" style="width:69px;height:43px;"></p>
+<p>where <img src="Matern_eq17454244308657937853.png" alt="$\rho$" style="width:9px;height:10px;"> in this expression is the distance at which the correlation drops to 0.1 (although this is not exact)</p>
+<p>This is arguably the most physical way of thinking about this. I select <img src="Matern_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:6px;"> which controls the smoothness. This gives me <img src="Matern_eq11111621859577524724.png" alt="$\nu$" style="width:7px;height:6px;"> since <img src="Matern_eq10517210026693618754.png" alt="$d$" style="width:9px;height:10px;"> is not really a free parameter. Then fix a correlation length <img src="Matern_eq17454244308657937853.png" alt="$\rho$" style="width:9px;height:10px;"> which gives me <img src="Matern_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> from the above equation. I now also need to select <img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:16px;height:15px;">, which relates to the uncertainty in the magnitude of the prior. I can then calculate <img src="Matern_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:6px;"> from the expression for <img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:16px;height:15px;">.</p>
+<p>Here <img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:16px;height:15px;">, <img src="Matern_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:6px;"> and <img src="Matern_eq17454244308657937853.png" alt="$\rho$" style="width:9px;height:10px;"> are considered free parameters and I set:</p>
+<p>
+<img src="Matern_eq09868410144504850549.png" alt="$$d=2$$" style="width:34px;height:10px;"></p>
+<p>
+<img src="Matern_eq01730420093463028391.png" alt="$$\nu = \alpha - \frac{d}{2}$$" style="width:58px;height:29px;"></p>
+<p>
+<img src="Matern_eq13404251335405118097.png" alt="$$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$" style="width:69px;height:43px;"></p>
+<p>
+<img src="Matern_eq06829566788256471968.png" alt="$\tau^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \sigma^2} $" style="width:136px;height:33px;"> discretized</p>
 <pre>[r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)</pre>
-<p>Calculates the Matern covariance defined as</p>
 <p>
-<img src="Matern_eq05274058284973367452.png" alt="$$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$" style="width:189px;height:36px;"></p>
-<p>Inputs:</p>
-<pre>  alpha   :   alpha/2 is the exponent in the fractional Helmholtz eqaution
-  rho     :   distance where correlation falls to 0.1
-  d       :   spatial dimention</pre>
-<pre>  sigma2  :   marginal variance, (optional input)
- DoPlots  :   plots of realisations if set to true (optional input)</pre>
-<p>Outputs:</p>
-<pre>     nu              :   nu=alpha-d/2;
-  kappa              :   the wave-number inthe Helmholtz equation
-  sigma2Helmholtz    :   marginal variance of the Helmholtz equation for the given
-                         kappa and alpha values
-  Cov                :   covariance matrix with the marginal covariance
-                         sigma2, if sigma2 is provided, otherwise with the
-                         marginal covariance sigma2Helmholtz
-  Realisation        :   One realisation of a Matern process.</pre>
+<b>Calculates the Matern covariance defined as</b>
+</p>
 <p>
-<img src="Matern_eq16450844572194849622.png" alt="$$\nu=\alpha-d/2$$" style="width:76px;height:15px;"></p>
-<p>for d=2 (i.e. two spatial dimentions) we have nu=2-1=1</p>
-<pre>rho=sqrt(8 nu)/kappa then given rho</pre>
+<img src="Matern_eq05274058284973367452.png" alt="$$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$" style="width:226px;height:43px;"></p>
 <p>
-<img src="Matern_eq13404251335405118097.png" alt="$$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$" style="width:57px;height:36px;"></p>
-<p>If sigma2 is not given on input, it is calculated based on expression in: Lindgren, F., Rue, H., &amp; Lindstr&ouml;m, J. (2011).</p>
-<p>Note that if <img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:13px;height:13px;"> is specified, the marginal variance of the Helmoltz equation with the specified alpha, rho and dimention will still be sigma2 as given</p>
-<p>
-<img src="Matern_eq02034593208247293835.png" alt="$$ \sigma^2=\frac{\Gamma(\nu) }{\Gamma(\nu+d/2) (4 \pi)^{d/2} \kappa^{2 \nu} } $$" style="width:169px;height:35px;"></p>
-<p>by the equation above!</p>
-<p>Only input sigma2 if you interested in returning and using the covariance matrix Cov and the Realisation.</p>
-<p>Example :</p>
-<pre class="language-matlab">d=2; alpha=2 ; rho=4e3 ;
-dist=linspace(0,1e4,1e3) ; [r,nu,kappa,sigma2]=Matern(alpha,rho,d,dist);
-figure ; plot(dist,r) ; xlabel(<span class="string">'distance'</span>) ; ylabel(<span class="string">'Matern'</span>)
-title([<span class="string">'$$ \sigma^2= $$'</span>,num2str(sigma2),<span class="string">' $$ \rho=$$'</span>,num2str(rho)],<span class="string">'interpreter'</span>,<span class="string">'latex'</span>)
+<b>Inputs:</b>
+</p>
+<pre>  sigma2  :   marginal variance, or prior uncertainty in the magnitude, that is C(r=0) = sigma2</pre>
+<pre>  alpha   :   alpha/2 is the exponent in the fractional Helmholtz equation, this controls the smoothness
+              mostly alpha makes the covariance flatter around h=0.</pre>
+<pre>  rho     :   distance where correlation falls to 0.1</pre>
+<pre>     r    : distance between (x,y) points, i.e.\ the argument of the isotropic covariance function</pre>
+<pre class="language-matlab">DoPlots  :   plots of <span class="string">realizations</span> <span class="string">if</span> <span class="string">set</span> <span class="string">to</span> <span class="string">true</span> <span class="string">(optional input)</span>
 </pre>
-<pre class="codeinput">
-<span class="keyword">if</span> nargin&lt;6
-    DoPlots=false;
-<span class="keyword">end</span>
+<p>
+<b>Outputs:</b>[C,nu,kappa,sigma2,tau,Cov,Realisation,coords</p>
+<pre>      C              :   the covariance</pre>
+<pre>     nu              :   nu=alpha-d/2;</pre>
+<pre>  kappa              :   the wave-number in the Helmholtz equation</pre>
+<pre>   tau               :  the second parameter in the Helmholtz equation.</pre>
+<pre>  Cov                :   covariance matrix with the marginal covariance</pre>
+<pre>  Realisation        :   One realization of a Matern process.</pre>
+<pre>   coords            : x,y coordinates of the points used to create the realization</pre>
+<pre>The most relevant paper is:</pre>
+<pre class="language-matlab">Lindgren, F., Rue, H., &amp; Lindstr&ouml;m, J. (2011).
+</pre>
+<p>
+<b>Example:</b>
+</p>
+<pre class="language-matlab">sigma2=1; alpha=2 ;rho=1 ; h=linspace(0,4,100) ; DoPlots=true ;  [C,nu,kappa,sigma2,tau,Cov,Realisation]=Matern(sigma2,alpha,rho,h,DoPlots) ;
+</pre>
+<p>
+<b>See also:</b>
+</p>
+<pre class="language-matlab">[rhoMatern,sigmaMatern,nuMatern]=Matern_alpha_kappa_tau(alphaMatern,kappaMatern,tauMatern) ;
+[alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)
+</pre>
+<p>
+<img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:16px;height:15px;">, <img src="Matern_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:6px;"> and <img src="Matern_eq17454244308657937853.png" alt="$\rho$" style="width:9px;height:10px;"> are considered free parameters and I set:</p>
+<pre class="codeinput">d = 2;                      <span class="comment">% physical dimension</span>
+nu=alpha-d/2;               <span class="comment">% ie nu=1 for alpha=2 and dimension=2</span>
+<span class="comment">%alpha = nu + d/2;</span>
+kappa=sqrt(8*nu)/rho;       <span class="comment">% this gives a correlation of about 0.1 at the distance rho</span>
+tau2 = gamma(nu) / (gamma(alpha) * (4*pi)^(d/2) * kappa^(2*nu) * sigma2);
+tau  = sqrt(tau2);
 
-Cov=[] ; Realisation=[] ;
 
-<span class="comment">% this gives a correlation of about 0.1 at the distance r</span>
-nu=alpha-d/2;  <span class="comment">% ie nu=1 for alpha=2 and dimention=2</span>
-
-kappa=sqrt(8*nu)/rho;
-
-sigma2Helmholtz=gamma(nu) /  ( gamma(nu+d/2)*(4*pi)^(d/2)*kappa^(2*nu));
-
-<span class="keyword">if</span> nargin&lt;5
-    <span class="comment">% Eq 1</span>
-    sigma2=sigma2Helmholtz ;
-<span class="keyword">end</span>
-
-x=kappa * x ;
-
-<span class="comment">% this sigma2 should be referred to as sigma^2</span>
-<span class="comment">% some other sources appear to use a different defintion of rho</span>
+<span class="comment">% some other sources appear to use a different definition of rho</span>
 <span class="comment">% for example rho in https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function</span>
 <span class="comment">% appear to be 1/2 of the rho I use here</span>
 <span class="comment">% My notation is based on:</span>
 <span class="comment">%   Lindgren, F., Rue, H., &amp; Lindstr&ouml;m, J. (2011).</span>
 <span class="comment">%   An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 73(4), 423&ndash;498. https://doi.org/10.1111/j.1467-9868.2011.00777.x</span>
-r = real(sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) );
+
+<span class="comment">% I should have C(0)=sigma2, but matlab gives: besselk(nu,0)=inf which whereas we here have the limit if 0*Inf which should give sigma2</span>
+C = zeros(size(r));
+idx = (r &gt; 0);
+C(idx)  = sigma2 / (2^(nu-1) * gamma(nu)) * (kappa*r(idx)).^nu .* besselk(nu, kappa*r(idx));
+C(~idx) = sigma2;
+
+
+<span class="comment">% the expression above for r fails for x=0, although the limit x^nu beselk(nu,x)  for x  to 0 is well defined, in fact</span>
+<span class="comment">%</span>
+<span class="comment">%   lim x to 0 of x^nu besselk(nu,x) = 1</span>
+<span class="comment">%</span>
 </pre>
 <pre class="codeinput">
-<span class="keyword">if</span> nargout&gt;4 || DoPlots
-    F = griddedInterpolant(x,r) ;
-    D=ndgrid(x,x) ;
-    D=abs(D-D') ;
+<span class="keyword">if</span> DoPlots
+    FindOrCreateFigure(<span class="string">"Matern covariance"</span>)
+    hold <span class="string">on</span>
+    plot(r,C)
 
-    Cov=F(D) ;
-    R=sqrtm(Cov);
-    Realisation=R*randn(numel(x),1) ;
+    xlabel(<span class="string">"$r=\sqrt{(x-x_0)^2+(y-y_0)^2}$, distance between points in $(x,y)$ plane"</span>,Interpreter=<span class="string">"latex"</span>)
+    ylabel(<span class="string">"$C(r)$, covariance"</span>,Interpreter=<span class="string">"latex"</span>)
+    title(sprintf(<span class="string">"Mat\\'ern field realisation: $\\sigma^2=%g, \\alpha=%g, \\rho=%g$"</span>,sigma2,alpha,rho),Interpreter=<span class="string">"latex"</span>);
+    subtitle(sprintf(<span class="string">"$d=%g, \\nu=%g, \\kappa=%g, \\tau=%g$"</span>,d,nu,kappa,tau),Interpreter=<span class="string">"latex"</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">if</span> CreateRealisations
+
+    [X,Y] = meshgrid(r, r) ;
+    coords = [X(:), Y(:)];
+    n = size(coords,1);
+
+    <span class="comment">% Pairwise distances</span>
+    H = squareform(pdist(coords));  <span class="comment">% this is potentially large, it is numel(r)*numel(r) \times numel(r) numel(r)</span>
+
+    <span class="comment">% Mat&eacute;rn covariance matrix (with h=0 handled separately)</span>
+    Cov = zeros(n,n);
+    idx = H &gt; 0;
+    Cov(idx) = sigma2 / (2^(nu-1)*gamma(nu)) * (kappa*H(idx)).^nu .* besselk(nu, kappa*H(idx));
+    Cov(~idx) = sigma2;
+
+
+    <span class="comment">% Add tiny jitter for numerical PD-ness (not a physical nugget, just conditioning)</span>
+    jitter = 1e-8 * sigma2;
+    L = chol(Cov + jitter*eye(n), <span class="string">'lower'</span>);
+
+    z = randn(n,1);
+    B = L*z;
+    Realisation = reshape(B, numel(r), numel(r));
 
     <span class="keyword">if</span> DoPlots
         figure;
-        <span class="keyword">for</span> I=1:3
-            y=R*randn(numel(x),1) ;
-            plot(x/1000,y) ; ylabel(<span class="string">'Matern realisation'</span>) ; xlabel(<span class="string">'distance (km)'</span>)
-            hold <span class="string">on</span>
-            fprintf(<span class="string">' Expected variance %f  \t  estimated variance %f \n '</span>,sigma2,var(y))
-        <span class="keyword">end</span>
-        title(sprintf(<span class="string">' A few examples of Matern realisations with rho=%i and sigma=%i'</span>,rho,sigma2))
+        imagesc(Realisation); axis <span class="string">equal</span> <span class="string">tight</span>; colorbar;
+
+        title(sprintf(<span class="string">"Mat\\'ern field realisation: $\\sigma^2=%g, \\alpha=%g, \\rho=%g$"</span>,sigma2,alpha,rho),Interpreter=<span class="string">"latex"</span>);
+        subtitle(sprintf(<span class="string">"$d=%g, \\nu=%g, \\kappa=%g, \\tau=%g$"</span>,d,nu,kappa,tau),Interpreter=<span class="string">"latex"</span>);
+        upper=max(B(:));
+        lower=-min(B(:));
+        CL=max(upper,lower);
+        clim([-CL CL])
+        CM=cmocean(<span class="string">'balanced'</span>,25,<span class="string">'pivot'</span>,0) ; colormap(CM);
     <span class="keyword">end</span>
 
+<span class="keyword">else</span>
+
+
+    Cov=[];
+    Realisation=[];
+    coords=[];
 <span class="keyword">end</span>
 </pre>
 <pre class="codeinput">
@@ -174,7 +268,7 @@ r = real(sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) );
 </pre>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2026a</a>
 <br>
 </p>
 </div>
@@ -186,120 +280,241 @@ r = real(sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) );
 
 
 
-function [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
+function [C,nu,kappa,sigma2,tau,Cov,Realisation,coords]=Matern(sigma2,alpha,rho,r,DoPlots,CreateRealisations)
 
 %%
-%  [r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
 %
-% Calculates the Matern covariance defined as
+% Remark: Noticed in July 2026, that I had done this for $$\tau=1$$, which is OK, but not the most general expression
+%         Now I've included arbitrary $$\tau$$. I also clarified which parameters are considered independent (sigma2,alpha,rho).
+%         Also, the realizations are now in the plane, i.e. 2D, which gives a better feeling for how they look. Previously I
+%         only did this as a function of the distance, r.
 %
-% $$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$
+% The Matern covariance function does not have a finite non-zero limit for $$\nu \to 0$$, and since $$\nu=\alpha - d/2 $$ one
+% must have $$\alpha > d/2$$. Thus, for $$d=2$$. Setting $$\alpha=1$$ for $d=2$ gives $$\nu=0$$ so this is then right at the limit.
 %
-% Inputs:
+% *Mat\'ern Covariance*
 %
-%    alpha   :   alpha/2 is the exponent in the fractional Helmholtz eqaution
-%    rho     :   distance where correlation falls to 0.1
-%    d       :   spatial dimention
+% If we solve the equation:
 %
-%    sigma2  :   marginal variance, (optional input)
-%   DoPlots  :   plots of realisations if set to true (optional input)
+% $$\tau \; (\kappa^2 - \Delta)^{\alpha/2} \;  B(x) = W(x) $$
 %
-% Outputs: 
+% $$x \in \mathcal{R}^d $$
 %
-%       nu              :   nu=alpha-d/2; 
-%    kappa              :   the wave-number inthe Helmholtz equation
-%    sigma2Helmholtz    :   marginal variance of the Helmholtz equation for the given
-%                           kappa and alpha values 
-%    Cov                :   covariance matrix with the marginal covariance
-%                           sigma2, if sigma2 is provided, otherwise with the
-%                           marginal covariance sigma2Helmholtz
-%    Realisation        :   One realisation of a Matern process. 
-% 
-% $$\nu=\alpha-d/2$$
+% with $$W(x)$$ uncorrelated Gaussian white noise. Then the resulting covariance is
 %
-% for d=2 (i.e. two spatial dimentions) we have nu=2-1=1
+% $$ C(r) = \frac{\sigma^2}{2^{\nu - 1}\, \Gamma(\nu)} \;  \left(\kappa \|r\|\right)^{\nu} \; K_{\nu}\!\left(\kappa  \|r\|\right) $$
 %
-%  rho=sqrt(8 nu)/kappa then given rho 
+% where
+%
+% $$r=(x-x_0,y-y_0) $$ as the covariance is isotropic.
+%
+% $$W(x)$$ is not a function, but a generalized field defined by its action on test functions,
+%
+% $$E \left[\langle\mathcal{W},\phi_i\rangle\langle\mathcal{W},\phi_j\rangle\right] = (\phi_i,\phi_j)_{L^2} =  M_{ij}$$
+%
+% Here we have
+%
+% $$\nu = \alpha - \frac{d}{2}$$
+%
+% where $$d$$ is the dimension, i.e $$d=2$$ in the xy plane, and the marginal variance is
+%
+% $$\sigma^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \tau^2} $$
+%
+% The correlation function $$\rho(r)$$ is simply the covariance normalized to give
+%
+% $$\rho(r=0)=1$$
+%
+% and is
+%
+% $$ \rho(r) = \frac{C(r)}{\sigma^2}= \frac{1}{2^{\nu - 1}\, \Gamma(\nu)} \; \left(\kappa \|r\|\right)^{\nu} \; K_{\nu}\!\left(\kappa  \|r\|\right) $$
+%
+% *Selecting hyper-parameters*
+%
+% We have several parameters that need to be selected. Of those $$d$$ is not really a free parameter but given by
+% the physical dimension of the problem.
+%
+% I can select $$\kappa$$, $$\alpha$$ and $$\tau$$ with $$d=2$$ and then set
+%
+%
+% $$\nu = \alpha - \frac{d}{2}$$
+%
+% and
+%
+% $$\sigma^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \tau^2} $$
+%
+% This makes sense if I'm thinking about the parameters of the differential operator as independent.
+%
+% Alternatively, I can select $$\sigma^2$$ and $\alpha$ with $$d=2$$, but this is not enough and I will additionally
+% need to fix $$\kappa$$. This is often done by selecting the distance over which the correlation drops to 0.1 which
+% turns out to be related to $$\kappa$$ and $$\nu$$, so this is really just another way of selecting $$\kappa$$. This
+% gives (approximately)
 %
 % $$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$
 %
+% where $$\rho$$ in this expression is the distance at which the correlation drops to 0.1 (although this is not exact)
 %
-% If sigma2 is not given on input, it is calculated based on expression in:
+% This is arguably the most physical way of thinking about this. I select $$\alpha$$ which controls the smoothness. This
+% gives me $$\nu$$ since $$d$$ is not really a free parameter. Then fix a correlation length $$\rho$$ which gives me
+% $$\kappa$$ from the above equation. I now also need to select $$\sigma^2$$, which relates to the uncertainty in the
+% magnitude of the prior. I can then calculate $$\tau$$ from the expression for $$\sigma^2$$.
+%
+% Here $$\sigma^2$$, $$\alpha$$ and $$\rho$$ are considered free parameters and I set:
+%
+% $$d=2$$
+%
+% $$\nu = \alpha - \frac{d}{2}$$
+%
+% $$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$
+%
+% $$\tau^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \sigma^2} $$ discretized
+%
+%
+%  [r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
+%
+% *Calculates the Matern covariance defined as*
+%
+% $$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$
+%
+% *Inputs:*
+%
+%    sigma2  :   marginal variance, or prior uncertainty in the magnitude, that is C(r=0) = sigma2
+%
+%    alpha   :   alpha/2 is the exponent in the fractional Helmholtz equation, this controls the smoothness
+%                mostly alpha makes the covariance flatter around h=0.
+%
+%    rho     :   distance where correlation falls to 0.1
+%
+%       r    : distance between (x,y) points, i.e.\ the argument of the isotropic covariance function
+%
+%   DoPlots  :   plots of realizations if set to true (optional input)
+%
+% *Outputs:*[C,nu,kappa,sigma2,tau,Cov,Realisation,coords
+%
+%        C              :   the covariance
+%
+%       nu              :   nu=alpha-d/2;
+%
+%    kappa              :   the wave-number in the Helmholtz equation
+%
+%     tau               :  the second parameter in the Helmholtz equation.
+%
+%    Cov                :   covariance matrix with the marginal covariance
+%
+%    Realisation        :   One realization of a Matern process.
+%
+%     coords            : x,y coordinates of the points used to create the realization
+%
+%  The most relevant paper is:
+%
 %   Lindgren, F., Rue, H., & Lindström, J. (2011).
 %
-% Note that if $\sigma^2$ is specified, the marginal variance of the Helmoltz equation with
-% the specified alpha, rho and dimention will still be sigma2 as given 
 %
 %
-% $$ \sigma^2=\frac{\Gamma(\nu) }{\Gamma(\nu+d/2) (4 \pi)^{d/2} \kappa^{2 \nu} } $$ 
+% *Example:*
+%
+%
+%   sigma2=1; alpha=2 ;rho=1 ; h=linspace(0,4,100) ; DoPlots=true ;  [C,nu,kappa,sigma2,tau,Cov,Realisation]=Matern(sigma2,alpha,rho,h,DoPlots) ;
+%
+%
+% *See also:* 
+% 
+%   [rhoMatern,sigmaMatern,nuMatern]=Matern_alpha_kappa_tau(alphaMatern,kappaMatern,tauMatern) ;
+%   [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)          
+%
 %
 % 
-% by the equation above!
-% 
-% Only input sigma2 if you interested in returning and using the
-% covariance matrix Cov and the Realisation.
-%
-%
-% Example :
-%
-%   d=2; alpha=2 ; rho=4e3 ; 
-%   dist=linspace(0,1e4,1e3) ; [r,nu,kappa,sigma2]=Matern(alpha,rho,d,dist);
-%   figure ; plot(dist,r) ; xlabel('distance') ; ylabel('Matern')
-%   title(['$$ \sigma^2= $$',num2str(sigma2),' $$ \rho=$$',num2str(rho)],'interpreter','latex')
 %%
 
-if nargin<6
-    DoPlots=false;
-end
 
-Cov=[] ; Realisation=[] ; 
+%%
+% $$\sigma^2$$, $$\alpha$$ and $$\rho$$ are considered free parameters and I set:
+d = 2;                      % physical dimension
+nu=alpha-d/2;               % ie nu=1 for alpha=2 and dimension=2
+%alpha = nu + d/2;
+kappa=sqrt(8*nu)/rho;       % this gives a correlation of about 0.1 at the distance rho
+tau2 = gamma(nu) / (gamma(alpha) * (4*pi)^(d/2) * kappa^(2*nu) * sigma2);
+tau  = sqrt(tau2);
 
-% this gives a correlation of about 0.1 at the distance r
-nu=alpha-d/2;  % ie nu=1 for alpha=2 and dimention=2
 
-kappa=sqrt(8*nu)/rho;
-
-sigma2Helmholtz=gamma(nu) /  ( gamma(nu+d/2)*(4*pi)^(d/2)*kappa^(2*nu));
-
-if nargin<5
-    % Eq 1
-    sigma2=sigma2Helmholtz ; 
-end
-
-x=kappa * x ;
-
-% this sigma2 should be referred to as sigma^2
-% some other sources appear to use a different defintion of rho 
+% some other sources appear to use a different definition of rho
 % for example rho in https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function
 % appear to be 1/2 of the rho I use here
-% My notation is based on: 
-%   Lindgren, F., Rue, H., & Lindström, J. (2011). 
+% My notation is based on:
+%   Lindgren, F., Rue, H., & Lindström, J. (2011).
 %   An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 73(4), 423–498. https://doi.org/10.1111/j.1467-9868.2011.00777.x
-r = real(sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) );
+
+% I should have C(0)=sigma2, but matlab gives: besselk(nu,0)=inf which whereas we here have the limit if 0*Inf which should give sigma2
+C = zeros(size(r));
+idx = (r > 0);
+C(idx)  = sigma2 / (2^(nu-1) * gamma(nu)) * (kappa*r(idx)).^nu .* besselk(nu, kappa*r(idx));
+C(~idx) = sigma2;
+
+
+% the expression above for r fails for x=0, although the limit x^nu beselk(nu,x)  for x  to 0 is well defined, in fact
+%
+%   lim x to 0 of x^nu besselk(nu,x) = 1
+%
+
 
 
 %%
 
-if nargout>4 || DoPlots
-    F = griddedInterpolant(x,r) ;
-    D=ndgrid(x,x) ;
-    D=abs(D-D') ;
-    
-    Cov=F(D) ;
-    R=sqrtm(Cov);
-    Realisation=R*randn(numel(x),1) ;
-    
+if DoPlots
+    FindOrCreateFigure("Matern covariance")
+    hold on
+    plot(r,C)
+
+    xlabel("$r=\sqrt{(x-x_0)^2+(y-y_0)^2}$, distance between points in $(x,y)$ plane",Interpreter="latex")
+    ylabel("$C(r)$, covariance",Interpreter="latex")
+    title(sprintf("Mat\\'ern field realisation: $\\sigma^2=%g, \\alpha=%g, \\rho=%g$",sigma2,alpha,rho),Interpreter="latex");
+    subtitle(sprintf("$d=%g, \\nu=%g, \\kappa=%g, \\tau=%g$",d,nu,kappa,tau),Interpreter="latex");
+end
+
+
+
+if CreateRealisations
+
+    [X,Y] = meshgrid(r, r) ;
+    coords = [X(:), Y(:)];
+    n = size(coords,1);
+
+    % Pairwise distances
+    H = squareform(pdist(coords));  % this is potentially large, it is numel(r)*numel(r) \times numel(r) numel(r)
+
+    % Matérn covariance matrix (with h=0 handled separately)
+    Cov = zeros(n,n);
+    idx = H > 0;
+    Cov(idx) = sigma2 / (2^(nu-1)*gamma(nu)) * (kappa*H(idx)).^nu .* besselk(nu, kappa*H(idx));
+    Cov(~idx) = sigma2;
+
+
+    % Add tiny jitter for numerical PD-ness (not a physical nugget, just conditioning)
+    jitter = 1e-8 * sigma2;
+    L = chol(Cov + jitter*eye(n), 'lower');
+
+    z = randn(n,1);
+    B = L*z;
+    Realisation = reshape(B, numel(r), numel(r));
+
     if DoPlots
         figure;
-        for I=1:3
-            y=R*randn(numel(x),1) ;
-            plot(x/1000,y) ; ylabel('Matern realisation') ; xlabel('distance (km)')
-            hold on
-            fprintf(' Expected variance %f  \t  estimated variance %f \n ',sigma2,var(y))
-        end
-        title(sprintf(' A few examples of Matern realisations with rho=%i and sigma=%i',rho,sigma2))
+        imagesc(Realisation); axis equal tight; colorbar;
+
+        title(sprintf("Mat\\'ern field realisation: $\\sigma^2=%g, \\alpha=%g, \\rho=%g$",sigma2,alpha,rho),Interpreter="latex");
+        subtitle(sprintf("$d=%g, \\nu=%g, \\kappa=%g, \\tau=%g$",d,nu,kappa,tau),Interpreter="latex");
+        upper=max(B(:));
+        lower=-min(B(:));
+        CL=max(upper,lower);
+        clim([-CL CL])
+        CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
     end
-    
+
+else
+
+
+    Cov=[];
+    Realisation=[];
+    coords=[];
 end
 
 end

@@ -80,28 +80,44 @@ narginchk(11,11)
 %
 % $$ d_B J = \langle (d_B F)^* | \lambda \rangle + \partial_B J $$
 %
+% * $$B$$ inversion
+%
+%
+% $$J(B) = \frac{1}{2}\left(d_{obs}-d_{modelled} \right)^{T}C_d^{-1}\left(d_{obs}-d_{modelled}\right) + \frac{1}{2}\left(B_{obs}-G_{obs}B\right)^{T}C_{B_{obs}}^{-1}\left(B_{obs}-G_{obs}B\right) + \frac{1}{2}\left(B-B_{prior}\right)^{T}Q\;\left(B-B_{prior}\right)$$
+%
+% Gauss-Newton system
+%
+% $$\left(J_f^{T}C_d^{-1}J_f + G_{obs}^{T}C_{B_{obs}}^{-1}G_{obs} + Q\;\right) \;\Delta B = J_f^{T}C_d^{-1}\left(d_{obs}-d_{modelled}\right) + G_{obs}^{T}C_{B_{obs}}^{-1}\left(B_{obs}-G_{obs}B\right) + Q\;\left(B_{prior}-B\right)$$
+%
+% $$J_f$$ is the directional derivative of the forward model
+%
+% $$d_{modelled} = f(B) $$
+%
+% that is
+%
+%
+% $$D_{\delta B}f(B) = J_f\,\delta B = \lim_{\epsilon\to0}\frac{f(B+\epsilon\,\delta B)-f(B)}{\epsilon} $$
+%
+% $$\langle J_f\,\delta B,\, w\rangle_Y = \langle \delta B,\, J_f^{*}w\rangle_X$$
+% 
+% where $X$ and $Y$ are infinite-dimensional Hilbert spaces. The adjoint PDE is derived from the (continuous) forward model
+% before it is discretized. 
+%
 %%
 
 if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0
     CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
 end
 
-if CtrlVar.Inverse.Regularize.Field=="-logAGlen-logC-"
+%%
 
-    if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
-
-        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.ga is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
-        error("Input variable not defined.")
-    end
-
-    if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
-
-        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.gs is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
-        error("Input variable not defined.")
-    end
-
+if ~isfield(MUA,'M') || isempty(MUA.M)
+    MUA.M=MassMatrix2D1dof(MUA);
 end
 
+if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
+    [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
+end
 
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
@@ -121,8 +137,8 @@ F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
 
 % Make sure initial point is feasible
 F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
-F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 F.B=kk_proj(F.B,F.Bmax,F.Bmin) ;
+F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 
 % The parameter that we are inverting for are contained in the variable p. p0 is the starting value.
 [p0,plb,pub]=F2p(CtrlVar,MUA,F); 
@@ -141,16 +157,34 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
-% This is then passed to the optimization libraries. For some reason the MATLAB optimization library requires a separate
-% handle to the Hessian.
+% This is then passed to the optimization libraries. 
 
 func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
-Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H). 
-                                                                                                                         % Somewhat annoyingly MATLAB optimisation toolbox 
-                                                                                                                         % wants the Hessian returned in 
-                                                                                                                         % a separate function, so I can't use JGH (!?).
-                                                                                                                         % The function HessianAC is just a wrapper around 
-                                                                                                                         % JGH and returns the same Hessian as JGH.
+                                                                                                      % The Hessian
+                                                                                                      % output is used
+                                                                                                      % with the
+                                                                                                      % UaOptimisation
+                                                                                                      % toolbox, and
+                                                                                                      % when using the
+                                                                                                      % trust-region-reflective
+                                                                                                      % algorithm 
+                                                                                                  
+Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H) for the interior-point method 
+
+% Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
+% a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same
+% Hessian as JGH.
+%
+% But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the
+% Hfunc is not needed.
+
+%%
+
+
+Aineq=[];
+bineq=[];
+
+
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
@@ -160,41 +194,37 @@ dJdpTest=[];
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
     %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations. 
-   
+
     % Get the gradient using the adjoint method
     [J,dJdp,Hessian,JGHouts]=func(p0);
-    
-    
-    %NA=numel(InvStartValues.AGlen);  % Number of parameters to invert for
-    NA=MUA.Nnodes; 
-    
+
+    NA=MUA.Nnodes;
+
     % Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
     if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
-        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes 
-                      
+        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes
     else
         iRange=CtrlVar.Inverse.TestAdjoint.iRange;
     end
-    
-    % if the inversion is done for more than one field, then expand iRange accordingly. 
+
+    I=(iRange>=1) & (iRange <= numel(p0));  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
+    iRange=iRange(I);
+
+    % if the inversion is done for more than one field, then expand iRange accordingly.
     switch strlength(CtrlVar.Inverse.InvertForField)
-        
         case 2
             iRange=[iRange(:);iRange(:)+NA];
         case 3
             iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
-    
-    I=(iRange>=1) & (iRange <= numel(p0));  % As far as I can see, this should not be needed...
-    iRange=iRange(I);
-    
-    % calculate brute force gradient
+
+
 
     % Gradient calculated using a brute-force finite difference approach 
-    dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
+    dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange);
 
-    filename=CtrlVar.Experiment+"BruteForceGradient";
-    fprintf('BruteForceGradient save in the file : %s \n',filename)
+    filename="BruteForceGradient"+CtrlVar.Experiment;
+    fprintf('BruteForceGradient save of CtrlVar, UserVar, MUA, F, dJdpTest and iRange in the file : %s \n',filename)
     save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange')
     
     
@@ -211,12 +241,11 @@ else
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
         
         clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-        
-        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc);
-        
+        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
         
     else
         
+
         fprintf(' CtrlVar.Inverse.MinimisationMethod has the value %s \n',CtrlVar.Inverse.MinimisationMethod)
         fprintf(' but can only have the values ''MatlabOptimization'' or ''UaOptimization''\n')
         error('what case? ')

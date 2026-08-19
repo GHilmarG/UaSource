@@ -172,9 +172,28 @@ CtrlVar.SlidingLaw="Weertman" ;
 CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","Joughin","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0","rCW-V0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
-                                                   % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
-                                                   % Note that whenever the finite-element mesh is modified (for example during mesh refinement),
-                                                   % the boundary conditions are updated through a call to DefineBoundaryConditions.m
+% otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
+% Note that whenever the finite-element mesh is modified (for example during mesh refinement),
+% the boundary conditions are updated through a call to DefineBoundaryConditions.m
+
+CtrlVar.BCsRowSubsetSelection=false;  % Checks if the boundary conditions (as defined by the user) contain some redundancy, and if so, eliminates it.
+                                      % Internally, the boundary conditions are represented as a constraint matrix 
+                                      %
+                                      % Aeq x = b
+                                      %
+                                      % The matrix Aeq should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
+                                      % However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.
+                                      % 
+                                      % By setting
+                                      %
+                                      % CtrlVar.BCsRowSubsetSelection=true; 
+                                      %
+                                      % Aeq will be modified using a row-subset selection algorithm. This does involve a qr decomposition of Aeq, but since Aeq is
+                                      % usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not required.  
+                                      %
+                                      %
+                                      %
+
 CtrlVar.BCsWeights=1;     % test parameter, do not change
 CtrlVar.LinFEbasis=false;  % test parameter, do not change
 %
@@ -405,6 +424,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % an estimate of dh/dt from the two previous solutions.
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % ["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
+
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 % Note: Some of those parameters have physical dimensions and these values may have to be
@@ -663,7 +683,7 @@ CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
                             % A value of 1e-8 is arguably already a relatively small number, in many cases 1e-6 would be considered acceptable
 CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider setting to true if memory an issue                            
-
+CtrlVar.TestKApeSolve=true;  % tests if KApe Solve is accurate
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.
@@ -888,7 +908,10 @@ CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hes
 %                                  ="MatlabOptimization-GradientBased";     % gradient-based, MATLAB toolbox
 %                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
 %                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
-
+%
+%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-HessianFiniteDifferences-BandWidth5-";
+%   CtrlVar.Inverse.Hessian="FiniteDifferences";
+%
 % If a Hessian-based optimization is used, the the expressions for the Hessians can be selected as follows:
 CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % Here R stands for Regularization and I stands for Misfit.
@@ -901,8 +924,16 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass
 % matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
 % presumably to use 'I', and then to try out 'M' for comparison.
+%
+% Note: using the pre-multiplier results in the directional derivatives being multiplied by INVERSE of the pre-multiplier. So
+% if, for example, dJdC is the directional derivative of the cost function J with respect to C, specifying
+% CtrlVar.Inverse.AdjointGradientPreMultiplier="M" results in dJdC being recalculated as dJdC=M\dJdC ; 
+%
+CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {"l2","L2","H1"}
+CtrlVar.Inverse.AdjointGradient.UseBCs.A=false;
+CtrlVar.Inverse.AdjointGradient.UseBCs.B=false;
+CtrlVar.Inverse.AdjointGradient.UseBCs.C=false;
 
-CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
 % If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,
 % and with respect to the l2 inner product when using the I pre-multiplier.
@@ -910,7 +941,7 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 
 CtrlVar.Inverse.Iterations=1; % Maximum number of inverse iterations
 CtrlVar.Inverse.OptimalityTolerance=1e-10; % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
-CtrlVar.Inverse.FunctionTolerance=1 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
+CtrlVar.Inverse.FunctionTolerance=1e-6 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
 CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
@@ -947,43 +978,31 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 % iteration, which is often a very good initial approach. 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
 
-%%
-% Regularization can be applied on A and C or log(A) and log(C). Also possible
-% to use a covariance matrix for A and C. 
+%% Inverse methodology: Select either Tikhonov or Matern 
 %
-% Select Bayesian motivated regularization by setting 
+% The basic difference between Tikhonov and Matern relates to how the precision matrices for the priors are defined.
+% See documentation in UaCompendium for more information.
 %
-%   CtrlVar.Inverse.Regularize.Field='cov' 
-% 
-% and Tikhonov regularization
-% by setting 
 %
-%   CtrlVar.Inverse.Regularize.Field 
-%
-% to either '-C-','-logC-','-AGlen-','-logAGlen-',or '-logAGlen-logC-'
-%
-% Default is Tikhonov regularization on log(A) and log(C)
-%
+% Regularization can be applied on A and C or log(A) and log(C).
 
-CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-" 
-%
-% If using Bayesian inverse methodology the covariance matrix of the priors MUST
-% be defined, and it can be dense (although computationally doing so might slow
-% the run considerably.)
-%
-% If using Tikhonov inverse methodology the covariance matrix of the priors CAN
-% be defined, but must be diagonal.
-%
+
+CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or "-Matern-"
 
 
 CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
-%%
-% [ -- Parameters specific to Tikhonov regularization. See the above definition
-% of the regularization term R in the case of Tikhonov regularization. The
-% values of these parameters can be expected to be highly problem dependent. By
-% default regularization is switched on, but can the switched off by setting the
-% gs and the ga parameters to zero.
+%% Parameters specific to Tikhonov regularization.
+% See the above definition of the regularization term R in the case of
+% Tikhonov regularization. The values of these parameters can be expected to be highly problem dependent. By default
+% regularization is undefined.
+%
+% These Tikhonov regularization parameters are used by setting:
+%
+%   CtrlVar.Inverse.Methodology="-Tikhonov-" ;
+%
+%
+
 
 CtrlVar.Inverse.Regularize.AGlen.gs=[];
 CtrlVar.Inverse.Regularize.AGlen.ga=[];
@@ -998,6 +1017,33 @@ CtrlVar.Inverse.Regularize.logC.gs=[] ;
 
 CtrlVar.Inverse.Regularize.B.gs=[];  % This is only relevant for a B inversion. Currently B inversion is being tested, do not use.
 CtrlVar.Inverse.Regularize.B.ga=[];
+
+%% Parameters specific to the use of Matern covariance for the priors.
+%
+% These Matern covariance parameters are used by setting:
+%
+%   CtrlVar.Inverse.Methodology="-Matern-" ;
+%
+% Note: One can not mix -Tikhonov- and -Matern- methodologies, and the same approach must be used for all inverted fields in
+% a given inversion. 
+%
+% There is an extensive discussion of this in the UaCompendium, where it is explained how one can calculate the Matern
+% parameters from the Tikhonov parameters, which is only possibly for alpha=1, and vice versa. 
+%
+CtrlVar.Inverse.Matern.logAGlen.alpha=[];
+CtrlVar.Inverse.Matern.logAGlen.kappa=[];
+CtrlVar.Inverse.Matern.logAGlen.tau=[];
+
+CtrlVar.Inverse.Matern.logC.alpha=[];
+CtrlVar.Inverse.Matern.logC.kappa=[];
+CtrlVar.Inverse.Matern.logC.tau=[];
+
+CtrlVar.Inverse.Matern.B.alpha=[];
+CtrlVar.Inverse.Matern.B.kappa=[];
+CtrlVar.Inverse.Matern.B.tau=[];
+
+
+
  %  -]
 CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
 %%
@@ -1031,6 +1077,8 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % PR :Polak-Ribi\`ere
                                         % HR: Hestenes-Stiefel
                                         % DY :Dai-Yan
+                   
+CtrlVar.ReflectiveTransformation=false ; %                      
 % end, UaOptimization parameters
 % ------------]
 
@@ -1071,10 +1119,10 @@ if license('test','Optimization_Toolbox')
     % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
 
 
-    % 2022-05-21: tried to fix the error with R2022a when using the gradient-based option
-    % by redefining and simplifying the options, but this did not work
-    % either. Turned out this was an issue with R2022a. As of R2024b this
-    % is all working, and possibly this was fixed much sooner.
+    % 2022-05-21: tried to fix the error with R2022a when using the gradient-based option by redefining and simplifying the
+    % options, but this did not work either. Turned out this was an issue with R2022a. As of R2024b this is all working, and
+    % possibly this was fixed much sooner.
+    %
     % options=optimoptions("fmincon");
     % options.Algorithm="trust-region-reflective";
     % options.HessianApproximation="lbfgs";
@@ -1099,7 +1147,7 @@ if license('test','Optimization_Toolbox')
         'StepTolerance',CtrlVar.Inverse.StepTolerance,...
         'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
         'UseParallel',true,...
-        'HessianApproximation',{'lbfgs',250},...
+        'HessianApproximation',{'lbfgs',25},...
         'HessianFcn',[],...
         'HessianMultiplyFcn',[],...
         'ScaleProblem',false,...
@@ -1107,6 +1155,8 @@ if license('test','Optimization_Toolbox')
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','factorization');  
     
+
+
     % These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox
     Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estimation.
     CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions('fmincon',...
@@ -1135,6 +1185,47 @@ if license('test','Optimization_Toolbox')
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which is better.
 
+
+    %% it is possible to use finite-difference approximation to the Hessian. This is done my differentiating the gradient provided by the first-order adjoint.
+    % This can be surprisingly fast as MATLAB uses node coloring to simultaneously solve for all independent nodal values. 
+    % To use this include the part below within %[  and %] in your DefineInitialInputs.m
+
+    %[ 
+    % CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-HessianFiniteDifferences-BandWidth5-";  
+    % % You can change the
+    % % BandWidth to some other value, but make sure it is not too large. 
+    % % If the BandWidth is k, then 2k calls to the gradient calculation are required each time the Hessian is approximated  
+    % 
+    % CtrlVar.Inverse.Hessian="FiniteDifferences";
+    % 
+    % CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions('fmincon',...
+    %     'Algorithm','trust-region-reflective',...
+    %     'ConstraintTolerance',1e-10,...
+    %     'HonorBounds',true,...
+    %     'Diagnostics','on',...
+    %     'DiffMaxChange',Inf,...
+    %     'DiffMinChange',0,...
+    %     'Display','iter-detailed',...
+    %     'FunValCheck','off',...
+    %     'MaxFunctionEvaluations',1e6,...
+    %     'MaxIterations',CtrlVar.Inverse.Iterations,...,...
+    %     'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance,...
+    %     'OutputFcn',@fminuncOutfun,...
+    %     'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
+    %     'StepTolerance',CtrlVar.Inverse.StepTolerance,...
+    %     'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
+    %     'UseParallel',true,...
+    %     'HessianFcn',[],...     % uses finite differences, provided HessianMultiplyFcn is also empty
+    %     'HessianMultiplyFcn',[],...
+    %     'SpecifyConstraintGradient',false,...
+    %     'SpecifyObjectiveGradient',true,...
+    %     'InitBarrierParam',1e-7,...           % On a restart this might have to be reduced if objective function starts to increase
+    %     'ScaleProblem','none',...
+    %     'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
+    %     'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which is better.
+    %]
+ 
+  
 else
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
 end
@@ -1149,7 +1240,7 @@ CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse ste
 
 % >=100 for further info and plots
 %
-% In an inversion it it generally better to set other infolevels to a low value. So
+% In an inversion it it generally better to set other info levels to a low value. So
 % consider setting:
 %
 %   CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
@@ -1163,7 +1254,27 @@ CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calcu
 %
 % The brute-force gradient can be calculated using first-order forward differences, second-order central differences, or
 % fourth-order central differences.
-CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0;
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.01;
+% The finite-difference step size is calculated as:
+%
+%    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+%
+% where p0 are the model parameters, i.e. A, B, C.
+%
+% To test the B and C gradients, it seems good to put 
+%
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.01;
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0;
+%
+% However, when testing B, this might not be a good choice if, for example, if B=0 in some places. Then a better approach is
+% to select CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize, based on typical ice thickness, for example as
+%  
+% CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.0;
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0.01 hmean;  
+%
+
+
 CtrlVar.TestAdjointFiniteDifferenceType="central-second-order" ;
 CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
     ["forward-first-order","central-second-order","forward-second-order"...
@@ -1441,7 +1552,8 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 %% Options related to the Ua mesh structure variable MUA
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
-CtrlVar.MUA.DecomposeMassMatrix=true ;
+CtrlVar.MUA.DecomposeMassMatrix=true;
+CtrlVar.MUA.CholeskyMassMatrix=false;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
@@ -1994,13 +2106,13 @@ CtrlVar.LevelSetPhase="" ;
 % the active-set method.
 %
 
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recommended!
 
-CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the active-set method, done as a part of the active set approach.
+
+CtrlVar.LevelSetMethodThicknessConstraints=1;           % 1) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
-CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additional mass-balance term, ab,  on the form:
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 2) Here an additional mass-balance term, ab,  on the form:
                                                                %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)
                                                                % is added. This is quite similar to the "penalty method", 
                                                                % but the thickness  penalty method does not have to be activated as
@@ -2659,6 +2771,7 @@ CtrlVar.Abort.Message="" ;
  CtrlVar.uvhMakeInitialIterateFeasible=true; 
  CtrlVar.uvMakeInitialIterateFeasible=true; 
  
+ CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
 end
 

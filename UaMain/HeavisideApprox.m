@@ -19,7 +19,7 @@ if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 % $$\mathrm{SoftDiracDelta}(x) = \mathrm{SoftPlus}^{\prime\,\prime}(x) = \frac{2 k}{\left (e^{k (x-x_0)} +e^{-k (x-x_0)} \right )^2}$$
 %
 %
-% The width of the step is about $1/k$, and the limit $k \to \infty$ is (exact) Heaviside step function
+% The width of the step is about $\pm 1/k$, and the limit $k \to \infty$ is (exact) Heaviside step function
 %
 % $$y \approx 1 \quad \mathrm{if} \quad x > x_0$$
 %

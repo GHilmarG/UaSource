@@ -1,4 +1,4 @@
-function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
+function [cbar,QuiverHandle,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 
 %% Plot velocity using colours/colors
 %
@@ -14,7 +14,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %   Par.RelativeVelArrowSize                   : affects the size of the velocity arrows.
 %                                                by default Par.RelativeVelArrowSize=1.
-%                                                Increase value for larger arrows.
+%                                                Increase value for larger arrows.quiver
 %   Par.QuiverColorSpeedLimits=[min max]        : Speed range being colored, leave empty for auto.
 %                                                Note however that when plotting
 %                                                using log10 scaling the min speed
@@ -30,11 +30,11 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % Par.VelPlotIntervalSpacing='lin'|'log10'   : lin or log10 vel scale
 % Par.MaxPlottedSpeed                        : When plotting, speed above this value is set equal to this value, i.e. this is the maximum plotted speed
 %                                                  Default is max(speed(:))
-% Par.MinPlottedSpeed                        : When plotting, speed below this value is set equal to this value, i.e. this is the mainimum plotted speed
+% Par.MinPlottedSpeed                        : When plotting, speed below this value is set equal to this value, i.e. this is the minimum plotted speed
 %                                                  Default is min(speed(:)).
 %                                                  However, if using log10 the minimum plotted speed is never smaller than 10^QshouldiverColorPowRange times MaxPlottedSpeed
 % Par.SpeedTickLabels                        : numerical array of values
-% Par.QuiverColorPowRange                    : when using log10 velocity bar, this is the creates possible range of magnitudes shown in colobar.
+% Par.QuiverColorPowRange                    : when using log10 velocity bar, this is the creates possible range of magnitudes shown in colorbar.
 %                                              Default is
 %                                              Par.QuiverColorPowRange=3, i.e.
 %                                              the smallest colored speed is
@@ -103,7 +103,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %
 % Note: When doing further contour plots on top of velocity plot, MATLAB will possibly change the
-% limits of the colorbar and the position of the ticklables will no longer be correct.
+% limits of the colorbar and the position of the tick lables will no longer be correct.
 % If this happens then reset range and ticks, for example:
 %
 %   [~,~,Par]=QuiverColorGHG(x,y,ub,vb);
@@ -127,7 +127,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %%
 
-persistent SpeedPlotIntervals uvPlotScale QuiverTickLabels QuiverTicks QuiverCmap
+% persistent SpeedPlotIntervals uvPlotScale QuiverTickLabels QuiverTicks QuiverCmap
 
 if nargin<5
     Par=[];
@@ -135,30 +135,26 @@ end
 
 if ~isfield(Par,"QuiverSameVelocityScalingsAsBefore") || ~Par.QuiverSameVelocityScalingsAsBefore
 
+
+
     SpeedPlotIntervals=[];
     uvPlotScale=[];
     QuiverTickLabels=[];
     QuiverTicks=[];
     QuiverCmap=[];
 
-    % if nargin>4
-    % 
-    %     Par.MaxPlottedSpeed=[] ;
-    %     Par.MinPlottedSpeed=[] ;
-    %     % Par.QuiverColorSpeedLimits=[] ; 
-    %     % Par.VelPlotIntervalSpacing=[] ; 
-    %     % Par.VelArrowColorSteps=[] ; 
-    %     % Par.VelColorMap =[] ; 
-    %     % Par.SpeedTickLabels=[] ; 
-    % 
-    % end
+elseif Par.QuiverSameVelocityScalingsAsBefore
 
-
+    uvPlotScale=Par.uvPlotScale ;
+    SpeedPlotIntervals=Par.SpeedPlotIntervals ;
+    QuiverTickLabels=Par.QuiverTickLabels;
+    QuiverTicks=Par.QuiverTicks ;
+    QuiverCmap=Par.QuiverCmap;
 
 end
 
 cbar=[];
-QuiverHandel=[];
+QuiverHandle=[];
 
 if isempty(x) || isempty(y) || isempty(u)   || isempty(v)
     return
@@ -209,6 +205,11 @@ end
 x=x(:) ; y=y(:) ; u=u(:) ; v=v(:);
 
 speed=sqrt(u.*u+v.*v); % speed is never scaled, so I can use speed to color velocity field based on values
+
+if all(isnan(speed))
+    return
+end
+
 
 if isinf(max(speed))
 
@@ -475,8 +476,10 @@ for J=1:numel(Par.SpeedPlotIntervals)-1
 
     if numel(x(I))>0  % This should not really be needed, but
         % results in errors in Matlab2016a
-        QuiverHandel=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
+        QuiverHandle=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
             'color',Par.QuiverCmap(J,:),varargin{:}) ; hold on
+        
+       QuiverHandle.Annotation.LegendInformation.IconDisplayStyle='off'; 
     end
 end
 
@@ -580,6 +583,8 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
         if ~any(isnan(tickpos))
             Ticks=tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
             %cbar.Ticks=Ticks; % tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
+        else
+            Ticks=nan;
         end
 
         axis equal
@@ -611,6 +616,7 @@ SpeedPlotIntervals=Par.SpeedPlotIntervals ;
 QuiverTickLabels=Par.QuiverTickLabels;
 QuiverTicks=Par.QuiverTicks ;
 QuiverCmap=Par.QuiverCmap;
+
 
 
 end

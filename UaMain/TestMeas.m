@@ -55,7 +55,7 @@ if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
     
     if numel(Meas.dhdt) ~= MUA.Nnodes
         
-        if numel(Meas.dhdt)==1
+        if isscalar(Meas.dhdt)
             Meas.dhdt=Meas.dhdt+zeros(MUA.Nnodes,1);
         else
             fprintf(' Meas.dhdt must have same number of elements as the number of nodes.')

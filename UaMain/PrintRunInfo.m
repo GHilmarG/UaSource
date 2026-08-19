@@ -26,6 +26,7 @@ if CtrlVar.doInverseStep
 end
 
 
+
 if  CtrlVar.doDiagnostic
     if CtrlVar.Restart
         fprintf(CtrlVar.fidlog,'   Time-independent restart run.  \n ');
@@ -49,7 +50,7 @@ if  status==0
     fprintf('   Running on: %s ',hostname)
 end
 
-fprintf(CtrlVar.fidlog,'********************************************************************************** \n \n');
+fprintf(CtrlVar.fidlog,'************************************************************************************** \n \n');
 
 
 end

@@ -17,12 +17,38 @@ function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BC
 % Calculates objective function (J), gradient (dJdp, accurate), Hessian (guessed).
 %
 %
-%% 
+%%
 
-persistent ubP vbP
+persistent ubP vbP JGH1 JGH2 JGH3
 
 narginchk(14,14)
 CtrlVar.nargoutJGH=nargout;
+
+if isempty(JGH1)
+    JGH1=0;
+    JGH2=0;
+    JGH3=0;
+end
+
+if nargout==3
+
+    JGH1=JGH1+1;
+    JGH2=JGH2+1;
+    JGH3=JGH3+1;
+
+elseif nargout==2
+
+    JGH1=JGH1+1;
+    JGH2=JGH2+1;
+
+elseif nargout==1
+
+    JGH1=JGH1+1;
+
+end
+
+%fprintf("\rJGH: 1 %i \t 2 %i \t 3 %i",JGH1,JGH2,JGH3)
+
 
 if nargout==1
     CtrlVar.Inverse.CalcGradI=false;
@@ -44,6 +70,48 @@ if ~isempty(ubP)
     F.vb=vbP;
 end
 
+
+%% Reflection?
+
+
+if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
+    % pub and plb are enforced by the MATLAB optimization toolbox in a different way
+    if CtrlVar.ReflectiveTransformation
+
+        if ~isempty(pub)  && isempty(plb)
+
+            iu=p>pub;
+            p(iu)=pub(iu)+2*p(iu) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+
+        elseif isempty(pub)  && ~isempty(plb)
+
+            il=p>plb;
+            p(il)=pub(il)+2*p(il) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+
+        elseif ~isempty(pub)  && ~isempty(plb)
+
+            %%
+            % pub=[10 8]; plb=[1 2] ; p=[1 9] ;
+
+            d=pub-plb;
+            t=mod(p-plb,2*d);
+            p=plb+min(t,2*d-t);
+            %%
+
+        end
+    else
+       
+        p=kk_proj(p,pub,plb);
+    end
+
+end
+
+
+%%
+
+
+
+
 % The vector p contains the variables for which the inversion is being performed. So if the inversion is done over log(c)
 % only, then p=log(C). And if the inversion is done over A, B and C then p=[A;B;C].
 
@@ -60,12 +128,23 @@ if anynan(F.B)
     error("JGH:Bnan","nan in B")
 end
 
+if any(F.C<0)
+    error("JGH:Cneg","negative C values")
+end
+
+if any(F.AGlen<0)
+    error("JGH:Cneg","negative A values")
+end
+
 
 %% Forward model solution
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
+    if isempty(F.as) || isempty(F.ab)
+        [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+    end
+    [~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ;
 end
 
 %%
@@ -83,11 +162,12 @@ end
 
 
 
+
 if nargout>1   % gradient needed
     dJdp=dRdp+dIdp;
 end
 
-if nargout>2  % Hessian needed 
+if nargout>2  % Hessian needed
     if isempty(ddIddp)
         Hessian=ddRddp;
     else
@@ -97,13 +177,13 @@ end
 
 
 if RunInfo.Forward.uvConverged
-     % To speed up the forward solve, the previous solution is stored locally and then used as a starting value in next
-     % calculation. The idea is that usually the parameter vector (p) only changes slightly form one inverse iteration to the
-     % next, so the (u,v) solution is likely to be similar to the previously calculated one.
-    ubP=F.ub; 
+    % To speed up the forward solve, the previous solution is stored locally and then used as a starting value in next
+    % calculation. The idea is that usually the parameter vector (p) only changes slightly form one inverse iteration to the
+    % next, so the (u,v) solution is likely to be similar to the previously calculated one.
+    ubP=F.ub;
     vbP=F.vb;
 else
-    warning('JGH:returninNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
+    warning('JGH:returnsNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
     ubP=[];
     vbP=[];
     I=NaN;
@@ -130,6 +210,15 @@ else
     JGHouts=[];
 end
 
+if  CtrlVar.Inverse.MinimisationMethod=="-MatlabOptimization-HessianVectorProduct-"
+    % This is when using trust-region-reflective and Hessian-Vector-Product
+    Hessian=p ;
+
+end
+
+if isnan(J)
+    error("JGH:ObjectivFunctionIsNaN")
+end
 
 
 end

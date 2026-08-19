@@ -110,7 +110,7 @@ ymax=CtrlVar.UaSquareMesh.ymax;
 nx=CtrlVar.UaSquareMesh.nx;
 ny=CtrlVar.UaSquareMesh.ny;
 
-% If the user only defines nx, than calculate a reasonable ny
+% If the user only defines nx, then calculate a reasonable ny
 if isfinite(nx) && isnan(ny)
     ny=round((CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin)/(CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin))*CtrlVar.UaSquareMesh.nx;
 end
@@ -177,15 +177,7 @@ if CtrlVar.UaSquareMesh.Refine
     MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
 
-    if  isfield(CtrlVar,"MeshBoundaryCoordinates") &&  ~isempty(CtrlVar.MeshBoundaryCoordinates)
 
-        % if MeshBoundaryCoordinates have been defined, eliminate elements outside of the desired computational boundary
-        xy=[MUA.xEle,MUA.yEle];
-        isInside=InsideOutside(xy,CtrlVar.MeshBoundaryCoordinates) ;
-        CtrlVar.UpdateMUAafterDeactivating=true;
-        MUA=DeactivateMUAelements(CtrlVar,MUA,~isInside) ;
-
-    end
 
 
     ElementsToBeRefined=true(MUA.Nele,1);             % refine all elements
@@ -196,6 +188,22 @@ if CtrlVar.UaSquareMesh.Refine
     %CtrlVar.MeshRefinementMethod="explicit:local:red-green"; CtrlVar.LocalAdaptMeshSmoothingIterations=0;
 
     MUA=LocalMeshRefinement(CtrlVar,RunInfo,MUA,ElementsToBeRefined,ElementsToBeCoarsened);
+
+
+    if  isfield(CtrlVar,"MeshBoundaryCoordinates") &&  ~isempty(CtrlVar.MeshBoundaryCoordinates)
+
+        % if MeshBoundaryCoordinates have been defined, eliminate elements outside of the desired computational boundary
+        xy=[MUA.xEle,MUA.yEle];
+        isInside=InsideOutside(xy,CtrlVar.MeshBoundaryCoordinates) ;
+        CtrlVar.UpdateMUAafterDeactivating=true;
+        MUA=DeactivateMUAelements(CtrlVar,MUA,~isInside) ;
+
+        if CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly
+            [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUA) ;
+            MUA=DeactivateMUAelements(CtrlVar,MUA,Islands.OneNode) ;
+        end
+
+    end
 
     coordinates=MUA.coordinates;
     connectivity=MUA.connectivity ;

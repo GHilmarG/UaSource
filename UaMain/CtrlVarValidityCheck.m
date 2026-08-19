@@ -136,7 +136,7 @@ if CtrlVar.AdaptMesh && CtrlVar.InverseRun
     fprintf('UaError: Both CtrlVar.AdaptMesh and CtrlVar.InverseRun are set to true!\n')
     fprintf('As adaptive meshing can only be done in a combination with a forward run this combination is not allowed.\')
     error('Ua:CtrlVarValidityCheck:InverseAdapt','CtrlVar not valid')
-    
+
 end
 
 
@@ -157,11 +157,11 @@ end
 %% adapt
 
 if isfield(CtrlVar,'AdaptMeshIterations')
-    
+
     fprintf('Note: CtrlVar.AdaptMeshIterations is no longer used.\n')
     fprintf('Use   CtrlVar.AdaptMeshMaxIterations instead.\n')
     error('Ua:CtrlVarValidyCheck','The field CtrlVar.AdaptMeshIterations is no longer used. Replace with CtrlVar.AdaptMeshMaxIterations')
-    
+
 end
 
 
@@ -171,55 +171,55 @@ end
 %% inverse
 
 if CtrlVar.InverseRun
-    
+
     % First make sure that CtrlVar.Inverse.InvertFor and CtrlVar.Inverse.Regularize.Field
     % only contain some combinations of "-C-","-logC-","-AGlen-","-logAGlen-" and
     % "-B-"
     %
     % for example : "-A-C-"  -> "-AGlen-C-"
-    
+
     [CtrlVar.Inverse.InvertFor,status]=SearchAndReplaceInverseFieldsInCtrlVar(CtrlVar.Inverse.InvertFor);
-    
+
     if ~status
         fprintf(" CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n")
         fprintf(" CtrlVar.Inverse.InvertFor=%s \n",CtrlVar.Inverse.InvertFor)
         error("CtrlVarValidityCheck:CtrlVar.Inverse.InvertForInvalid")
     end
-    
-    
-    
+
+
+
     [CtrlVar.Inverse.Regularize.Field,status]=SearchAndReplaceInverseFieldsInCtrlVar(CtrlVar.Inverse.Regularize.Field);
-    
+
     if ~status
         fprintf(" CtrlVar.Inverse.Regularize.Field does not appear to have a valid value.\n")
         fprintf(" CtrlVar.Inverse.Regularize.Field=%s \n",CtrlVar.Inverse.Regularize.Field);
         error("CtrlVarValidityCheck:CtrlVar.Inverse.Regularize.Field")
     end
-    
+
     if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,"fixpoint")
-        
+
         % if fixpoint, then only c inversion is possible
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"logAGlen","");
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"Aglen","");
         CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"logAGlen","");
         CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"AGlen","");
-        
-        
-        
+
+
+
     end
-    
+
     % Don't regularize A if not inverting for A, so
     if ~contains(CtrlVar.Inverse.InvertFor,"AGlen")
-        
+
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-logAGlen-","-");
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-AGlen-","-");
-        
-        
+
+
     end
-    
+
     % Don't regularize C if not inverting for C
     if ~contains(CtrlVar.Inverse.InvertFor,"C")
-        
+
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-logC-","-");
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-C-","-");
 
@@ -267,35 +267,103 @@ if CtrlVar.InverseRun
 
     if contains(CtrlVar.Inverse.InvertFor,"logA")
 
-        if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
 
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is empty, but needs to be defined in a logA inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
+        if CtrlVar.Inverse.Methodology=="-Matern-"
 
-        end
 
-        if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
+            if isempty(CtrlVar.Inverse.Matern.logAGlen.alpha) || isempty(CtrlVar.Inverse.Matern.logAGlen.kappa) || isempty(CtrlVar.Inverse.Matern.logAGlen.tau)
 
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is empty, but needs to be defined in a logA inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
+                fprintf("\n\n======> In a logAGlenb inversion using the Matern methodology following, these following variables can not be left emtpy: \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logAGlen.alpha \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logAGlen.kappa \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logAGlen.tau \n")
 
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+        else
+
+            if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is empty, but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is empty, but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isnan(CtrlVar.Inverse.Regularize.logAGlen.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is NaN but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isnan(CtrlVar.Inverse.Regularize.logAGlen.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is NaN, but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
         end
     end
 
+
+
+
     if contains(CtrlVar.Inverse.InvertFor,"logC")
 
-        if isempty(CtrlVar.Inverse.Regularize.logC.ga)
 
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is empty, but needs to be defined in a logC inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
+        if CtrlVar.Inverse.Methodology=="-Matern-"
 
-        end
 
-        if isempty(CtrlVar.Inverse.Regularize.logC.gs)
+            if isempty(CtrlVar.Inverse.Matern.logC.alpha) || isempty(CtrlVar.Inverse.Matern.logC.kappa) || isempty(CtrlVar.Inverse.Matern.logC.tau)
 
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is empty, but needs to be defined in a logC inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
+                fprintf("\n\n======> In a logC inversion using the Matern methodology following, these following variables can not be left emtpy: \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logC.alpha \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logC.kappa \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logC.tau \n")
 
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+        else
+
+            if isempty(CtrlVar.Inverse.Regularize.logC.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is empty, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isempty(CtrlVar.Inverse.Regularize.logC.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is empty, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+
+            if isnan(CtrlVar.Inverse.Regularize.logC.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is NaN, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isnan(CtrlVar.Inverse.Regularize.logC.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is NaN, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
         end
     end
 
@@ -308,42 +376,42 @@ if isfield(CtrlVar,'AdaptMeshInterval')
 
     fprintf(' Note: CtrlVar.AdaptMeshInterval no longer used. Use CtrlVar.AdaptMeshRunStepInterval instead.\n')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
-    
+
 end
 
 
 if isfield(CtrlVar,'RefineCriteria')
-    
+
     fprintf(' Note: CtrlVar.RefineCriteria no longer used. Use CtrlVar.ExplicitMeshRefinementCriteria instead.\n')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
-    
+
 end
 
 
 if isfield(CtrlVar,'RefineCriteriaWeights')
-    
+
     fprintf(' Note: CtrlVar.RefineCriteriaWeights no longer used. Use CtrlVar.ExplicitMeshRefinementCriteria instead.\n')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
-    
+
 end
 
 if isfield(CtrlVar,'DefineOceanSurfaceAtEachTimeStep')
-    
+
     fprintf(' Note: CtrlVar.DefineOceanSurfaceAtEachTimeStep no longer used.\n')
     fprintf('       Use CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry instead.\n')
     fprintf('       For example: CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="S".\n')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
-    
+
 end
 
 
 if isfield(CtrlVar,'InDiagnosticRunsDefineIceGeometryAtEveryRunStep')
-    
+
     fprintf(' Note: CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep no longer used.\n')
     fprintf('       Use CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry instead.\n')
     fprintf('       For example: CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="sbSB".\n')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
-    
+
 end
 
 if isfield(CtrlVar,'ATStimeStepTarget')
@@ -434,13 +502,13 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn ...
 
     if isempty(poolobj)
 
-        
+
         fprintf("\n ======= No parallel pool is open. To run %ca using parallel options, a parallel pool must be opened ahead of a call to %ca.\n",218,218)
         fprintf(" ======= Parallel options are turned off.\n")
 
         CtrlVar.Parallel.uvhAssembly.parfor.isOn=false;
         CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
-        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];
 
         CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
         CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
@@ -452,7 +520,7 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn ...
         CtrlVar.Parallel.hAssembly.parfor.isOn=false ;
         CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 
-        CtrlVar.Parallel.Distribute=false;  
+        CtrlVar.Parallel.Distribute=false;
 
 
     end
@@ -489,8 +557,18 @@ if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffCubic")
 
 end
 
+if CtrlVar.ForwardTimeIntegration=="-uv-h-" && CtrlVar.FlowApproximation=="SSHEET"
 
+    fprintf("-------------> WARNING: The combination: \n")
+    fprintf(" CtrlVar.ForwardTimeIntegration=%s \n", CtrlVar.ForwardTimeIntegration)
+    fprintf(" CtrlVar.FlowApproximation=%s \n", CtrlVar.FlowApproximation)
+    fprintf("\t is not recommended. \n")
+    fprintf("Instead solve transient flow in the SSHEET approximaton set: \n ")  
+    fprintf('CtrlVar.ForwardTimeIntegration=="-uvh-" \n')
+    fprintf("This does a fully implicit solve with respect to h and provides uv as well.\n")
+    warning("CtrlVarValidityCheck:SSHEET","parameter combination not recommended, see above. \n")
 
+end
 
 end
 

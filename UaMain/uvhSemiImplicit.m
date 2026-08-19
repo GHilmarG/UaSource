@@ -55,7 +55,7 @@ narginchk(8,8)
 %
 % $$ e_{uv} := \| (u_1^1,v_1^1) - (u_1^0,v_1^0) \|  $$
 %
-% If this error is not within a given tolerance, we conclude that our previous estimate, $u_1^0$ amd $v_0^1$ were not good enough, 
+% If this error is not within a given tolerance, we conclude that our previous estimate, $u_1^0$ and $v_0^1$ was not good enough, 
 % and we recalculate the thickness again implicitly using $u_1^1$ and $v_1^1$.
 %
 % This results in a new estimate for $h_1$ which we call $h_1^1$ and we evaluate 
@@ -120,7 +120,7 @@ if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitl
 
         
         InvStartValues=[] ; InvFinalValues=[] ; Priors=[] ; Meas=[] ; BCsAdjoint=[] ; 
-        UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs1,F0,l0,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+        [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs1,F0,l0,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
         if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
             fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
                 CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
