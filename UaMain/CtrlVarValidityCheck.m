@@ -271,7 +271,7 @@ if CtrlVar.InverseRun
         if CtrlVar.Inverse.Methodology=="-Matern-"
 
 
-            if isempty(CtrlVar.Inverse.Matern.logAglen.alpha) || isempty(CtrlVar.Inverse.Matern.logAGlen.kappa) || isempty(CtrlVar.Inverse.Matern.logAGlen.tau)
+            if isempty(CtrlVar.Inverse.Matern.logAGlen.alpha) || isempty(CtrlVar.Inverse.Matern.logAGlen.kappa) || isempty(CtrlVar.Inverse.Matern.logAGlen.tau)
 
                 fprintf("\n\n======> In a logAGlenb inversion using the Matern methodology following, these following variables can not be left emtpy: \n")
                 fprintf("======>  CtrlVar.Inverse.Matern.logAGlen.alpha \n")
