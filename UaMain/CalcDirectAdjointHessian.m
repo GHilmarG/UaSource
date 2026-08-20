@@ -347,9 +347,9 @@ if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
 
 
     tMult=tic;
-    H=xi'*((KJqqFqq)*xi)+H ;
+    H=xi'*(KJqqFqq*xi)+H ;
 
-    H=0.5*(H+H');
+  
     tMult=toc(tMult);
     fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
@@ -382,5 +382,8 @@ if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delt
     H=H+KHess_qp ;
 
 end
+
+
+H=0.5*(H+H');
 
 end

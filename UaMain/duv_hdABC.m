@@ -21,9 +21,12 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     [dudA,dvdA,dhdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good, also for dhdotdA
     tA=toc(tA);
     fprintf("A sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
-    scale=log(10)*F.AGlen;
-    dudA=dudA.*scale ; % using implicit expansion
-    dvdA=dvdA.*scale ; % using implicit expansion
+ 
+    ln10 = log(10);
+    ScaleMatrix=spdiags(F.AGlen(:)*ln10, 0, MUA.Nnodes, MUA.Nnodes);
+    dudA = dudA * ScaleMatrix ; 
+    dvdA = dvdA * ScaleMatrix ; 
+
     if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
         dhdA=dhdA.*scale ;
     else
@@ -44,9 +47,16 @@ if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     tC=toc(tC);
     fprintf("C sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
 
-    scale=log(10)*F.C;  % this has to be a row vector
-    dudC=dudC.*scale ;   % using implicit expansion
-    dvdC=dvdC.*scale ;   % using implicit expansion
+    % scale=log(10)*F.C;  % this has to be a row vector
+    % dudC=dudC.*scale ;   % using implicit expansion
+    % dvdC=dvdC.*scale ;   % using implicit expansion
+    % 
+
+    ln10 = log(10);
+    ScaleMatrix=spdiags(F.C(:)*ln10, 0, MUA.Nnodes, MUA.Nnodes);
+    dudC = dudC * ScaleMatrix ; 
+    dvdC = dvdC * ScaleMatrix ; 
+
     if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
         dhdC=dhdC.*scale ;
     else
@@ -146,6 +156,9 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     end
 
     drawnow
-    input("duv_hdABC: Inspect, and then press RET to continue")
+ 
+    fprintf("duv_hABC: Inspect in debugger and then continue: [F5] \n")
+    keyboard
+
 
 end

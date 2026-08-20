@@ -49,6 +49,30 @@ while true
 
         [J0,g0,Hfull]=func(p);
 
+        if CtrlVar.Inverse.TestDirectAdjoint.isTrue
+
+            %%
+            iCol=randi(numel(p));
+           % iCol=88;
+            [~,HfullFD,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iCol) ;  
+            Diff=norm(HfullFD(:,iCol)-Hfull(:,iCol))/norm(Hfull(:,iCol));
+            fprintf("UaOptimisationHessianEstimate: normalised norm of idfference between Direct-Adjoint and finite-difference Hessian for column %i is: %g \n",iCol,Diff)
+            FigHessDA_FD=FindOrCreateFigure("Test: DirectAdjoint Hess") ; clf(FigHessDA_FD)
+            hold off ; 
+            plot(HfullFD(:,iCol),Hfull(:,iCol),"o") ; 
+            axis equal ; 
+            AX=axis; 
+            hold on ; 
+            plot([AX(1) AX(2)],[AX(1) AX(2)],"--")  
+            title(sprintf("FD test of Direct-Adjoint Hessian for column %i",iCol),Interpreter="latex",FontWeight="bold",FontSize=14)
+            subtitle(sprintf("Inverting for: %s ",CtrlVar.Inverse.InvertFor),Interpreter="latex")
+            xlabel("Finite Differences",Interpreter="latex")
+            ylabel("Direct Adjoint",Interpreter="latex")
+            ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+            %%
+
+
+        end
 
     end
 

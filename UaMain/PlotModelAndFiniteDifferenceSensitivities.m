@@ -36,11 +36,12 @@ title("dv/d"+Field+"model sensitivities (exact)") ; subtitle("")
 
 
 
-figChdot=FindOrCreateFigure("dhdot/d"+Field+" comparision"); clf(figChdot)
+figChdot=FindOrCreateFigure("Test: dhdot/d"+Field+" comparision"); clf(figChdot)
 T=tiledlayout("flow");
 
 T1=nexttile;
-cbar=UaPlots(CtrlVar,MUA,F,dhdField,CreateNewFigure=false)  ; title("$d\dot{h}/d"+Field+"$ sensitvity ",Interpreter="latex") ; subtitle("")
+cbar=UaPlots(CtrlVar,MUA,F,dhdField,CreateNewFigure=false)  ; 
+title("$d\dot{h}/d"+Field+"$ sensitvity ",Interpreter="latex") ; subtitle("")
 title(cbar,"")
 
 T2=nexttile;
@@ -48,7 +49,8 @@ cbar=UaPlots(CtrlVar,MUA,F,dhdotdFieldpert,CreateNewFigure=false) ; title("$d\do
 
 if ~isempty(dhdField)
     T3=nexttile;
-    UaPlots(CtrlVar,MUA,F,dhdField-dhdotdFieldpert,CreateNewFigure=false) ; title("$d\dot{h}/d"+Field+"$ differences",Interpreter="latex") ; subtitle("")
+    UaPlots(CtrlVar,MUA,F,dhdField-dhdotdFieldpert,CreateNewFigure=false) ; 
+    title("Test: $d\dot{h}/d"+Field+"$ differences",Interpreter="latex") ; subtitle("")
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 end
 T.Padding="loose";   T.TileSpacing="tight";
@@ -58,7 +60,7 @@ T.Padding="loose";   T.TileSpacing="tight";
 
 
 
-figCgradu=FindOrCreateFigure("duF/d"+Field+" gradient test") ;  clf(figCgradu)
+figCgradu=FindOrCreateFigure("Test: duF/d"+Field+" sensitivity") ;  clf(figCgradu)
 plot(dudField,dudFieldpert,"or") ;
 hold on
 axis equal
@@ -69,14 +71,14 @@ xlabel(" $duF/d"+Field+"$",Interpreter="latex")  ;
 ylabel("Finite difference $duF/d"+Field+"$",Interpreter="latex")
 ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
 axis on ; axis equal tight ; box off
-title("Comparision between adjoint and finite-differences gradient calculations")
+title("Comparision between adjoint and finite-differences sensitivities")
 set(gcf,'Color','white')
 
 [fitobject,gof]=fit(dudField,dudFieldpert,'poly1');
 coeff=coeffvalues(fitobject);
 subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
 
-figCgradv=FindOrCreateFigure("dvF/d"+Field+" gradient test") ;  clf(figCgradv)
+figCgradv=FindOrCreateFigure("Test: dvF/d"+Field+" sensitiviy") ;  clf(figCgradv)
 plot(dvdField,dvdFieldpert,"or") ;
 hold on
 axis equal
@@ -86,7 +88,7 @@ xlabel(" $dvF/d"+Field+"$",Interpreter="latex")  ;
 ylabel("Finite difference $dvF/d"+Field+"$",Interpreter="latex")
 ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
 axis on ; axis equal tight ; box off
-title("Comparision between adjoint and finite-differences gradient calculations")
+title("Comparision between adjoint and finite-differences sensitvities")
 set(gcf,'Color','white')
 [fitobject,gof]=fit(dvdField,dvdFieldpert,'poly1');
 coeff=coeffvalues(fitobject);
@@ -95,7 +97,7 @@ subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
 
 if ~isempty(dhdField)
 
-    figCgradh=FindOrCreateFigure("dhdotF/d"+Field+" gradient test") ;  clf(figCgradh)
+    figCgradh=FindOrCreateFigure("Test: dhdotF/d"+Field+" sensitivity") ;  clf(figCgradh)
     plot(dhdField,dhdotdFieldpert,"or") ;
     hold on
     axis equal
@@ -105,7 +107,7 @@ if ~isempty(dhdField)
     ylabel("Finite difference $d\dot{h}F/d"+Field+"$",Interpreter="latex")
     ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
     axis on ; axis equal tight ; box off
-    title("Comparision between adjoint and finite-differences gradient calculations")
+    title("Comparision between adjoint and finite-differences sensitivities")
     set(gcf,'Color','white')
     [fitobject,gof]=fit(dhdField,dhdotdFieldpert,'poly1');
     coeff=coeffvalues(fitobject);
@@ -116,7 +118,11 @@ end
 
 
 drawnow
-input("PlotModelAndFiniteDifferenceSensitivities: Inspect, and then press RET to continue")
+
+fprintf("PlotModelAndFiniteDifferenceSensitivities: Inspect in debugger and then continue: [F5] \n")
+keyboard
+
+
 
 
 

@@ -20,6 +20,8 @@ narginchk(16,16)
 KFpq=[KFAu KFAv ; ...
       KFCu KFCv ] ;
 
+%KFpq=KFpq';
+
 
 
 

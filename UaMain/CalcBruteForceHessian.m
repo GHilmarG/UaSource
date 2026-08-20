@@ -16,9 +16,9 @@ narginchk(4,4)
 % [J,g,H]=func(p)
 %
 % returns the cost (J), gradient (G) and Hessian (H). But here only the [J,g]=func(p) form is used in estimating the Hessian
-% independently using finite-differences of the gradient. 
-% 
-% The Hessian finite-difference estimates is calculated from the gradient, g. 
+% independently using finite-differences of the gradient.
+%
+% The Hessian finite-difference estimates is calculated from the gradient, g.
 %
 % The function returns a finite-differences estimate of dJ/dp for selected elements of p in the range iRange
 %
@@ -28,8 +28,8 @@ narginchk(4,4)
 %
 % assuming one is inverting for A, B and C.
 %
-% see also color.m in \MATLAB\R2025b\toolbox\shared\optimlib\private\color.m 
-% which seems to do color partition for sparse finite differences. 
+% see also color.m in \MATLAB\R2025b\toolbox\shared\optimlib\private\color.m
+% which seems to do color partition for sparse finite differences.
 %
 %%
 
@@ -44,7 +44,7 @@ end
 [J0,g0]=func(p0);
 
 
-deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+deltaStep=p0*0+1e-5; 
 
 if any(deltaStep==0)
     fprintf("At least one of the deltaStep values is equal to zero. \n")
@@ -57,13 +57,17 @@ n=numel(p0);
 Hfull=nan(n,n);
 
 nColumns=numel(iRange) ;
-Hvalues=nan(n*nColumns,1) ;
+%Hvalues=nan(n*nColumns,1) ;
 
+if n==nColumns
+    Loop="-parfor-";
+else
+    Loop="-for-";
 
-Loop="-parfor-";
+end
 
 HessianFiniteDifferenceType="central second order" ;
-% HessianFiniteDifferenceType="central fourth order" ;
+%HessianFiniteDifferenceType="central fourth order" ;
 
 
 if contains(Loop,"-parfor-")  % the parfor option can only be used when calculating ALL columns of the Hessian
@@ -73,9 +77,9 @@ if contains(Loop,"-parfor-")  % the parfor option can only be used when calculat
     tStart=tic;
     parfor k=1:n
 
-        Hcol=ParForBody(k,func,p0,deltaStep(k),HessianFiniteDifferenceType) ;
+        Hcol=FiniteDifferenceFormulas(k,func,p0,deltaStep(k),HessianFiniteDifferenceType) ;
         Hfull(:,k)=Hcol;
-        
+
 
     end
     tEnd=toc(tStart);
@@ -85,49 +89,38 @@ end
 
 
 if contains(Loop,"-for-")
-tic
-for k=1:nColumns
+    tic
+    for k=1:nColumns
 
-    iColumn=iRange(k);
+        iColumn=iRange(k);
 
-    p1=p0;
-    p1(iColumn)=p1(iColumn)+deltaStep(iColumn); % change one element within p
-
-    pm1=p0;
-    pm1(iColumn)=pm1(iColumn)-deltaStep(iColumn);
-
-    [J1,g1]=func(p1);
-    [Jm1,gm1]=func(pm1);
+        Hcol=FiniteDifferenceFormulas(iColumn,func,p0,deltaStep(iColumn),HessianFiniteDifferenceType) ;
 
 
-    Hcol=(g1-gm1)/(2*deltaStep(iColumn)) ;
+        Hfull(:,iColumn)=Hcol ;
 
-    Hfull(:,iColumn)=Hcol ;
-    
-    % Here I need to introduce some sparsity idea
-    ind=(k-1)*n+1:(k-1)*n+n ;
-    Hvalues(ind)=Hcol;
+        % % Here I need to introduce some sparsity idea
+        % ind=(k-1)*n+1:(k-1)*n+n ;
+        % Hvalues(ind)=Hcol;
 
-     if rem(k-1,nColumns/10)==0
-         fprintf("%i ",round(100*k/nColumns))
-     end
+        if rem(k-1,nColumns/10)==0
+            fprintf("%i ",round(100*k/nColumns))
+        end
 
+    end
+
+    toc
 end
 
-toc
-end
+% 
+% iH=repmat(1:n,1,numel(iRange)) ; iH=iH(:) ;
+% jH=repmat(iRange,n,1) ; jH=jH(:);
+% Hsparse=sparse(iH,jH,Hvalues,n,n) ;
+Hsparse=[];
 
-
-iH=repmat(1:n,1,numel(iRange)) ; iH=iH(:) ;
-jH=repmat(iRange,n,1) ; jH=jH(:);
-Hsparse=sparse(iH,jH,Hvalues,n,n) ;
-
-Hfull=0.5*(Hfull+Hfull');
+%Hfull=0.5*(Hfull+Hfull');
 
 fprintf("\n")
-
-
-
 
 %  k=3 ; ind=((((k-1)*n+1):(k*n))') ; [iH(ind) jH(ind) Hvalues(ind)]
 %  I=abs(H)>1; figure(100) ; hold off ; spy(I)
@@ -137,12 +130,12 @@ fprintf("\n")
 %  FindOrCreateFigure("Hfull sparsity") ; H=abs(Hfull) > mean(abs(Hfull)) ; spy(H)
 % norm(Hfull-full(Hsparse))
 %
-% H \dp = -g 
+% H \dp = -g
 %
 end
 
 
-function Hcol=ParForBody(k,func,p0,delta,HessianFiniteDifferenceType)
+function Hcol=FiniteDifferenceFormulas(k,func,p0,delta,HessianFiniteDifferenceType)
 
 
 switch HessianFiniteDifferenceType
@@ -163,11 +156,7 @@ switch HessianFiniteDifferenceType
 
         Hcol=(g1-gm1)/(2*delta) ;
 
-        %Hfull(:,iColumn)=Hcol ;
-
-        % Here I need to introduce some sparsity idea
-        %ind=(k-1)*n+1:(k-1)*n+n ;
-        %Hvalues(ind)=Hcol;
+    
 
     case "central fourth order"
         %% central fourth order

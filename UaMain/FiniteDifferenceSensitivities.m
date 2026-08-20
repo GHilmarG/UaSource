@@ -72,10 +72,14 @@ dhdotdField=(dhdtp-dhdtm)/(2*DeltaField) ;
 %
 
 if Field~="B"
-    scale=log(10)*Field0;
+
+    scale=log(10)*Field0(Node);
     dudField=dudField.*scale ;
     dvdField=dvdField.*scale ;
     dhdotdField=dhdotdField.*scale ;
+
+
+
 end
 
 

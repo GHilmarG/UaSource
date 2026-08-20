@@ -63,9 +63,9 @@ narginchk(7,7)
 ndim=2;
 nNodes=MUA.Nnodes ;
 
-
-eta0=CtrlVar.etaZero;
-Eps0=CtrlVar.EpsZero;
+% 
+% eta0=CtrlVar.etaZero;
+% Eps0=CtrlVar.EpsZero;
 C0=CtrlVar.Czero;
 u0=CtrlVar.SpeedZero;
 
@@ -77,9 +77,9 @@ hf_node=F.rhow*(S_node-B_node)./rho_node;
 
 C_node=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
 m_node=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-A_node=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-n_node=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% 
+% A_node=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% n_node=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 u_node=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 v_node=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -292,9 +292,9 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
 
     Diff=norm(KFCC(:,iColumn)-HFCC_col_FD)/norm(HFCC_col_FD);
-    fprintf("normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+    fprintf("FCC: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
 
-    FCCTest=FindOrCreateFigure("FCC Test") ; plot(KFCC(:,iColumn),HFCC_col_FD,"or") ; axis equal ;
+    FCCTest=FindOrCreateFigure("Test: FCC") ; plot(KFCC(:,iColumn),HFCC_col_FD,"or") ; axis equal ;
     hold on ;
     plot([min(HFCC_col_FD) max(HFCC_col_FD)],[min(HFCC_col_FD) max(HFCC_col_FD)],"--k")
 
@@ -303,12 +303,13 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     xlabel("Direct-Adjoint",Interpreter="latex")  ;
     ylabel("Finite difference",Interpreter="latex")
     title("$\mathcal{F}^{pp}_{CC,lm} = \langle \Psi_x,\delta^2_{CC}\mathcal{F}_x[\phi_l,\phi_m] \rangle  + \langle \Psi_y , \delta^2_{CC}\mathcal{F}_y[\phi_l,\phi_m] \rangle$",Interpreter="latex")
-    subtitle("Comparison is here for one random column",Interpreter="latex")
+    subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
     drawnow
-    input("FCC: Inspect, and then press RET to continue")
+  
 
-
+    fprintf("FCC: Inspect in debugger and then continue: [F5] \n")
+    keyboard
 end
 
 

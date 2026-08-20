@@ -315,7 +315,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     if all(F.m==1) && all(F.n==1)
 
-        fprintf("no real need to test these F_qq entries as they are all zero for n=1 and m=1. \n")
+        fprintf("Fqq: no real need to test these F_qq entries as they are all identically equal to zero for n=1 and m=1. \n")
 
     end
 
@@ -340,8 +340,8 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
 
-    Diff=norm(KFqq(:,iColumn) - Fqq_col_FD)/norm(Fqq_col_FD);
-    fprintf("normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+    Diff=norm(KFqq(:,iColumn) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
+    fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
 
     FiniteDifferenceApproximation=Fqq_col_FD;
     KFqqColumn=full(KFqq(:,iColumn));
@@ -363,8 +363,8 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uv}, bottom half -> column of F^{qq}_{vv}
 
-    Diff=norm(KFqq(:,iColumn+Nnodes) - Fqq_col_FD)/norm(Fqq_col_FD);
-    fprintf("normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+    Diff=norm(KFqq(:,iColumn+Nnodes) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
+    fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
 
 
     FiniteDifferenceApproximation=[FiniteDifferenceApproximation;Fqq_col_FD];
@@ -372,7 +372,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     KFqqColumn=[KFqqColumn;full(KFqq(:,iColumn+Nnodes))];
 
     %% Plots
-    FqqTest=FindOrCreateFigure("Fqq Test") ;
+    FqqTest=FindOrCreateFigure("Test: Fqq") ;
 
     plot(KFqqColumn,FiniteDifferenceApproximation,"or") ; axis equal ;
     hold on ;
@@ -388,7 +388,9 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     subtitle("Comparison is here for one random column",Interpreter="latex")
 
     drawnow
-    input("Fqq: Inspect, and then press RET to continue")
+   
+    fprintf("Fqq: Inspect in debugger and then continue: [F5] \n")
+    keyboard
 
     %%
 

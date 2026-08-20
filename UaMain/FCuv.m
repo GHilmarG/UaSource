@@ -11,42 +11,16 @@ narginchk(7,7)
 %
 % Calculates
 %
-% $$  \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
 %
-% and
+% $$
+% \mathcal{F}^{pq}_{Cu,li} =  \langle \Psi_x , \delta^2_{Cu}\mathcal{F}_x[\phi_l,\phi_i] \rangle   + \langle \Psi_y,\delta^2_{Cu}\mathcal{F}_y[\phi_l,\phi_i] \rangle
+% $$
 %
-% $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
-%
-%
-% which is a part of the Hessian.
-%
-% This term also involves mixed derivatives of the forward model, and is not zero
-%
-%
-% For
-%
-% $$ H_{ij}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
-%
-% and
-%
-% $$ H_{ij} = \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
-%
-% So these two terms are just the transpose of each other, and both are calculated here.
-%
-% Also, here $q$ is both $u$ and $v$, and this is done for $p=C$.
-%
-% $$ H_{ij}=
-% \Psi^x_n \frac{\partial^2 F^x_n}{ \partial C_i \, \partial u_k} \frac{\partial u_k}{\partial C_j} + \Psi^x_n \frac{\partial^2 F^x_n}{ \partial C_i \, \partial v_k} \frac{\partial v_k}{\partial C_j}
-% +\Psi^y_n \frac{\partial^2 F^y_n}{ \partial C_i \, \partial u_k} \frac{\partial u_k}{\partial C_j} + \Psi^y_n \frac{\partial^2 F^y_n}{ \partial C_i \, \partial v_k} \frac{\partial v_k}{\partial C_j}
+% $$ 
+% \mathcal{F}^{pq}_{Cv,li} = \langle \Psi_x , \delta^2_{Cv}\mathcal{F}_x[\phi_l,\phi_i] \rangle  + \langle \Psi_y,\delta^2_{Cv}\mathcal{F}_y[\phi_l,\phi_i] \rangle
 % $$
 %
 %
-%
-% $$ \langle \Psi(x) \mid \delta^2_{uC} F(x) \rangle = \langle \Psi(x) \mid \partial^2_{uC} F(x) \, \delta u \, \delta C \rangle $$
-%
-% Or in a discrete form:
-%
-% $$\Psi_n \frac{\partial^2 F_n}{\partial u_i \, \partial C_j} $$
 %
 % For example using Weertman sliding law:
 %
@@ -70,36 +44,36 @@ narginchk(7,7)
 %
 % the relevant part is
 %
-% $$F_x= \mathcal{G} \beta^2 \, v_x $$
+% $$F_x= \mathcal{G} \beta^2 \, u $$
 %
-% $$F_y= \mathcal{G} \beta^2 \, v_y $$
+% $$F_y= \mathcal{G} \beta^2 \, v $$
 %
 %
-% $$ \beta^2 = (C+C_0)^{-1/m} \, (v_x^2+v_y^2 + v_0)^{(1-m)/2m} $$
+% $$ \beta^2 = (C+C_0)^{-1/m} \, (u^2+v^2 + v_0)^{(1-m)/2m} $$
 %
-% $$F_x= \mathcal{G} \; (C+C_0)^{-1/m} \;  (v_x^2+v_y^2+v_0^2)^{(1-m)/2m}  \, v_x $$
+% $$F_x= \mathcal{G} \; (C+C_0)^{-1/m} \;  (u^2+v^2+v_0^2)^{(1-m)/2m}  \, u $$
 %
 % we have
 %
-% $$\delta_C F_x = -\frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; (v_x^2+v_y^2 + v_0^2)^{(1-m)/2m} \, v_x \; \delta C$$
+% $$\delta_C F_x = -\frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; (u^2+v^2 + v_0^2)^{(1-m)/2m} \, u \; \delta C$$
 %
 % and
 %
-% $$\delta^2_{v_x \,C } F_x = -\frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \left  (\frac{1-m}{m} (v_x^2+v_y^2 + v_0^2)^{(1-3m)/2m} \, v_x \, v_x +  (v_x^2+v_y^2 + v_0)^{(1-m)/2m} \right )    \; \delta C \, \delta u$$
+% $$\delta^2_{u \,C } F_x = -\frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \left  (\frac{1-m}{m} (u^2+v^2 + v_0^2)^{(1-3m)/2m} \, u \, u +  (u^2+v^2 + v_0)^{(1-m)/2m} \right )    \; \delta C \, \delta u$$
 %
 %
 %
-% $$ \langle \Psi_x | \delta^2_{v_x C} F_x \rangle =
-%  -\int  \Psi_x \,  \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \left  (\frac{1-m}{m} (v_x^2+v_y^2 + v_0)^{(1-3m)/2m} \, v_x \, v_x +  (v_x^2+v_y^2 + v_0^2)^{(1-m)/2m} \right )    \; \phi_i \, \phi_j \; dx \, dy
+% $$ \langle \Psi_x | \delta^2_{u C} F_x \rangle =
+%  -\int  \Psi_x \,  \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \left  (\frac{1-m}{m} (u^2+v^2 + v_0)^{(1-3m)/2m} \, u \, u +  (u^2+v^2 + v_0^2)^{(1-m)/2m} \right )    \; \phi_i \, \phi_j \; dx \, dy
 % $$
 %
 % which is a $n \times n$ matrix, which then needs to be multiplied with the $n \times n$ sensitivity matrix $\partial
-% v_x/\partial C$
+% u/\partial C$
 %
-% There are two components to $F=(F^x,F^y)$ and two components to $q=(v_x,v_y)$, so we get
+% There are two components to $F=(F^x,F^y)$ and two components to $q=(u,v)$, so we get
 %
-% $$ \langle \Psi_x | \delta^2_{v_x C} F_x \rangle \, \delta_c v_x + \langle  \Psi_x | \delta^2_{v_y C} F_x   \rangle \, \delta_C v_y
-% +  \langle \Psi_y | \delta^2_{v_x C} F_y \rangle \, \delta_C v_x + \langle  \Psi_y | \delta^2_{v_y C} F_y   \rangle \, \delta_C v_y $$
+% $$ \langle \Psi_x | \delta^2_{u C} F_x \rangle \, \delta_c u + \langle  \Psi_x | \delta^2_{v C} F_x   \rangle \, \delta_C v
+% +  \langle \Psi_y | \delta^2_{u C} F_y \rangle \, \delta_C u + \langle  \Psi_y | \delta^2_{v C} F_y   \rangle \, \delta_C v $$
 %
 %
 %%
@@ -187,8 +161,8 @@ for Iint=1:MUA.nip
     dvcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + u0^2).^((1-m)./(2.*m)-1) .*v.*v + (u.^2+v.^2 + u0^2).^((1-m)./(2.*m))  ) ;
 
 
-    l_d2FdudC=(Psix.*ducFx+Psiy.*ducFy).*C.*log(10);  % There is only one derivative with respect to C, so chain rule is only used once
-    l_d2FdvdC=(Psix.*dvcFx+Psiy.*dvcFy).*C.*log(10);
+    l_d2FdudC=Psix.*ducFx+Psiy.*ducFy;  % raw kernel long log(C) scaling here at all
+    l_d2FdvdC=Psix.*dvcFx+Psiy.*dvcFy;
 
     %% Testing
     % u_e=sqrt(u.*u + v.*v+u0^2) ;
@@ -237,10 +211,16 @@ for Inod=1:MUA.nod
     end
 end
 
-KFCu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;
-KFCv=sparseUA(Iind,Jind,HvVal,nNodes,nNodes) ;
+KFCu=sparse(Iind,Jind,HuVal,nNodes,nNodes) ;
+KFCv=sparse(Iind,Jind,HvVal,nNodes,nNodes) ;
 
-KFCu = -KFCu;
+ln10 = log(10);
+D_C = spdiags(F.C(:)*ln10, 0, nNodes, nNodes);
+
+KFCu = D_C * KFCu;   % KFCu here is the RAW matrix from the assembly above
+KFCv = D_C * KFCv;
+
+KFCu = -KFCu;         % existing overall sign-convention fix, unchanged
 KFCv = -KFCv;
 
 %% Test Against Finite-Differences
@@ -251,13 +231,15 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     iColumn=randi(MUA.Nnodes); % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
 
-    CtrlVar.log10Derivatives=true;
+    
+
 
 
     %% FCu test
     u0 = F.ub;
-    v0=  F.vb; 
+    v0=  F.vb;
     hstep = 1e-6*max(abs(u0)+abs(v0));
+
 
     F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
     bMinus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
@@ -274,8 +256,8 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     % FCv test
     v0 = F.vb;
-  
- 
+
+
     F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
     bMinus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
@@ -289,7 +271,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     fprintf("FCv: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
 
     %% Plots
-    FCuTest=FindOrCreateFigure("FCu Test") ;
+    FCuTest=FindOrCreateFigure("Test: FCu") ;
 
     plot(KFCu(:,iColumn),HCu_col_FD,"or") ; axis equal ;
     hold on ;
@@ -299,11 +281,11 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     xlabel("Direct-Adjoint",Interpreter="latex")  ;
     ylabel("Finite difference",Interpreter="latex")
-    title("$\langle \Psi_x | \delta^2_{v_x C} F_x \rangle $",Interpreter="latex")
-    subtitle("Comparison is here for one random column",Interpreter="latex")
+    title("$\langle \Psi_x | \delta^2_{u C} F_x \rangle $",Interpreter="latex")
+    subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
 
-    FCvTest=FindOrCreateFigure("FCv Test") ;
+    FCvTest=FindOrCreateFigure("Test: FCv") ;
 
     plot(KFCv(:,iColumn),HCv_col_FD,"or") ; axis equal ;
     hold on ;
@@ -313,11 +295,14 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     xlabel("Direct-Adjoint",Interpreter="latex")  ;
     ylabel("Finite difference",Interpreter="latex")
-    title("$\langle  \Psi_y | \delta^2_{v_y C} F_y   \rangle $",Interpreter="latex")
-    subtitle("Comparison is here for one random column",Interpreter="latex")
+    title("$\langle  \Psi_y | \delta^2_{v C} F_y   \rangle $",Interpreter="latex")
+    subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
     drawnow
-    input("FCuv: Inspect, and then press RET to continue")
+   
+
+    fprintf("FCuv: Inspect in debugger and then continue [F5]: \n")
+    keyboard
 
     %%
 

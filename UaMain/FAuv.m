@@ -5,7 +5,20 @@ function [KFAu,KFAv]=FAuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
 narginchk(7,7)
 
-
+%%
+%
+% Calculates
+%
+%
+% $$
+% \mathcal{F}^{pq}_{Au,li} =  \langle \Psi_x , \delta^2_{Au}\mathcal{F}_x[\phi_l,\phi_i] \rangle   + \langle \Psi_y,\delta^2_{Au}\mathcal{F}_y[\phi_l,\phi_i] \rangle
+% $$
+%
+% $$ 
+% \mathcal{F}^{pq}_{Av,li} = \langle \Psi_x , \delta^2_{Av}\mathcal{F}_x[\phi_l,\phi_i] \rangle  + \langle \Psi_y,\delta^2_{Av}\mathcal{F}_y[\phi_l,\phi_i] \rangle
+% $$
+%
+%
 
 
 if ~contains(CtrlVar.Inverse.InvertFor,"logAGlen",IgnoreCase=true)
@@ -104,15 +117,29 @@ for Iint=1:MUA.nip
     E2_PsixPsiy = dPsixdy+dPsiydx;
     F1_PsixPsiy = 4.*dPsiydy+2.*dPsixdx;
 
-    S = -log(10) ./ n .* (eta - eta0);
+    % RAW (A-space, no log/A-scaling) building blocks -- Stilde is exactly EffectiveViscositySSTREAM's detadA
+    Stilde = -A.^(-1./n-1) .* eEff.^((1-n)./n) ./ (2*n);
+    Rtilde = -(1-n) ./ (8*n.^2) .* A.^(-1./n-1) .* eEff.^((1-3*n)./n);
+
     Theta = E1_uv.*dPsixdx + E2_uv.*dPsixdy + F1_uv.*dPsiydy + E2_uv.*dPsiydx;
-    R = -(1-n) .* log(10) ./ (8*n.^2) .* A.^(-1./n) .* eEff.^((1-3*n)./n);
+
+    K1 = h .* ( Rtilde.*Theta.*E1_uv + Stilde.*E1_PsixPsiy );
+    K2 = h .* ( Rtilde.*Theta.*E2_uv + Stilde.*E2_PsixPsiy );
+    K3 = h .* ( Rtilde.*Theta.*F1_uv + Stilde.*F1_PsixPsiy );
 
 
-
-    K1 = h .* ( R.*Theta.*E1_uv + S.*E1_PsixPsiy );
-    K2 = h .* ( R.*Theta.*E2_uv + S.*E2_PsixPsiy );
-    K3 = h .* ( R.*Theta.*F1_uv + S.*F1_PsixPsiy );
+    % 
+    % 
+    % 
+    % S = -log(10) ./ n .* (eta - eta0);
+    % Theta = E1_uv.*dPsixdx + E2_uv.*dPsixdy + F1_uv.*dPsiydy + E2_uv.*dPsiydx;
+    % R = -(1-n) .* log(10) ./ (8*n.^2) .* A.^(-1./n) .* eEff.^((1-3*n)./n);
+    % 
+    % 
+    % 
+    % K1 = h .* ( R.*Theta.*E1_uv + S.*E1_PsixPsiy );
+    % K2 = h .* ( R.*Theta.*E2_uv + S.*E2_PsixPsiy );
+    % K3 = h .* ( R.*Theta.*F1_uv + S.*F1_PsixPsiy );
 
     for Inod=1:MUA.nod
         for Lnod=1:MUA.nod
@@ -155,8 +182,17 @@ for Inod=1:MUA.nod
     end
 end
 
-KFAu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  
-KFAv=sparseUA(Iind,Jind,HvVal,nNodes,nNodes) ;  
+KFAu=sparse(Iind,Jind,HuVal,nNodes,nNodes) ;  
+KFAv=sparse(Iind,Jind,HvVal,nNodes,nNodes) ;  
+
+ln10 = log(10);
+D_A = spdiags(F.AGlen(:)*ln10, 0, nNodes, nNodes);   % nodal A values, NOT AGlennod
+
+KFAu = D_A * KFAu;
+KFAv = D_A * KFAv;
+
+
+
 
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
@@ -168,8 +204,9 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
 
     %% FCu test
-    u0 = F.ub;
-    hstep = 1e-6*max(abs(u0));
+    u0 = F.ub;  
+    v0 = F.vb;
+    hstep = 1e-6*max(abs(u0)+abs(v0));
 
     F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
     bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
@@ -185,8 +222,8 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
 
     % FCv test
-    v0 = F.vb;
-    hstep = 0.01;
+  
+  
 
     F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
     bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
@@ -200,7 +237,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     Diff=norm(KFAv(:,iColumn) - HAv_col_FD)/norm(HAv_col_FD);
     fprintf("FAv: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
 
-    FAuTest=FindOrCreateFigure("FAu Test") ; 
+    FAuTest=FindOrCreateFigure("Test: FAu") ; 
 
     plot(KFAu(:,iColumn),HAu_col_FD,"or") ; axis equal ;
     hold on ;
@@ -214,7 +251,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     subtitle("Comparison is here for one random column",Interpreter="latex")
 
 
-    FAvTest=FindOrCreateFigure("FAv Test") ; 
+    FAvTest=FindOrCreateFigure("Test: FAv") ; 
 
     plot(KFAv(:,iColumn),HAv_col_FD,"or") ; axis equal ;
     hold on ;
@@ -225,27 +262,15 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     xlabel("Direct-Adjoint",Interpreter="latex")  ;
     ylabel("Finite difference",Interpreter="latex")
     title("$\langle  \Psi_y | \delta^2_{v_y A} F_y   \rangle $",Interpreter="latex")
-    subtitle("Comparison is here for one random column",Interpreter="latex")
-
+    subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
     drawnow
-    prompt = "FAuv: Inspect and press RET to continue: ";
-    input(prompt,"s");
+ 
+
+
+    fprintf("FAuv: Inspect in debugger and then continue: [F5]\n")
+    keyboard
 
 end
-
-
-
-
-
-
-
-
-
-
-
-return
-
-
 
 end
 

@@ -268,9 +268,9 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
 
     Diff=norm(KFAA(:,iColumn)-HFAA_col_FD)/norm(HFAA_col_FD);
-    fprintf("normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+    fprintf("FAA: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
 
-    FAATest=FindOrCreateFigure("FAA Test") ; plot(KFAA(:,iColumn),HFAA_col_FD,"or") ; axis equal ;
+    FAATest=FindOrCreateFigure("Test: FAA") ; plot(KFAA(:,iColumn),HFAA_col_FD,"or") ; axis equal ;
     hold on ;
     plot([min(HFAA_col_FD) max(HFAA_col_FD)],[min(HFAA_col_FD) max(HFAA_col_FD)],"--k")
 
@@ -279,12 +279,13 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     xlabel("Direct-Adjoint",Interpreter="latex")  ;
     ylabel("Finite difference",Interpreter="latex")
     title("$\mathcal{F}^{pp}_{AA,lm} = \langle \Psi_x,\delta^2_{AA}\mathcal{F}_x[\phi_l,\phi_m] \rangle  + \langle \Psi_y , \delta^2_{AA}\mathcal{F}_y[\phi_l,\phi_m] \rangle$",Interpreter="latex")
-    subtitle("Comparison is here for one random column",Interpreter="latex")
+    subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
     drawnow
-    prompt = "FAA: Inspect, and press RET to continue: ";
-    input(prompt,"s");
- 
+    
+    
+    fprintf("FAA: Inspect in debugger and then continue: [F5] \n")
+    keyboard
   
 end
 
