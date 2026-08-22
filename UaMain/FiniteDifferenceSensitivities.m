@@ -15,6 +15,10 @@ end
 
 Field0=F.(Field);
 
+
+% I do the perturbation in lin space, not in log space
+%
+%
 if isnan(DeltaAbs)
     DeltaField=F.(Field)(Node)*DeltaRel;  % perturbation
 else
@@ -72,7 +76,7 @@ dhdotdField=(dhdtp-dhdtm)/(2*DeltaField) ;
 %
 
 if Field~="B"
-
+    % Here I do the log scaling
     scale=log(10)*Field0(Node);
     dudField=dudField.*scale ;
     dvdField=dvdField.*scale ;

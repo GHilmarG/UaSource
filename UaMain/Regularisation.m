@@ -302,7 +302,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
         if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
             dAfactor=1;
         else
-            dAfactor=1./F.AGlen/log(10);   % gradient must be with respect to A, but regularisation is on logA
+            dAfactor=1./F.AGlen/log(10);   % gradient must be with respect to A, but regularization is on logA
         end
 
     else % regularize A
@@ -312,7 +312,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
         gsA=CtrlVar.Inverse.Regularize.AGlen.gs;
         gaA=CtrlVar.Inverse.Regularize.AGlen.ga;
         if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-            dAfactor=log(10)*F.AGlen;   % gradient must be with respect to logA, but regularisation is on A
+            dAfactor=log(10)*F.AGlen;   % gradient must be with respect to logA, but regularization is on A
         else
             dAfactor=1;
         end
@@ -387,296 +387,207 @@ Dyy=MUA.Dyy;
 
 %% Now dpX, gsX and gaX have all be defined
 
-% Now defining R, dRdp, ddRddp
-if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regularization
-
-    % R= (C-C_prior)' CC^{-1} (C-C_prior)  / (2N)
-
-    if isA
-        npA=numel(dpA);
-        temp=pPriorCovA\dpA;
-        RA=dpA'*temp/(2*npA)   ;
-        dRdA=temp/npA;
-        %ddRdAA=inv(Priors.CovC)/2/N;
-        ddRAddpA=[];
-    else
-        RA=0;
-        dRdA=[];
-
-    end
-
-    if isC
-        npC=numel(dpC);
-        temp=pPriorCovC\dpC;
-        RC=dpC'*temp/(2*npC)   ;
-        dRdC=temp/npC;
-        %ddRdd=inv(Priors.CovC)/2/N;
-        ddRCddpC=[];
-    else
-        RC=0;
-        dRdC=[];
-
-    end
-
-    if isb
-        npb=numel(dpb);
-        temp=pPriorCovb\dpb;
-        Rb=dpb'*temp/(2*npb)   ;
-        dRdb=temp/npb;
-        %ddRdd=inv(Priors.CovC)/2/N;
-        ddRCddpb=[];
-        error('fdsa')
-    else
-        Rb=0;
-        dRdb=[];
-
-    end
+%% Now defining R, dRdp, ddRddp
 
 
-    if isB
-        npB=numel(dpB);
-        temp=pPriorCovB\dpB;
-        RB=dpB'*temp/(2*npB)   ;
-        dRdB=temp/npB;
-        %ddRdd=inv(Priors.CovC)/2/N;
-        ddRddpB=[];
-    else
-        RB=0;
-        dRdB=[];
+% the expression for the prior, is
+%
+% $$-\log P(B) = \frac{1}{2}(B-B_{prior})^{T} Q (B-B_{prior}) + \frac{1}{2}\log\left|Q^{-1}\right| + \text{const} $$
 
+if isA
+
+
+
+    alphaMatern=CtrlVar.Inverse.Matern.logAGlen.alpha;
+    kappaMatern=CtrlVar.Inverse.Matern.logAGlen.kappa;
+    tauMatern=CtrlVar.Inverse.Matern.logAGlen.tau;
+
+
+    QA=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaA,gsA,CtrlVar.Inverse.Methodology);
+    RA=0.5*dpA'*QA*dpA;           % costs function term
+    dRdA=(QA*dpA).*dAfactor;      % derivative, accounting for possible log
+
+    if nargout > 3  % this is here for a possible info, and useful when calculating L curves
+  
+        RegOuts.RAs=nan  ; RegOuts.RAa=nan;  % this is no longer working using Matern, I need to re-introduce this somehow, to be done
     end
 
 
 
+    if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
+        N=MUA.Nnodes;
+        ddRdAA=sparse(N,N);
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 
-    R=RA+Rb+RC;
-    dRdp=[dRdA;dRdb;dRdC];
-
-
-
-else  % Andrey Tikhonov regularization or Matern
-
-    % the expression for the prior, is
-    %
-    % $$-\log P(B) = \frac{1}{2}(B-B_{prior})^{T} Q (B-B_{prior}) + \frac{1}{2}\log\left|Q^{-1}\right| + \text{const} $$
-
-    if isA
-
-     
-
-        alphaMatern=CtrlVar.Inverse.Matern.logAGlen.alpha;
-        kappaMatern=CtrlVar.Inverse.Matern.logAGlen.kappa;
-        tauMatern=CtrlVar.Inverse.Matern.logAGlen.tau;
-
-
-        QA=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaA,gsA,CtrlVar.Inverse.Methodology);
-        RA=0.5*dpA'*QA*dpA;           % costs function term
-        dRdA=(QA*dpA).*dAfactor;      % derivative, accounting for possible log
-
-        if nargout > 3  % this is here for a possible info, and useful when calculating L curves
-            RA= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
-            RAa= dpA'    *M    *dpA   /(2*Area);
-            RegOuts.RAs=RA  ; RegOuts.RAa=RAa;
-        end
-
-        % %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix 
-        % 
-        % % NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-        % dRdAGlen=(NA*dpA).*dAfactor;
-        % RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area); % I'm calculating this here so that these parts of the cost function
-        %                                       % can be used for L-curve analysis. These do not include gaA and gsA
-        % RAa= dpA'    *M    *dpA   /(2*Area);
-        % RA=gsA.^2*RA+gaA.^2*RAa;
-        % RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
-
-
-
-        if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
+        if contains(CtrlVar.Inverse.Hessian,"RHA=E")
+            ddRdAA=QA.*dAfactor;
+        elseif contains(CtrlVar.Inverse.Hessian,"RHA=M")
+            ddRdAA=MUA.M/MUA.Area;
+        elseif contains(CtrlVar.Inverse.Hessian,"RHA=I") || contains(CtrlVar.Inverse.Hessian,"RHA=1")
+            N=MUA.Nnodes;
+            ddRdAA=speye(N,N);
+        elseif contains(CtrlVar.Inverse.Hessian,"RHA=0") || contains(CtrlVar.Inverse.Hessian,"RHA=O")
             N=MUA.Nnodes;
             ddRdAA=sparse(N,N);
-        elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-
-            if contains(CtrlVar.Inverse.Hessian,"RHA=E")
-                ddRdAA=QA.*dAfactor;
-            elseif contains(CtrlVar.Inverse.Hessian,"RHA=M")
-                ddRdAA=MUA.M/MUA.Area;
-            elseif contains(CtrlVar.Inverse.Hessian,"RHA=I") || contains(CtrlVar.Inverse.Hessian,"RHA=1")
-                N=MUA.Nnodes;
-                ddRdAA=speye(N,N);
-            elseif contains(CtrlVar.Inverse.Hessian,"RHA=0") || contains(CtrlVar.Inverse.Hessian,"RHA=O")
-                N=MUA.Nnodes;
-                ddRdAA=sparse(N,N);
-            else
-                fprintf(" CtrlVar.Inverse.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.Hessian)
-                error("Regularisation:IncorrectInputs"," case not found ")
-            end
+        else
+            fprintf(" CtrlVar.Inverse.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.Hessian)
+            error("Regularisation:IncorrectInputs"," case not found ")
         end
     end
-
-    if isC
-
-   
-
-        %QC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
-
-        alphaMatern=CtrlVar.Inverse.Matern.logC.alpha;
-        kappaMatern=CtrlVar.Inverse.Matern.logC.kappa;
-        tauMatern=CtrlVar.Inverse.Matern.logC.tau;
-
-        QC=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaC,gsC,CtrlVar.Inverse.Methodology);
-        RC=0.5*dpC'*QC*dpC;           % costs function term
-        dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
-
-        if nargout > 3  % this is here for a possible info, and useful when calculating L curves
-            RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
-            RCa= dpC'    *M    *dpC   /(2*Area);
-            RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
-        end
-
-        if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
-            N=MUA.Nnodes;
-            ddRdAA=sparse(N,N);
-        elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-            if contains(CtrlVar.Inverse.Hessian,"RHC=E")
-
-                ddRdCC=QC.*dCfactor;
-            elseif contains(CtrlVar.Inverse.Hessian,"RHC=M")
-                ddRdCC=MUA.M/MUA.Area;
-            elseif contains(CtrlVar.Inverse.Hessian,"RHC=I") || contains(CtrlVar.Inverse.Hessian,"RHC=1")
-                N=MUA.Nnodes;
-                ddRdCC=speye(N,N);
-            elseif contains(CtrlVar.Inverse.Hessian,"RHC=O") || contains(CtrlVar.Inverse.Hessian,"RHC=0")
-                N=MUA.Nnodes;
-                ddRdCC=sparse(N,N);
-            else
-
-                fprintf(" CtrlVar.Inverse.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.Hessian)
-                error("Regularisation:IncorrectInputs"," case not found ")
-
-            end
-        end
-
-    end
-
-
-    if isb   %  b
-
-        Nb=(gsb.^2.*(Dxx+Dyy)+gab.^2.*M)/Area;
-        Rb=dpb'*Nb*dpb/2;
-        dRdb=(Nb*dpb).*dbfactor;
-        error('fdsa')
-    else
-        Rb=0;
-        dRdb=[];
-    end
-
-
-
-    if isB   %  B
-
-        % The covariance of the prior consists of two terms:
-        %
-        % 1) The 'usual' large-scale correlation which here is a Marten covariance,
-        % 2) A 'nugget' effect which is related to uncorrelated errors in the (direct) measurements of B.
-        %
-        %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
-
-        alphaMatern=CtrlVar.Inverse.Matern.B.alpha;
-        kappaMatern=CtrlVar.Inverse.Matern.B.kappa;
-        tauMatern=CtrlVar.Inverse.Matern.B.tau;
-        QB=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaB,gsB,CtrlVar.Inverse.Methodology);
-        %QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-        RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
-        dRdB=(QB*dpB).*dBfactor;        %   dR/dB:  (a vector)
-        ddRdBB=QB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
-        % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
-
-
-        if ~isempty(Meas.B)  &&  ~isempty(Meas.BCov)  &&    isdiag(Meas.BCov)
-
-            % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
-            % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
-            %
-            % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
-            % distinction is simply rhetorical as these terms are all added up
-
-            Berr=sqrt(spdiags(Meas.BCov));
-
-            Bres=(F.B-Meas.B)./Berr;
-            RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
-            dRdBmeas=(MUA.M*Bres)./Berr/Area;
-            ddRdBmeasBmeas=(MUA.M)./Berr/Area;
-
-            RB=RB+RBmeas;
-            dRdB=dRdB+dRdBmeas;
-            ddRdBB=ddRdBB+ddRdBmeasBmeas;
-
-        end
-
-
-        %%  Barrier term to push B solution away from min ice thickness, i.e. to discourage F.B being close to F.s/Meas.s#
-        %
-        % Idea:  Add a quadratic penalty in terms of min thickness violation.
-        %
-        % Thickness violation: F.s - F.B < hmin
-
-        CtrlVar.Inverse.Penalty=false;
-
-        if CtrlVar.Inverse.Penalty
-
-            x=F.B - (F.s-20*CtrlVar.ThickMin);
-            x0=zeros(MUA.Nnodes,1);
-            k=0.1; a=5;  % 1/k is the softness and a the amplitude
-            [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ;
-
-            Bbarr=Bbarr/Area;
-            dBarrdB=dBarrdB/Area;
-            ddBbarrdBB=ddBbarrdBB/Area;
-
-
-            RB=RB+Bbarr;
-            dRdB=dRdB+dBarrdB;
-            ddRdBB=ddRdBB+ddBbarrdBB;
-
-        end
-
-        if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
-            N=MUA.Nnodes;
-            ddRdBB=sparse(N,N);
-        end
-        %
-
-        %%
-
-
-    else
-        RB=0;
-        dRdB=[];
-        ddRdBB=[];
-    end
- 
-
-    % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
-    dRdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.A,dRdA);
-    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dRdC);
-    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dRdB);
-
-    R=RA+RB+RC;
-    dRdp=[dRdA;dRdB;dRdC];
-    %
-    % tic
-    % [Am,An] = size(ddRdAA);
-    % [Bm,Bn] = size(ddRdBB);
-    % [Cm,Cn] = size(ddRdCC);
-    % ddRdpp = spalloc(Am+Bm+Cm,An+Bn+Cn,nnz(ddRdAA)+nnz(ddRdCC)+nnz(ddRdBB));
-    % ddRdpp(1:Am,1:An) = ddRdAA;
-    % ddRdpp(Am+1:Am+Bm,An+1:An+Bn) = ddRdBB;
-    % ddRdpp(Am+Bm+1:Am+Bm+Cm,An+Bn+1:An+Bn+Cn) = ddRdCC;
-    % toc
-
-    ddRdpp=blkdiag(ddRdAA,ddRdBB,ddRdCC) ; % much faster
 
 end
+
+if isC
+
+
+
+    %QC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
+
+    alphaMatern=CtrlVar.Inverse.Matern.logC.alpha;
+    kappaMatern=CtrlVar.Inverse.Matern.logC.kappa;
+    tauMatern=CtrlVar.Inverse.Matern.logC.tau;
+
+    QC=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaC,gsC,CtrlVar.Inverse.Methodology);
+    RC=0.5*dpC'*QC*dpC;           % costs function term
+    dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
+
+    if nargout > 3  % this is here for a possible info, and useful when calculating L curves
+    
+        RegOuts.RCs=nan  ; RegOuts.RCa=nan; % this is no longer working using Matern, I need to re-introduce this somehow, to be done
+    end
+
+    if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
+        N=MUA.Nnodes;
+        ddRdAA=sparse(N,N);
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        if contains(CtrlVar.Inverse.Hessian,"RHC=E")
+
+            ddRdCC=QC.*dCfactor;
+        elseif contains(CtrlVar.Inverse.Hessian,"RHC=M")
+            ddRdCC=MUA.M/MUA.Area;
+        elseif contains(CtrlVar.Inverse.Hessian,"RHC=I") || contains(CtrlVar.Inverse.Hessian,"RHC=1")
+            N=MUA.Nnodes;
+            ddRdCC=speye(N,N);
+        elseif contains(CtrlVar.Inverse.Hessian,"RHC=O") || contains(CtrlVar.Inverse.Hessian,"RHC=0")
+            N=MUA.Nnodes;
+            ddRdCC=sparse(N,N);
+        else
+
+            fprintf(" CtrlVar.Inverse.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.Hessian)
+            error("Regularisation:IncorrectInputs"," case not found ")
+
+        end
+    end
+
+end
+
+
+if isb   %  b
+
+    Nb=(gsb.^2.*(Dxx+Dyy)+gab.^2.*M)/Area;
+    Rb=dpb'*Nb*dpb/2;
+    dRdb=(Nb*dpb).*dbfactor;
+    error('fdsa')
+else
+    Rb=0;
+    dRdb=[];
+end
+
+
+
+if isB   %  B
+
+    % The covariance of the prior consists of two terms:
+    %
+    % 1) The 'usual' large-scale correlation which here is a Marten covariance,
+    % 2) A 'nugget' effect which is related to uncorrelated errors in the (direct) measurements of B.
+    %
+    %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
+
+    alphaMatern=CtrlVar.Inverse.Matern.B.alpha;
+    kappaMatern=CtrlVar.Inverse.Matern.B.kappa;
+    tauMatern=CtrlVar.Inverse.Matern.B.tau;
+    QB=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaB,gsB,CtrlVar.Inverse.Methodology);
+    %QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
+    RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
+    dRdB=(QB*dpB).*dBfactor;        %   dR/dB:  (a vector)
+    ddRdBB=QB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
+    % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
+
+
+    if ~isempty(Meas.B)  &&  ~isempty(Meas.BCov)  &&    isdiag(Meas.BCov)
+
+        % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
+        % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
+        %
+        % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
+        % distinction is simply rhetorical as these terms are all added up
+
+        Berr=sqrt(spdiags(Meas.BCov));
+
+        Bres=(F.B-Meas.B)./Berr;
+        RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
+        dRdBmeas=(MUA.M*Bres)./Berr/Area;
+        ddRdBmeasBmeas=(MUA.M)./Berr/Area;
+
+        RB=RB+RBmeas;
+        dRdB=dRdB+dRdBmeas;
+        ddRdBB=ddRdBB+ddRdBmeasBmeas;
+
+    end
+
+
+    %%  Barrier term to push B solution away from min ice thickness, i.e. to discourage F.B being close to F.s/Meas.s#
+    %
+    % Idea:  Add a quadratic penalty in terms of min thickness violation.
+    %
+    % Thickness violation: F.s - F.B < hmin
+
+    CtrlVar.Inverse.Penalty=false;
+
+    if CtrlVar.Inverse.Penalty
+
+        x=F.B - (F.s-20*CtrlVar.ThickMin);
+        x0=zeros(MUA.Nnodes,1);
+        k=0.1; a=5;  % 1/k is the softness and a the amplitude
+        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ;
+
+        Bbarr=Bbarr/Area;
+        dBarrdB=dBarrdB/Area;
+        ddBbarrdBB=ddBbarrdBB/Area;
+
+
+        RB=RB+Bbarr;
+        dRdB=dRdB+dBarrdB;
+        ddRdBB=ddRdBB+ddBbarrdBB;
+
+    end
+
+    if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
+        N=MUA.Nnodes;
+        ddRdBB=sparse(N,N);
+    end
+    %
+
+    %%
+
+
+else
+    RB=0;
+    dRdB=[];
+    ddRdBB=[];
+end
+
+
+% if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
+dRdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.A,dRdA);
+dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dRdC);
+dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dRdB);
+
+R=RA+RB+RC;
+dRdp=[dRdA;dRdB;dRdC];
+ddRdpp=blkdiag(ddRdAA,ddRdBB,ddRdCC) ; % much faster
+
 
 
 R=CtrlVar.Inverse.Regularize.Multiplier*R;

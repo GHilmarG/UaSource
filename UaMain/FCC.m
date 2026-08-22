@@ -307,9 +307,9 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     drawnow
   
-
-    fprintf("FCC: Inspect in debugger and then continue: [F5] \n")
-    keyboard
+    % 
+    % fprintf("FCC: Inspect in debugger and then continue: [F5] \n")
+    % keyboard
 end
 
 

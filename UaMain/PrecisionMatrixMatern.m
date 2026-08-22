@@ -101,10 +101,16 @@ if alphaMatern==1
     % Q1
     Q = tauMatern^2 * A ;
 
+    % link with Tikhonov:
+    %
+    %   2*MUA.Area* [tauMatern^2/gs^2 (kappaMatern^2*tauMatern^2)/ga^2]
+    %
+    %
+
 elseif alphaMatern==2
 
     row_sums = sum(M,2);
-    
+
     n=MUA.Nnodes;
     iM=sparse(1:n,1:n,1./row_sums,n,n);
 
@@ -115,15 +121,15 @@ elseif alphaMatern==3
 
     row_sums = sum(M,2);
 
-     n=MUA.Nnodes;
+    n=MUA.Nnodes;
     iM=sparse(1:n,1:n,1./row_sums,n,n);
 
     % Q3
-    Q = tauMatern^2 * A * iM * A * iM * A ; 
+    Q = tauMatern^2 * A * iM * A * iM * A ;
 
 else
 
-    error("alpha must be either equal to 1, 2 or 3.\n")
+    error("PrecisionMatrixMatern:InvalidInput","alpha must be either equal to 1, 2 or 3.\n")
 
 end
 

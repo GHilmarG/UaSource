@@ -482,59 +482,6 @@ if CtrlVar.Inverse.CalcHessI
         end
     end
 
-    %% Commented out and changed on 22 Feb 2026
-    % switch CtrlVar.Inverse.InvertForField
-    %
-    %     case "A"
-    %         dIdp=DAI;
-    %         ddIdpp=ddIdAA ;
-    %     case "b"
-    %         error("fdsa")
-    %     case "B"
-    %         dIdp=DBI;
-    %     case "C"
-    %         dIdp=DCI;
-    %         ddIdpp=ddIdCC ;
-    %     case "AC"
-    %         dIdp=[DAI;DCI];
-    %
-    %         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian") &&  ~contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
-    %
-    %             % N=MUA.Nnodes;
-    %             % ddIdpp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
-    %             % ddIdpp(1:N,1:N) = ddIdAA;
-    %             % ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
-    %
-    %             ddIdpp=blkdiag(ddIdAA,ddIdCC);  % 2026 Feb, I think this is the same
-    %         end
-    %
-    %     case "BC"
-    %
-    %         % DCI=DCI*0;
-    %         dIdp=[DBI;DCI];
-    %
-    %         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-    %             N=MUA.Nnodes;
-    %             ddIdBB=speye(N,N);  % I have not thought about a good Hessian estimate here, so just enter the identity matrix.
-    %             ddIdBB=MUA.M;           % I have not thought about a good Hessian estimate here, so just enter the mass matrix
-    %
-    %
-    %
-    %             ddIdBB=speye(N,N);
-    %             ddIdCC=speye(N,N);
-    %
-    %             ddIdpp = spalloc(N+N,N+N,nnz(ddIdBB)+nnz(ddIdCC));
-    %             ddIdpp(1:N,1:N) = ddIdBB;
-    %             ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
-    %
-    %         end
-    %
-    %     otherwise
-    %
-    %         error("sdfsa")
-    %
-    % end
-
 
 
 end

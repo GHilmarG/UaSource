@@ -1,7 +1,7 @@
 
 
 
-function [HlE,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(H,MUA,lStart)
+function [HlE,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(H,E,lStart)
 
 
 %%
@@ -29,28 +29,6 @@ if l==0
 end
 
 
-nNodes=size(MUA.M,1);
-nH=size(H,1);
-
-if nH==nNodes
-    E=MUA.M ;
-elseif nH==2*nNodes
-    E=blkdiag(MUA.M,MUA.M) ;
-else
-    error("wrong dimentions")
-end
-
-% e=eigs(H) ;
-% FindOrCreateFigure("Hessian eigenvalues") ; plot(sort(e),".r")
-%
-
-% check if H +l E is positive definite for the input value of l
-
-
-
-
-
-
 
 if l==0
     l=1e-15;
@@ -58,7 +36,7 @@ end
 
 HlE = H + l * E;
 [~, flag] = chol(HlE);
- factor=100;
+factor=10;
 
 if flag==0 % H + l E is positive definite, but can I reduce l?
 

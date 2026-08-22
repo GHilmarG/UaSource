@@ -4,9 +4,18 @@
 
 
 
-function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDmax,doSteepestDecent)
+function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dp,g0,H0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDmax,doSteepestDecent)
 
 %   PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,gammaSD,JSD);
+
+%%
+% Quadratic approximation J(gamma)=J0+g0*dp * gamma + 0.5 dp^T H dp gamma^2 
+%
+% $$ Q(\gamma) = J_0 + \mathbf{g}' \Delta \mathbf{p} \, \gamma+ \frac{1}{2} (\Delta \mathbf{p})^T H\, \Delta  \mathbf{p} \, \gamma^2 $$
+%
+% J0 + g0'*dp *gamma + 0.5 * dp' * H0 *dp  gamma^2
+%%
+
 
 J0=func(p0);
 
@@ -34,17 +43,22 @@ end
 slope0=g0'*dp;
 
 Fig=FindOrCreateFigure("J Newton") ; clf(Fig)
-plot(gammaVector,JVector,"or-")
+plot(gammaVector,JVector,"or-",DisplayName="$J(\gamma)$")
 hold on
 dgamma=0.1*gammaNewton;
-plot([0 dgamma],[J0 J0+dgamma*slope0],"k--",LineWidth=2)
+plot([0 dgamma],[J0 J0+dgamma*slope0],"k--",LineWidth=2,DisplayName="slope at origin")
 
-plot(gammaNewton,JNewton,Marker="hexagram",MarkerFaceColor="b",MarkerSize=10)
+plot(gammaNewton,JNewton,Marker="hexagram",MarkerFaceColor="b",LineStyle="none",MarkerSize=10,DisplayName="Minimum as found")
 xlabel("$\gamma$",Interpreter="latex")
 ylabel("$J$",Interpreter="latex")
 title("Cost function ($J$) along Newton (dp) direction",Interpreter="latex")
-subtitle(sprintf("$J(\\gamma)$=%g   $\\gamma$=%g",JNewton,gammaNewton),Interpreter="latex") 
+subtitle(sprintf("$J(\\gamma)$=%g  and $\\gamma$=%g",JNewton,gammaNewton),Interpreter="latex") 
 
+gammaRange=linspace(min(gammaVector),max(gammaVector)) ;
+Q= J0 + (g0'*dp) *gammaRange + (0.5 * dp' * H0 *dp ) * gammaRange.^2 ;
+hold on ; plot(gammaRange,Q,"--",color="b",DisplayName="Local quadradic approximation")
+
+lg=legend(Interpreter="latex");
 %% gradient direction
 
 
@@ -90,7 +104,7 @@ if doSteepestDecent
     xlabel("$\gamma$",Interpreter="latex")
     ylabel("$J$",Interpreter="latex")
     title("Cost function ($J$) along negative grad direction",Interpreter="latex")
-
+    subtitle(sprintf("$J(\\gamma)$=%g  and  $\\gamma$=%g",JSD,gammaSD),Interpreter="latex")
 end
 %%
 

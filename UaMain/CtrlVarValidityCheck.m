@@ -570,6 +570,14 @@ if CtrlVar.ForwardTimeIntegration=="-uv-h-" && CtrlVar.FlowApproximation=="SSHEE
 
 end
 
+
+if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  
+
+    fprintf("The cov regularisation has now been disabled. This was not used by anyone, and the Matern optons is much better anyhow. \n ")
+    error("CtrlVarValidityCheck:InvalidInputs","cov regularisation no longer suppoerted") 
+
+end
+
 end
 
 

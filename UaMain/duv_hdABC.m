@@ -105,7 +105,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
    
         F=Funperturbed;
-        DeltaRel=0.01;
+        DeltaRel=1e-4;
         
         Field="AGlen";
         [dudApert,dvdApert,dhdotdApert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
@@ -142,7 +142,7 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
     
         F=Funperturbed;
-        DeltaRel=0.1;
+        DeltaRel=1e-4;
         Field="C";
         [dudCpert,dvdCpert,dhdotdCpert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
 
@@ -155,10 +155,6 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
         %%
     end
 
-    drawnow
  
-    fprintf("duv_hABC: Inspect in debugger and then continue: [F5] \n")
-    keyboard
-
 
 end

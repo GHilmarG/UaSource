@@ -993,7 +993,7 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or "-Matern-"
 
 
-CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
+CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 %% Parameters specific to Tikhonov regularization.
 % See the above definition of the regularization term R in the case of

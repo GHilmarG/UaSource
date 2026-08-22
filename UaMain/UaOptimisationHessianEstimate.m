@@ -30,8 +30,8 @@ iRange=1:nPar; % all of them
 SubOptimalityTolerance=0;
 dJTolerance=0.0;
 dpTolerance=0.0;
-
-iNewton=0; lStart=0 ; gammaSDLast=inf; gammaNewtonLast=1; 
+Delta_new=nan;
+iNewton=0; lStart=0 ; gammaSDLast=inf; gammaNewtonLast=1;
 
 while true
 
@@ -39,7 +39,7 @@ while true
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"BruteForceHessian")
 
-        [Hsparse,Hfull,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
+        [Hsparse,Hessian,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
 
         if isnan(J0)
             error("UaOptimisationHessianEstimate:J0IsNaN","NaN in J0")
@@ -47,23 +47,23 @@ while true
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
 
-        [J0,g0,Hfull]=func(p);
+        [J0,g0,Hessian]=func(p);
 
         if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
             %%
             iCol=randi(numel(p));
-           % iCol=88;
-            [~,HfullFD,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iCol) ;  
-            Diff=norm(HfullFD(:,iCol)-Hfull(:,iCol))/norm(Hfull(:,iCol));
+            % iCol=88;
+            [~,HessianFD,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iCol) ;
+            Diff=norm(HessianFD(:,iCol)-Hessian(:,iCol))/norm(Hessian(:,iCol));
             fprintf("UaOptimisationHessianEstimate: normalised norm of idfference between Direct-Adjoint and finite-difference Hessian for column %i is: %g \n",iCol,Diff)
             FigHessDA_FD=FindOrCreateFigure("Test: DirectAdjoint Hess") ; clf(FigHessDA_FD)
-            hold off ; 
-            plot(HfullFD(:,iCol),Hfull(:,iCol),"o") ; 
-            axis equal ; 
-            AX=axis; 
-            hold on ; 
-            plot([AX(1) AX(2)],[AX(1) AX(2)],"--")  
+            hold off ;
+            plot(HessianFD(:,iCol),Hessian(:,iCol),"o") ;
+            axis equal ;
+            AX=axis;
+            hold on ;
+            plot([AX(1) AX(2)],[AX(1) AX(2)],"--")
             title(sprintf("FD test of Direct-Adjoint Hessian for column %i",iCol),Interpreter="latex",FontWeight="bold",FontSize=14)
             subtitle(sprintf("Inverting for: %s ",CtrlVar.Inverse.InvertFor),Interpreter="latex")
             xlabel("Finite Differences",Interpreter="latex")
@@ -77,35 +77,35 @@ while true
     end
 
 
+    E=HessPosDefAddition(CtrlVar,MUA);
 
-
-    [Hfull,lStart]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
+    [Hessian,lStart]=CheckIfHessianIsSPDandIfNotMakeItSo(Hessian,E,lStart) ;
     lCondition=1e-5; lConditionMin=0;
-    Hfull=ImproveMatrixCondition(Hfull,MUA.M,lCondition,lConditionMin) ;
+    Hessian=ImproveMatrixCondition(Hessian,MUA.M,lCondition,lConditionMin) ;
 
-    dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
+    dpNewton=Hessian\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
 
 
 
 
     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
     %
-    % L=chol(Hfull) ;
+    % L=chol(Hessian) ;
     % tol=1e-6; maxit=30 ;
-    % [dpTest,fl,rr,it,rv1,rvcgl]=minres(Hfull,-g0,tol,maxit,L,L');
+    % [dpTest,fl,rr,it,rv1,rvcgl]=minres(Hessian,-g0,tol,maxit,L,L');
     % Fig=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
     %
-    % L=chol(Hfull) ;
+    % L=chol(Hessian) ;
     % tol=1e-6; maxit=30 ;
     %
-    % afun=@(x) HVP(x,Hfull) ;
+    % afun=@(x) HVP(x,Hessian) ;
     % [dpTest,fl,rr,it,rv1,rvcgl]=minres(afun,-g0,tol,maxit,L,L');
     % FigHVP=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
     %
     %
     %
-    % function y=HVP(x,Hfull)
-    %     y=Hfull*x;
+    % function y=HVP(x,Hessian)
+    %     y=Hessian*x;
     %
     % end
     % HVP=HessianVectorProduct(p,d,func)
@@ -114,10 +114,10 @@ while true
 
 
 
-    %  D=norm(dp) ;   H=Hfull ; l=0 ; g=g0;  E=blkdiag(MUA.M,MUA.M) ; l=TrustRegionSubproblem(H,E,g,l,D) ;
+    %  D=norm(dp) ;   H=Hessian ; l=0 ; g=g0;  E=blkdiag(MUA.M,MUA.M) ; l=TrustRegionSubproblem(H,E,g,l,D) ;
 
 
-    if anynan(dp)
+    if anynan(dpNewton)
         fprintf("Solving the Newton system resulted in nan. \n")
         error("UaOptimisationHessianEstimate:dpIsNaN","NaN in dp")
     end
@@ -155,7 +155,7 @@ while true
         % 2)
         %
         %
-        gammaUpperVector=(pub-p)./dp;
+        gammaUpperVector=(pub-p)./dpNewton;
         gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
         [gammaNewtonMax,Imin]=min(gammaUpperVector)  ; % this is the smallest positive gamma that does not violate
 
@@ -170,9 +170,9 @@ while true
         if gammaNewtonMax < gammaNewtonMin
 
             I=find(gammaVector<gammaNewtonMin);
-            dp(I)=-dp(I) ;      % Reflection
+            dpNewton(I)=-dpNewton(I) ;      % Reflection
 
-            gammaVector=(pub-p)./dp;
+            gammaVector=(pub-p)./dpNewton;
             gammaVector(gammaVector<eps)=nan ;
             [gammaNewtonMax,Imin]=min(gammaVector)  ;
 
@@ -182,14 +182,17 @@ while true
     end
     %%
 
-    gamma=min(2*gammaNewtonLast,1);  %take last estimate for the min found in backtracking, and expand the radius by a factor of two each time.
-    if gamma == 0 % this could have happened if previous line-search was not successful 
-        gamma=1;
-    end
-    if gammaNewtonMax< gamma 
+    % gamma=min(2*gammaNewtonLast,1);  %take last estimate for the min found in backtracking, and expand the radius by a factor of two each time.
+    % if gamma == 0 % this could have happened if previous line-search was not successful
+    %     gamma=1;
+    % end
+
+    gamma=1;  % This is the initial guess for a good gamma, now that the DA Hessian is accurate, seems best to use this by default
+
+    if gammaNewtonMax< gamma
         gamma=gammaNewtonMax;
         CtrlVar.LineSearchAllowedToUseExtrapolation=false;
-        pUpperViolation=pub-(p+gamma*dp) ;
+        pUpperViolation=pub-(p+gamma*dpNewton) ;
         UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation Newton")  ;
         CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
         min(pUpperViolation)
@@ -225,22 +228,22 @@ while true
     %%
 
     % gamma=1;
-    J1=func(p+gamma*dp);
+    J1=func(p+gamma*dpNewton);
 
     while isnan(J1)
         gamma=gamma/10;
-        J1=func(p+gamma*dp);
+        J1=func(p+gamma*dpNewton);
     end
 
-    Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp, this is the Newton direction
+    Func=@(gamma) func(p+gamma*dpNewton); % here a plus sign because I'm going in the direction dp, this is the Newton direction
 
     CtrlVar.InfoLevelBackTrack=0;
     % Newton direction
-    slope0=g0'*dp;
+    slope0=g0'*dpNewton;
 
     if slope0<0
         CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/1e5; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
-         CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
+        CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
         [gammaNewton,JNewton,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     else
         fprintf("Slope at origin in Newton direction is positive! \n")
@@ -257,14 +260,13 @@ while true
         % This is because calculating the Hessian is so expensive and, in comparison, the line-search cheap
 
         % Then maybe modify H and solve until slope negative, or just go for the gradient direction
-        nNodes=size(MUA.M,1);
-        nH=size(Hfull,1);
+
+        nH=size(Hessian,1);
+        nNodes=MUA.Nnodes;
         M=MUA.M ;
         D=MUA.Dxx+MUA.Dyy;
-        
-        if nH==nNodes
-          
-        elseif nH==2*nNodes
+
+        if nH==2*nNodes
             M=blkdiag(M,M) ;
             D=blkdiag(D,D) ;
 
@@ -272,102 +274,171 @@ while true
             error("wrong dimensions")
         end
 
-    %   CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
-
+        CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
 
         if CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"
-            
+
             P=M;
 
         elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="H1"
 
             ga=CtrlVar.Inverse.PreMultiplier.H1.ga;
             gs=CtrlVar.Inverse.PreMultiplier.H1.gs;
+
+            ga=0.5;
+            gs=1000;
+
+            if isnan(ga) || isnan(gs)
+                error("UaOptimisationHessianEstimate:InvalidParameterValues","CtrlVar.Inverse.PreMultiplier.H1.ga or CtrlVar.Inverse.PreMultiplier.H1.gs are NaN")
+            end
+
             P=gs*D+ga*M;
+
+
 
         else
 
             P=1;
         end
 
-        g0SD=P\(-g0); % pre-multiplying, note that I must use the inverse...!
+        dpSteepestDescent=P\(-g0); % pre-multiplying, note that I must use the inverse...!
 
+        % steepest decent
 
-        Func=@(gamma) func(p+gamma*g0SD);
+        Func=@(gamma) func(p+gamma*dpSteepestDescent);
 
-        slope0=g0'*g0SD;
-        gammaSlope0=-0.1*J0/slope0;
+        slope0=g0'*dpSteepestDescent;
+
+        if slope0 > 0
+            fprintf("Slope at origin in steepest-descent direction is positive! \n")
+        end
 
         % calculate maximum step-size that does not violate upper limit
         %if CtrlVar.GradientReflective
 
-        gammaUpperVector=(pub-p)./g0SD;
+        gammaUpperVector=(pub-p)./dpSteepestDescent;
         gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
 
         gammaSDMax=min(gammaUpperVector);
 
-        %else
-        %    gammaSDMax=inf;
-        %end
-
-        % gamma=max(gammaSlope0,gammaSDMax);
-
-        % gamma=gammaSDMax ; pUpperViolation=pub-(p+gamma*g0SD) ;  UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation SD")  ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); min(pUpperViolation)
 
 
-
-        % J1=Func(gamma);
-        
-        gamma=min(2*gammaSDLast,gammaSDMax);   
+        gamma=min(2*gammaSDLast,gammaSDMax);
         J1=Func(gamma);
         while isnan(J1)
             gamma=gamma/10;
-            J1=func(p+gamma*g0SD);
+            J1=func(p+gamma*dpSteepestDescent);
         end
 
         gammaSDLast=min(gammaSDLast,gamma);
 
         CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gammaSDLast/1e6;
-        [gammaSD,JSD]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
-        gammaSDLast=gammaSD;
+        [gammaSteepestDescent,JSteepestDescent]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
+        gammaSDLast=gammaSteepestDescent;
 
     else
 
-        JSD=inf;
-        gammaSD=nan;
-        g0SD=nan; 
+        JSteepestDescent=inf;
+        gammaSteepestDescent=nan;
+        dpSteepestDescent=nan;
         gammaSDMax=nan;
 
     end
 
-    fprintf("====> JNewton/J0=%g \t JSD/J=%g \n",JNewton/J0,JSD/J0)
 
-    if JNewton  < JSD
-        fprintf("Newton step resulted in a greater reduction than steepest decent \n ")
-        SubOptimality=-g0'*dp/2  ;
-        dpNorm=norm(gamma*dp)/norm(p);
-        J=JNewton;
-        gamma=gammaNewton;
-        Direction="Newton";
+
+    %% testing two-dimensional subspace approach
+    DeltaMax=norm(dpNewton);
+    DeltaMin=DeltaMax/1000;
+
+    if isnan(Delta_new)
+        Delta=DeltaMax;
     else
-        SubOptimality=inf;
-        dpNorm=inf;
-        J=JSD;
-        gamma=gammaSD;
-        Direction="gradient";
+        Delta=Delta_new;
+    end
+
+    accepted=false;
+
+    while ~accepted && Delta>DeltaMin
+
+        [dpTR,yTR,info]=TwoDSubspaceTrustRegion(g0,Hessian,dpNewton,dpSteepestDescent,Delta) ;
+        JTrustRegion=func(p+dpTR)   ;
+        ActualReduction = -(JTrustRegion-J0) ; % actual reduction for the
+        PredicedReduction = -(g0'*dpTR + 0.5 * dpTR' * Hessian * dpTR) ; % predicted reduction (note that J0 cancels)
+        rho=ActualReduction/PredicedReduction ;
+
+        [p0_new, Delta_new, accepted] = TrustRegionUpdate(p, dpTR, J0, JTrustRegion, PredicedReduction, Delta, DeltaMax) ;
+
+
+        fprintf("TrustRegion: rho=%f \t Delta=%f \t delta_new=%g \t accepted=%s \n ",rho,Delta,Delta_new,string(accepted))
+
+       
+        Delta=Delta_new;
+
+    end
+
+
+    %%
+    PlotCostVersusStepSizeAlongNewtonDirection(func,p,dpNewton,g0,Hessian,gammaNewton,JNewton,dpSteepestDescent,gammaSteepestDescent,JSteepestDescent,gammaNewtonMax,gammaSDMax,doSteepestDecent);
+
+    fprintf("====> JNewton/J0=%g \t JSteepestDescent/J0=%g \t JTrustRegion/J0=%g \n",JNewton/J0,JSteepestDescent/J0,JTrustRegion/J0)
+
+    rhoJNewton=JNewton/J0;
+    rhoJSteepestDescent=JSteepestDescent/J0;
+    rhoJTrustRegion=JTrustRegion/J0;
+
+    [rhoJmin,iJmin]=min([rhoJNewton,rhoJSteepestDescent,rhoJTrustRegion]);
+
+    switch iJmin
+        case 1
+            Direction="Newton";
+        case 2
+            Direction="SteepestDescent";
+        case 3
+            Direction="TrustRegion";
+    end
+
+    switch Direction
+
+        case "Newton"
+
+            fprintf("Newton step wins! \n ")
+            dp=gammaNewton*dpNewton;
+            p=p+dp;
+            SubOptimality=-g0'*dpNewton/2  ; % Newton decrement g0' H^{-1} g /2
+            dpNorm=norm(dp)/norm(p);
+            J=JNewton;
+            gamma=gammaNewton;
+
+        case "SteepestDescent"
+
+            fprintf("Steepest-descent step wins! \n ")
+            dp=gammaSteepestDescent*dpSteepestDescent;
+            p=p+dp;
+            SubOptimality=-g0'*dpSteepestDescent/2;  % Steepest-descent decrement g0' H^{-1} g /2
+            dpNorm=norm(dp)/norm(p);
+            J=JSteepestDescent;
+            gamma=gammaSteepestDescent;
+
+        case "TrustRegion"
+
+
+            fprintf("Trust-region step wins! \n ")
+            p=p0_new;
+
+            SubOptimality=PredicedReduction;
+            dpNorm=norm(dpTR)/norm(p);
+            J=JTrustRegion;
+            gamma=nan;
     end
 
 
 
-    PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDMax,doSteepestDecent);
+   
 
     dJ=J0-J;
 
-    if Direction=="Newton"
-        p=p+gammaNewton*dp;
-    elseif Direction=="gradient"
-        p=p+gammaSD*g0SD;
-    end
+
 
     pUpperViolation=pub-p;
     if any(pUpperViolation<0)
@@ -407,8 +478,10 @@ while true
         break
     end
 
-
-
+    if J/J0>=1
+        fprintf("stagnated. \n")
+        break
+    end
 
 end
 
@@ -420,17 +493,17 @@ I=~isnan(gammaVector); gammaVector=gammaVector(I); gammaVector=gammaVector(:) ; 
 
 figIt=FindOrCreateFigure("J iteration") ; clf(figIt)
 yyaxis left
-semilogy(itVector,Jvector,"ob-",LineWidth=2) ;
+semilogy(itVector,Jvector,"ob-",LineWidth=2,DisplayName="$J$") ;
+hold on
+semilogy(itVector(1:end-1),SubOptimalityVector,"sg-",DisplayName="sub-optimality")
 ylabel("$J$",Interpreter="latex") ;
 yyaxis right
-semilogy(itVector,GradNormVector,"or-",LineWidth=2) ;
+hold off
+semilogy(itVector,GradNormVector,"or-",LineWidth=2,DisplayName="$\|\nabla J \|$") ;
 ylabel("$\|\nabla J \|$",Interpreter="latex") ;
 xlabel("Iteration")
+lg=legend(Interpreter="latex");
 
-figItgamma=FindOrCreateFigure("gamma iteration") ; semilogy(itVector,gammaVector,"-k",MarkerFaceColor="r",MarkerEdgeColor="b",Marker="diamond")
-ylabel("$\gamma$",Interpreter="latex") ;
-xlabel("iteration")
-title("step size in backtracking")
 
 itRestart=max(RunInfo.Inverse.Iterations);
 

@@ -265,10 +265,10 @@ if CtrlVar.Inverse.TestDirectAdjoint.isTrue
     subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
     drawnow
  
-
-
-    fprintf("FAuv: Inspect in debugger and then continue: [F5]\n")
-    keyboard
+    % 
+    % 
+    % fprintf("FAuv: Inspect in debugger and then continue: [F5]\n")
+    % keyboard
 
 end
 

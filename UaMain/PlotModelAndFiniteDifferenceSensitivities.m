@@ -76,7 +76,15 @@ set(gcf,'Color','white')
 
 [fitobject,gof]=fit(dudField,dudFieldpert,'poly1');
 coeff=coeffvalues(fitobject);
-subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
+subtitle(sprintf("slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
+
+Diff_u=norm(dudField-dudFieldpert)/norm(dudField);
+fprintf("%s: normalized differences in u sensitvities is: %g\n",Field,Diff_u)    
+
+
+
+
+
 
 figCgradv=FindOrCreateFigure("Test: dvF/d"+Field+" sensitiviy") ;  clf(figCgradv)
 plot(dvdField,dvdFieldpert,"or") ;
@@ -92,7 +100,10 @@ title("Comparision between adjoint and finite-differences sensitvities")
 set(gcf,'Color','white')
 [fitobject,gof]=fit(dvdField,dvdFieldpert,'poly1');
 coeff=coeffvalues(fitobject);
-subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
+subtitle(sprintf("slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
+
+Diff_v=norm(dvdField-dvdFieldpert)/norm(dvdField);
+fprintf("%s: normalized differences in v sensitvities is: %g\n",Field,Diff_v)    
 
 
 if ~isempty(dhdField)
@@ -111,7 +122,12 @@ if ~isempty(dhdField)
     set(gcf,'Color','white')
     [fitobject,gof]=fit(dhdField,dhdotdFieldpert,'poly1');
     coeff=coeffvalues(fitobject);
-    subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
+    subtitle(sprintf("slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
+
+
+    Diff_hdot=norm(dhdField-dhdotdFieldpert)/norm(dhdField);
+    fprintf("%s: normalized differences in dh/dt sensitvities is: %g\n",Field,Diff_hdot)    
+
 end
 
 
@@ -119,8 +135,8 @@ end
 
 drawnow
 
-fprintf("PlotModelAndFiniteDifferenceSensitivities: Inspect in debugger and then continue: [F5] \n")
-keyboard
+% fprintf("PlotModelAndFiniteDifferenceSensitivities: Inspect in debugger and then continue: [F5] \n")
+% keyboard
 
 
 
