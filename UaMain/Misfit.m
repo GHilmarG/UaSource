@@ -55,6 +55,9 @@ function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 %%
 
+if nargout > 2
+    CtrlVar.Inverse.CalcHessI=true;
+end
 
 Area=MUA.Area;
 

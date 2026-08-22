@@ -66,8 +66,8 @@ if nargout>=2
     CtrlVar.Inverse.CalcGradR=true;
 end
 
-if nargout>= 3
-    CtrlVar.Inverse.CalcHess=false;
+if nargout>= 3   % at the moment this is not really used, as this is done based on the number of output arguments to Regularisation.m and Misfit.m
+    CtrlVar.Inverse.CalcHess=true;
     CtrlVar.Inverse.CalcHessI=true;
     CtrlVar.Inverse.CalcHessR=true;
 end

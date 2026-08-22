@@ -37,15 +37,17 @@ end
 HlE = H + l * E;
 [~, flag] = chol(HlE);
 factor=10;
-
+iDecreaseMax=2;
+iDecrease=0;
 if flag==0 % H + l E is positive definite, but can I reduce l?
 
-    while ~flag  && l > lmin    % decreasing case
+    while ~flag  && l > lmin   && iDecrease<iDecreaseMax  % decreasing case
 
         l=l/factor;
         HlE = H + l * E;
         [~, flag] = chol(HlE);
-        fprintf(sprintf("Decreasing l until no longer positive definite. l=%g \n",l));
+        iDecrease=iDecrease+1; 
+        fprintf(sprintf("%i: Decreasing l until no longer positive definite. l=%g \n",iDecrease,l));
 
     end
 

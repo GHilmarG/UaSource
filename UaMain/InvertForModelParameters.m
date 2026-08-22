@@ -159,7 +159,7 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
 % This is then passed to the optimization libraries. 
 
-func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
+func=@(p) JGH(p,plb,pub,[],CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,[]);   % returns the cost (J), gradient (G) and Hessian (H)
                                                                                                       % The Hessian
                                                                                                       % output is used
                                                                                                       % with the
