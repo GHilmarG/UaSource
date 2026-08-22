@@ -198,85 +198,83 @@ KFAv = D_A * KFAv;
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
 
-    iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
-
-    CtrlVar.log10Derivatives=true;
-
-
-    %% FCu test
-    u0 = F.ub;  
-    v0 = F.vb;
-    hstep = 1e-6*max(abs(u0)+abs(v0));
-
-    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
-    bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-
-    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) + hstep;
-    bPlus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-
-    F.ub = u0;
-
-    HAu_col_FD = (bPlus - bMinus)/(2*hstep);
-    Diff=norm(KFAu(:,iColumn) - HAu_col_FD)/norm(HAu_col_FD);
-    fprintf("FAu: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
-
-
-    % FCv test
-  
-  
-
-    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
-    bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-
-    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) + hstep;
-    bPlus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-
-    F.vb = v0;
-
-    HAv_col_FD = (bPlus - bMinus)/(2*hstep);
-    Diff=norm(KFAv(:,iColumn) - HAv_col_FD)/norm(HAv_col_FD);
-    fprintf("FAv: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
-
-    FAuTest=FindOrCreateFigure("Test: FAu") ; 
-
-    plot(KFAu(:,iColumn),HAu_col_FD,"or") ; axis equal ;
-    hold on ;
-    plot([min(HAu_col_FD) max(HAu_col_FD)],[min(HAu_col_FD) max(HAu_col_FD)],"--k")
-
-    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
-
-    xlabel("Direct-Adjoint",Interpreter="latex")  ;
-    ylabel("Finite difference",Interpreter="latex")
-    title("$\langle \Psi_x | \delta^2_{v_x A} F_x \rangle $",Interpreter="latex")
-    subtitle("Comparison is here for one random column",Interpreter="latex")
-
-
-    FAvTest=FindOrCreateFigure("Test: FAv") ; 
-
-    plot(KFAv(:,iColumn),HAv_col_FD,"or") ; axis equal ;
-    hold on ;
-    plot([min(HAv_col_FD) max(HAv_col_FD)],[min(HAv_col_FD) max(HAv_col_FD)],"--k")
-
-    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
-
-    xlabel("Direct-Adjoint",Interpreter="latex")  ;
-    ylabel("Finite difference",Interpreter="latex")
-    title("$\langle  \Psi_y | \delta^2_{v_y A} F_y   \rangle $",Interpreter="latex")
-    subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
-    drawnow
- 
-    % 
-    % 
-    % fprintf("FAuv: Inspect in debugger and then continue: [F5]\n")
-    % keyboard
+    FiniteDifferenceTestAndPlots(MUA,CtrlVar,F,BCs,BCsAdjoint,Psi_x,Psi_y,KFAu,KFAv);
 
 end
 
 end
 
 
+function FiniteDifferenceTestAndPlots(MUA,CtrlVar,F,BCs,BCsAdjoint,Psi_x,Psi_y,KFAu,KFAv)
+iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
+
+CtrlVar.log10Derivatives=true;
+
+
+%% FCu test
+u0 = F.ub;  
+v0 = F.vb;
+hstep = 1e-6*max(abs(u0)+abs(v0));
+
+F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
+bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+F.ub = u0; F.ub(iColumn) = F.ub(iColumn) + hstep;
+bPlus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+F.ub = u0;
+
+HAu_col_FD = (bPlus - bMinus)/(2*hstep);
+Diff=norm(KFAu(:,iColumn) - HAu_col_FD)/norm(HAu_col_FD);
+fprintf("FAu: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+
+% FCv test
 
 
 
+F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
+bMinus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+F.vb = v0; F.vb(iColumn) = F.vb(iColumn) + hstep;
+bPlus = dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+F.vb = v0;
+
+HAv_col_FD = (bPlus - bMinus)/(2*hstep);
+Diff=norm(KFAv(:,iColumn) - HAv_col_FD)/norm(HAv_col_FD);
+fprintf("FAv: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+FAuTest=FindOrCreateFigure("Test: FAu") ; 
+
+plot(KFAu(:,iColumn),HAu_col_FD,"or") ; axis equal ;
+hold on ;
+plot([min(HAu_col_FD) max(HAu_col_FD)],[min(HAu_col_FD) max(HAu_col_FD)],"--k")
+
+% ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+xlabel("Direct-Adjoint",Interpreter="latex")  ;
+ylabel("Finite difference",Interpreter="latex")
+title("$\langle \Psi_x | \delta^2_{v_x A} F_x \rangle $",Interpreter="latex")
+subtitle("Comparison is here for one random column",Interpreter="latex")
 
 
+FAvTest=FindOrCreateFigure("Test: FAv") ; 
+
+plot(KFAv(:,iColumn),HAv_col_FD,"or") ; axis equal ;
+hold on ;
+plot([min(HAv_col_FD) max(HAv_col_FD)],[min(HAv_col_FD) max(HAv_col_FD)],"--k")
+
+% ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+xlabel("Direct-Adjoint",Interpreter="latex")  ;
+ylabel("Finite difference",Interpreter="latex")
+title("$\langle  \Psi_y | \delta^2_{v_y A} F_y   \rangle $",Interpreter="latex")
+subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
+drawnow
+
+% 
+% 
+% fprintf("FAuv: Inspect in debugger and then continue: [F5]\n")
+% keyboard
+end

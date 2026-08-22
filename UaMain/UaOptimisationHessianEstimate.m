@@ -52,6 +52,7 @@ iRange=1:nPar; % all of them
 
 
 SubOptimalityTolerance=0;
+JTolerance=0.01;
 dJTolerance=0.0;
 dpTolerance=0.0;
 Delta_new=nan;
@@ -442,12 +443,17 @@ while true
     end
 
     if dJ<dJTolerance
-        fprintf("J tolerance reached. \n")
+        fprintf("dJ tolerance (%g) reached with dJ=%g. \n",dJTolerance,dJ)
+        break
+    end
+
+    if J<JTolerance
+        fprintf("J tolerance (%g) reached with J=%g. \n",JTolerance,J)
         break
     end
 
     if dpNorm< dpTolerance
-        fprintf("dp tolerance reached. \n")
+        fprintf("dp tolerance (%g) reached with dpNorm=%g. \n",dpTolerance,dpNorm)
         break
     end
 
@@ -458,7 +464,9 @@ while true
 
 end
 
-I=~isnan(Jvector); Jvector=Jvector(I);
+I=~isnan(Jvector); 
+Jvector=Jvector(I);
+SubOptimalityVector=SubOptimalityVector(I); 
 itVector=0:(numel(Jvector)-1) ; itVector=itVector(:);
 
 I=~isnan(GradNormVector); GradNormVector=GradNormVector(I); GradNormVector=GradNormVector(:) ;  GradNormVector=[GradNormVector;NaN]; % Make sure it has the same length as itVector

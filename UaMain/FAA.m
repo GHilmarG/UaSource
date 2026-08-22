@@ -63,7 +63,7 @@ narginchk(7,7)
 ndim=2;
 nNodes=MUA.Nnodes ;
 
-% 
+%
 % eta0=CtrlVar.etaZero;
 % Eps0=CtrlVar.EpsZero;
 % C0=CtrlVar.Czero;
@@ -118,7 +118,7 @@ for Iint=1:MUA.nip
 
         dudx=dudx+Deriv(:,1,Inode).*u_node(:,Inode);
         dvdy=dvdy+Deriv(:,2,Inode).*v_node(:,Inode);
-    
+
         dudy=dudy+Deriv(:,2,Inode).*u_node(:,Inode) ;
         dvdx=dvdx+Deriv(:,1,Inode).*v_node(:,Inode) ;
 
@@ -133,15 +133,15 @@ for Iint=1:MUA.nip
     eyy=dvdy;
     exy=0.5*(dudy+dvdx);
 
-     [~,~,~,~,d2etadAdA]=EffectiveViscositySSTREAM(CtrlVar,A,n,exx,eyy,exy);
+    [~,~,~,~,d2etadAdA]=EffectiveViscositySSTREAM(CtrlVar,A,n,exx,eyy,exy);
 
 
-     %eEff=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
-     %d2etadAdA=real(  A.^(-1./n-2) .* eEff.^(1./n-1) .* 0.5.*(1./(n.^2)+(1./n)) );
+    %eEff=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
+    %d2etadAdA=real(  A.^(-1./n-2) .* eEff.^(1./n-1) .* 0.5.*(1./(n.^2)+(1./n)) );
 
-     Temp=h.*( (4*exx+2*eyy).*dPsi_x_dx + 2*exy.*dPsi_x_dy + (4*eyy+2*exx).*dPsi_y_dy + 2*exy.*dPsi_y_dx); 
-     
-     d2fdxdx=d2etadAdA.*Temp;  % this is the point-wise expression at the integration point Iint, may have to be edited further
+    Temp=h.*( (4*exx+2*eyy).*dPsi_x_dx + 2*exy.*dPsi_x_dy + (4*eyy+2*exx).*dPsi_y_dy + 2*exy.*dPsi_y_dx);
+
+    d2fdxdx=d2etadAdA.*Temp;  % this is the point-wise expression at the integration point Iint, may have to be edited further
 
 
     detJw=detJ*MUA.weights(Iint);
@@ -189,7 +189,7 @@ KFAA=sparse(Iind,Jind,Xval,nNodes,nNodes);
 
 if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
     %% Convert Hpp (currently in A-space, since d2fdxdx above is the A-kernel)
-   
+
     ln10 = log(10);
     A_nodal = F.AGlen(:);
     b_A=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
@@ -199,104 +199,14 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
 
 end
 
-%KFAA=-KFAA;
+
 
 %% Test against finite differences
 
 
-
-
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
-
-  
-    iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
-
-    CtrlVar.log10Derivatives=true;
-
- %   KFAA=FAA(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-
-    A0=F.AGlen;
-    logA0=log10(A0);
-
-
-
-    CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.0001;
-
-    % comparison
-
-    F.AGlen=A0;
-    % perturbation
-
-    if CtrlVar.log10Derivatives
-        % perturb in log(A) space
-
-        dlogA=1e-6;
-
-    else
-        % perturb in linear space
-        deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(A0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
-        dA=deltaStep(iColumn);
-    end
-
-    % comparison
-
-    if CtrlVar.log10Derivatives
-        F.AGlen(iColumn)=10^(logA0(iColumn)-dlogA);
-    else
-        F.AGlen(iColumn)=F.AGlen(iColumn)-dA;
-    end
-
-    FpMinus=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-
-    F.AGlen=A0;
-
-    if CtrlVar.log10Derivatives
-        F.AGlen(iColumn)=10^(logA0(iColumn)+dlogA);
-    else
-        F.AGlen(iColumn)=F.AGlen(iColumn)+dA;
-    end
-
-    FpPlus=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-
-    if CtrlVar.log10Derivatives
-        HFAA_col_FD=(FpPlus-FpMinus)/(2*dlogA);  % Finite difference estimate of the iColumn of the Hessian
-
-    else
-        HFAA_col_FD=(FpPlus-FpMinus)/(2*dA);
-    end
-
-
-
-    Diff=norm(KFAA(:,iColumn)-HFAA_col_FD)/norm(HFAA_col_FD);
-    fprintf("FAA: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
-
-    FAATest=FindOrCreateFigure("Test: FAA") ; plot(KFAA(:,iColumn),HFAA_col_FD,"or") ; axis equal ;
-    hold on ;
-    plot([min(HFAA_col_FD) max(HFAA_col_FD)],[min(HFAA_col_FD) max(HFAA_col_FD)],"--k")
-
-    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
-
-    xlabel("Direct-Adjoint",Interpreter="latex")  ;
-    ylabel("Finite difference",Interpreter="latex")
-    title("$\mathcal{F}^{pp}_{AA,lm} = \langle \Psi_x,\delta^2_{AA}\mathcal{F}_x[\phi_l,\phi_m] \rangle  + \langle \Psi_y , \delta^2_{AA}\mathcal{F}_y[\phi_l,\phi_m] \rangle$",Interpreter="latex")
-    subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
-
-    drawnow
-    
-    % 
-    % fprintf("FAA: Inspect in debugger and then continue: [F5] \n")
-    % keyboard
-  
+    FiniteDifferenceTestAndPlots(MUA,CtrlVar,F,BCs,BCsAdjoint,Psi_x,Psi_y,KFAA);
 end
-
-
-
-
-
-
-
-
-
 
 
 
@@ -306,4 +216,84 @@ end
 
 
 
+function FiniteDifferenceTestAndPlots(MUA,CtrlVar,F,BCs,BCsAdjoint,Psi_x,Psi_y,KFAA)
 
+iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
+
+CtrlVar.log10Derivatives=true;
+
+%   KFAA=FAA(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+A0=F.AGlen;
+logA0=log10(A0);
+
+
+
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.0001;
+
+% comparison
+
+F.AGlen=A0;
+% perturbation
+
+if CtrlVar.log10Derivatives
+    % perturb in log(A) space
+
+    dlogA=1e-6;
+
+else
+    % perturb in linear space
+    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(A0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+    dA=deltaStep(iColumn);
+end
+
+% comparison
+
+if CtrlVar.log10Derivatives
+    F.AGlen(iColumn)=10^(logA0(iColumn)-dlogA);
+else
+    F.AGlen(iColumn)=F.AGlen(iColumn)-dA;
+end
+
+FpMinus=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+F.AGlen=A0;
+
+if CtrlVar.log10Derivatives
+    F.AGlen(iColumn)=10^(logA0(iColumn)+dlogA);
+else
+    F.AGlen(iColumn)=F.AGlen(iColumn)+dA;
+end
+
+FpPlus=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+
+if CtrlVar.log10Derivatives
+    HFAA_col_FD=(FpPlus-FpMinus)/(2*dlogA);  % Finite difference estimate of the iColumn of the Hessian
+
+else
+    HFAA_col_FD=(FpPlus-FpMinus)/(2*dA);
+end
+
+
+
+Diff=norm(KFAA(:,iColumn)-HFAA_col_FD)/norm(HFAA_col_FD);
+fprintf("FAA: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+FAATest=FindOrCreateFigure("Test: FAA") ; plot(KFAA(:,iColumn),HFAA_col_FD,"or") ; axis equal ;
+hold on ;
+plot([min(HFAA_col_FD) max(HFAA_col_FD)],[min(HFAA_col_FD) max(HFAA_col_FD)],"--k")
+
+% ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+xlabel("Direct-Adjoint",Interpreter="latex")  ;
+ylabel("Finite difference",Interpreter="latex")
+title("$\mathcal{F}^{pp}_{AA,lm} = \langle \Psi_x,\delta^2_{AA}\mathcal{F}_x[\phi_l,\phi_m] \rangle  + \langle \Psi_y , \delta^2_{AA}\mathcal{F}_y[\phi_l,\phi_m] \rangle$",Interpreter="latex")
+subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
+
+drawnow
+
+%
+% fprintf("FAA: Inspect in debugger and then continue: [F5] \n")
+% keyboard
+
+end
