@@ -180,7 +180,11 @@ end
 % to both u and B. This addition is only needed when inverting for B while also including the hdot cost function term.
 %
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-
+     % when including dhdt meas, there is an extra contribution to the RHS of the adjoint system related to
+     %
+     % $$ \delta_u J_{\dot{h}} $$ and  $$ \delta_v J_{\dot{h}} $$ and 
+     %
+     %
     [Ihdot,duIhdot,dvIhdot,dhIhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
 
 end
@@ -328,8 +332,10 @@ if CtrlVar.Inverse.CalcGradI
 
                 dCFuvLambda=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint);
 
-                dCI=0 ;               % This is the explicit derivative of I with respect to C.
-                % The misfit term I is not an explicit function of C, so this equals to zero.
+                dCI=0 ;      % This is the explicit derivative of the misfit term, I, with respect to C. There is no such dependency here 
+                             % as the misfit term I is not an explicit function of C, so this equals to zero.
+                             % Note, that there is an explicit dependency on C in the regularization term, but this is added elsewhere (in the
+                             % Regularisation.m function) 
 
                 DCI=dCFuvLambda+dCI;  % this is the part of the dI/dC derivative which is due to the implicit dependency
                 % of I on C because the velocities depend on C,
@@ -420,21 +426,8 @@ if CtrlVar.Inverse.CalcHessI
 
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
-
-        uErr2=spdiags(Meas.usCov);
-        d2Iduu=MUA.M./uErr2/Area;  % partial derivatives
-
-        vErr2=spdiags(Meas.usCov);
-        d2Idvv=MUA.M./vErr2/Area;
- 
-        if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-            dhdtErr2=spdiags(Meas.dhdtCov) ;
-            d2Idhdothdot=MUA.M./dhdtErr2/Area;
-        else
-            d2Idhdothdot=[];
-        end
-
-        ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,BCsAdjoint,d2Iduu,d2Idvv,d2Idhdothdot,uAdjoint,vAdjoint);
+     
+        ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Meas,BCsAdjoint,uAdjoint,vAdjoint) ;
     
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
 
@@ -501,8 +494,6 @@ elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     ddIdpp=blkdiag(ddIdAA,ddIdBB,ddIdCC);
 
 end
-
-
 
 
 

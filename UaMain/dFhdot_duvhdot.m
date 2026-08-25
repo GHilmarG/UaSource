@@ -17,7 +17,7 @@ nargoutchk(1,1)
 % This is a $n \times 3n$ matrix
 %
 %
-% $$F^{\dot{h}} = \dot{h} + ( \partial_x (u h ) + \partial (v h) ) -a = 0 $$
+% $$F^{\dot{h}} = \rho \dot{h} + ( \partial_x (\rho \, u h ) + \partial (\rho \, v h) ) -\rho \, a = 0 $$
 %
 % The FE formulation is
 %
@@ -31,25 +31,25 @@ nargoutchk(1,1)
 %
 % where
 %
-% $$ \partial_u \dot{h} = \partial_ u  (  a - ( \partial_x (u h ) + \partial (v h) )) = - \partial_ u  \,  \partial_x (u h ) $$
+% $$ \partial_u \dot{h} = \partial_ u  (  \rho \, a - ( \partial_x (\rho \, u h ) + \partial (\rho \, v h) )) = - \partial_ u  \,  \partial_x (\rho \, u h ) $$
 %
 % or
 %
-% $$ \partial_u \dot{h} = - \partial_x  \,  \partial_u (u h ) = -\partial_x (\delta u \, h) = - h \, \partial_x \delta u - \delta u \, \partial_x h $$
+% $$ \partial_u \dot{h} = - \partial_x  \,  \partial_u (\rho , u h ) = -\partial_x (\rho \, \delta u \, h) = -\rho \,  h \, \partial_x \delta u - \rho \, \delta u \, \partial_x h $$
 %
 %
 % Therefore:
 %
 % $$
-% \langle \partial_u F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle -h \, \partial_x \phi_i + \phi_i \, \partial_x h | \phi_k \rangle
+% \langle \partial_u F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = -\langle \rho \, h \, \partial_x \phi_i +  \rho \, \partial_x h \; \phi_i | \phi_k \rangle
 % $$
 %
 % $$
-% \langle \partial_v F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle  h \, \partial_y \phi_i + \phi_i \, \partial_y h | \phi_k \rangle
+% \langle \partial_v F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = -\langle  \rho \, h \, \partial_y \phi_i + \rho \, \partial_y h \; \phi_i | \phi_k \rangle
 % $$
 %
 % $$
-% \langle \partial^{\dot{h}}  F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle \phi_i | \phi_ k \rangle
+% \langle \partial_{\dot{h}}  F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle \rho \, \phi_i | \phi_ k \rangle
 % $$
 %
 % see also: dhdtExplicit.m
@@ -62,6 +62,7 @@ nNodes=MUA.Nnodes ;
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 ubnod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vbnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 dFhdotdu=zeros(MUA.Nele,MUA.nod,MUA.nod);
 dFhdotdv=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -79,6 +80,7 @@ for Iint=1:MUA.nip
     detJ=MUA.DetJ(:,Iint);
 
     h=hnod*fun;
+    rho=rhonod*fun ; 
 
     dudx=zeros(MUA.Nele,1);
     dvdy=zeros(MUA.Nele,1);
@@ -100,9 +102,9 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) + (h.* Deriv(:,1,Jnod) + fun(Jnod).*dhdx).*fun(Inod).*detJw;
-            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) + (h.* Deriv(:,2,Jnod) + fun(Jnod).*dhdy).*fun(Inod) .*detJw;
-            dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + fun(Jnod).*fun(Inod) .*detJw;  % I don't really need to do this as this is the Mass Matrix
+            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) + (rho.*h.* Deriv(:,1,Jnod) + fun(Jnod).*rho.*dhdx).*fun(Inod).*detJw;
+            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) + (rho.*h.* Deriv(:,2,Jnod) + fun(Jnod).*rho.*dhdy).*fun(Inod) .*detJw;
+            dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + rho.*fun(Jnod).*fun(Inod) .*detJw;  % 
 
         end
     end

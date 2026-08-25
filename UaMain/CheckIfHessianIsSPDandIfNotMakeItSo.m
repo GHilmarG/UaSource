@@ -36,14 +36,15 @@ end
 
 HlE = H + l * E;
 [~, flag] = chol(HlE);
-factor=10;
-iDecreaseMax=2;
+DownFactor=10;
+UpFactor=100;
+iDecreaseMax=1;  % only decrease l by the fraction factor^iDecreaseMax each time
 iDecrease=0;
 if flag==0 % H + l E is positive definite, but can I reduce l?
 
     while ~flag  && l > lmin   && iDecrease<iDecreaseMax  % decreasing case
 
-        l=l/factor;
+        l=l/DownFactor;
         HlE = H + l * E;
         [~, flag] = chol(HlE);
         iDecrease=iDecrease+1; 
@@ -51,15 +52,19 @@ if flag==0 % H + l E is positive definite, but can I reduce l?
 
     end
 
-    lEnd=l*factor;  % this was the value before it failed.
-    fprintf("Hessian is positive definite for l=%g \n",l);
+    if flag~=0
+        lEnd=l*DownFactor;  % this was the value before it failed.
+        fprintf("Hessian is positive definite for l=%g \n",l);
+    else
+        lEnd=l;
+    end
 
 else
 
 
     while true  % H = L E was not pos, so I need to increase l : increasing case
 
-        l=l*10;
+        l=l*UpFactor;
         HlE = H + l * E;
         [~, flag] = chol(HlE);
 

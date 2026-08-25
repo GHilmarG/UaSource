@@ -42,10 +42,10 @@ end
 %
 % $$
 % \left[\begin{array}{cccc}
-% \partial h_1 /\partial A_1  & \partial h_1 /\partial A_2 & \ldots & \partial h_1 /\partial A_n  \\
-% \partial h_2 /\partial A_1  & \partial h_2 /\partial A_2 & \ldots & \partial h_2 /\partial A_n  \\
+% \partial \dot{h}_1 /\partial A_1  & \partial \dot{h}_1 /\partial A_2 & \ldots & \partial \dot{h}_1 /\partial A_n  \\
+% \partial \dot{h}_2 /\partial A_1  & \partial \dot{h}_2 /\partial A_2 & \ldots & \partial \dot{h}_2 /\partial A_n  \\
 %              .              &              .              &  .  &    .                          \\
-% \partial h_n /\partial A_1  & \partial h_n /\partial A_2 & \ldots & \partial h_n /\partial A_n  \\
+% \partial \dot{h}_n /\partial A_1  & \partial \dot{h}_n /\partial A_2 & \ldots & \partial \dot{h}_n /\partial A_n  \\
 % \end{array}\right] 
 % $$
 %
@@ -77,24 +77,24 @@ end
 %
 % then
 %
-% $$ \frac{\partial F^{uv}_x}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_x}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_x}{\partial h} \; \frac{\partial h }{ \partial A} = - \frac{\partial F^{uv}_x }{ \partial A}  $$
+% $$ \frac{\partial F^{uv}_x}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_x}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_x}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^{uv}_x }{ \partial A}  $$
 %
-% $$ \frac{\partial F^{uv}_y}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_y}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_y}{\partial h} \; \frac{\partial h }{ \partial A} = - \frac{\partial F^{uv}_y }{ \partial A}  $$
+% $$ \frac{\partial F^{uv}_y}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_y}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_y}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^{uv}_y }{ \partial A}  $$
 %
-% $$ \frac{\partial F^h}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^h}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^h}{\partial h} \; \frac{\partial h }{ \partial A} = - \frac{\partial F^h }{ \partial A}  $$
+% $$ \frac{\partial F^h}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^h}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^h}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^h }{ \partial A}  $$
 %
 % or
 %
 % $$
 % \left (\begin{array}{ccc}
-% \frac{\partial F^{uv}_x}{\partial u}  & \frac{F^{uv}_x}{\partial v}  & \frac{\partial F^{uv}_x}{\partial h} \\
-% \frac{\partial F^{uv}_y}{\partial u}  & \frac{F^{uv}_y}{\partial v}  & \frac{\partial F^{uv}_y}{\partial h} \\
-% \frac{\partial F^h} {\partial u}  & \frac{\partial F^h}{\partial v}  & \frac{\partial F^h}{\partial h}
+% \frac{\partial F^{uv}_x}{\partial u}  & \frac{F^{uv}_x}{\partial v}  & \frac{\partial F^{uv}_x}{\partial \dot{h}} \\
+% \frac{\partial F^{uv}_y}{\partial u}  & \frac{F^{uv}_y}{\partial v}  & \frac{\partial F^{uv}_y}{\partial \dot{h}} \\
+% \frac{\partial F^h} {\partial u}  & \frac{\partial F^h}{\partial v}  & \frac{\partial F^h}{\partial \dot{h}}
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
 %  \frac{\partial v}{\partial A} \\
-%  \frac{\partial h}{\partial A}
+%  \frac{\partial \dot{h}}{\partial A}
 % \end{array} \right )
 % = - \left ( \begin{array}{c}
 %   \frac{\partial F^{uv}_x}{\partial A} \\
@@ -103,7 +103,7 @@ end
 %   \end{array} \right )
 % $$
 %
-% The momentum equations are not explicit functions of $h$ and the mass-conservation equation is not a function of $A$.
+% The momentum equations are not explicit functions of $\dot{h}$ and the mass-conservation equation is not a function of $A$.
 % Therefore the system above simplifies to
 %
 % $$
@@ -115,7 +115,7 @@ end
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
 %  \frac{\partial v}{\partial A} \\
-%  \frac{\partial h}{\partial A}
+%  \frac{\partial \dot{h}}{\partial A}
 % \end{array} \right )
 % = - \left ( \begin{array}{c}
 %   \frac{\partial F^{uv}_x}{\partial A} \\
@@ -147,7 +147,7 @@ end
 % and then determine $\partial{h}/\partial{A}$ from
 %
 % $$
-%  \frac{\partial h}{\partial A} = - M^{-1}
+%  \frac{\partial \dot{h}}{\partial A} = - M^{-1}
 %  \left ( \frac{\partial F^h}{\partial u} \frac{\partial u}{\partial A}
 %   +  \frac{\partial F^h}{\partial v} \frac{\partial v}{\partial A} \right )
 % $$
@@ -163,7 +163,7 @@ end
 % and
 %
 % $$
-% 0=\frac{\partial F^h}{\partial h} \frac{\partial h}{\partial u} + \frac{\partial F_{1}}{\partial u}
+% 0=\frac{\partial F^h}{\partial \dot{h}} \frac{\partial \dot{h}}{\partial u} + \frac{\partial F_{1}}{\partial u}
 % $$
 %
 %
@@ -197,8 +197,8 @@ end
 %
 %
 % $$
-% \frac{ d h}{d A }= \frac{\partial h}{\partial A}
-% + \frac{\partial h}{\partial u} \frac{\partial u}{\partial A}
+% \frac{ d h}{d A }= \frac{\partial \dot{h}}{\partial A}
+% + \frac{\partial \dot{h}}{\partial u} \frac{\partial u}{\partial A}
 % $$
 %
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
@@ -242,10 +242,10 @@ dhdA=[];
 
 Sensitivities="-dudA-dvdA-";
 
-if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-    Sensitivities=Sensitivities+"-dhdotdA-" ;
-    Sensitivities=replace(Sensitivities,"--","-");
-end
+% if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+%     Sensitivities=Sensitivities+"-dhdotdA-" ;
+%     Sensitivities=replace(Sensitivities,"--","-");
+% end
 
 switch Sensitivities
 

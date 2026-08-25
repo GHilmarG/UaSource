@@ -16,7 +16,7 @@ end
 Field0=F.(Field);
 
 
-% I do the perturbation in lin space, not in log space
+% I always do the perturbation in lin space, not in log space, and then do the conversion to log space afterwards.
 %
 %
 if isnan(DeltaAbs)
@@ -81,8 +81,6 @@ if Field~="B"
     dudField=dudField.*scale ;
     dvdField=dvdField.*scale ;
     dhdotdField=dhdotdField.*scale ;
-
-
 
 end
 

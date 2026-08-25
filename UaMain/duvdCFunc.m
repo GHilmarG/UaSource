@@ -70,11 +70,11 @@ end
 
 Sensitivities="-dudC-dvdC-";
 
-if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-    Sensitivities=Sensitivities+"-dhdotdC-" ;
-    Sensitivities=replace(Sensitivities,"--","-");
-end
-
+% if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+%     Sensitivities=Sensitivities+"-dhdotdC-" ;
+%     Sensitivities=replace(Sensitivities,"--","-");
+% end
+% 
 
 KdFuvdC=-dFuvdC(CtrlVar,MUA,F) ; % there is actually a different sign convention inside of this... (sign issue)
 

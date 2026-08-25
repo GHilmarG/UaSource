@@ -51,6 +51,25 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 %
 % $$ \delta_u J_{\dot{h}} = -\frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{h_{err}^2}  \, \frac{1}{\rho} \partial_x ( \rho \, h \, \delta u )  \; dx \, dy $$ 
 %
+%
+%
+%
+% $$
+% r = \dot h_{obs} - a 
+% + \left(\partial_x h+\frac{h}{\rho}\partial_x\rho\right)u + h\,\partial_x u 
+% + \left(\partial_y h+\frac{h}{\rho}\partial_y\rho\right)v + h\,\partial_y v 
+% $$
+%
+% $$
+% \delta_uJ_{\dot h}[\phi_i] = 
+% \frac{1}{\mathcal A}\int r\,\epsilon_{\dot h}^{-2}\left[\left(\partial_xh+\frac{h}{\rho}\partial_x\rho\right)\phi_i +
+% h\,\partial_x\phi_i\right] dx\,dy 
+% $$
+%
+%
+% $$ \delta_vJ_{\dot h}[\phi_i] = 
+% \frac{1}{\mathcal A}\int r\,\epsilon_{\dot h}^{-2}\left[\left(\partial_yh+\frac{h}{\rho}\partial_y\rho\right)\phi_i + h\,\partial_y\phi_i\right]dx\,dy$$
+%
 % see also: dhdtExplicit.m
 %
 %%
@@ -123,14 +142,19 @@ for Iint=1:MUA.nip
     end
 
 
-    if ~isnan(dhdtnod)
-        hdot=dhdtnod*fun;
-    else
+   % for this to be a consistent derivative, I must evaluate this directly from the integration point values.
+   % Although F.dhdt has already been calculated by projecting onto the nodes, I must here use hdot calculated at int 
+   %
+   % if ~isnan(dhdtnod)
+   %     hdot=dhdtnod*fun;
+   % else
         hdot=aint-(rhoint.*dhdx.*uint+rhoint.*hint.*dudx+drhodx.*hint.*uint+rhoint.*dhdy.*vint+rhoint.*hint.*dvdy+drhody.*hint.*vint)./rhoint ;
-     end
+    % end
 
 
-    
+     R=(hdot-hdotMeasint)./hdotErrInt; 
+
+
     detJw=detJ*MUA.weights(Iint);
     
   
@@ -140,7 +164,7 @@ for Iint=1:MUA.nip
         
         % hdot=aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy) ; 
         
-        R=(hdot-hdotMeasint)./hdotErrInt; 
+       
 
         duJhdotInt=-R...
             .*(drhodx.*hint.*fun(Inod)+rhoint.*dhdx.*fun(Inod)+rhoint.*hint.*Deriv(:,1,Inod))./(hdotErrInt.*rhoint)...

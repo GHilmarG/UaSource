@@ -4,7 +4,7 @@
 
 
 
-function PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudField,dvdField,dhdField,dudFieldpert,dvdFieldpert,dhdotdFieldpert)
+function PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudField,dvdField,dhdField,dudFieldpert,dvdFieldpert,dhdotdFieldpert,SubtitleString)
 
 
 %%
@@ -25,15 +25,16 @@ end
 
 UaPlots(CtrlVar,MUA,F,[dudFieldpert dvdFieldpert],FigureTitle="dv/d"+Field+" finite diff")
 hold on ; plot(F.x(NodeTest)/CtrlVar.PlotXYscale,F.y(NodeTest)/CtrlVar.PlotXYscale,"o",MarkerFaceColor="r",MarkerEdgeColor="k")
-title("dv/d"+Field+"finite diff. sensitivities") ; subtitle("")
+title(sprintf("(du/d"+Field+",dv/d"+Field+") finite diff. sensitivities at node %i",NodeTest)) ; 
+subtitle(SubtitleString,Interpreter="latex")
 
 UaPlots(CtrlVar,MUA,F,[dudField dvdField],FigureTitle="dv/d"+Field+" model sensitivities (exact)")
 hold on ; plot(F.x(NodeTest)/CtrlVar.PlotXYscale,F.y(NodeTest)/CtrlVar.PlotXYscale,"o",MarkerFaceColor="r",MarkerEdgeColor="k")
-title("dv/d"+Field+"model sensitivities (exact)") ; subtitle("")
+title(sprintf("(du/d"+Field+",dv/d"+Field+") model sensitivities at node %i",NodeTest)) ; 
+subtitle(SubtitleString,Interpreter="latex")
 
 
 %% dh/dt
-
 
 
 figChdot=FindOrCreateFigure("Test: dhdot/d"+Field+" comparision"); clf(figChdot)
@@ -41,16 +42,20 @@ T=tiledlayout("flow");
 
 T1=nexttile;
 cbar=UaPlots(CtrlVar,MUA,F,dhdField,CreateNewFigure=false)  ; 
-title("$d\dot{h}/d"+Field+"$ sensitvity ",Interpreter="latex") ; subtitle("")
+title("$d\dot{h}/d"+Field+"$ sensitvity ",Interpreter="latex") ; 
+subtitle(SubtitleString,interpreter="latex")
 title(cbar,"")
 
 T2=nexttile;
-cbar=UaPlots(CtrlVar,MUA,F,dhdotdFieldpert,CreateNewFigure=false) ; title("$d\dot{h}/d"+Field+"$ finite differences ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+cbar=UaPlots(CtrlVar,MUA,F,dhdotdFieldpert,CreateNewFigure=false) ; 
+title("$d\dot{h}/d"+Field+"$ finite differences ",Interpreter="latex") ;  title(cbar,"")
+subtitle(SubtitleString,interpreter="latex")
 
 if ~isempty(dhdField)
     T3=nexttile;
     UaPlots(CtrlVar,MUA,F,dhdField-dhdotdFieldpert,CreateNewFigure=false) ; 
-    title("Test: $d\dot{h}/d"+Field+"$ differences",Interpreter="latex") ; subtitle("")
+    title("Test: $d\dot{h}/d"+Field+"$ differences",Interpreter="latex") ; 
+    subtitle(SubtitleString,interpreter="latex")
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 end
 T.Padding="loose";   T.TileSpacing="tight";
@@ -76,7 +81,7 @@ set(gcf,'Color','white')
 
 [fitobject,gof]=fit(dudField,dudFieldpert,'poly1');
 coeff=coeffvalues(fitobject);
-subtitle(sprintf("slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
+subtitle(SubtitleString+sprintf("  slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
 
 Diff_u=norm(dudField-dudFieldpert)/norm(dudField);
 fprintf("%s: normalized differences in u sensitvities is: %g\n",Field,Diff_u)    
@@ -100,7 +105,7 @@ title("Comparision between adjoint and finite-differences sensitvities")
 set(gcf,'Color','white')
 [fitobject,gof]=fit(dvdField,dvdFieldpert,'poly1');
 coeff=coeffvalues(fitobject);
-subtitle(sprintf("slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
+subtitle(SubtitleString+sprintf("  slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
 
 Diff_v=norm(dvdField-dvdFieldpert)/norm(dvdField);
 fprintf("%s: normalized differences in v sensitvities is: %g\n",Field,Diff_v)    
@@ -122,7 +127,7 @@ if ~isempty(dhdField)
     set(gcf,'Color','white')
     [fitobject,gof]=fit(dhdField,dhdotdFieldpert,'poly1');
     coeff=coeffvalues(fitobject);
-    subtitle(sprintf("slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
+    subtitle(SubtitleString+sprintf("  slope=%f $R^2$=%g",coeff(1),gof.rsquare),Interpreter="latex")
 
 
     Diff_hdot=norm(dhdField-dhdotdFieldpert)/norm(dhdField);

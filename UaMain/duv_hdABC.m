@@ -20,17 +20,15 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     tA=tic;
     [dudA,dvdA,dhdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good, also for dhdotdA
     tA=toc(tA);
-    fprintf("A sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
+    %fprintf("A sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
  
     ln10 = log(10);
     ScaleMatrix=spdiags(F.AGlen(:)*ln10, 0, MUA.Nnodes, MUA.Nnodes);
     dudA = dudA * ScaleMatrix ; 
     dvdA = dvdA * ScaleMatrix ; 
 
-    if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-        dhdA=dhdA.*scale ;
-    else
-        dhdA=[];
+    if ~isempty(dhdA)
+        dhdA=dhdA*ScaleMatrix ;
     end
 end
 
@@ -38,29 +36,23 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     tB=tic;
     [dudB,dvdB,dhdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
     tB=toc(tB);
-    fprintf("B sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
+    %fprintf("B sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     tC=tic;
     [dudC,dvdC,dhdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ; % this has been tested against finite-differences and is good
     tC=toc(tC);
-    fprintf("C sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
+    %fprintf("C sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
 
-    % scale=log(10)*F.C;  % this has to be a row vector
-    % dudC=dudC.*scale ;   % using implicit expansion
-    % dvdC=dvdC.*scale ;   % using implicit expansion
-    % 
 
     ln10 = log(10);
     ScaleMatrix=spdiags(F.C(:)*ln10, 0, MUA.Nnodes, MUA.Nnodes);
     dudC = dudC * ScaleMatrix ; 
     dvdC = dvdC * ScaleMatrix ; 
 
-    if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-        dhdC=dhdC.*scale ;
-    else
-        dhdC=[];
+    if ~isempty(dhdC)
+        dhdC=dhdC*ScaleMatrix ;
     end
 end
 
@@ -87,74 +79,73 @@ end
 %
 
 
-
-
-
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
-    %% Test
-
-
-    Funperturbed=F;
-
-    NodeTest=randi(MUA.Nnodes);
-
-    %% A
-    if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
-
-
-   
-        F=Funperturbed;
-        DeltaRel=1e-4;
-        
-        Field="AGlen";
-        [dudApert,dvdApert,dhdotdApert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
-
-        PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudA,dvdA,dhdA,dudApert,dvdApert,dhdotdApert);
-
-
-    end
-
-
-    %% B
-    if contains(CtrlVar.Inverse.InvertFor,"-B-")
-        %% du/dB
-        F=Funperturbed;
-
-        CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
-
-  
-        F=Funperturbed;
-        DeltaRel=nan;
-        DeltaAbs=1;
-        Field="B";
-        [dudBpert,dvdBpert,dhdotdBpert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,DeltaAbs);
-
-        % figures
-        Field="B";
-        PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudB,dvdB,dhdB,dudBpert,dvdBpert,dhdotdBpert);
-
-
-    end
-
-    %% C
-    if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
-
-    
-        F=Funperturbed;
-        DeltaRel=1e-4;
-        Field="C";
-        [dudCpert,dvdCpert,dhdotdCpert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
-
-        PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudC,dvdC,dhdC,dudCpert,dvdCpert,dhdotdCpert);
-
-
-
-
-
-        %%
-    end
-
- 
+    FiniteDifferenceTestAndPlots(F,MUA,CtrlVar,UserVar,RunInfo,BCs,l,dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC);
 
 end
+
+function FiniteDifferenceTestAndPlots(F,MUA,CtrlVar,UserVar,RunInfo,BCs,l,dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC)
+%% Test
+
+
+Funperturbed=F;
+
+NodeTest=randi(MUA.Nnodes);
+
+%% A
+if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
+
+
+
+    F=Funperturbed;
+    DeltaRel=1e-4;
+
+    Field="AGlen";
+    [dudApert,dvdApert,dhdotdApert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
+
+    SubtitleString="sensitivites are with respect to $\log_{10}A$";
+
+    PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudA,dvdA,dhdA,dudApert,dvdApert,dhdotdApert,SubtitleString);
+
+end
+
+
+%% B
+if contains(CtrlVar.Inverse.InvertFor,"-B-")
+    %% du/dB
+    F=Funperturbed;
+
+    CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
+
+
+    F=Funperturbed;
+    DeltaRel=nan;
+    DeltaAbs=1;
+    Field="B";
+    [dudBpert,dvdBpert,dhdotdBpert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,DeltaAbs);
+
+    % figures
+    Field="B";
+    SubtitleString="sensitivites are with respect to $B$";
+
+    PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudB,dvdB,dhdB,dudBpert,dvdBpert,dhdotdBpert,SubtitleString);
+
+end
+
+%% C
+if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
+
+
+    F=Funperturbed;
+    DeltaRel=1e-4;
+    Field="C";
+    [dudCpert,dvdCpert,dhdotdCpert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
+
+    SubtitleString="sensitivites are with respect to $\log_{10}C$"; 
+
+    PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudC,dvdC,dhdC,dudCpert,dvdCpert,dhdotdCpert,SubtitleString);
+
+    %%
+end
+

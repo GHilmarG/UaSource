@@ -3,7 +3,7 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %%
 % Calculates dh/dt from flux divergence as
 %
-% $$ \rho \, \dot{h}  = \rho \, a -  \nabla \cdot \mathbf{q} $$
+% $$ \rho \, \dot{h}  = \rho \, a -  \partial_x (\rho u h ) - \partial_y (\rho v h ) $$
 %
 % or
 %

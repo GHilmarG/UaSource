@@ -34,12 +34,6 @@ if CtrlVar.SlidingLaw~="Weertman"
 
 end
 
-if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-
-    error("FAuv:NotImplemented","not implemented for dhdt meas")
-
-end
-
 ndim=2;
 nNodes=MUA.Nnodes ;
 

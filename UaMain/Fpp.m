@@ -7,7 +7,7 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"-B-")
-    error("PsiTimesddFuvdpdp:BnotImplemented","PsiTimesddFuvdBdB not yet implemented")
+    error("Fpp:BnotImplemented","Fpp not yet implemented for B")
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)

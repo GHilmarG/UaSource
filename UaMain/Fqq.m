@@ -311,88 +311,7 @@ KFqq=(KFqq'+KFqq)/2;
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
-    % note: These second-order derivatives are all identically equal to zero for n=1 and m=1
-
-    if all(F.m==1) && all(F.n==1)
-
-        fprintf("Fqq: no real need to test these F_qq entries as they are all identically equal to zero for n=1 and m=1. \n")
-
-    end
-
-    CtrlVar.uvMatrixAssembly.Ronly = false;
-    CtrlVar.uvAssembly.ZeroFields  = false;
-    iColumn=randi(MUA.Nnodes);
-
-    %% uv and vu
-    u0 = F.ub;
-    hstep = 1e-6*max(abs(u0));
-
-
-    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
-    [~,Kuv_minus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
-    b_minus = Kuv_minus.' * [Psi_x; Psi_y];
-
-    F.ub = u0; F.ub(iColumn) = F.ub(iColumn) + hstep;
-    [~,Kuv_plus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
-    b_plus = Kuv_plus.' * [Psi_x; Psi_y];
-
-    F.ub = u0;
-
-    Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
-
-    Diff=norm(KFqq(:,iColumn) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
-    fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
-
-    FiniteDifferenceApproximation=Fqq_col_FD;
-    KFqqColumn=full(KFqq(:,iColumn));
-
-    %% uv and vu
-    v0 = F.vb;
-    hstep = 1e-6*max(abs(v0));
-
-
-    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
-    [~,Kuv_minus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
-    b_minus = Kuv_minus.' * [Psi_x; Psi_y];
-
-    F.vb = v0; F.vb(iColumn) = F.vb(iColumn) + hstep;
-    [~,Kuv_plus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
-    b_plus = Kuv_plus.' * [Psi_x; Psi_y];
-
-    F.vb = v0;
-
-    Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uv}, bottom half -> column of F^{qq}_{vv}
-
-    Diff=norm(KFqq(:,iColumn+Nnodes) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
-    fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
-
-
-    FiniteDifferenceApproximation=[FiniteDifferenceApproximation;Fqq_col_FD];
-
-    KFqqColumn=[KFqqColumn;full(KFqq(:,iColumn+Nnodes))];
-
-    %% Plots
-    FqqTest=FindOrCreateFigure("Test: Fqq") ;
-
-    plot(KFqqColumn,FiniteDifferenceApproximation,"or") ; axis equal ;
-    hold on ;
-    plot([min(FiniteDifferenceApproximation) max(FiniteDifferenceApproximation)],[min(FiniteDifferenceApproximation) max(FiniteDifferenceApproximation)],"--k")
-
-    % ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
-
-    xlabel("Direct-Adjoint",Interpreter="latex")  ;
-    ylabel("Finite difference",Interpreter="latex")
-
-
-    title("$\mathcal{F}^{qq}_{uu,ik}$, $\mathcal{F}^{qq}_{uv,ik}$ , $\mathcal{F}^{qq}_{vu,ik}$ and $\mathcal{F}^{vv}_{vu,ik}$",Interpreter="latex")
-    subtitle("Comparison is here for one random column",Interpreter="latex")
-
-    drawnow
-   
-    % fprintf("Fqq: Inspect in debugger and then continue: [F5] \n")
-    % keyboard
-
-    %%
+    FiniteDifferencesTestAndPlots(F,CtrlVar,MUA,BCs,Psi_x,Psi_y,KFqq,Nnodes);
 
 end
 
@@ -405,3 +324,88 @@ end
 
 
 
+
+function FiniteDifferencesTestAndPlots(F,CtrlVar,MUA,BCs,Psi_x,Psi_y,KFqq,Nnodes)
+% note: These second-order derivatives are all identically equal to zero for n=1 and m=1
+
+if all(F.m==1) && all(F.n==1)
+
+    fprintf("Fqq: no real need to test these F_qq entries as they are all identically equal to zero for n=1 and m=1. \n")
+
+end
+
+CtrlVar.uvMatrixAssembly.Ronly = false;
+CtrlVar.uvAssembly.ZeroFields  = false;
+iColumn=randi(MUA.Nnodes);
+
+%% uv and vu
+u0 = F.ub;
+hstep = 1e-6*max(abs(u0));
+
+
+F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
+[~,Kuv_minus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+b_minus = Kuv_minus.' * [Psi_x; Psi_y];
+
+F.ub = u0; F.ub(iColumn) = F.ub(iColumn) + hstep;
+[~,Kuv_plus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+b_plus = Kuv_plus.' * [Psi_x; Psi_y];
+
+F.ub = u0;
+
+Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
+
+Diff=norm(KFqq(:,iColumn) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
+fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+FiniteDifferenceApproximation=Fqq_col_FD;
+KFqqColumn=full(KFqq(:,iColumn));
+
+%% uv and vu
+v0 = F.vb;
+hstep = 1e-6*max(abs(v0));
+
+
+F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
+[~,Kuv_minus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+b_minus = Kuv_minus.' * [Psi_x; Psi_y];
+
+F.vb = v0; F.vb(iColumn) = F.vb(iColumn) + hstep;
+[~,Kuv_plus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+b_plus = Kuv_plus.' * [Psi_x; Psi_y];
+
+F.vb = v0;
+
+Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uv}, bottom half -> column of F^{qq}_{vv}
+
+Diff=norm(KFqq(:,iColumn+Nnodes) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
+fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+
+FiniteDifferenceApproximation=[FiniteDifferenceApproximation;Fqq_col_FD];
+
+KFqqColumn=[KFqqColumn;full(KFqq(:,iColumn+Nnodes))];
+
+%% Plots
+FqqTest=FindOrCreateFigure("Test: Fqq") ;
+
+plot(KFqqColumn,FiniteDifferenceApproximation,"or") ; axis equal ;
+hold on ;
+plot([min(FiniteDifferenceApproximation) max(FiniteDifferenceApproximation)],[min(FiniteDifferenceApproximation) max(FiniteDifferenceApproximation)],"--k")
+
+% ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+xlabel("Direct-Adjoint",Interpreter="latex")  ;
+ylabel("Finite difference",Interpreter="latex")
+
+
+title("$\mathcal{F}^{qq}_{uu,ik}$, $\mathcal{F}^{qq}_{uv,ik}$ , $\mathcal{F}^{qq}_{vu,ik}$ and $\mathcal{F}^{vv}_{vu,ik}$",Interpreter="latex")
+subtitle("Comparison is here for one random column",Interpreter="latex")
+
+drawnow
+
+% fprintf("Fqq: Inspect in debugger and then continue: [F5] \n")
+% keyboard
+
+%%
+end

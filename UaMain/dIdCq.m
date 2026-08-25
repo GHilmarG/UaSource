@@ -108,7 +108,6 @@ else
     V0nod=mnod*0 ;
 end
 
-
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -130,7 +129,8 @@ for Iint=1:MUA.nip
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-    Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    Cint=Cnod*fun; 
+    Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
     mint=mnod*fun;
     qint=qnod*fun;
     mukint=muknod*fun;
@@ -159,9 +159,9 @@ for Iint=1:MUA.nip
     CtrlVar.Inverse.dFuvdClambda=false;
 
     % this is a temporary change which only works for Weertman sliding law, 
-    % speed=sqrt(uint.*uint+vint.*vint+u0^2);
-    % Um=speed.^(1./mint-1) ;
-    % Ctemp =  Heint.*    (1./mint).*(Cint+C0).^(-1./mint-1)   .*Um;  % Um=speed.^(1./m-1) ; This is the same Ctemp as returned by BasalDrag for Weertman sliding law, 
+     % speed=sqrt(uint.*uint+vint.*vint+u0^2);
+     % Um=speed.^(1./mint-1) ;
+     % Ctemp =  Heint.*    (1./mint).*(Cint+C0).^(-1./mint-1)   .*Um;  % Um=speed.^(1./m-1) ; This is the same Ctemp as returned by BasalDrag for Weertman sliding law, 
     % but the BasalDrag function is more general and will return this quantity for various other sliding laws as well 
     %%
 
@@ -169,6 +169,8 @@ for Iint=1:MUA.nip
     % Note: I include the u and v in the adjoint calculation itself below, so I just need the
     % derivative without the u and the v. Therefore 
     %
+
+
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
 

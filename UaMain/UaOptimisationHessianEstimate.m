@@ -1,5 +1,10 @@
 
 
+
+
+
+
+
 function [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
 
 narginchk(8,8)
@@ -51,19 +56,19 @@ iRange=1:nPar; % all of them
 
 
 
-SubOptimalityTolerance=0;
+SubOptimalityTolerance=1e-10;
 JTolerance=0.01;
 dJTolerance=0.0;
 dpTolerance=0.0;
 Delta_new=nan;
 iIteration=0; lStart=0 ; gammaSDLast=inf;
 
-doNewton=false;
+doNewton=true;
 doSteepestDescent=false;
 doTrustRegion=true;
 
 
-JTrustRegion=inf;
+JTrustRegion=inf ; DeltaMax=nan; 
 JNewton=inf;
 JSteepestDescent=nan;
 
@@ -71,6 +76,7 @@ dpSteepestDescent=nan;
 gammaSteepestDescent=nan;
 gammaSDMax=nan;
 gammaNewton=nan;
+MetricMatrix=[]; 
 
 while true
 
@@ -135,15 +141,6 @@ while true
         error("UaOptimisationHessianEstimate:pIsNaN","NaN in p")
     end
 
-
-
-
-    % Since the Hessian may have been modified, it is not clear what a sensible first step could be.
-    %
-    % Also, the Hessian is not exact.
-    %
-    % Furthermore, what is the largest gamma I can use without violating the limits?
-    %
 
     CtrlVar.GradientReflective=false;
 
@@ -232,13 +229,9 @@ while true
     end
 
 
-
-
-    % I also do Steepest decent, and then compare.
-    % This is because calculating the Hessian is so expensive and, in comparison, the line-search cheap
-
-    % Then maybe modify H and solve until slope negative, or just go for the gradient direction
-
+    %% Build metric matrix, i.e. the Gram matrix
+    if isempty(MetricMatrix)  % Only build it once, and reuse the decomposition
+    Metric="H1" ;
     nH=size(Hessian,1);
     nNodes=MUA.Nnodes;
     M=MUA.M ;
@@ -252,34 +245,35 @@ while true
         error("wrong dimensions")
     end
 
-    CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
 
-    if CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"
-
-        P=M;
-
-    elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="H1"
-
-        ga=CtrlVar.Inverse.PreMultiplier.H1.ga;
-        gs=CtrlVar.Inverse.PreMultiplier.H1.gs;
-
-        ga=0.5;
-        gs=1000;
-
-        if isnan(ga) || isnan(gs)
-            error("UaOptimisationHessianEstimate:InvalidParameterValues","CtrlVar.Inverse.PreMultiplier.H1.ga or CtrlVar.Inverse.PreMultiplier.H1.gs are NaN")
-        end
-
-        P=gs*D+ga*M;
+    % Build metric, this is the Gram matrix
 
 
+    switch Metric
 
-    else
+        case "L2"
 
-        P=1;
+            MetricMatrix=M;
+
+        case "H1"
+
+            ga=1;
+            gs=1000;  % this has the units distance/length
+         
+            MetricMatrix=0.5*(ga^2*M+gs^2*D);
+
+        case "l2"
+
+            MetricMatrix=1;
     end
 
-    dpSteepestDescent=P\(-g0); % pre-multiplying, note that I must use the inverse...!
+    % check if symmetrical
+    dMetricMatrix=decomposition(MetricMatrix);
+    end
+    %%
+
+
+    dpSteepestDescent=dMetricMatrix\(-g0); % pre-multiplying, note that I must use the inverse...!
 
     % steepest decent
     if doSteepestDescent
@@ -323,8 +317,12 @@ while true
 
     %% testing two-dimensional subspace approach
     if doTrustRegion
-        DeltaMax=norm(dpNewton);
-        DeltaMin=DeltaMax/1000;
+       
+        if isnan(DeltaMax)
+            % only set DeltaMax once, and set it to a generously large value
+            DeltaMax=10*sqrt(dpNewton'*MetricMatrix*dpNewton);
+            DeltaMin=DeltaMax/1e6;
+        end
 
         if isnan(Delta_new)
             Delta=DeltaMax;
@@ -336,7 +334,7 @@ while true
 
         while ~accepted && Delta>DeltaMin
 
-            [dpTR,yTR,info]=TwoDSubspaceTrustRegion(g0,Hessian,dpNewton,dpSteepestDescent,Delta) ;
+            [dpTR,yTR,info]=TwoDSubspaceTrustRegionGram(g0,Hessian,dpNewton,dpSteepestDescent,Delta,MetricMatrix) ;
             JTrustRegion=func(p+dpTR)   ;
             ActualReduction = -(JTrustRegion-J0) ; % actual reduction for the
             PredicedReduction = -(g0'*dpTR + 0.5 * dpTR' * Hessian * dpTR) ; % predicted reduction (note that J0 cancels)
@@ -344,7 +342,11 @@ while true
 
             [p0_new, Delta_new, accepted] = TrustRegionUpdate(p, dpTR, J0, JTrustRegion, PredicedReduction, Delta, DeltaMax) ;
         
-            fprintf("TrustRegion: accepted=%s \t case=%s \t rho=%f \t Delta=%f \t delta_new=%g  \n ",string(accepted),info.case,rho,Delta,Delta_new)
+            fprintf("TrustRegion: accepted=%s \t case=%s \t rho=%f \t Delta=%f \t delta_new=%g  dp=%3.3f dNewton  %+3.3f dSteepestDescent \n ",string(accepted),info.case,rho,Delta,Delta_new,yTR(1),yTR(2)) 
+
+            % if Delta==DeltaMax
+            %        fprintf("Delta is hitting against DeltaMax for rho=%g\n",rho)
+            % end
 
             Delta=Delta_new;
 
@@ -355,7 +357,7 @@ while true
     %%
     % PlotCostVersusStepSizeAlongNewtonDirection(func,p,dpNewton,g0,Hessian,gammaNewton,JNewton,dpSteepestDescent,gammaSteepestDescent,JSteepestDescent,gammaNewtonMax,gammaSDMax,doSteepestDescent);
 
-    fprintf("====> JNewton/J0=%g \t JSteepestDescent/J0=%g \t JTrustRegion/J0=%g \n",JNewton/J0,JSteepestDescent/J0,JTrustRegion/J0)
+    %fprintf("====> JNewton/J0=%g \t JSteepestDescent/J0=%g \t JTrustRegion/J0=%g \n",JNewton/J0,JSteepestDescent/J0,JTrustRegion/J0)
 
     rhoJNewton=JNewton/J0;
     rhoJSteepestDescent=JSteepestDescent/J0;
@@ -397,7 +399,7 @@ while true
         case "TrustRegion"
 
 
-            fprintf("Trust-region step wins! \n ")
+    
             p=p0_new;
 
             SubOptimality=PredicedReduction;
@@ -438,7 +440,7 @@ while true
     end
 
     if SubOptimality<SubOptimalityTolerance
-        fprintf("subtolerance reached. \n")
+        fprintf("subtolerance (%g) reached with %g. \n",SubOptimalityTolerance,SubOptimality)
         break
     end
 
@@ -457,7 +459,7 @@ while true
         break
     end
 
-    if J/J0>=1
+    if J/J0>=0.9999
         fprintf("stagnated. \n")
         break
     end

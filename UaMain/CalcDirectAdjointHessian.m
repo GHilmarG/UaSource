@@ -4,12 +4,12 @@
 
 
 
-function H = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,BCsAdjoint,d2Iduu,d2Idvv,d2Idhdothdot,Psi_x,Psi_y)
+function H = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Meas,BCsAdjoint,Psi_x,Psi_y)
 
-narginchk(13,13)
+narginchk(11,11)
 
 
-%% Calculates some of the terms of the Hessian, H, using the direct-adjoint approach.
+%% Calculates the Hessian, H, using the direct-adjoint approach.
 %
 % Here this is done for the misfit term and later the Hessian of the regularization term is added (this is easy).
 %
@@ -282,45 +282,27 @@ if GetSensitivites
 
     end
 
-
-
-    %
-    % if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-    %     [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duvhdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs) ;
-    % else
-
     [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs);
-    % end
+    xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ;
 
-end
 
-%% H^{qq}
-%
-% $$\xi^T (J^{qq}+\mathcal{F}^{qq} )\xi$$
-%
-if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
 
-    KFqq=0;
+    %% H^{qq}
+    %
+    % $$\xi^T (J^{qq}+\mathcal{F}^{qq} )\xi$$
+    %
 
-    if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+    KJqq=0; KFqq=0; 
 
-        xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC ; KdhdA KdhdB KdhdC] ; % 2 Nnodes \times nP Nnodes where nP is the number of fields inverted for, e.g. 2 if inverting for A and C, 1 if only inverting for B
+    if contains(HessianTerms,"-xi Jqq xi-")
 
-        KJqq=blkdiag(d2Iduu,d2Idvv,d2Idhdothdot);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
-
-    else
-
-        xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ; % 2 Nnodes \times nP Nnodes where nP is the number of fields inverted for, e.g. 2 if inverting for A and C, 1 if only inverting for B
-
-        KJqq=blkdiag(d2Iduu,d2Idvv);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
+        KJqq=Jqq(CtrlVar,MUA,F,BCs,Meas);
 
     end
 
 
     if contains(HessianTerms,"-xi Fqq xi-")
-        if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-            error("Case not implemented")
-        end
+
         KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
     end
 
@@ -330,7 +312,7 @@ if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     % the numerical sparsity of xi is close to 1 (ie not sparse at all)
     % much better to use full matrix in the multiplication
     %
-    % requires 
+    % requires
     %
 
     % tMult=tic;
@@ -349,9 +331,9 @@ if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     tMult=tic;
     H=xi'*(KJqqFqq*xi)+H ;
 
-  
+
     tMult=toc(tMult);
-    fprintf(" Multiplication calculated in %f sec\n",tMult)
+    %  fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
 
 %%  H^{pp}  (but only the F^pp contribution)  : Tested
@@ -360,7 +342,6 @@ end
 %
 %
 if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
-
 
     KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
     H=H+KFpp; % Here missing is the Jpp contribution, but this is added in the Regularisation.m function
@@ -377,8 +358,9 @@ end
 %
 if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
-                 
-   [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
+
+    [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC);
+   
     H=H+KHess_qp ;
 
 end

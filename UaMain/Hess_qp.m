@@ -5,12 +5,11 @@
 
 
 
-function [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC)
+function [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC)
 
-narginchk(16,16)
+narginchk(13,13)
 
-% [KFAu,KFAv]=Psi_d2FdAdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y);
-% [KFCu,KFCv]=Psi_d2FdCdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y);
+
 
  [KFCu,KFCv]=FCuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
 
@@ -20,14 +19,8 @@ narginchk(16,16)
 KFpq=[KFAu KFAv ; ...
       KFCu KFCv ] ;
 
-%KFpq=KFpq';
-
-
-
-
 xi=[KdudA KdudC ;...
     KdvdA KdvdC] ; 
-
 
 K=KFpq*xi; 
 

@@ -87,20 +87,15 @@ end
 
 if CtrlVar.SlidingLaw~="Weertman"
 
-    error("Psi_d2Fdpdq_xi:NotImplemented","only implemented for Weertman sliding law.")
+    error("FCuv:NotImplemented","only implemented for Weertman sliding law.")
 
 end
 
-if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-
-    error("Psi_d2FdCdq_xi:NotImplemented","not implemented for dhdt meas")
-
-end
 
 ndim=2;
 nNodes=MUA.Nnodes ;
 
-C0=CtrlVar.Cmin;
+C0=CtrlVar.Czero;
 u0=CtrlVar.SpeedZero;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
@@ -146,7 +141,7 @@ for Iint=1:MUA.nip
     Psix=Psixnod*fun;
     Psiy=Psiynod*fun;
 
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
+    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0); % This is sometimes also referred to has He in other parts of the code base
 
     detJw=detJ*MUA.weights(Iint);
 
@@ -161,7 +156,7 @@ for Iint=1:MUA.nip
     dvcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + u0^2).^((1-m)./(2.*m)-1) .*v.*v + (u.^2+v.^2 + u0^2).^((1-m)./(2.*m))  ) ;
 
 
-    l_d2FdudC=Psix.*ducFx+Psiy.*ducFy;  % raw kernel long log(C) scaling here at all
+    l_d2FdudC=Psix.*ducFx+Psiy.*ducFy;  
     l_d2FdvdC=Psix.*dvcFx+Psiy.*dvcFy;
 
     %% Testing
@@ -177,12 +172,13 @@ for Iint=1:MUA.nip
     % norm(Kv-l_d2FdvdC) % is zero
 
     %%
+  
 
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            Hu(:,Inod,Jnod)=Hu(:,Inod,Jnod) + l_d2FdudC .*fun(Inod) .*fun(Jnod).*detJw;
-            Hv(:,Inod,Jnod)=Hv(:,Inod,Jnod) + l_d2FdvdC .*fun(Inod) .*fun(Jnod).*detJw;
+            Hu(:,Inod,Jnod)=Hu(:,Inod,Jnod) - l_d2FdudC .*fun(Inod) .*fun(Jnod).*detJw;
+            Hv(:,Inod,Jnod)=Hv(:,Inod,Jnod) - l_d2FdvdC .*fun(Inod) .*fun(Jnod).*detJw;
 
         end
     end
@@ -220,8 +216,7 @@ D_C = spdiags(F.C(:)*ln10, 0, nNodes, nNodes);
 KFCu = D_C * KFCu;   % KFCu here is the RAW matrix from the assembly above
 KFCv = D_C * KFCv;
 
-KFCu = -KFCu;         % existing overall sign-convention fix, unchanged
-KFCv = -KFCv;
+
 
 %% Test Against Finite-Differences
 
@@ -253,7 +248,7 @@ u0 = F.ub;
 v0=  F.vb;
 hstep = 1e-6*max(abs(u0)+abs(v0));
 
-
+% FCu test
 F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
 bMinus = dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 

@@ -81,9 +81,7 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 %
 % $$\beta^2= (C+C_0)^{-1/m} \, (u^2+v^2+v_0^2)^{(1/m-1)/2} $$
 %
-% Version History;
 %
-% August 2026: Various options that were no-longer used eliminated. This included the group assembly.
 %
 %%
 
@@ -147,6 +145,8 @@ else
 end
 
 g=F.g;
+
+
 
 
 

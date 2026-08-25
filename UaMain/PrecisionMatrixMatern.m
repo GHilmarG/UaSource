@@ -74,11 +74,10 @@ Area=MUA.Area;
 M=MUA.M;
 D=MUA.Dxx+MUA.Dyy;
 
-% I discovered that it can happen that the smallest eigenvalue of D is slightly
-% negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
-% two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
-% would be to add eps to the diagonal of Dxx and Dyy. This should not really be an issue, unless there is next-to-no
-% M contribution being added.
+% I discovered that it can happen that the smallest eigenvalue of D is slightly negative!!! This must be due to numerical
+% rounding errors when assembling Dxx and Dyy. I for example found a case where the two smallest eigenvalues of Dyy were
+% -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this would be to add eps to the diagonal of
+% Dxx and Dyy. This should not really be an issue, unless there is next-to-no M contribution being added.
 
 Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
 D=D+Ieps ;
