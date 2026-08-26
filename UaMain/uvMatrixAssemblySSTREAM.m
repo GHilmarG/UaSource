@@ -90,12 +90,9 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 narginchk(4,4)
 nargoutchk(1,4)
 
-if ~isfield(CtrlVar,"uvAssembly")
-    ZeroFields=false;
-else
-    ZeroFields=CtrlVar.uvAssembly.ZeroFields;
 
-end
+ZeroFields=CtrlVar.uvAssembly.ZeroFields;
+
 
 if nargout==1
     Ronly=true ;

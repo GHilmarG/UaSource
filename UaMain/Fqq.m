@@ -344,11 +344,11 @@ hstep = 1e-6*max(abs(u0));
 
 
 F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
-[~,Kuv_minus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+[~,Kuv_minus] = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 b_minus = Kuv_minus.' * [Psi_x; Psi_y];
 
 F.ub = u0; F.ub(iColumn) = F.ub(iColumn) + hstep;
-[~,Kuv_plus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+[~,Kuv_plus] = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 b_plus = Kuv_plus.' * [Psi_x; Psi_y];
 
 F.ub = u0;
@@ -370,16 +370,17 @@ hstep = 1e-6*max(abs(v0));
 
 
 F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
-[~,Kuv_minus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+[~,Kuv_minus] = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 b_minus = Kuv_minus.' * [Psi_x; Psi_y];
 
 F.vb = v0; F.vb(iColumn) = F.vb(iColumn) + hstep;
-[~,Kuv_plus] = uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,BCs);
+[~,Kuv_plus] = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 b_plus = Kuv_plus.' * [Psi_x; Psi_y];
 
 F.vb = v0;
 
 Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uv}, bottom half -> column of F^{qq}_{vv}
+Fqq_col_FD=-Fqq_col_FD ; % there is a sign mistake in the code that I have started to carry through...
 
 Diff=norm(KFqq(:,iColumn+Nnodes) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
 fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)

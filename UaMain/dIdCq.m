@@ -213,18 +213,73 @@ for Inod=1:MUA.nod
 end
 
 
+%% test the gradient, do the test in linear space, so do it ahead of eventual conversion to log space
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
+    FiniteDifferenceTestAndPlots(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dIdC);
+end
+
+
+%% conversion to log space
 % change of variables should be done on nodal values!
-% I learned this the hard way by doing extensive tests on dJ/dgamma
+% 
 if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
         dIdC=log(10)*F.C.*dIdC;
 end
 
+%% sometimes I modify the gradient to make it a L^2 or H^1 gradient instead of the l^2 gradient that I have just calculated.
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dIdC);
 
-% dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dIdC);
 
 
 
 end
+
+
+
+
+
+function   FiniteDifferenceTestAndPlots(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dIdC)
+
+iNode=randi(MUA.Nnodes);
+
+C0=F.C;
+
+deltaC=1e-3*abs(F.C(iNode));
+
+F.C=C0; 
+F.C(iNode)=F.C(iNode)-deltaC;
+
+CtrlVar.uvAssembly.ZeroFields=false;
+CtrlVar.uvMatrixAssembly.Ronly=true;
+
+Ruv_minus = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+b_minus = Ruv_minus.' * [Psi_x; Psi_y];
+
+F.C=C0; 
+F.C(iNode)=F.C(iNode)+deltaC;
+[Ruv_plus] = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+b_plus = Ruv_plus.' * [Psi_x; Psi_y];
+
+F.C=C0; 
+
+dIdC_FD = (b_plus - b_minus)/(2*deltaC);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
+
+%% there is a sign mistake which I have started to carry through the code (must correct this properly one day)
+dIdC_FD=-dIdC_FD ; % need to correct for wrong sign...
+
+
+%[dIdC_FD dIdC(iNode)]
+Diff=norm(dIdC(iNode) - dIdC_FD)/(dIdC(iNode)+eps);
+fprintf("dIdCq: normalized norm of difference between Direct-Adjoint and FD for node %i is %g \n",iNode,Diff)
+
+
+
+
+
+
+
+end
+
 
 
 

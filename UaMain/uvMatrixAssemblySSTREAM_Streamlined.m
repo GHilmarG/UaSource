@@ -147,7 +147,7 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_Streamlined(CtrlVar,MUA,F,B
 narginchk(4,4)
 nargoutchk(1,4)
 
-
+error("do not use")
 
 ZeroFields=CtrlVar.uvAssembly.ZeroFields;
 Ronly=CtrlVar.uvMatrixAssembly.Ronly;

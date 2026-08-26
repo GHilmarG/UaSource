@@ -288,6 +288,9 @@ deltaA=1e-3*abs(F.AGlen(iNode));
 F.AGlen=A0; 
 F.AGlen(iNode)=F.AGlen(iNode)-deltaA;
 
+CtrlVar.uvAssembly.ZeroFields=false;
+CtrlVar.uvMatrixAssembly.Ronly=true;
+
 Ruv_minus = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 b_minus = Ruv_minus.' * [Psi_x; Psi_y];
 
@@ -304,9 +307,9 @@ dIdA_FD = (b_plus - b_minus)/(2*deltaA);   % length 2*Nnodes: top half -> column
 dIdA_FD=-dIdA_FD ; % need to correct for wrong sign...
 
 
-[dIdA_FD dIdA(iNode)]
+%[dIdA_FD dIdA(iNode)]
 Diff=norm(dIdA(iNode) - dIdA_FD)/(dIdA(iNode)+eps);
-fprintf("dIdA: normalized norm of difference between Direct-Adjoint and FD for node %i is %g \n",iNode,Diff)
+fprintf("dIdAq: normalized norm of difference between Direct-Adjoint and FD for node %i is %g \n",iNode,Diff)
 
 
 
