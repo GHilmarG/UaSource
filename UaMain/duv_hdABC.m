@@ -12,8 +12,6 @@ dudC=[]; dvdC=[]; dhdC=[];
 [UserVar,RunInfo,F,l,KdFuvduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
-
-
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     tA=tic;
     [dudA,dvdA,dhdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good, also for dhdotdA

@@ -11,20 +11,20 @@ narginchk(13,13)
 
 
 
- [KFCu,KFCv]=FCuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
+[KFCu,KFCv]=FCuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
 
- [KFAu,KFAv]=FAuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
+[KFAu,KFAv]=FAuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
 
 
 KFpq=[KFAu KFAv ; ...
       KFCu KFCv ] ;
 
 xi=[KdudA KdudC ;...
-    KdvdA KdvdC] ; 
+    KdvdA KdvdC] ;
 
-K=KFpq*xi; 
+K=KFpq*xi;
 
-KHess_qp=K+K' ; 
+KHess_qp=K+K' ;
 
 
 

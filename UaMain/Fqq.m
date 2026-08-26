@@ -11,7 +11,6 @@ function KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 %
 %%
 
-
 narginchk(7,7)
 
 ndim=2;
@@ -79,8 +78,8 @@ for Iint=1:MUA.nip
     rho=rhonod*fun;
 
 
-    hf=F.rhow*H./rho;                                   % this is linear, so fine to evaluate at int in this manner
-    He = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
+    hf=F.rhow*H./rho;                                
+    He = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0); 
 
 
 
@@ -307,6 +306,7 @@ KFqq=sparseUA(Iind,Jind,Xval,2*Nnodes,2*Nnodes);
 
 KFqq=(KFqq'+KFqq)/2;
 
+KFqq=-KFqq ; % there is a sign mistake in the code that I have started to carry through...
 
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
@@ -354,6 +354,9 @@ b_plus = Kuv_plus.' * [Psi_x; Psi_y];
 F.ub = u0;
 
 Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
+
+Fqq_col_FD=-Fqq_col_FD ; % there is a sign mistake in the code that I have started to carry through...
+
 
 Diff=norm(KFqq(:,iColumn) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
 fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
