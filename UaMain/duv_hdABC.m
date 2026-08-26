@@ -9,11 +9,9 @@ dudA=[]; dvdA=[]; dhdA=[];
 dudB=[]; dvdB=[]; dhdB=[];
 dudC=[]; dvdC=[]; dhdC=[];
 
-[UserVar,RunInfo,F,l,KdFuvduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+[UserVar,RunInfo,F,l,KdFuvduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
-% CtrlVar.uvAssembly.ZeroFields=false;
-% CtrlVar.uvMatrixAssembly.Ronly=false;
-% [~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+
 
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)

@@ -135,7 +135,7 @@ RunInfo.Inverse.I=[RunInfo.Inverse.I;Outs.fval+NaN];
 RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Outs.GradNorm];
 RunInfo.Inverse.p=Outs.p;
 % If I need some further info and want to update F
-%[J,Gradient,Hessian,Outs,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+
 
 
 

@@ -378,7 +378,7 @@ while true
 
         case "Newton"
 
-            fprintf("Newton step wins! \n ")
+         
             dp=gammaNewton*dpNewton;
             p=p+dp;
             SubOptimality=-g0'*dpNewton/2  ; % Newton decrement g0' H^{-1} g /2
@@ -388,7 +388,7 @@ while true
 
         case "SteepestDescent"
 
-            fprintf("Steepest-descent step wins! \n ")
+           
             dp=gammaSteepestDescent*dpSteepestDescent;
             p=p+dp;
             SubOptimality=-g0'*dpSteepestDescent/2;  % Steepest-descent decrement g0' H^{-1} g /2
@@ -459,7 +459,7 @@ while true
         break
     end
 
-    if J/J0>=0.9999
+    if J/J0>=0.999999
         fprintf("stagnated. \n")
         break
     end

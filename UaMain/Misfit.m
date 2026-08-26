@@ -55,9 +55,6 @@ function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 %%
 
-if nargout > 2
-    CtrlVar.Inverse.CalcHessI=true;
-end
 
 Area=MUA.Area;
 
@@ -427,7 +424,7 @@ if CtrlVar.Inverse.CalcHessI
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
      
-        ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Meas,BCsAdjoint,uAdjoint,vAdjoint) ;
+        ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,uAdjoint,vAdjoint) ;
     
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
 
@@ -496,10 +493,9 @@ elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 end
 
 
-
 I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
 
-if nargout>1
+if CtrlVar.Inverse.CalcGradI
 
     dIdp=CtrlVar.Inverse.DataMisfit.Multiplier*dIdp;
     ddIdpp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIdpp;
@@ -507,7 +503,7 @@ if nargout>1
 end
 
 
-if nargout>3
+if CtrlVar.Inverse.CalcHessI
     MisfitOuts.I=I;
     MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCI;
     MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAI;

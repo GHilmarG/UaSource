@@ -401,7 +401,8 @@ if isA
     alphaMatern=CtrlVar.Inverse.Matern.logAGlen.alpha;
     kappaMatern=CtrlVar.Inverse.Matern.logAGlen.kappa;
     tauMatern=CtrlVar.Inverse.Matern.logAGlen.tau;
-
+    gsA=CtrlVar.Inverse.Regularize.logAGlen.gs;
+    gaA=CtrlVar.Inverse.Regularize.logAGlen.ga;
 
     QA=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaA,gsA,CtrlVar.Inverse.Methodology);
     RA=0.5*dpA'*QA*dpA;           % costs function term
@@ -446,7 +447,9 @@ if isC
     alphaMatern=CtrlVar.Inverse.Matern.logC.alpha;
     kappaMatern=CtrlVar.Inverse.Matern.logC.kappa;
     tauMatern=CtrlVar.Inverse.Matern.logC.tau;
-
+    gsC=CtrlVar.Inverse.Regularize.logC.gs;
+    gaC=CtrlVar.Inverse.Regularize.logC.ga;
+    
     QC=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaC,gsC,CtrlVar.Inverse.Methodology);
     RC=0.5*dpC'*QC*dpC;           % costs function term
     dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
@@ -458,7 +461,7 @@ if isC
 
     if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
         N=MUA.Nnodes;
-        ddRdAA=sparse(N,N);
+        ddRdCC=sparse(N,N);
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
         if contains(CtrlVar.Inverse.Hessian,"RHC=E")
 

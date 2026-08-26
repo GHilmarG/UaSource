@@ -3,7 +3,7 @@
 
 
 
-function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
 
 
 %%
@@ -21,13 +21,14 @@ function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BC
 
 persistent ubP vbP JGH1 JGH2 JGH3
 
-narginchk(14,14)
-CtrlVar.nargoutJGH=nargout;
+narginchk(13,13)
 
+
+%% some counters for how often JGH is called and with what number of arguments
 if isempty(JGH1)
-    JGH1=0;
-    JGH2=0;
-    JGH3=0;
+    JGH1=0;  % counter for 1-argument output, just cost function evaluation
+    JGH2=0;  % counter for 2-argument output, cost and gradient 
+    JGH3=0;  % counter for 3-argument output, cost, gradient and Hessian
 end
 
 if nargout==3
@@ -47,6 +48,7 @@ elseif nargout==1
 
 end
 
+%% Create some internal flags indicating if cost, gradient or Hessian need to be calculated and returned. 
 
 CtrlVar.Inverse.CalcGrad=false;
 CtrlVar.Inverse.CalcGradI=false;
@@ -71,6 +73,9 @@ if nargout>= 3   % at the moment this is not really used, as this is done based 
     CtrlVar.Inverse.CalcHessI=true;
     CtrlVar.Inverse.CalcHessR=true;
 end
+
+%% The function requires a solution of the forward model, often with just a slightly different input parameters. 
+% Therefore, save previous velocity solution as persistent variables and use as initial staring point for next uv-solve.
 
 if CtrlVar.Inverse.ResetPersistentVariables
     ubP=[];
@@ -128,8 +133,12 @@ end
 % only, then p=log(C). And if the inversion is done over A, B and C then p=[A;B;C].
 
 % Populate F with the current values in the vector p ahead of a call the the forward model.
-F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
-
+F=p2F(CtrlVar,MUA,p,F,Meas,Priors);  % This maps from the vector p to the field variables F
+                                     % p is the vector of control variables. This is some combination of A, B and C 
+                                     % When inverting for A, we have p=[log10(AGlen]
+                                     % When inverting for C, we have p=[log10(C)]
+                                     % When inverting for A and C we have p=[log10(AGlen);log10(C)]
+                                     % and so on
 if anynan(F.C)
     error("JGH:Cnan","nan in C")
 end
@@ -153,6 +162,7 @@ end
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+    % If dh/dt is included as measurements, I need that calculated dh/dt, which in turn requires the mass-balance, a, as well
     if isempty(F.as) || isempty(F.ab)
         [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
     end
@@ -173,13 +183,11 @@ else
 end
 
 
-
-
-if nargout>1   % gradient needed
+if  CtrlVar.Inverse.CalcGrad  % gradient needed
     dJdp=dRdp+dIdp;
 end
 
-if nargout>2  % Hessian needed
+if CtrlVar.Inverse.CalcHess  % Hessian needed
     if isempty(ddIddp)
         Hessian=ddRddp;
     else
@@ -211,7 +219,7 @@ if J < 0
 end
 
 
-if nargout>3
+if nargout>3  % additional information needed as output
     JGHouts.dRdp=dRdp;
     JGHouts.dIdp=dIdp;
     JGHouts.ddIdpp=ddIddp;

@@ -400,7 +400,7 @@ ylabel("Finite difference",Interpreter="latex")
 
 
 title("$\mathcal{F}^{qq}_{uu,ik}$, $\mathcal{F}^{qq}_{uv,ik}$ , $\mathcal{F}^{qq}_{vu,ik}$ and $\mathcal{F}^{vv}_{vu,ik}$",Interpreter="latex")
-subtitle("Comparison is here for one random column",Interpreter="latex")
+subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
 drawnow
 

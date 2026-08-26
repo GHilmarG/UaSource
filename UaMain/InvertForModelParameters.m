@@ -150,7 +150,7 @@ CtrlVar.Inverse.ResetPersistentVariables=1;
 % JGH: Returns the cost function (J), the gradient of the cost function with respect to p (dJdp), and the Hessian (ddJddp).
 % The Hessian of the regularization term (R) can usually be calculated exactly, while the Hessian of the misfit/likelihood term
 % (I), can not. However, one can come up with an educated guess for the Hessian of I with respect to C.
-[J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+[J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
 CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
@@ -159,7 +159,7 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
 % This is then passed to the optimization libraries. 
 
-func=@(p) JGH(p,plb,pub,[],CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,[]);   % returns the cost (J), gradient (G) and Hessian (H)
+func=@(p) JGH(p,plb,pub,[],CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,[]);   % returns the cost (J), gradient (G) and Hessian (H)
                                                                                                       % The Hessian
                                                                                                       % output is used
                                                                                                       % with the
@@ -257,7 +257,7 @@ else
     % And a final additional call is made to get the cost function, J, and the gradient, dJdp, at the end of the optimization. In
     % principle, I guess it should be possible to get this information from the (external) optimization subroutine, but I don't
     % know how...
-    [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
     
     

@@ -200,9 +200,10 @@ end
 
 
 function FiniteDifferenceTestAndPlots(MUA,CtrlVar,F,BCs,BCsAdjoint,Psi_x,Psi_y,KFAu,KFAv)
+
 iColumn=randi(MUA.Nnodes);  % just do the finite-difference comparison for this column of the Hessian contribution Fpp.
 
-CtrlVar.log10Derivatives=true;
+
 
 
 %% FCu test
@@ -250,7 +251,7 @@ plot([min(HAu_col_FD) max(HAu_col_FD)],[min(HAu_col_FD) max(HAu_col_FD)],"--k")
 xlabel("Direct-Adjoint",Interpreter="latex")  ;
 ylabel("Finite difference",Interpreter="latex")
 title("$\langle \Psi_x | \delta^2_{v_x A} F_x \rangle $",Interpreter="latex")
-subtitle("Comparison is here for one random column",Interpreter="latex")
+subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
 
 FAvTest=FindOrCreateFigure("Test: FAv") ; 

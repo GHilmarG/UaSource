@@ -4,126 +4,43 @@
 
 
 
-function H = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Meas,BCsAdjoint,Psi_x,Psi_y)
+function H = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y)
 
-narginchk(11,11)
+
+
+narginchk(12,12)
 
 
 %% Calculates the Hessian, H, using the direct-adjoint approach.
 %
-% Here this is done for the misfit term and later the Hessian of the regularization term is added (this is easy).
 %
-% The tricky part is to do this for the misfit term.
+% $$
+% H_{lm}  = \delta^2_{qq} J[\xi_{,l},\xi_{,m}] 
+% + \delta^2_{qp}J[\xi_{,l},\phi_m] 
+% + \delta^2_{pq}J[\phi_l,\xi_{,m}] 
+% + \delta^2_{pp}J[\phi_l,\phi_m]  
+%  + \langle \Psi ,
+% \delta^2_{qq}\mathcal{F}[\xi_{,l},\xi_{,m}] 
+%     + \delta^2_{qp}\mathcal{F}[\xi_{,l},\phi_m] 
+%     + \delta^2_{pq}\mathcal{F}[\phi_l,\xi_{,m}] 
+%     + \delta^2_{pp}\mathcal{F}[\phi_l,\phi_m] 
+%     \rangle
+% $$
+%
+% These terms can be grouped together and renames as:
+%
 %
 %
 % $$
-%   H_{ij} = \frac{\partial^2 J}{\partial p_i \, \partial p_j}
-%   + \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j}
-%   +\frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj}
-%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj}
-%   +\frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj}
-%   +\Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj}
-%   +\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki}
-%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki}
+% H = \underbrace{\xi^T\big(J^{qq}+\mathcal{F}^{qq}\big)\xi}_{H^{qq}}
+% \;+\; \underbrace{\big(J^{pq}+\mathcal{F}^{pq}\big)\xi \;+\; \Big[\big(J^{pq}+\mathcal{F}^{pq}\big)\xi\Big]^T}_{H^{pq}+H^{qp}}
+% \;+\; \underbrace{\big(J^{pp}+\mathcal{F}^{pp}\big)}_{H^{pp}}
 % $$
-%
-%
-% The term
-%
-% $$
-%   \frac{\partial^2 J}{\partial p_i \, \partial p_j}
-% $$
-%
-% is easy, and is done in Regularisation.m
-%
-%
-% The term
-%
-% $$
-%   \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j}
-% $$
-%
-% is referred to as "-Psi d2F/dpdp-" and currently implemented for $p=C$.
-%
-% The term
-%
-% $$
-%   \frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj}
-% $$
-%
-% is referred to as "-xi d2J/dqdq xi-" and implemented for $A$, $B$, and $C$.
-%
-%
-% The term
-%
-% $$
-%   \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj}
-% $$
-%
-% is not implemented.
-%
-% The term
-%
-% $$
-%   \frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj}
-% $$
-%
-% is zero for
-%  $J=R(p) + I(q(p))$,
-% (these are partial derivatives).
-%
-% The term
-%
-% $$
-%   \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj}
-% $$
-%
-% is not implemented (but looks relatively easy).
-%
-% The term
-%
-% $$
-%   \frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki}
-% $$
-%
-% is zero for
-%  $J=R(p) + I(q(p))$,
-% (these are partial derivatives).
-%
-% The term
-%
-% $$
-%   \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki}
-% $$
-%
-% is not implemented (but similar to an above term, and looks relatively easy.)
-%
-%
-%  Currently only for u, v as q variables
-%
-%
-% $$2 I= u M_u u + v M_v v + \dot{h} M_{\dot{h}} \dot{h} $$
-%
-% $$ p =\left ( \begin{array}{c}  A \\ B \\ C  \end{array} \right ) $$
-%
-% $$ q =\left ( \begin{array}{c}  u \\ v \\ \dot{h}  \end{array} \right ) $$
-%
-% $$ \xi = \frac{\partial q}{\partial p} = \left ( \begin{array}{cc}
-%  \frac{\partial u}{ \partial A} & \frac{\partial u}{\partial C}  \\
-%  \frac{\partial v}{\partial A } & \frac{\partial v}{\partial C}  \\
-%  \frac{\partial \dot{h}}{\partial A} & \frac{\partial \dot{h}}{\partial C}  \\
-% \end{array} \right ) $$
-%
-% $$ \frac{\partial^2 J}{\partial q\, \partial q} = \left ( \begin{array}{ccc}
-%                                                    M_u & 0 & 0 \\
-%                                                    0 & M_v & 0 \\
-%                                                    0 & 0 & M_{\dot{h}}
-% \end{array} \right ) $$
 %
 %
 % If the forward model is
 %
-% $$ F(q(p),p) = 0 $$
+% $$ \mathcal{F}(q(p),p) = 0 $$
 %
 % where $q$ are output variables and $p$ model parameters, then
 %
@@ -165,102 +82,18 @@ narginchk(11,11)
 % $$ \beta^2 = (C+C_0)^{-1/m} \; (u^2+v^2+v_0^2)^{(1/m-1)/2} $$
 %
 %
-% *Terms:*
-%
-% The whole expression is:
-%
-% $$
-%   H_{ij} = \frac{\partial^2 J}{\partial p_i \, \partial p_j}
-%   + \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j}
-%   +\frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj}
-%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj}
-%   +\frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj}
-%   +\Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj}
-%   +\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki}
-%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki}
-% $$
-%
-% *First term:*
-%
-% $$ \frac{\partial^2 J}{\partial p_i \, \partial p_j} $$
-%
-% This is simple and only involves explicit dependency on p. In the case of $A$, $B$ and $C$ this involves the precision matrix of the prior.
-% And in the case of $B$ there is an additional contribution from the direct measurements misfit term and this is done in the
-% misfit function.
-%
-% *Second term:*
-%
-% $$ \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j} $$
-%
-% This is done in separate m-files for A, B and C. It is zero if the problem is linear in $p$. The forward problem is not
-% linear in neither $A$ or $C$, even for $n=1$ and $m=1$.
-%
-% *Third term:*
-%
-% $$ \frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj} $$
-%
-% This involves second-order derivatives of $J$ with respect to A and C which are the misfit precision matrices. This is
-% (almost) always a very important term and should be included. It is currently implemented for $A$, $B$ and $C$.
-%
-% *Forth term*
-%
-% $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj} $$
-%
-% This involves second-order (explicit) derivatives of the forward model with respect to u,v, and h.
-%
-% *Fifth term*
-%
-% $$ \frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj} $$
-%
-% This involves a mixed derivative of the cost function. The $J$ terms typically either involve only $p$ or $q$ but not both.
-% For example $C$ will be involved in the prior and $u$ in the misfit term, but those are separate terms. Therefore this term
-% in the Hessian is zero.
-%
-% *Sixth term*
-%
-% $$  \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
-%
-% Here we have mixed derivatives of the forward model. These are not zero, even if the problem is linear in both $p$ and $q$.
-%
-%
-% *Seventh term*
-%
-% $$\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki} $$
-%
-% Mixed derivatives of the const function. As above, this term is zero.
-%
-% *eighth term*
-%
-% $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
-%
-% This term also involves mixed derivatives of the forward model, and is not zero
-%
-% If
-%
-% $$ H^{\#8}_{ij}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
-%
-% and
-%
-% $$ H^{\#6}_{ij} = \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
-%
-% then
-%
-% $$ [H^{\#8}]^T=H^{\#8}_{ji}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_i} \xi_{kj} =\Psi_n \frac{\partial^2 F_n}{\partial p_i \,\partial q_k} \xi_{kj} = H^{\#6}_{ij}= [H^{\#6}] $$
-%
-%
-%
 %
 %%
 
-%% Get the sensitivity matrices
+%% I label individual Hessian terms and have the option of only calculating a subset of those for testing purposes.
 
+HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-" ;
 
+%% Do I need to calculate the sensitivity matrices?
 
-%CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
 
 H=0 ;
 
-HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-" ;
 
 if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     GetSensitivites=true;
@@ -273,14 +106,6 @@ end
 %% sensitivity matrix, \xi = \partial q / \partial p   % tested
 if GetSensitivites
 
-    if  ~contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
-
-        fprintf("Currently, when calculating the Hessian using the Direct-Adjoint method, measurement must include surface velocities.\ n")
-        fprintf("One can either only use velocity measurements (uv), or measurements of both velocity and rate of thickness changes (uv and dhdt), but not thickness changes alone. \n")
-        error("CalcDirectAdjointHessian:noVelMeas","Measurements must include surface velocities")
-
-
-    end
 
     [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs);
     xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ;
@@ -306,7 +131,7 @@ if GetSensitivites
         KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
     end
 
-    KJqqFqq=KJqq+KFqq;
+    KJqqFqq=KJqq+KFqq;  
 
 
     % the numerical sparsity of xi is close to 1 (ie not sparse at all)
@@ -336,7 +161,7 @@ if GetSensitivites
     %  fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
 
-%%  H^{pp}  (but only the F^pp contribution)  : Tested
+%%  H^{pp} , (here only the F^pp contribution)  : Tested
 %
 % $$H^{p}=J^{pp}+\mathcal{F}^{pp}$$
 %
@@ -353,8 +178,11 @@ end
 %
 % $$H^{pq}+H^{qp}=\big(J^{pq}+\mathcal{F}^{pq}\big)\xi \;+\; \Big[\big(J^{pq}+\mathcal{F}^{pq}\big)\xi\Big]^T$$
 %
-% The J^{pq} contribution is missing, but this is likely to be zero as each term in the cost function is only an explicit
-% function of either p or q, not both.
+% The J^{pq} contribution is not missing as each term in the cost function is only an explicit
+% function of either p or q, not both. 
+% 
+% Even the $$J_{\dot{h}}$$ terms only involves $u$ and $v$ and not any of $A$, $B$ or
+% $C$, so here $$J_{\dot{h}}^{pq} =0 $$ as well
 %
 if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
@@ -368,4 +196,97 @@ end
 
 H=0.5*(H+H');
 
+
+% %% J^{pp} : I still have the J^pp to add, but this is done in the Regularisation part and added later in the code. But I
+% should consider changing this and make sure all contributions are included here. The missing contribution is ddRdpp as
+% returned by: 
+% 
+%  [R,dRdp,ddRdpp]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ; 
+% 
+% 
+% %%
+
+
+
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
+
+    FiniteDifferenceTestAndPlots(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,H)
+
 end
+
+
+
+end
+
+
+function   FiniteDifferenceTestAndPlots(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,H)
+
+
+% Since the above calculation of the Hessian does not include Jpp, I better add that here
+[R,dRdp,ddRdpp]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ; 
+
+H=H+ddRdpp;
+
+% First map all A and C fields to p. This takes care of the log conversion
+[p,plb,pub]=F2p(CtrlVar,MUA,F); 
+
+% the do the perturbation with respect to p
+
+iColumn=randi(numel(p));
+
+% Perform perturbation on the selected column
+perturbation = 1e-6; % Define a small perturbation value
+
+pPerturbed_pos = p; 
+pPerturbed_pos(iColumn) = pPerturbed_pos(iColumn) + perturbation;
+
+
+% I now map to F from p. However, this should not be needed as this is always done in JGH. The reason JGH needs F as an input
+% at all is because F contains various other fields that are not dependent on p, but I still need those as input fields for
+% the forward model.
+
+F=p2F(CtrlVar,MUA,pPerturbed_pos,F,Meas,Priors); 
+
+% JGH calculates the cost function (J), the gradient (G) and the Hessian (H). Here I only need the gradient.
+% 
+% Note: If I were to include a third output argument, which is the Hessian, the JGH function would call
+% CalcDirectAdjointHessian.m, resulting in an endless recursion.
+
+[J_pos,dJdp_pos]=JGH(pPerturbed_pos,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+
+pPerturbed_neg = p; 
+pPerturbed_neg(iColumn) = pPerturbed_neg(iColumn) - perturbation;
+
+F=p2F(CtrlVar,MUA,pPerturbed_neg,F,Meas,Priors); 
+
+[J_neg,dJdp_neg]=JGH(pPerturbed_neg,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+
+H_FD=(dJdp_pos-dJdp_neg)/(2*perturbation) ;
+
+Hcolumn=H(:,iColumn);
+
+Diff=norm(Hcolumn-H_FD)/norm(Hcolumn);
+fprintf("H: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
+
+
+figDA=FindOrCreateFigure("Test: Direct-Adjoint") ; clf(figDA)
+
+
+plot(Hcolumn,H_FD,"or") ; axis equal ;
+hold on ;
+plot([min(Hcolumn) max(Hcolumn)],[min(Hcolumn) max(Hcolumn)],"--k")
+
+% ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+xlabel("Direct-Adjoint",Interpreter="latex")  ;
+ylabel("Finite difference",Interpreter="latex")
+title("$H$",Interpreter="latex")
+subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
+
+drawnow
+
+
+
+end
+
+
