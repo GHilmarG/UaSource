@@ -233,6 +233,7 @@ H=H+ddRdpp;
 % the do the perturbation with respect to p
 
 iColumn=randi(numel(p));
+%iColumn=1209; 
 
 % Perform perturbation on the selected column
 perturbation = 1e-6; % Define a small perturbation value
@@ -245,7 +246,7 @@ pPerturbed_pos(iColumn) = pPerturbed_pos(iColumn) + perturbation;
 % at all is because F contains various other fields that are not dependent on p, but I still need those as input fields for
 % the forward model.
 
-F=p2F(CtrlVar,MUA,pPerturbed_pos,F,Meas,Priors); 
+% F=p2F(CtrlVar,MUA,pPerturbed_pos,F,Meas,Priors); 
 
 % JGH calculates the cost function (J), the gradient (G) and the Hessian (H). Here I only need the gradient.
 % 
@@ -257,7 +258,7 @@ F=p2F(CtrlVar,MUA,pPerturbed_pos,F,Meas,Priors);
 pPerturbed_neg = p; 
 pPerturbed_neg(iColumn) = pPerturbed_neg(iColumn) - perturbation;
 
-F=p2F(CtrlVar,MUA,pPerturbed_neg,F,Meas,Priors); 
+% F=p2F(CtrlVar,MUA,pPerturbed_neg,F,Meas,Priors); 
 
 [J_neg,dJdp_neg]=JGH(pPerturbed_neg,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
 
@@ -276,13 +277,15 @@ plot(Hcolumn,H_FD,"or") ; axis equal ;
 hold on ;
 plot([min(Hcolumn) max(Hcolumn)],[min(Hcolumn) max(Hcolumn)],"--k")
 
-% ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
 
 xlabel("Direct-Adjoint",Interpreter="latex")  ;
 ylabel("Finite difference",Interpreter="latex")
 title("$H$",Interpreter="latex")
 subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
+
+ FindOrCreateFigure("H test node") ; PlotMuaMesh(CtrlVar,MUA) ; hold on ; plot(F.x(iColumn)/1000,F.y(iColumn)/1000,"o",MarkerFaceColor="r") 
 drawnow
 
 

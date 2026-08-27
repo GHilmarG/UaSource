@@ -158,7 +158,7 @@ end
 
 if contains(CtrlVar.Inverse.Measurements,"-uv-")
 
-    duIdu=(MUA.M*usres)./uErr/Area;
+    duIdu=(MUA.M*usres)./uErr/Area;    %    usres=(us-Meas.us)./uErr;
     dvIdv=(MUA.M*vsres)./vErr/Area;
     Iuv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
 

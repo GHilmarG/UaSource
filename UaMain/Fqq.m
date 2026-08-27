@@ -306,7 +306,7 @@ KFqq=sparseUA(Iind,Jind,Xval,2*Nnodes,2*Nnodes);
 
 KFqq=(KFqq'+KFqq)/2;
 
-KFqq=-KFqq ; % there is a sign mistake in the code that I have started to carry through...
+%KFqq=-KFqq ; % there is a sign mistake in the code that I have started to carry through...
 
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
@@ -355,7 +355,7 @@ F.ub = u0;
 
 Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
 
-Fqq_col_FD=-Fqq_col_FD ; % there is a sign mistake in the code that I have started to carry through...
+%Fqq_col_FD=-Fqq_col_FD ; % there is a sign mistake in the code that I have started to carry through...
 
 
 Diff=norm(KFqq(:,iColumn) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
@@ -380,7 +380,7 @@ b_plus = Kuv_plus.' * [Psi_x; Psi_y];
 F.vb = v0;
 
 Fqq_col_FD = (b_plus - b_minus)/(2*hstep);   % length 2*Nnodes: top half -> column of F^{qq}_{uv}, bottom half -> column of F^{qq}_{vv}
-Fqq_col_FD=-Fqq_col_FD ; % there is a sign mistake in the code that I have started to carry through...
+%Fqq_col_FD=-Fqq_col_FD ; % there is a sign mistake in the code that I have started to carry through...
 
 Diff=norm(KFqq(:,iColumn+Nnodes) - Fqq_col_FD)/(norm(Fqq_col_FD)+eps);
 fprintf("Fqq: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)

@@ -196,7 +196,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations. 
 
     % Get the gradient using the adjoint method
-    [J,dJdp,Hessian,JGHouts]=func(p0);
+    [J,dJdp]=func(p0);
 
     NA=MUA.Nnodes;
 
@@ -220,8 +220,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
 
 
-    % Gradient calculated using a brute-force finite difference approach 
+    % Gradient calculated using a brute-force finite difference approach
     dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange);
+
+    Diff=(norm(dJdp(iRange))-norm(dJdpTest(iRange)))/norm(dJdp(iRange));
+    fprintf("Test Adjoint gradients: Normalized differences between adjoint gradient and FD: %g \n ",Diff)
+
+    fig_dJdpTest=FindOrCreateFigure("Test dJdp") ; clf(fig_dJdpTest)
+
+
+    plot(dJdp(iRange),dJdpTest(iRange),"or") ; axis equal ;
+    hold on ;
+    plot([min(dJdp(iRange)) max(dJdp(iRange))],[min(dJdp(iRange)) max(dJdp(iRange))],"--k")
+    ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+    xlabel("Adjoint $\partial J/\partial p$ ",Interpreter="latex")  ;
+    ylabel("Finite difference $\partial J/\partial p$",Interpreter="latex")
+    title("$\partial J/\partial p$",Interpreter="latex")
+    subtitle(sprintf("Normalized diff %g",Diff),Interpreter="latex")
+
+
+    drawnow
 
     filename="BruteForceGradient"+CtrlVar.Experiment;
     fprintf('BruteForceGradient save of CtrlVar, UserVar, MUA, F, dJdpTest and iRange in the file : %s \n',filename)
