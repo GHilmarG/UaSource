@@ -340,7 +340,7 @@ FiniteDifferenceApproximationB=d2Jduvduv_col_FD;
 d2JduvduvColumnB=full(d2Jduvduv(:,iColumn+MUA.Nnodes));
 
 Diff=norm(d2JduvduvColumnB - FiniteDifferenceApproximationB)/(norm(d2JduvduvColumnB)+eps);
-fprintf("Jqq: normalized norm of difference for uu/uv column %i is %g \n",iColumn,Diff)
+fprintf("Jqq: normalized norm of difference for vu/vv column %i is %g \n",iColumn,Diff)
 
 
 %% comparison 

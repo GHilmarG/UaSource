@@ -3,11 +3,11 @@
 
 
 
-function Hessian=HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
+function Hessian=HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
 
 
-
-[~,~,Hessian]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ; 
+CtrlVar.JGH.CalcHessian=true; % But will only do so if the number of output arguments is also 3 or greater
+[~,~,Hessian]=JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ; 
 
 
 

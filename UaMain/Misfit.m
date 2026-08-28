@@ -4,8 +4,11 @@
 
 
 
-function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
+function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv)
 
+narginchk(9,9)
+
+UserVar=[]; RunInfo=[]; 
 %%
 %
 %           J(q(p),p) = I(q(p)) + R(p)
@@ -129,7 +132,7 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
         error('Misfit:dhdt','Meas.dhdt is empty.')
     end
 
-    [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+    [~,F.dhdt]=dhdtExplicit([],CtrlVar,MUA,F,BCs);
 
     if ~isdiag(Meas.dhdtCov)
         error('Misfit:Cov','Data covariance matrices must be diagonal')
@@ -137,9 +140,9 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
 
 end
 
-%% Calculate misfit term I and its gradient with respect to the state variable q, i.e. u and v
+%% Calculate misfit term I and its (explicit) gradients with respect to the state variable q, i.e. u and v
 %
-% This is straightforward as the misfit term is an explicit function of u and v.
+% This is straightforward as the data misfit terms are explicit functions of the state variables u and v.
 %
 
 
@@ -182,7 +185,7 @@ if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
      % $$ \delta_u J_{\dot{h}} $$ and  $$ \delta_v J_{\dot{h}} $$ and 
      %
      %
-    [Ihdot,duIhdot,dvIhdot,dhIhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
+    [Ihdot,duIhdot,dvIhdot,dhIhdot]=EvaluateJhdotAndDerivatives([],CtrlVar,MUA,F,BCs,Meas);
 
 end
 
@@ -202,7 +205,10 @@ MisfitOuts.dIduv=duvIduv;
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
-%% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and B or C).
+%% Calculate the (implicit) gradients with respect to the control variable q, i.e. A, B and C 
+%
+% 
+% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and B or C).
 %
 % This is a bit tricky because I=I(u(p))
 %
@@ -213,30 +219,7 @@ if CtrlVar.Inverse.CalcGradI
 
         case {"fixpoint","fixpointc","-fixpoint-","-fixpointc-"}
 
-            switch CtrlVar.Inverse.InvertForField
-
-                case "C"
-
-
-                    DCI=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-
-
-                case "B"
-
-
-                    dBFuvLambda=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
-                    np=numel(dIdp); ddIdpp=sparse(np,np);
-                    dBJ=0;
-                    DBI=dBFuvLambda+dBJ;
-
-                otherwise
-
-                    fprintf(" CtrlVar.Inverse.InvertFor has an invalid value.\ n ")
-                    fprintf(" CtrlVar.Inverse.InvertFor = %s \n ",CtrlVar.Inverse.InvertFor)
-                    fprintf(" Fixpoint inversion only possible for C and B inversion. \n")
-                    error("Misfit:IncorrectInputParameterCombination","Fixpoint inversion only possible for C and B inversion")
-
-            end
+          error("Misfit:OptionNoLongerSupported","fixpoint gradients now obsolete and no longer supported")
 
 
         case {"adjoint","-adjoint-"}
@@ -245,15 +228,19 @@ if CtrlVar.Inverse.CalcGradI
             % Forward model:
             %   f(u(p),p)=0
             %
-            %% Step 1: solve the non-linear forward problem (this has already be done ahead of the call to this m-file)
+            %% Step 1: solve the non-linear forward problem
             %
-            %       dfuv du = f(u)  ; u-> u+du until norm(f)<tolerance
-            %
-            %       [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-            %
-            %
-            % [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+
+            % We need a fully converged solution here
+            % This will have been done ahead of the call, but I found that doing this (possibly again) increases accuracy. 
+            % Anyhow, it might be the case that just the Misfit.m is called from somewhere else, so one should really do this here as
+            % well.
+            [~,~,F,l,dFduv]= uv([],[],CtrlVar,MUA,BCs,F,l);
+
             %% Step 2:  Solve adjoint equation, i.e.   dfuv l = -dJduv
+            %
+            % $$ \langle \Psi \vert \delta_q \mathcal{F}[\phi_k] \rangle =- \delta_q J[\phi_k] $$
+            %
             % fprintf(' Solve adjoint problem \n ')
             % I need to impose boundary conditions on lx and ly
             % if the problem is (fully) adjoint I have exactly the same BC
@@ -270,11 +257,12 @@ if CtrlVar.Inverse.CalcGradI
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
 
-            duvJ=duvIduv;     % Because this is the only J term that depends on (u,v).
+            %duvJ=duvIduv;     % Because this is the only J term that depends on (u,v).
+            RHS_Adjoint=-duvIduv; 
             % If the regularization term also depended on the measurements q, ie R=R(u,v) then this would not be correct.
 
             % Now solve the linear adjoint problem for lambda
-            [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,duvJ,LAdjointrhs,[],lAdjoint,CtrlVar);
+            [lambda,lAdjoint]=solveKApeSymmetric(dFduv,LAdjoint,RHS_Adjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
 
 
             if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
@@ -285,36 +273,13 @@ if CtrlVar.Inverse.CalcGradI
                 save TestSave ; error("When solving adjoint equation Lagrange parmeters complex ")
             end
 
-            uAdjoint=real(lambda(1:MUA.Nnodes)) ;
-            vAdjoint=real(lambda(MUA.Nnodes+1:2*MUA.Nnodes));
+            Psi_x=real(lambda(1:MUA.Nnodes)) ;
+            Psi_y=real(lambda(MUA.Nnodes+1:2*MUA.Nnodes));
 
-            MisfitOuts.uAdjoint=uAdjoint;
-            MisfitOuts.vAdjoint=vAdjoint;
+            MisfitOuts.uAdjoint=Psi_x;
+            MisfitOuts.vAdjoint=Psi_y;
 
-            if CtrlVar.Inverse.InfoLevel>=1000 && CtrlVar.doplots
-
-                GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar);
-                tri=MUA.connectivity;
-
-                figure
-                hold off
-                subplot(2,2,1)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvIduv(1:length(F.ub)),CtrlVar);  title("dIdu")
-                hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
-
-                subplot(2,2,2)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvIduv(1+length(F.ub):end),CtrlVar);  title('dIdv')
-                hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
-
-                subplot(2,2,3)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,uAdjoint,CtrlVar);  title('lx')
-                hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
-
-                subplot(2,2,4)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,vAdjoint,CtrlVar);  title('ly')
-                hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
-            end
-
+      
             %% Step 3:  <d_p F^* \lambda>,
             %
             % Note that I'm adding the d_p R term in the regularization step.
@@ -327,7 +292,8 @@ if CtrlVar.Inverse.CalcGradI
 
             if contains(lower(CtrlVar.Inverse.InvertFor),"c")
 
-                dCFuvLambda=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint);
+                % $$ \langle  \delta_{C_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{C_i} F^y \phi_i| \Psi_y \rangle $$
+                dCFuvLambda=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
                 dCI=0 ;      % This is the explicit derivative of the misfit term, I, with respect to C. There is no such dependency here 
                              % as the misfit term I is not an explicit function of C, so this equals to zero.
@@ -342,7 +308,7 @@ if CtrlVar.Inverse.CalcGradI
             if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
 
 
-                dAFuvLambda=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint);
+                dAFuvLambda=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
                 dAI=0 ; % No explicit dependency of the misfit term I on A.
 
@@ -378,7 +344,7 @@ if CtrlVar.Inverse.CalcGradI
                 % then dJdB=dh/db*dhJhdot
 
 
-                dBFuvLambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp);
+                dBFuvLambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dhdp,dbdp,dBdp);
                 %   dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
                 %dBFuvLambda=dBFuvLambda2;
 
@@ -412,10 +378,11 @@ if CtrlVar.Inverse.CalcGradI
 
 end
 
+%% Hessian
 
 if CtrlVar.Inverse.CalcHessI
     
-    %% Hessians
+    
 
     if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
         error(' field no longer used ')
@@ -424,7 +391,7 @@ if CtrlVar.Inverse.CalcHessI
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
      
-        ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,uAdjoint,vAdjoint) ;
+        ddIdppDA = CalcDirectAdjointHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y) ;
     
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
 
@@ -474,24 +441,28 @@ if CtrlVar.Inverse.CalcHessI
             end
         end
     end
-
-
-
 end
+
+%% Work done! Arrange output vectors
+
 
 dIdp=[DAI;DBI;DCI] ;  % 2026 Feb
 
 
-if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
-
+if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian") 
+    
+    % This is the Hessian as calculated by the Direct-Adjoint approach
     ddIdpp=ddIdppDA;
 
-elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")  
+    
+    % This is based on a (too?) simple Hessian approximation
     ddIdpp=blkdiag(ddIdAA,ddIdBB,ddIdCC);
 
 end
 
+% For testing purposes it is possible to multiply terms with a constant, for example to set those to zero.
+% But otherwise these are always set to 1.
 
 I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
 
@@ -503,7 +474,7 @@ if CtrlVar.Inverse.CalcGradI
 end
 
 
-if CtrlVar.Inverse.CalcHessI
+if nargout >= 4
     MisfitOuts.I=I;
     MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCI;
     MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAI;

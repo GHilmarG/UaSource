@@ -4,8 +4,9 @@
 
 
 
-function PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudField,dvdField,dhdField,dudFieldpert,dvdFieldpert,dhdotdFieldpert,SubtitleString)
+function PlotModelAndFiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,NodeTest,dudField,dvdField,dhdField,dudFieldpert,dvdFieldpert,dhdotdFieldpert,SubtitleString)
 
+narginchk(14,14)
 
 %%
 %
@@ -142,7 +143,7 @@ drawnow
 
 % fprintf("PlotModelAndFiniteDifferenceSensitivities: Inspect in debugger and then continue: [F5] \n")
 % keyboard
-
+% 
 
 
 

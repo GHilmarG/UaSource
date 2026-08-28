@@ -302,7 +302,7 @@ end
 
 
 
-KFqq=sparseUA(Iind,Jind,Xval,2*Nnodes,2*Nnodes);
+KFqq=sparse(Iind,Jind,Xval,2*Nnodes,2*Nnodes);
 
 KFqq=(KFqq'+KFqq)/2;
 
@@ -338,9 +338,10 @@ CtrlVar.uvMatrixAssembly.Ronly = false;
 CtrlVar.uvAssembly.ZeroFields  = false;
 iColumn=randi(MUA.Nnodes);
 
+hstep = 1e-6*max(sqrt(F.ub.*F.ub+F.vb.*F.vb)) ; 
+
 %% uv and vu
 u0 = F.ub;
-hstep = 1e-6*max(abs(u0));
 
 
 F.ub = u0; F.ub(iColumn) = F.ub(iColumn) - hstep;
@@ -366,8 +367,6 @@ KFqqColumn=full(KFqq(:,iColumn));
 
 %% uv and vu
 v0 = F.vb;
-hstep = 1e-6*max(abs(v0));
-
 
 F.vb = v0; F.vb(iColumn) = F.vb(iColumn) - hstep;
 [~,Kuv_minus] = uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);

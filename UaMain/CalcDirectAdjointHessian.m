@@ -4,11 +4,11 @@
 
 
 
-function H = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y)
+function H = CalcDirectAdjointHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y)
 
 
 
-narginchk(12,12)
+narginchk(10,10)
 
 
 %% Calculates the Hessian, H, using the direct-adjoint approach.
@@ -85,6 +85,11 @@ narginchk(12,12)
 %
 %%
 
+
+% [~,~,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
+
+
+
 %% I label individual Hessian terms and have the option of only calculating a subset of those for testing purposes.
 
 HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-" ;
@@ -107,7 +112,7 @@ end
 if GetSensitivites
 
 
-    [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs);
+    [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs);
     xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ;
 
 
@@ -201,7 +206,7 @@ H=0.5*(H+H');
 % should consider changing this and make sure all contributions are included here. The missing contribution is ddRdpp as
 % returned by: 
 % 
-%  [R,dRdp,ddRdpp]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ; 
+%  [R,dRdp,ddRdpp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ; 
 % 
 % 
 % %%
@@ -210,7 +215,7 @@ H=0.5*(H+H');
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
-    FiniteDifferenceTestAndPlots(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,H)
+    FiniteDifferenceTestAndPlots(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,H)
 
 end
 
@@ -219,11 +224,11 @@ end
 end
 
 
-function   FiniteDifferenceTestAndPlots(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,H)
+function   FiniteDifferenceTestAndPlots(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,H)
 
 
-% Since the above calculation of the Hessian does not include Jpp, I better add that here
-[R,dRdp,ddRdpp]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ; 
+ % Since the above calculation of the Hessian does not include Jpp, I better add that here
+[R,dRdp,ddRdpp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ; 
 
 H=H+ddRdpp;
 
@@ -236,7 +241,7 @@ iColumn=randi(numel(p));
 %iColumn=1209; 
 
 % Perform perturbation on the selected column
-perturbation = 1e-6; % Define a small perturbation value
+perturbation = 1e-3; % Define a small perturbation value. Be careful that this is in log space for A and C. Might need to try out several different amplitudes
 
 pPerturbed_pos = p; 
 pPerturbed_pos(iColumn) = pPerturbed_pos(iColumn) + perturbation;
@@ -253,14 +258,14 @@ pPerturbed_pos(iColumn) = pPerturbed_pos(iColumn) + perturbation;
 % Note: If I were to include a third output argument, which is the Hessian, the JGH function would call
 % CalcDirectAdjointHessian.m, resulting in an endless recursion.
 
-[J_pos,dJdp_pos]=JGH(pPerturbed_pos,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+[J_pos,dJdp_pos]=JGH(pPerturbed_pos,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
 
 pPerturbed_neg = p; 
 pPerturbed_neg(iColumn) = pPerturbed_neg(iColumn) - perturbation;
 
 % F=p2F(CtrlVar,MUA,pPerturbed_neg,F,Meas,Priors); 
 
-[J_neg,dJdp_neg]=JGH(pPerturbed_neg,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+[J_neg,dJdp_neg]=JGH(pPerturbed_neg,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
 
 H_FD=(dJdp_pos-dJdp_neg)/(2*perturbation) ;
 
@@ -283,10 +288,6 @@ xlabel("Direct-Adjoint",Interpreter="latex")  ;
 ylabel("Finite difference",Interpreter="latex")
 title("$H$",Interpreter="latex")
 subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
-
-
- FindOrCreateFigure("H test node") ; PlotMuaMesh(CtrlVar,MUA) ; hold on ; plot(F.x(iColumn)/1000,F.y(iColumn)/1000,"o",MarkerFaceColor="r") 
-drawnow
 
 
 

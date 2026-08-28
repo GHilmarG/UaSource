@@ -46,6 +46,8 @@ end
 
 deltaStep=abs(p0)*1e-6+1e-6; 
 
+deltaStep=p0*0+1e-3; 
+
 if any(deltaStep==0)
     fprintf("At least one of the deltaStep values is equal to zero. \n")
     error("CalcBruteForceHessian:ZeroDelta","At least one of the deltaStep values is equal to zero.")

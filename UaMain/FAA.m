@@ -194,7 +194,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
     A_nodal = F.AGlen(:);
     b_A=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
     D = spdiags(A_nodal*ln10, 0, nNodes, nNodes);
-    KFAA = -D*KFAA*D  + spdiags(b_A(:)*ln10, 0, nNodes, nNodes);
+    KFAA = D*KFAA*D  + spdiags(b_A(:)*ln10, 0, nNodes, nNodes);
 
 
 end

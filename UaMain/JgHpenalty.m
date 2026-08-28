@@ -1,5 +1,5 @@
 
-function [J,g,H]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a)
+function [J,g,H]=JgHpenalty(CtrlVar,MUA,x,x0,k,a)
 
 %%
 %

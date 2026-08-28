@@ -6,10 +6,12 @@
 
 
 
-function [dudField,dvdField,dhdotdField]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,Node,DeltaRel,DeltaAbs)
+function [dudField,dvdField,dhdotdField]=FiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,Node,DeltaRel,DeltaAbs)
+
+narginchk(8,9)
 
 
-if nargin< 11
+if nargin< 9
     DeltaAbs=nan;
 end
 
@@ -30,8 +32,8 @@ end
 
 
 F.(Field)(Node)=F.(Field)(Node)+DeltaField ;
-[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+[~,~,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
+[~,dhdt]=dhdtExplicit([],CtrlVar,MUA,F,BCs);
 up=F.ub; vp=F.vb; dhdtp=dhdt;
 
 % back to original
@@ -44,8 +46,8 @@ F.(Field)(Node)=F.(Field)(Node)-DeltaField ;
 
 
 
-[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+[~,~,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
+[~,dhdt]=dhdtExplicit([],CtrlVar,MUA,F,BCs);
 um=F.ub; vm=F.vb; dhdtm=dhdt;
 
 

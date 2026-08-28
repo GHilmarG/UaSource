@@ -177,8 +177,8 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            Hu(:,Inod,Jnod)=Hu(:,Inod,Jnod) - l_d2FdudC .*fun(Inod) .*fun(Jnod).*detJw;
-            Hv(:,Inod,Jnod)=Hv(:,Inod,Jnod) - l_d2FdvdC .*fun(Inod) .*fun(Jnod).*detJw;
+            Hu(:,Inod,Jnod)=Hu(:,Inod,Jnod) + l_d2FdudC .*fun(Inod) .*fun(Jnod).*detJw;
+            Hv(:,Inod,Jnod)=Hv(:,Inod,Jnod) + l_d2FdvdC .*fun(Inod) .*fun(Jnod).*detJw;
 
         end
     end

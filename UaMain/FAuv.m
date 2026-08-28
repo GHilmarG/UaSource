@@ -144,8 +144,8 @@ for Iint=1:MUA.nip
             dphidx_l=Deriv(:,1,Lnod);
             dphidy_l=Deriv(:,2,Lnod);
 
-            Hu(:,Inod,Lnod)=Hu(:,Inod,Lnod) - phi_i .* (K1.*dphidx_l + K2.*dphidy_l) .*detJw;
-            Hv(:,Inod,Lnod)=Hv(:,Inod,Lnod) - phi_i .* (K2.*dphidx_l + K3.*dphidy_l) .*detJw;
+            Hu(:,Inod,Lnod)=Hu(:,Inod,Lnod) + phi_i .* (K1.*dphidx_l + K2.*dphidy_l) .*detJw;
+            Hv(:,Inod,Lnod)=Hv(:,Inod,Lnod) + phi_i .* (K2.*dphidx_l + K3.*dphidy_l) .*detJw;
             
           
 

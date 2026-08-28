@@ -1,7 +1,10 @@
 
 
 
-function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
+function [R,dRdp,ddRdpp,RegOuts]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
+
+narginchk(8,8)
+
 
 %%
 % Calculates the regularization term R, and the gradient and the Hessian of R with respect to p.
@@ -449,7 +452,7 @@ if isC
     tauMatern=CtrlVar.Inverse.Matern.logC.tau;
     gsC=CtrlVar.Inverse.Regularize.logC.gs;
     gaC=CtrlVar.Inverse.Regularize.logC.ga;
-    
+
     QC=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaC,gsC,CtrlVar.Inverse.Methodology);
     RC=0.5*dpC'*QC*dpC;           % costs function term
     dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
@@ -553,7 +556,7 @@ if isB   %  B
         x=F.B - (F.s-20*CtrlVar.ThickMin);
         x0=zeros(MUA.Nnodes,1);
         k=0.1; a=5;  % 1/k is the softness and a the amplitude
-        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ;
+        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(CtrlVar,MUA,x,x0,k,a) ;
 
         Bbarr=Bbarr/Area;
         dBarrdB=dBarrdB/Area;

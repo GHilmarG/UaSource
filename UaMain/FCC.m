@@ -223,11 +223,11 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
 
     b_C=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
     D = spdiags(C_nodal*ln10, 0, nNodes, nNodes);
-    KFCC = D*KFCC*D  - spdiags(b_C(:)*ln10, 0, nNodes, nNodes);
+    KFCC = D*KFCC*D  + spdiags(b_C(:)*ln10, 0, nNodes, nNodes);
 
 end
 
-KFCC=-KFCC;
+
 
 %% Test against finite differences
 
@@ -310,9 +310,14 @@ fprintf("FCC: normalized norm of difference between Direct-Adjoint and FD for co
 
 FCCTest=FindOrCreateFigure("Test: FCC") ; plot(KFCC(:,iColumn),HFCC_col_FD,"or") ; axis equal ;
 hold on ;
-plot([min(HFCC_col_FD) max(HFCC_col_FD)],[min(HFCC_col_FD) max(HFCC_col_FD)],"--k")
+ 
+Upper=max([HFCC_col_FD;KFCC(:,iColumn)]);
+Lower=min([HFCC_col_FD;KFCC(:,iColumn)]);
 
-% ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+
+plot([Lower Upper],[Lower Upper],"--k")
+
+ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
 
 xlabel("Direct-Adjoint",Interpreter="latex")  ;
 ylabel("Finite difference",Interpreter="latex")
@@ -324,4 +329,5 @@ drawnow
 % 
 % fprintf("FCC: Inspect in debugger and then continue: [F5] \n")
 % keyboard
+
 end

@@ -150,7 +150,10 @@ CtrlVar.Inverse.ResetPersistentVariables=1;
 % JGH: Returns the cost function (J), the gradient of the cost function with respect to p (dJdp), and the Hessian (ddJddp).
 % The Hessian of the regularization term (R) can usually be calculated exactly, while the Hessian of the misfit/likelihood term
 % (I), can not. However, one can come up with an educated guess for the Hessian of I with respect to C.
-[J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+
+CtrlVar.JGH.CalcHessian=false; 
+[J0,dJdp,~,JGHouts,F]=JGH(p0,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+
 CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
@@ -158,8 +161,9 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
 % This is then passed to the optimization libraries. 
-
-func=@(p) JGH(p,plb,pub,[],CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,[]);   % returns the cost (J), gradient (G) and Hessian (H)
+        
+CtrlVar.JGH.CalcHessian=true; % But will only do so if the number of output arguments is also 3 or greater
+func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns the cost (J), gradient (G) and Hessian (H)
                                                                                                       % The Hessian
                                                                                                       % output is used
                                                                                                       % with the
@@ -169,7 +173,7 @@ func=@(p) JGH(p,plb,pub,[],CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,[]);   % r
                                                                                                       % trust-region-reflective
                                                                                                       % algorithm 
                                                                                                   
-Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H) for the interior-point method 
+Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method 
 
 % Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same
@@ -202,12 +206,13 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     % Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
     if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
-        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes
+        nTests=min(20,numel(p0));    % just test for 20 random nodes
+        iRange=randi(MUA.Nnodes,nTests,1);
     else
         iRange=CtrlVar.Inverse.TestAdjoint.iRange;
     end
 
-    I=(iRange>=1) & (iRange <= numel(p0));  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
+    I=(iRange>=1) & (iRange <= MUA.Nnodes);  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
     iRange=iRange(I);
 
     % if the inversion is done for more than one field, then expand iRange accordingly.
@@ -223,7 +228,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     % Gradient calculated using a brute-force finite difference approach
     dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange);
 
-    Diff=(norm(dJdp(iRange))-norm(dJdpTest(iRange)))/norm(dJdp(iRange));
+    Diff=norm(dJdp(iRange)-dJdpTest(iRange))/norm(dJdp(iRange));
     fprintf("Test Adjoint gradients: Normalized differences between adjoint gradient and FD: %g \n ",Diff)
 
     fig_dJdpTest=FindOrCreateFigure("Test dJdp") ; clf(fig_dJdpTest)
@@ -241,9 +246,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     drawnow
 
-    filename="BruteForceGradient"+CtrlVar.Experiment;
-    fprintf('BruteForceGradient save of CtrlVar, UserVar, MUA, F, dJdpTest and iRange in the file : %s \n',filename)
-    save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange')
+    
     
     
 else
@@ -275,7 +278,8 @@ else
     % And a final additional call is made to get the cost function, J, and the gradient, dJdp, at the end of the optimization. In
     % principle, I guess it should be possible to get this information from the (external) optimization subroutine, but I don't
     % know how...
-    [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+    CtrlVar.JGH.CalcHessian=false; 
+    [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
     
     

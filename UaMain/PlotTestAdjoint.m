@@ -4,6 +4,8 @@ function PlotTestAdjoint(CtrlVar,MUA,F,InvFinalValues)
 %
 
 
+
+
 if ~isempty(InvFinalValues.dJdAGlenTest)
     IA=find(~isnan(InvFinalValues.dJdAGlenTest)) ;
     fprintf('------------------------------------ dJ/dA  ---------------------------------------------------------------------\n')
@@ -112,6 +114,9 @@ end
 % fprintf('Norm test: ||dJdpTest-dJdp||/||dJdp||= %g \n ',norm(dJdpTest(iRange)-dJdp(iRange))/norm(dJdp(iRange)))
 
 %%
+return   % not really using this anymore as I find that a simple x/y plot of finite-differences and adjoint values is perfectly good way of graphically comparing the results 
+
+
 
 if ~(isempty(InvFinalValues.dJdC) && isempty(InvFinalValues.dJdCTest))
 

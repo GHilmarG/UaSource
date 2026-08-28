@@ -1,15 +1,15 @@
 
-function [dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC]=duv_hdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs)
+function [dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs)
 
 
-narginchk(7,7)
+narginchk(5,5)
 nargoutchk(9,9)
 
 dudA=[]; dvdA=[]; dhdA=[];
 dudB=[]; dvdB=[]; dhdB=[];
 dudC=[]; dvdC=[]; dhdC=[];
 
-[UserVar,RunInfo,F,l,KdFuvduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+[~,~,F,l,KdFuvduv]= uv([],[],CtrlVar,MUA,BCs,F,l);
 
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
@@ -77,11 +77,11 @@ end
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
-    FiniteDifferenceTestAndPlots(F,MUA,CtrlVar,UserVar,RunInfo,BCs,l,dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC);
+    FiniteDifferenceTestAndPlots(F,MUA,CtrlVar,BCs,l,dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC);
 
 end
 
-function FiniteDifferenceTestAndPlots(F,MUA,CtrlVar,UserVar,RunInfo,BCs,l,dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC)
+function FiniteDifferenceTestAndPlots(F,MUA,CtrlVar,BCs,l,dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC)
 %% Test
 
 
@@ -98,11 +98,11 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     DeltaRel=1e-4;
 
     Field="AGlen";
-    [dudApert,dvdApert,dhdotdApert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
+    [dudApert,dvdApert,dhdotdApert]=FiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
 
     SubtitleString="sensitivites are with respect to $\log_{10}A$";
 
-    PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudA,dvdA,dhdA,dudApert,dvdApert,dhdotdApert,SubtitleString);
+    PlotModelAndFiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,NodeTest,dudA,dvdA,dhdA,dudApert,dvdApert,dhdotdApert,SubtitleString);
 
 end
 
@@ -119,13 +119,13 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     DeltaRel=nan;
     DeltaAbs=1;
     Field="B";
-    [dudBpert,dvdBpert,dhdotdBpert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,DeltaAbs);
+    [dudBpert,dvdBpert,dhdotdBpert]=FiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,DeltaAbs);
 
     % figures
     Field="B";
     SubtitleString="sensitivites are with respect to $B$";
 
-    PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudB,dvdB,dhdB,dudBpert,dvdBpert,dhdotdBpert,SubtitleString);
+    PlotModelAndFiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,NodeTest,dudB,dvdB,dhdB,dudBpert,dvdBpert,dhdotdBpert,SubtitleString);
 
 end
 
@@ -134,13 +134,13 @@ if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
 
 
     F=Funperturbed;
-    DeltaRel=1e-4;
+    DeltaRel=1e-2;
     Field="C";
-    [dudCpert,dvdCpert,dhdotdCpert]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
+    [dudCpert,dvdCpert,dhdotdCpert]=FiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel);
 
     SubtitleString="sensitivites are with respect to $\log_{10}C$"; 
 
-    PlotModelAndFiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,NodeTest,DeltaRel,dudC,dvdC,dhdC,dudCpert,dvdCpert,dhdotdCpert,SubtitleString);
+    PlotModelAndFiniteDifferenceSensitivities(CtrlVar,MUA,BCs,F,l,Field,NodeTest,dudC,dvdC,dhdC,dudCpert,dvdCpert,dhdotdCpert,SubtitleString);
 
     %%
 end

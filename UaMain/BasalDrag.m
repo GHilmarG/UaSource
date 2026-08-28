@@ -126,7 +126,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 % 
                 % (U^(1/m - 1)*He(h - hf))/(m*(C + C0)^(1/m + 1))
                 
-                dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;  % Um=speed.^(1./m-1) ;
+                dFuvdC = - He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;  % Um=speed.^(1./m-1) ;
                 %
                 % Note: The actual expression is
                 %
@@ -151,23 +151,23 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 Nqm=N.^(qm) ;
                 
                 
-                dFuvdC= He.*Nqm.*(1./m).*(C+C0).^(-1./m-1)  .*Um;
+                dFuvdC= -He.*Nqm.*(1./m).*(C+C0).^(-1./m-1)  .*Um;
                 
             case {"rpCW-N0","Cornford"}
                 
                 U=speed;
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;
-                dFuvdC=(U.^(1./m-1).*muk.^(m+1).*N.^(m+1).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1./m)).^m).^(-1./m-1).*(C+C0).^(-1./m-1))./m;
+                dFuvdC=-(U.^(1./m-1).*muk.^(m+1).*N.^(m+1).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1./m)).^m).^(-1./m-1).*(C+C0).^(-1./m-1))./m;
                 
             case {"rCW-N0","Umbi"} % reciprocal Coulomb-Weertman with zeroth-order hydrology
                 
                 U=speed;
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;
-                dFuvdC=(U.^(1./m).*muk.^2.*N.^2.*He.*1./(U.^(1./m).*He+muk.*N.*(C+C0).^(1./m)).^2.*(C+C0).^(1./m-1))./(U.*m) ;
+                dFuvdC=-(U.^(1./m).*muk.^2.*N.^2.*He.*1./(U.^(1./m).*He+muk.*N.*(C+C0).^(1./m)).^2.*(C+C0).^(1./m-1))./(U.*m) ;
                 
             case {"Tsai","minCW-N0"}
                 
-                dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;
+                dFuvdC =  -He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;
 
                 N=N0(CtrlVar,h,H,rho,rhow,g);
                 [taubxi,taubyi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;

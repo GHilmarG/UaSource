@@ -183,6 +183,8 @@ for Iint=1:MUA.nip
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
+    
+
 
     % this is a temporary change which only works for Weertman sliding law, 
      % speed=sqrt(uint.*uint+vint.*vint+u0^2);
@@ -265,7 +267,7 @@ F.C=C0;
 dIdC_FD = (b_plus - b_minus)/(2*deltaC);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
 
 %% there is a sign mistake which I have started to carry through the code (must correct this properly one day)
-dIdC_FD=-dIdC_FD ; % need to correct for wrong sign...
+%dIdC_FD=-dIdC_FD ; % need to correct for wrong sign...
 
 
 %[dIdC_FD dIdC(iNode)]

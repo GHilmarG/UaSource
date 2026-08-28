@@ -241,7 +241,7 @@ for Iint=1:MUA.nip
 
     for Inod=1:MUA.nod
         T(:,Inod)=T(:,Inod)...
-            -detadA.*hint.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx).*fun(Inod).*detJw;
+            +detadA.*hint.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx).*fun(Inod).*detJw;
 
     end
 end
@@ -304,7 +304,7 @@ F.AGlen=A0;
 dIdA_FD = (b_plus - b_minus)/(2*deltaA);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
 
 %% there is a sign mistake which I have started to carry through the code (must correct this properly one day)
-dIdA_FD=-dIdA_FD ; % need to correct for wrong sign...
+% dIdA_FD=-dIdA_FD ; % need to correct for wrong sign...
 
 
 %[dIdA_FD dIdA(iNode)]

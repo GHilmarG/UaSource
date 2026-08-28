@@ -158,7 +158,7 @@ for Inod=1:MUA.nod
     end
 end
 
-KdFuvdC=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
+KdFuvdC=sparse(Iind,Jind,Xval,2*nNodes,nNodes);
 
 end
 

@@ -3,7 +3,7 @@
 
 
 
-function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
+function [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
 
 
 %%
@@ -21,7 +21,7 @@ function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BC
 
 persistent ubP vbP JGH1 JGH2 JGH3
 
-narginchk(13,13)
+narginchk(11,11)
 
 
 %% some counters for how often JGH is called and with what number of arguments
@@ -54,6 +54,7 @@ CtrlVar.Inverse.CalcGrad=false;
 CtrlVar.Inverse.CalcGradI=false;
 CtrlVar.Inverse.CalcGradR=false;
 
+
 CtrlVar.Inverse.CalcHess=false;
 CtrlVar.Inverse.CalcHessI=false;
 CtrlVar.Inverse.CalcHessR=false;
@@ -62,16 +63,24 @@ if nargout==1
     dJdp=[] ; Hessian=[] ; JGHouts=[] ;
 end
 
-if nargout>=2
+if nargout>=2  % always calculates the gradient if number of output arguments is 2 or larger
     CtrlVar.Inverse.CalcGrad=true;
     CtrlVar.Inverse.CalcGradI=true;
     CtrlVar.Inverse.CalcGradR=true;
 end
 
-if nargout>= 3   % at the moment this is not really used, as this is done based on the number of output arguments to Regularisation.m and Misfit.m
+% Calculate the Hessian provided:
+%     1) CtrlVar.JGH.CalcHessian=true; 
+% and 2) number of output arguments is larger or equal to 3
+if nargout>= 3  &&  CtrlVar.JGH.CalcHessian 
     CtrlVar.Inverse.CalcHess=true;
     CtrlVar.Inverse.CalcHessI=true;
     CtrlVar.Inverse.CalcHessR=true;
+else
+    CtrlVar.Inverse.CalcHess=false;
+    CtrlVar.Inverse.CalcHessI=false;
+    CtrlVar.Inverse.CalcHessR=false;
+    Hessian=[]; 
 end
 
 %% The function requires a solution of the forward model, often with just a slightly different input parameters. 
@@ -89,41 +98,39 @@ end
 
 
 %% Reflection?
-
-
-if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
-    % pub and plb are enforced by the MATLAB optimization toolbox in a different way
-    if CtrlVar.ReflectiveTransformation
-
-        if ~isempty(pub)  && isempty(plb)
-
-            iu=p>pub;
-            p(iu)=pub(iu)+2*p(iu) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
-
-        elseif isempty(pub)  && ~isempty(plb)
-
-            il=p>plb;
-            p(il)=pub(il)+2*p(il) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
-
-        elseif ~isempty(pub)  && ~isempty(plb)
-
-            %%
-            % pub=[10 8]; plb=[1 2] ; p=[1 9] ;
-
-            d=pub-plb;
-            t=mod(p-plb,2*d);
-            p=plb+min(t,2*d-t);
-            %%
-
-        end
-    else
-       
-        p=kk_proj(p,pub,plb);
-    end
-
-end
-
-
+% 
+% if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
+%     % pub and plb are enforced by the MATLAB optimization toolbox in a different way
+%     if CtrlVar.ReflectiveTransformation
+% 
+%         if ~isempty(pub)  && isempty(plb)
+% 
+%             iu=p>pub;
+%             p(iu)=pub(iu)+2*p(iu) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+% 
+%         elseif isempty(pub)  && ~isempty(plb)
+% 
+%             il=p>plb;
+%             p(il)=pub(il)+2*p(il) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+% 
+%         elseif ~isempty(pub)  && ~isempty(plb)
+% 
+%             %%
+%             % pub=[10 8]; plb=[1 2] ; p=[1 9] ;
+% 
+%             d=pub-plb;
+%             t=mod(p-plb,2*d);
+%             p=plb+min(t,2*d-t);
+%             %%
+% 
+%         end
+%     else
+% 
+%         p=kk_proj(p,pub,plb);
+%     end
+% 
+% end
+% 
 %%
 
 
@@ -159,14 +166,14 @@ end
 
 
 %% Forward model solution
-[UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+[~,~,F,l,dFduv]= uv([],[],CtrlVar,MUA,BCs,F,l);
 
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
     % If dh/dt is included as measurements, I need that calculated dh/dt, which in turn requires the mass-balance, a, as well
     if isempty(F.as) || isempty(F.ab)
-        [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+        [~,F]=GetMassBalance([],CtrlVar,MUA,F);
     end
-    [~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ;
+    [~,F.dhdt]=dhdtExplicit([],CtrlVar,MUA,F,BCs) ;
 end
 
 %%
@@ -175,11 +182,11 @@ end
 %
 % Get the I and R terms, and the gradients if required.
 if nargout==1
-    R=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
-    I=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+    R=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ;
+    I=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv) ;
 else
-    [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
-    [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+    [R,dRdp,ddRddp,RegOuts]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ;
+    [I,dIdp,ddIddp,MisfitOuts]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv) ;
 end
 
 
@@ -196,7 +203,7 @@ if CtrlVar.Inverse.CalcHess  % Hessian needed
 end
 
 
-if RunInfo.Forward.uvConverged
+if F.solution=="-uv-"
     % To speed up the forward solve, the previous solution is stored locally and then used as a starting value in next
     % calculation. The idea is that usually the parameter vector (p) only changes slightly form one inverse iteration to the
     % next, so the (u,v) solution is likely to be similar to the previously calculated one.

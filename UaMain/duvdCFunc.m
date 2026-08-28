@@ -76,7 +76,7 @@ Sensitivities="-dudC-dvdC-";
 % end
 % 
 
-KdFuvdC=-dFuvdC(CtrlVar,MUA,F) ; % there is actually a different sign convention inside of this... (sign issue)
+KdFuvdC=dFuvdC(CtrlVar,MUA,F) ;
 
 
 if numel(BCs.ubFixedValue) > 0

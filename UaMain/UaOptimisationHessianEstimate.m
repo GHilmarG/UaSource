@@ -84,7 +84,7 @@ while true
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"BruteForceHessian")
 
-        [Hsparse,Hessian,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
+        [~,Hessian,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
 
         if isnan(J0)
             error("UaOptimisationHessianEstimate:J0IsNaN","NaN in J0")
@@ -101,7 +101,7 @@ while true
             % iCol=88;
             [~,HessianFD,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iCol) ;
             Diff=norm(HessianFD(:,iCol)-Hessian(:,iCol))/norm(Hessian(:,iCol));
-            fprintf("UaOptimisationHessianEstimate: normalised norm of idfference between Direct-Adjoint and finite-difference Hessian for column %i is: %g \n",iCol,Diff)
+            fprintf("UaOptimisationHessianEstimate: normalised norm of difference between Direct-Adjoint and finite-difference Hessian for column %i is: %g \n",iCol,Diff)
             FigHessDA_FD=FindOrCreateFigure("Test: DirectAdjoint Hess") ; clf(FigHessDA_FD)
             hold off ;
             plot(HessianFD(:,iCol),Hessian(:,iCol),"o") ;
@@ -476,7 +476,7 @@ I=~isnan(gammaVector); gammaVector=gammaVector(I); gammaVector=gammaVector(:) ; 
 
 figIt=FindOrCreateFigure("J iteration") ; clf(figIt)
 yyaxis left
-semilogy(itVector,Jvector,"ob-",LineWidth=2,DisplayName="$J$") ;
+semilogy(itVector,Jvector,"ob-",LineWidth=2,DisplayName="$J$",MarkerFaceColor="b") ;
 hold on
 semilogy(itVector,SubOptimalityVector,"sg-",DisplayName="sub-optimality")
 ylabel("$J$",Interpreter="latex") ;
