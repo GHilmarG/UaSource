@@ -282,6 +282,7 @@ switch Sensitivities
 
         dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
         CtrlVar.TestKApeSolve=false;
+        frhs=full(frhs);
         sol=solveKApe(KdFuvduv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
 
 
@@ -325,6 +326,7 @@ switch Sensitivities
         end
 
         dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dhdot=zeros(MUA.Nnodes,1 ) ; dl=zeros(numel(luvh),1);
+        frhs=full(frhs);  % the right-hand side is quite dense, so this is a faster approach
         sol=solveKApe(KdFdq,L,frhs,grhs,[dub;dvb;dhdot],dl,CtrlVar);
 
         dudA=sol(1:MUA.Nnodes,:);

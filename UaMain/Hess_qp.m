@@ -22,10 +22,13 @@ KFpq=[KFAu KFAv ; ...
 xi=[KdudA KdudC ;...
     KdvdA KdvdC] ;
 
+if issparse(xi) && nnz(xi)/numel(xi)>0.5  % much faster than sparse times sparse multiplication, unless xi is truly sparse (which it typically will not be)
+    xi=full(xi);
+end
+
 K=KFpq*xi;
 
 KHess_qp=K+K' ;
-
 
 
 end

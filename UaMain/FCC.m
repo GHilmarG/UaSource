@@ -221,7 +221,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
     ln10 = log(10);
     C_nodal = F.C(:);
 
-    b_C=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+    b_C=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);  % this function has already done the lin to log conversion
     D = spdiags(C_nodal*ln10, 0, nNodes, nNodes);
     KFCC = D*KFCC*D  + spdiags(b_C(:)*ln10, 0, nNodes, nNodes);
 

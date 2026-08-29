@@ -306,8 +306,6 @@ KFqq=sparse(Iind,Jind,Xval,2*Nnodes,2*Nnodes);
 
 KFqq=(KFqq'+KFqq)/2;
 
-%KFqq=-KFqq ; % there is a sign mistake in the code that I have started to carry through...
-
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
 
@@ -317,9 +315,6 @@ end
 
 
 end
-
-
-
 
 
 
