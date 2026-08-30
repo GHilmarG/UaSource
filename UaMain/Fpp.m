@@ -5,7 +5,7 @@ function KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
-    KFAA=FAA_v2(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+    KFAA=FAA(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"-B-")
@@ -13,7 +13,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
-    KFCC=FCC_v2(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+    KFCC=FCC(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 end
 
 

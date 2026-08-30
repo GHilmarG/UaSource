@@ -36,12 +36,12 @@ Ronly=CtrlVar.uvhMatrixAssembly.Ronly;
 if Ronly
     KdFuvhduvh=[];
 end
-% 
+%
 % if nargin<7
 %     ZeroFields=false;
 % end
-% 
-% 
+%
+%
 % if nargout==3
 %     Ronly=1;
 % else
@@ -50,7 +50,7 @@ end
 
 
 if ZeroFields
-    
+
     % I'm using this to come up with a reasonable normalizing factor to the residuals.  The uv side of things is clear and there
     % I set u=v=0 and this ensures that all 'internal' nodal forces are zero. The h side is less clear. and I've struggled with
     % finding a sensible normalizing factor for this term. If I set u=v=0 to get the sensible uv normalization, then dqdx=0. I
@@ -61,47 +61,47 @@ if ZeroFields
     %
     % Possibly best to normalize with the prescribed mass balance. The justification for doing that would be that the mass
     % balance is externally prescribed to the mass conservation equation, similar to how the body force is external load in the
-    % momentum equation. The h-equation is then sufficiently accurately solved once the ratio: 
-    % 
-    %    (dh/dt-dq/dx-a)/a 
-    % 
-    % is small. However the issue is that this will not work if a=0 everywhere. 
+    % momentum equation. The h-equation is then sufficiently accurately solved once the ratio:
+    %
+    %    (dh/dt-dq/dx-a)/a
+    %
+    % is small. However the issue is that this will not work if a=0 everywhere.
     %
     % I therefore somewhat arbitrarily add 1 to this
     %
-    %     (dh/dt-dq/dx-a)/(abs(a)+1) 
+    %     (dh/dt-dq/dx-a)/(abs(a)+1)
     %
-    % Note that I can use the abs here because this is only used for the normalization factor, which is later squired. 
+    % Note that I can use the abs here because this is only used for the normalization factor, which is later squired.
     %
 
-     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
-     F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
-    % 
+    F1.ub=F1.ub*0; F1.vb=F1.vb*0;
+    F0.ub=F0.ub*0; F0.vb=F0.vb*0;
+    %
     % How to normalize the mass conservation term?
     %
     % Idea1) set a=1 as a normalizing factor
-    % The issue with this is that the accterm -> 0 as dt->0 
+    % The issue with this is that the accterm -> 0 as dt->0
     % because
     % accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
     % so the normalisation factor goes to zero with dt
 
-   
-     F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
-     F1.as=abs(F1.ab)+1;  F1.ab=abs(F1.ab);  % I can use abs here because this is just for the normalization factor which is squared.
-     F0.as=abs(F0.ab)+1;  F0.ab=abs(F0.ab);
-   
+
+    F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
+    F1.as=abs(F1.ab)+1;  F1.ab=abs(F1.ab);  % I can use abs here because this is just for the normalization factor which is squared.
+    F0.as=abs(F0.ab)+1;  F0.ab=abs(F0.ab);
+
 
 
     % I can solve this by dividing with dt again as I calculate the normalization factor in the const function. This means that
     % the normalization is independent of dt
-    % 
+    %
     % Possibly it would be better to solve directly for dh/dt, then at least the units of the rhs are identical for all unknowns
     %
     % On the other hand this can hardly be too much of an issue as the dh/dt equation is linear in h and all the residuals will
     % be caused by the u v residuals.
     %
-    
-    
+
+
 end
 
 
@@ -120,8 +120,8 @@ end
 
 
 
-if any(isnan(F1.ub)) 
-    fprintf(CtrlVar.fidlog,' NaN in u on input to uvhMatrixAssembly \n'); 
+if any(isnan(F1.ub))
+    fprintf(CtrlVar.fidlog,' NaN in u on input to uvhMatrixAssembly \n');
 end
 if any(isnan(F1.vb)) ;  fprintf(CtrlVar.fidlog,' NaN in v on input to uvhMatrixAssembly \n'); end
 if any(isnan(F1.h)) ;  fprintf(CtrlVar.fidlog,' NaN in h on input to uvhMatrixAssembly \n'); end
@@ -145,7 +145,7 @@ end
 CtrlVar.ResetThicknessToMinThickness=temp;
 
 if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
-    
+
     rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
     if rdamp~=0
         as1Old=F1.as ; ab1Old=F1.ab;
@@ -154,14 +154,14 @@ if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
     [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
     CtrlVar.time=CtrlVar.time-CtrlVar.dt;
     switch CtrlVar.MassBalanceGeometryFeedback
-        
+
         case 2
             dadh=zeros(MUA.Nnodes,1);
         case 3
             dadh=F1.dasdh+F1.dabdh;
     end
-    
-    
+
+
     if rdamp~=0
         % I don't account for a potential dependency of as and ab
         % on h in the Hessian, so may need to dampen these changes
@@ -177,11 +177,11 @@ end
 if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback  && ~isempty(F1.LSF)
     if isempty(F1.LSFMask)
         F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
-        
+
     end
     LSFMask=F1.LSFMask.NodesOut ; % This is the 'strictly' definition
 else
-    
+
     LSFMask=zeros(MUA.Nnodes,1) ;
 end
 
@@ -195,21 +195,21 @@ vnod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-hBCsMasknod=zeros(MUA.Nnodes,1) ; 
-hBCsMasknod(BCs1.hFixedNode)=1; 
-hBCsMasknod(BCs1.hPosNode)=1; 
+hBCsMasknod=zeros(MUA.Nnodes,1) ;
+hBCsMasknod(BCs1.hFixedNode)=1;
+hBCsMasknod(BCs1.hPosNode)=1;
 hBCsMasknod=reshape(hBCsMasknod(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 % hBCs=BCs.hFixedNode;BCs.hPosNode]
 
 if CtrlVar.IncludeMelangeModelPhysics
-    
+
     uonod=reshape(F1.uo(MUA.connectivity,1),MUA.Nele,MUA.nod);
     vonod=reshape(F1.vo(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
+
     uanod=reshape(F1.ua(MUA.connectivity,1),MUA.Nele,MUA.nod);
     vanod=reshape(F1.va(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
+
 end
 
 
@@ -237,12 +237,12 @@ end
 
 
 if CtrlVar.IncludeMelangeModelPhysics
-    
+
     Conod=reshape(F1.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
     monod=reshape(F1.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
     Canod=reshape(F1.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
     manod=reshape(F1.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
+
 end
 
 AGlennod=reshape(F1.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -266,40 +266,9 @@ bnod=reshape(F1.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 %dvdtnod=reshape(F1.dvbdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-
 ca=cos(alpha); sa=sin(alpha);
 
 
-if CtrlVar.uvGroupAssembly
-
-    hfnod=rhow*(Snod-Bnod)./rhonod;
-
-    deltanod=DiracDelta(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
-    Deltanod=DiracDelta(CtrlVar.kH,hfnod-hnod,CtrlVar.Hh0);
-
-    Henod = HeavisideApprox(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
-    HEnod = HeavisideApprox(CtrlVar.kH,hfnod-hnod,CtrlVar.Hh0);
-    Hnod=Snod-Bnod; 
-    Hposnod = HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*Hnod;
-
-    %    dnod = Hposnod.*(Snod-bnod);  % draft
-
-    dnod=HEnod.*rhonod.*hnod/rhow+Henod.*Hposnod ;  % definition of d
-    Dddhnod=HEnod.*rhonod/rhow-Deltanod.*hnod.*rhonod/rhow+deltanod.*Hposnod; % derivative of dnod with respect to hnod
-
-else
-
-
-    Henod=[] ;  deltanod=[] ;   Hposnod=[] ;  dnod=[];   Dddhnod=[];
-
-end
-
-
-
-
-
-
-% [points,weights]=sample('triangle',nip,ndim);
 
 if ~Ronly
     Kxu=zeros(MUA.Nele,MUA.nod,MUA.nod); Kxv=zeros(MUA.Nele,MUA.nod,MUA.nod);  Kxh=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -328,136 +297,92 @@ else
     HeInt=[];
 end
 
-if CtrlVar.Parallel.uvhAssembly.parfor.isOn
-    
-    parfor Iint=1:MUA.nip
-        
-        
-        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI]=...
-            uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-            bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
-            Henod,deltanod,Hposnod,dnod,Dddhnod,...
-            LSFMasknod,hBCsMasknod,...
-            uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
-            CtrlVar,rhow,g,Ronly,ca,sa,dt,...
-            Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
-        
-        Tx=Tx+Tx1;  Fx=Fx+Fx1;
-        Ty=Ty+Ty1;  Fy=Fy+Fy1;
-        Th=Th+Th1;  Fh=Fh+Fh1;
-        
-        Kxu=Kxu+Kxu1;        Kxv=Kxv+Kxv1;
-        Kyu=Kyu+Kyu1;        Kyv=Kyv+Kyv1;
-        Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
-        Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
-        
-    end
-    
-else
-    
-    % adding contribution from each form function for every element. The number of form functions equals the number of nodes, so
-    % the outputs have the dimension ele x nodes
-    for Iint=1:MUA.nip
-        
-        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI,HeI]=...
-            uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-            bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
-            Henod,deltanod,Hposnod,dnod,Dddhnod,...
-            LSFMasknod,hBCsMasknod,...
-            uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
-            CtrlVar,rhow,g,Ronly,ca,sa,dt,...
-            Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
-        
-        Tx=Tx+Tx1;  Fx=Fx+Fx1;
-        Ty=Ty+Ty1;  Fy=Fy+Fy1;
-        Th=Th+Th1;  Fh=Fh+Fh1;
-        
-        Kxu=Kxu+Kxu1;        Kxv=Kxv+Kxv1;
-        Kyu=Kyu+Kyu1;        Kyv=Kyv+Kyv1;
-        Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
-        Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
 
-        if nargout> 4
-            tauxInt(:,Iint)=tauxI;
-            tauyInt(:,Iint)=tauyI;
-            etaInt(:,Iint)=etaI;
-            HeInt(:,Iint)=HeI;
-        end
+% adding contribution from each form function for every element. The number of form functions equals the number of nodes, so
+% the outputs have the dimension ele x nodes
+for Iint=1:MUA.nip
 
+    [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI,HeI]=...
+        uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
+        bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+        LSFMasknod,hBCsMasknod,...
+        uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
+        CtrlVar,rhow,g,Ronly,ca,sa,dt,...
+        Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
+
+    Tx=Tx+Tx1;  Fx=Fx+Fx1;
+    Ty=Ty+Ty1;  Fy=Fy+Fy1;
+    Th=Th+Th1;  Fh=Fh+Fh1;
+
+    Kxu=Kxu+Kxu1;        Kxv=Kxv+Kxv1;
+    Kyu=Kyu+Kyu1;        Kyv=Kyv+Kyv1;
+    Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
+    Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
+
+    if nargout> 4
+        tauxInt(:,Iint)=tauxI;
+        tauyInt(:,Iint)=tauyI;
+        etaInt(:,Iint)=etaI;
+        HeInt(:,Iint)=HeI;
     end
-    
+
 end
+
+
 
 if CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity
 
-    R=[] ; KdFuvhduvh=[] ; 
+    R=[] ; KdFuvhduvh=[] ;
     return
 
 end
 
-FewerSparseEvaluations=1 ;
-
-if ~FewerSparseEvaluations
-
-    %% assemble right-hand side  (older approach with more sparse calls)
-    Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
-
-    for Inod=1:MUA.nod
 
 
-        Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-        Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-        Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
 
-        Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-        Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
-        Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
-    end
+%% assemble right-hand side (fewer sparse calls, 30 Jan 2023)
 
-else
-    %% assemble right-hand side (fewer sparse calls, 30 Jan 2023)
+iR=zeros(MUA.nod*MUA.Nele*3,1,"uint32");
 
-    iR=zeros(MUA.nod*MUA.Nele*3,1,"uint32");
-    
-    Tval=zeros(MUA.nod*MUA.Nele*3,1);
-    Fval=zeros(MUA.nod*MUA.Nele*3,1);
-    istak=0;
+Tval=zeros(MUA.nod*MUA.Nele*3,1);
+Fval=zeros(MUA.nod*MUA.Nele*3,1);
+istak=0;
 
-    for Inod=1:MUA.nod
+for Inod=1:MUA.nod
 
 
-        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
+    iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
 
 
-        Tval(istak+1:istak+MUA.Nele)=Tx(:,Inod);
-        Fval(istak+1:istak+MUA.Nele)=Fx(:,Inod);
+    Tval(istak+1:istak+MUA.Nele)=Tx(:,Inod);
+    Fval(istak+1:istak+MUA.Nele)=Fx(:,Inod);
 
-        istak=istak+MUA.Nele;
-        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx;
-        Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
-        Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
+    istak=istak+MUA.Nele;
+    iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx;
+    Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
+    Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
 
-        istak=istak+MUA.Nele;
-        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx;
-        Tval(istak+1:istak+MUA.Nele)=Th(:,Inod);
-        Fval(istak+1:istak+MUA.Nele)=Fh(:,Inod);
+    istak=istak+MUA.Nele;
+    iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx;
+    Tval(istak+1:istak+MUA.Nele)=Th(:,Inod);
+    Fval(istak+1:istak+MUA.Nele)=Fh(:,Inod);
 
-        istak=istak+MUA.Nele;
+    istak=istak+MUA.Nele;
 
-
-    end
-
-    One=ones(1,1,"uint32");
-    Tint=sparseUA(iR,One,Tval,neq,1);
-    Fext=sparseUA(iR,One,Fval,neq,1);
 
 end
+
+
+Tint=accumarray(iR,Tval,[neq 1]);   % full: was sparse with density ~0.92
+Fext=accumarray(iR,Fval,[neq 1]);   % full: was sparse with density ~0.92
+
+
 
 
 %%
 
 R=Tint-Fext;
-if any(isnan(R)) ||  any(isnan(Tint)) || any(isnan(Fext)) 
+if any(isnan(R)) ||  any(isnan(Tint)) || any(isnan(Fext))
 
     fprintf("nan in R or Tint or Fext")
 
@@ -467,106 +392,64 @@ end
 % Rint=[Fx ; Fy ; Fh] ;
 
 if ~Ronly
-    
- 
-    if FewerSparseEvaluations
-        
+
+
+
+
+    if isfield(MUA,"uvhAssemblyPattern") && ~isempty(MUA.uvhAssemblyPattern)
+        % cached sparsity pattern.  Block order must match
+        % MUA.uvhAssemblyPattern.blocks, i.e. row-major (u,v,h)x(u,v,h).
+        P=MUA.uvhAssemblyPattern;
+        Xval=[Kxu(:);Kxv(:);Kxh(:);Kyu(:);Kyv(:);Kyh(:);Khu(:);Khv(:);Khh(:)];
+        KdFuvhduvh=sparse(P.i0,P.j0,accumarray(P.map,Xval,[P.nk 1]),neq,neq);
+    else
         %Iind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);
         Iind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1,"uint32"); Jind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1,"uint32");
-        
+
         Xval=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);
         istak=0;
         for Inod=1:MUA.nod
             for Jnod=1:MUA.nod
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Kxu(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Kxu(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Kxv(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Kxv(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Kxh(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Kxh(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Kyu(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Kyu(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Kyv(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Kyv(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Kyh(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Kyh(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Khu(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Khu(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Khv(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Khv(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
+
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Khh(:,Jnod,Inod);
                 istak=istak+MUA.Nele;
             end
-            
+
         end
-        
-        
-        KdFuvhduvh=sparseUA(Iind,Jind,Xval,neq,neq);
-        
-        
-        %%
-        
-    else
-        Iind=zeros(9*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.Nele,1);Xval=zeros(9*MUA.nod*MUA.Nele,1);
-        KdFuvhduvh=sparseUA(neq,neq);
-        
-        for Inod=1:MUA.nod
-            istak=0;
-            for Jnod=1:MUA.nod
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Kxu(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Kxv(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Kxh(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Kyu(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Kyv(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Kyh(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=Khu(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=Khv(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-            end
-            KdFuvhduvh=KdFuvhduvh+sparseUA(Iind,Jind,Xval,neq,neq);
-        end
+
+
+        KdFuvhduvh=sparse(Iind,Jind,Xval,neq,neq);
     end
+
+
+
 end
 
-%    Kxu2=Kxu; Kxv2=Kxv; Kxh2=Kxh;  Kyu2=Kyu; Kyv2=Kyv;  Kyh2=Kyh ; Khu2=Khu; Khv2=Khv ; Khh2=Khh;
-%    save File2 Kxu2 Kxv2 Kxh2 Kyu2 Kyv2 Kyh2 Khu2 Khv2 Khh2
 
-if CtrlVar.IncludeTG3uvhBoundaryTerm && CtrlVar.TG3
-    %[Ktest,Rtest]=BoundaryIntegralFullyImplicitTG3(CtrlVar,MUA,h0,h,u0,v0,u,v,as0+ab0,as1+ab1,dt);
-    %[K,rh]=BoundaryIntegralFullyImplicitTG3(coordinates,connectivity,Boundary,h0,h1,u0,v0,u1,v1,a0,a1,dt,CtrlVar)
-    [Ktest,Rtest]=BoundaryIntegralFullyImplicitTG3(MUA.coordinates,MUA.connectivity,MUA.Boundary,F0.h,F1.h,F0.ub,F0.vb,F1.ub,F1.uv,F0.as+F0.ab,F1.as+F1.ab,CtrlVar.dt,CtrlVar);
-    R=R+Rtest;
-    if ~Ronly
-        KdFuvhduvh=KdFuvhduvh+Ktest;
-    end
-end
 
 minh=min(F1.h);
 
@@ -579,14 +462,17 @@ end
 if ~Ronly
     if full(any(isnan(diag(KdFuvhduvh))))
         error(' NaN in K ' ) ;
-    end 
+    end
 end
 
 if any(isnan(R))
-    
+
     error("uvhMatrixAssembly:NaNinR"," NaN in R " ) ;
 end
 end
+
+
+
 
 
 

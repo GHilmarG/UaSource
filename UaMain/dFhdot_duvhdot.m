@@ -139,9 +139,9 @@ end
 % end
 % 
 % 
-% KdFhdotdu=sparseUA(Iind,Jind,dFhdotduXval,nNodes,nNodes);
-% KdFhdotdv=sparseUA(Iind,Jind,dFhdotdvXval,nNodes,nNodes);
-% KdFhdotdhdot=sparseUA(Iind,Jind,dFhdotdhdotXval,nNodes,nNodes);
+% KdFhdotdu=sparse(Iind,Jind,dFhdotduXval,nNodes,nNodes);
+% KdFhdotdv=sparse(Iind,Jind,dFhdotdvXval,nNodes,nNodes);
+% KdFhdotdhdot=sparse(Iind,Jind,dFhdotdhdotXval,nNodes,nNodes);
 % 
 
 
@@ -177,7 +177,7 @@ for Inod=1:MUA.nod
     end
 end
 
-KdFhdotduvhdot=sparseUA(Iind,Jind,dFhduvhXval,nNodes,3*nNodes);
+KdFhdotduvhdot=sparse(Iind,Jind,dFhduvhXval,nNodes,3*nNodes);
 
 
 

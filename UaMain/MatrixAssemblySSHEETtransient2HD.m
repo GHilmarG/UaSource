@@ -72,14 +72,14 @@ for Iint=1:MUA.nip
 end
 
 
-T=sparseUA(neq,1);
+T=sparse(neq,1);
 for I=1:MUA.nod
-    T=T+sparseUA(MUA.connectivity(:,I),ones(MUA.Nele,1),t1(:,I),neq,1);
+    T=T+sparse(MUA.connectivity(:,I),ones(MUA.Nele,1),t1(:,I),neq,1);
 end
 
-F=sparseUA(neq,1);
+F=sparse(neq,1);
 for I=1:MUA.nod
-    F=F+sparseUA(MUA.connectivity(:,I),ones(MUA.Nele,1),f1(:,I),neq,1);
+    F=F+sparse(MUA.connectivity(:,I),ones(MUA.Nele,1),f1(:,I),neq,1);
 end
 
 R=T-F  ;
@@ -87,7 +87,7 @@ R=T-F  ;
 if ~OnlyR
     for I=1:MUA.nod
         for J=1:MUA.nod
-            K=K+sparseUA(MUA.connectivity(:,I),MUA.connectivity(:,J),d1d1(:,I,J),neq,neq);
+            K=K+sparse(MUA.connectivity(:,I),MUA.connectivity(:,J),d1d1(:,I,J),neq,neq);
         end
     end
 else

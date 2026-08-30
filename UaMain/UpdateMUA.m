@@ -1,9 +1,15 @@
+
+
 function MUA=UpdateMUA(CtrlVar,MUA)
 
 %%
 % MUA=UpdateMUA(CtrlVar,MUA)
+%
 % Updates MUA and calculates any missing fields.
+%
 % On input MUA must have the fields coordinates and connectivity.
+%
+% This is typically called whenever the FE-mesh changes. It
 %
 
 if ~isfield(MUA,'coordinates')
@@ -14,6 +20,8 @@ if ~isfield(MUA,'connectivity')
     error('MUA must have a connectivity field')
 end
 
+%% Start doing some simple overall checks related to quadrature rules which were changed in 2021.
+% This is here for mainly completeness and so that users can re-run old examples and use old re-start files.
 
 % first make sure that the element is of the right type
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,CtrlVar.TriNodes);
@@ -27,18 +35,18 @@ end
 
 
 
-if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')  ||  ~isfield(MUA,'points')  || ~isfield(MUA,'weights') ||  QuadratureFieldMissing 
+if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')  ||  ~isfield(MUA,'points')  || ~isfield(MUA,'weights') ||  QuadratureFieldMissing
 
     if CtrlVar.QuadRules2021
         Degree=QuadratureRuleDegree(CtrlVar);
         Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
-        
+
         MUA.QuadratureRuleDegree=Degree;
         MUA.nip=size(Q.Points,1);
         MUA.niph=size(Q.Points,1);
         MUA.points=Q.Points;
         MUA.weights=Q.Weights;
-        
+
     else
         CtrlVar=NrOfIntegrationPoints(CtrlVar);
 
@@ -50,10 +58,10 @@ if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')  ||  ~isfield(MUA,'points')  || 
 
 end
 
- QuadratureRuleHasChanged=false;
+QuadratureRuleHasChanged=false;
 % has the quadrature degree changed?
 if CtrlVar.QuadRules2021 &&  ~isempty(CtrlVar.QuadratureRuleDegree)  &&  MUA.QuadratureRuleDegree ~= CtrlVar.QuadratureRuleDegree
-    
+
     Degree=QuadratureRuleDegree(CtrlVar);
     Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
 
@@ -100,6 +108,7 @@ if CtrlVar.FindMUA_Boundary && isempty(MUA.TR)
 end
 
 
+
 %% Now consider the possibility that we are using the post 2021 quad rules and that the quadrature degree has changed
 
 
@@ -111,15 +120,20 @@ if CtrlVar.QuadRules2021
     end
 end
 
-%% Now consider the possibility the FE coordinates and connectivity has changed
-% and that the other fields are not up to date
+%% Now check if the mesh has changed. This test is not 100% foolproof.
+% Possibly this test could be improved by using some checksum calculated from coordinates and connectivity.
+% However, it is exceedingly unlikely that the mesh has changed, but both number of nodes and elements did not. But this
+% could be improved in the future and made more robust.
 
 MeshHasChanged = ...
     MUA.nod~=size(MUA.connectivity,2) || ...
     MUA.Nele~=size(MUA.connectivity,1) || ...
     MUA.Nnodes~=size(MUA.coordinates,1) || ...
-    QuadratureRuleHasChanged ; 
+    QuadratureRuleHasChanged ;
 
+
+% If the mesh has changed, quite a few things may have to be re-calculated. This is done here below, and this is the main
+% objective of this function.
 if MeshHasChanged
     if CtrlVar.InfoLevel>=10
         fprintf('UpdateMUA: Mesh has changed \n ')
@@ -130,9 +144,9 @@ if MeshHasChanged
     MUA.nod=size(MUA.connectivity,2);
     MUA.Nele=size(MUA.connectivity,1);
     MUA.Nnodes=size(MUA.coordinates,1);
-    
+
     if CtrlVar.QuadRules2021
-        
+
         Degree=QuadratureRuleDegree(CtrlVar);
         MUA.QuadratureRuleDegree=Degree;
         Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
@@ -142,7 +156,7 @@ if MeshHasChanged
         MUA.weights=Q.Weights;
 
     else
-        
+
         CtrlVar=NrOfIntegrationPoints(CtrlVar);
         MUA.QuadratureRuleDegree=nan;
         MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
@@ -156,13 +170,30 @@ if MeshHasChanged
         MUA.Boundary=[];
         MUA.TR=[];
     end
-    
+
     if CtrlVar.CalcMUA_Derivatives
         [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
     else
         MUA.Deriv=[];
         MUA.DetJ=[];
     end
+
+
+    if ~isfield(MUA,"uvAssemblyPattern")
+        MUA.uvAssemblyPattern=[];
+    end
+    if ~isfield(MUA,"uvhAssemblyPattern")
+        MUA.uvhAssemblyPattern=[];
+    end
+
+    if CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh
+        [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+    end
+
+
+
+
+
 
     if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ||  CtrlVar.MUA.CholeskyMassMatrix
 
@@ -180,15 +211,15 @@ if MeshHasChanged
 
     else
 
-        MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ; 
+        MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ;
 
     end
 
-    
+
     if CtrlVar.MUA.StiffnessMatrix
         [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
     end
-    
+
 
 
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
@@ -218,13 +249,13 @@ end
 
 if CtrlVar.CalcMUA_Derivatives
     if ~isfield(MUA,'DetJ') || ~isfield(MUA,'Deriv')
-        
+
         [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
     end
 end
 
 [NeleTest,ndimTest,nodTest,nipTest]=size(MUA.Deriv);
-MUADerivHasChanged=isempty(MUA.Deriv)  ||  NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip ; 
+MUADerivHasChanged=isempty(MUA.Deriv)  ||  NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip ;
 
 
 if CtrlVar.CalcMUA_Derivatives && MUADerivHasChanged
@@ -249,12 +280,37 @@ if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(
 
 end
 
+if ~isfield(MUA,"uvAssemblyPattern")
+    MUA.uvAssemblyPattern=[];
+end
+if ~isfield(MUA,"uvhAssemblyPattern")
+    MUA.uvhAssemblyPattern=[];
+end
+
+if CtrlVar.MUA.AssemblyPattern.uv && CtrlVar.MUA.AssemblyPattern.uvh
+    if isempty(MUA.uvAssemblyPattern)  &&  isempty(MUA.uvhAssemblyPattern)
+        [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+    end
+end
+
+
+if CtrlVar.MUA.AssemblyPattern.uv && isempty(MUA.uvAssemblyPattern)  
+        MUA.uvAssemblyPattern=AssemblyPatternCache(CtrlVar,MUA);
+end
+
+
+if CtrlVar.MUA.AssemblyPattern.uvh && isempty(MUA.uvhAssemblyPattern)  
+    [~,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+end
+
+
+
 %% It is possible that the decomposition object has somehow become invalid. Not sure how, but if, for example a mesh is re-read then possibly the decomposition object is still there but invalid
 %
 if CtrlVar.MUA.DecomposeMassMatrix  &&   ( ~isfield(MUA,'dM') || isempty(MUA.dM)  || any(MUA.dM.MatrixSize==[0 0]))
-    
-        MUA.dM=decomposition(MUA.M,'chol','upper') ;
-   
+
+    MUA.dM=decomposition(MUA.M,'chol','upper') ;
+
 end
 
 
@@ -298,7 +354,7 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.
     if isempty(poolobj)
 
         fprintf("SPMD assembly is set to true, but parallel pool is empty. Create a parallel pool ahead of the call to %ca.\n",218)
-     
+
 
     else
         CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;

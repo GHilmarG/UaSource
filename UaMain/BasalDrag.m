@@ -79,13 +79,31 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 
    end
 
-    speed=sqrt(ub.*ub+vb.*vb+u0^2); 
-    Um=speed.^(1./m-1) ;
-    beta2i=(C+C0).^(-1./m).*Um ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+    % --- defaults hoisted so the sliding law is known before the preamble ---
+    if ~isfield(CtrlVar,"SlidingLaw") ; CtrlVar.SlidingLaw="Weertman" ; end
+    if ~isfield(CtrlVar.Inverse,'dFuvdClambda') ; CtrlVar.Inverse.dFuvdClambda=false ; end
 
-   
-    % Dbeta2i is zero for m=1.
-    Dbeta2i=(1./m-1).*(C+C0).^(-1./m).*(ub.^2+vb.^2+u0^2).^((1-3*m)./(2*m));
+    speed=sqrt(ub.*ub+vb.*vb+u0^2);
+
+    % beta2i and Dbeta2i are only used by Weertman, Budd and Tsai (which calls
+    % Weertman), and by the dFuvdClambda branch.  The other laws build their own
+    % Tau and never touch them, so for those this whole block is dead work.
+    NeedBeta = ismember(string(CtrlVar.SlidingLaw), ...
+        ["W","Weertman","B","Budd","W-N0","Tsai","minCW-N0"]) || CtrlVar.Inverse.dFuvdClambda ;
+
+    if NeedBeta
+        % One vector-exponent power instead of four.  With
+        %     t = (speed/(C+C0))^(1/m)
+        % and using (1-3m)/(2m) applied to speed^2 being speed^(1/m-3),
+        %     beta2i  = (C+C0)^(-1/m) speed^(1/m-1) = t/speed
+        %     Dbeta2i = (1/m-1)(C+C0)^(-1/m) speed^(1/m-3) = (1/m-1) t/speed^3
+        % Note the original rebuilt (ub^2+vb^2+u0^2) rather than reusing speed^2.
+        t=(speed./(C+C0)).^(1./m) ;
+        beta2i=t./speed ;
+        Dbeta2i=(1./m-1).*t./speed.^3 ;   % zero for m=1
+    else
+        t=[] ; beta2i=[] ; Dbeta2i=[] ;
+    end
     
     
     if ~isfield(CtrlVar,"SlidingLaw")
@@ -100,17 +118,13 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
         
         % dF_x/dC and dF_y/dC
         %
-        %  Just take the derivative of the tau term with respect to C. And don't forget
-        %  the minus in front of the tau term in the momentum equation.
+        %  Just take the derivative of the tau term with respect to C. 
+        %  
         %
-        %  -Taux = |Tau|  u/U, 
-        %  -Tauy = |Tau|  v/U, 
+        %  Taux = |Tau|  u/U, 
+        %  Tauy = |Tau|  v/U, 
         %   where U is the speed.
         %
-        % Note: I include the u and v in the adjoint calculation itself, so I just need the
-        % derivative:
-        %
-        %   d (-|Tau|/U) / dC 
         %
         % So this is actually NOT the dF_x/dC or the dF_y/dC derivative, but those can be calculated as
         %
@@ -126,7 +140,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 % 
                 % (U^(1/m - 1)*He(h - hf))/(m*(C + C0)^(1/m + 1))
                 
-                dFuvdC = - He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;  % Um=speed.^(1./m-1) ;
+                dFuvdC = - He.*    (1./m).*t./(speed.*(C+C0));  % Um=speed.^(1./m-1) ;
                 %
                 % Note: The actual expression is
                 %
@@ -151,7 +165,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 Nqm=N.^(qm) ;
                 
                 
-                dFuvdC= -He.*Nqm.*(1./m).*(C+C0).^(-1./m-1)  .*Um;
+                dFuvdC= -He.*Nqm.*(1./m).*t./(speed.*(C+C0));
                 
             case {"rpCW-N0","Cornford"}
                 
@@ -167,7 +181,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 
             case {"Tsai","minCW-N0"}
                 
-                dFuvdC =  -He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;
+                dFuvdC =  -He.*    (1./m).*t./(speed.*(C+C0));
 
                 N=N0(CtrlVar,h,H,rho,rhow,g);
                 [taubxi,taubyi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
@@ -184,7 +198,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 
                 
                 fprintf("Inversion using Coulomb sliding law not implemented. \n")
-                error("BasalDrag:InvalidCase","Inversion using Tsai sliding law not implemented.")
+                error("BasalDrag:InvalidCase","Inversion using Coulumb sliding law not implemented.")
 
             case {"Joughin","rCW-v0"}
 
@@ -568,6 +582,7 @@ function [N,dNdh]=NRosier()
     dNdh(I)=0;   % h < hf
     
 end
+
 
 
 

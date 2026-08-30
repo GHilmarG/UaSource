@@ -126,14 +126,14 @@ if GetSensitivites
 
     if contains(HessianTerms,"-xi Jqq xi-")
 
-        KJqq=Jqq_v2(CtrlVar,MUA,F,BCs,Meas);
+        KJqq=Jqq(CtrlVar,MUA,F,BCs,Meas);
 
     end
 
 
     if contains(HessianTerms,"-xi Fqq xi-")
 
-        KFqq=Fqq_v2(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+        KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
     end
 
     KJqqFqq=KJqq+KFqq;  

@@ -10,19 +10,17 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etaint,Heint]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
-    Henod,deltanod,Hposnod,dnod,Dddhnod,...
     LSFMasknod,hBCsMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(62,62)
+% Keep the names exactly as in call, apparently then MATLAB does perfect inlining with no loss in performance 
+
+narginchk(57,57)
 nargoutchk(15,19)
 
-% I've added here the rho terms in the mass-conservation equation
-%
-%  despite their names,  unod and Cnod can be either nodal or element variables
-%
+
 
 theta=CtrlVar.theta;
 
@@ -65,13 +63,13 @@ vint=vnod*fun;
 
 
 if CtrlVar.IncludeMelangeModelPhysics
-    
+
     uoint=uonod*fun;
     voint=vonod*fun;
-    
+
     uaint=uanod*fun;
     vaint=vanod*fun;
-    
+
 end
 
 
@@ -128,17 +126,15 @@ dadhint=dadhnod*fun;
 
 
 
-
-
 if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
     % Here an implicit mass-balance forcing is added to cause the ice thickness downstream of the calving front to
     % approach the prescribed minimum ice thickness CtrlVar.LevelSetMinIceThickness.
-  
- 
+
+
     LM=LSFMasknod*fun;
     [abLSF,dadhLSF]=LevelSetMethodMassBalanceFeedback(CtrlVar,LM,hint) ;
-    a1int=a1int+abLSF; 
+    a1int=a1int+abLSF;
     dadhint=dadhint+dadhLSF ;
 
 else
@@ -154,7 +150,7 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
     % modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass balance equation
     %
-      
+
     hBC=hBCsMasknod*fun; % hBC is zero where there are no thickness constraints applied
     [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hint) ;
     a1int=a1int+aPenalty1;
@@ -169,7 +165,7 @@ end
 
 
 if isfield(CtrlVar,"ThicknessBarrier")  &&  isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffLog") && CtrlVar.ThicknessBarrier
-   
+
     if isempty(hBC)
         hBC=hBCsMasknod*fun;  % about 1 if h BC applied
     end
@@ -180,7 +176,7 @@ if isfield(CtrlVar,"ThicknessBarrier")  &&  isfield(CtrlVar,"ThicknessBarrierMas
     % applied.
     BarrierMask= hint > hBarrier & hBC < 0.1 & LM <0.1 ;
     p=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog;
-      
+
 
     if p < 0
         fprintf(" CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog must be positive. \n ")
@@ -197,7 +193,7 @@ if isfield(CtrlVar,"ThicknessBarrier")  &&  isfield(CtrlVar,"ThicknessBarrierMas
 
     a1int=a1int+aBarrier;
     dadhint=dadhint+daBarrierdh;
-% UaPlots(CtrlVar,MUA,[],aBarrier,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a barrier")
+    % UaPlots(CtrlVar,MUA,[],aBarrier,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a barrier")
 
 end
 
@@ -211,38 +207,23 @@ Hint=Sint-Bint;
 hfint=rhow*Hint./rhoint;  % this is linear, so fine to evaluate at int in this manner
 
 
-if CtrlVar.uvhGroupAssembly
 
 
-    Heint=Henod*fun;  %
-   % HEint=HEnod*fun;  %
-
-    deltaint=deltanod*fun;
-   % Deltaint=Deltanod*fun;
-
-    Hposint=Hposnod*fun;
-
-    dint=dnod*fun;        % dnod=HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
-    Dddhint=Dddhnod*fun;  % Here I am interpolating the derivative calculated at nodes, to the int points
+% calculate He and DiracDelta from integration point values of thickness
 
 
-else
+Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
+HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 
-    % calculate He and DiracDelta from integration point values of thickness
- 
+deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
+Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
 
-    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
-    HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
-    
-    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
-    Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
 
-    Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
+Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
 
-    dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
-    Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
 
-end
 
 
 dhdx=zeros(MUA.Nele,1); dhdy=zeros(MUA.Nele,1);
@@ -266,37 +247,37 @@ drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
 % derivatives at integration points
 
 % Deriv1=squeeze(Deriv(:,1,:)) ; % turned out that if only one element is handed to a worker, this squeeze command gets rid of the
-                                 % first-dimension as well, causing errors further down. 
+% first-dimension as well, causing errors further down.
 % Deriv2=squeeze(Deriv(:,2,:)) ;
 
 for Inod=1:MUA.nod
-    
+
     dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
     dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-    
+
     %    dHdx=dHdx+Deriv(:,1,Inod).*Hnod(:,Inod);
     %    dHdy=dHdy+Deriv(:,2,Inod).*Hnod(:,Inod);
-    
+
     dBdx=dBdx+Deriv(:,1,Inod).*Bnod(:,Inod);
     dBdy=dBdy+Deriv(:,2,Inod).*Bnod(:,Inod);
-    
+
     dh0dx=dh0dx+Deriv(:,1,Inod).*h0nod(:,Inod);
     dh0dy=dh0dy+Deriv(:,2,Inod).*h0nod(:,Inod);
-    
+
     exx0=exx0+Deriv(:,1,Inod).*u0nod(:,Inod);  % exx0
     eyy0=eyy0+Deriv(:,2,Inod).*v0nod(:,Inod);
-    
+
     dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
     dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
-    
+
     drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
     drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
-    
+
     exx=exx+Deriv(:,1,Inod).*unod(:,Inod);
     eyy=eyy+Deriv(:,2,Inod).*vnod(:,Inod);
     exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod));
-    
-    
+
+
 end
 
 
@@ -390,142 +371,25 @@ tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau,CtrlVar.uvh.SUPG.tauMultipl
 tau0=CtrlVar.SUPG.beta0*tau;
 
 
-
-
 detJw=detJ*MUA.weights(Iint);
 nod=MUA.nod ;
 
-switch lower(CtrlVar.FlowApproximation)
 
-    case "sstream"
-
-       
-        UseMex=~Ronly && CtrlVar.UseMexFiles ;
-
-        if ~UseMex
-
-
-            [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
-                uvhNodalLoopSSTREAM(detJw,nod,theta,tau0,Ronly,...
-                CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
-                Deriv,fun,...
-                exx,eyy,exy,exx0,eyy0,...
-                dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
-                ca,sa,g,dt,...
-                etaint,Eint,...
-                h0barr,h1barr,...
-                taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
-                Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-                hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-
-        else
-
-            if CtrlVar.UseMexFilesCPUcompare
-                Tx2=Tx ; Fx2=Fx ; Ty2=Ty ; Fy2=Fy ; Th2=Th; Fh2=Fh ;
-                Kxu2=Kxu ;  Kxv2=Kxv ; Kyu2= Kyu;
-                Kyv2=Kyv ;  Kxh2=Kxh ; Kyh2=Kyh ;
-                Khu2= Khu ; Khv2=Khv ; Khh2=Khh;
-            end
-
-            CV=1; Ronly=double(Ronly) ;
-
-            tStart = cputime;
-
-            [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
-                uvhNodalLoopSSTREAM_mex(detJw,nod,theta,tau0,Ronly,...
-                CV,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
-                Deriv,fun,...
-                exx,eyy,exy,exx0,eyy0,...
-                dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
-                ca,sa,g,dt,...
-                etaint,Eint,...
-                h0barr,h1barr,...
-                taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
-                Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-                hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-
-            tEndMex = cputime - tStart ; %fprintf("    MEX file %f \n",tEndMex)
-
-            if CtrlVar.UseMexFilesCPUcompare
-                tStart = cputime;
-                [Tx2,Fx2,Ty2,Fy2,Th2,Fh2,Kxu2,Kxv2,Kyu2,Kyv2,Kxh2,Kyh2,Khu2,Khv2,Khh2]=...
-                    uvhNodalLoopSSTREAM(detJw,nod,theta,tau0,Ronly,...
-                    CtrlVar,Tx2,Fx2,Ty2,Fy2,Th2,Fh2,Kxu2,Kxv2,Kyu2,Kyv2,Kxh2,Kyh2,Khu2,Khv2,Khh2, ...
-                    Deriv,fun,...
-                    exx,eyy,exy,exx0,eyy0,...
-                    dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
-                    ca,sa,g,dt,...
-                    etaint,Eint,...
-                    h0barr,h1barr,...
-                    taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
-                    Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-                    hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-
-                tEndm = cputime - tStart ; fprintf(" Mex %f sec \t   m-file %f sec \t m/Mex=%f \n",tEndMex,tEndm,tEndm/tEndMex)
-                fprintf("Difference between solutions: %f %f %f %f \n",norm(Tx2-Tx),norm(Fx2-Fx),norm(Ty2-Ty),norm(Fy2-Fy))
-            end
-
-        end
+[Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
+    uvhNodalLoopSSTREAM(detJw,nod,theta,tau0,Ronly,...
+    CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
+    Deriv,fun,...
+    exx,eyy,exy,exx0,eyy0,...
+    dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
+    ca,sa,g,dt,...
+    etaint,Eint,...
+    h0barr,h1barr,...
+    taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
+    Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
+    hint,h0int,a1int,a0int,dadhint,lambda_h) ;
 
 
-
-
-    case "hybrid"
-
-
-        [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
-            uvhNodalLoopHybrid(detJw,nod,theta,tau0,Ronly,...
-            CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
-            Deriv,fun,...
-            exx,eyy,exy,exx0,eyy0,...
-            dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
-            ca,sa,g,dt,...
-            etaint,Eint,...
-            h0barr,h1barr,...
-            taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
-            Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-            hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-
-
-    case "sstream-rho"
-
-        [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
-            uvhNodalLoopSSTREAMrho(detJw,nod,theta,tau0,Ronly,...
-            CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
-            Deriv,fun,...
-            exx,eyy,exy,exx0,eyy0,...
-            dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
-            ca,sa,g,dt,...
-            etaint,Eint,...
-            h0barr,h1barr,...
-            taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
-            Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-            hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-
-
-
-
-
-    case "sstreamTest"
-        error('not finalized')
-
-        [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
-            uvhNodalLoopSSTREAMtest(detJw,nod,theta,tau0,Ronly,...
-            CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
-            Deriv,fun,...
-            exx,eyy,exy,exx0,eyy0,...
-            dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
-            ca,sa,g,dt,...
-            etaint,Eint,...
-            h0barr,h1barr,...
-            taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
-            Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-            hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-
-
-    otherwise
-        error("What case?")
-end
 
 
 end
+
