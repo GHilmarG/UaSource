@@ -56,25 +56,32 @@ Tauu = mu.*t2.*t16.*t38.*t46.*u;
 if nargout > 1
     Tauv = mu.*t2.*t16.*t38.*t46.*v;
 end
-if nargout > 2
-    t48 = t25+t32+t41;
-    t47 = t46.^2;
-    dTauudu = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t4.*t22+t6.*t25+t6.*t41);
+
+if CtrlVar.BasalDrag.CalculateDerivatives
+
+    if nargout > 2
+        t48 = t25+t32+t41;
+        t47 = t46.^2;
+        dTauudu = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t4.*t22+t6.*t25+t6.*t41);
+    end
+    if nargout > 3
+        dTauvdv = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t6.*t22+t4.*t25+t4.*t41);
+    end
+    if nargout > 4
+        t49 = mu.*t2.*t13.*t16.*t39.*t47.*t48.*u.*v;
+        t50 = -t49;
+        dTauudv = t50;
+    end
+    if nargout > 5
+        dTauvdu = t50;
+    end
+    if nargout > 6
+        dTauudh = mu.*t9.*t35.*t37.*t47.*u+t3.*t8.*t15.*t17.*t36.*t44.*u.*4.0;
+    end
+    if nargout > 7
+        dTauvdh = mu.*t9.*t35.*t37.*t47.*v+t3.*t8.*t15.*t17.*t36.*t44.*v.*4.0;
+    end
 end
-if nargout > 3
-    dTauvdv = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t6.*t22+t4.*t25+t4.*t41);
-end
-if nargout > 4
-    t49 = mu.*t2.*t13.*t16.*t39.*t47.*t48.*u.*v;
-    t50 = -t49;
-    dTauudv = t50;
-end
-if nargout > 5
-    dTauvdu = t50;
-end
-if nargout > 6
-    dTauudh = mu.*t9.*t35.*t37.*t47.*u+t3.*t8.*t15.*t17.*t36.*t44.*u.*4.0;
-end
-if nargout > 7
-    dTauvdh = mu.*t9.*t35.*t37.*t47.*v+t3.*t8.*t15.*t17.*t36.*t44.*v.*4.0;
+
+
 end

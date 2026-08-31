@@ -62,6 +62,7 @@ else
         Atilde=Q*A+ BtB ;
         btilde=(Q*f+B'*g) ; % when solving for multiple right-hand sides, this will use automatic implicit expansion to expand B'*g to match Q*f
 
+  
 
         if CtrlVar.Parallel.isTest
 
@@ -93,6 +94,8 @@ else
 
 
         % https://uk.mathworks.com/help/parallel-computing/benchmarking-a-b.html
+
+        
         if CtrlVar.Parallel.Distribute
             if ~isdistributed(Atilde)
                 Atilde=distributed(Atilde);

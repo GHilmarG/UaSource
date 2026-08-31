@@ -163,6 +163,17 @@ if Ronly
     Kuv=[];
 end
 
+
+if Ronly
+    CtrlVar.BasalDrag.CalculateDerivatives=false;  
+    CtrlVar.EffectiveViscosity.CalculateDerivatives=false;
+else
+    CtrlVar.BasalDrag.CalculateDerivatives=true;
+    CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
+end
+
+
+
 if ZeroFields
     F.ub=F.ub*0;
     F.vb=F.vb*0;
@@ -395,9 +406,11 @@ for Iint=1:MUA.nip
     exx=sum(Dx.*ubnod,2);
     eyy=sum(Dy.*vbnod,2);
     exy=0.5*(sum(Dx.*vbnod,2)+sum(Dy.*ubnod,2));
-
+  
     [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = ...
         BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
+    
+    
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
     if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"

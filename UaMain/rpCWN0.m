@@ -1,6 +1,9 @@
-function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(C,C0,N,dNdh,He,delta,m,mu,u,v,u0)
+function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(CtrlVar,C,N,dNdh,He,delta,m,mu,u,v)
     
-    
+    narginchk(10,10)
+
+    C0=CtrlVar.Czero;
+    u0=CtrlVar.SpeedZero;
 
 %%
     % Tau=TauC*TauW/( (TauW^m+TauC^m)^(1/m));   % Inverse weighting
@@ -73,32 +76,42 @@ function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(C,
     if nargout > 1
         Tauv = mu.*t2.*t26.*t35.*t49.*t61.*v;
     end
-    if nargout > 2
-        t62 = t59.^t31;  % t59 sometimes becomes just slighly negative
-        dTauudu = mu.*t2.*t15.*t26.*t35.*t50.*t62.*(t38+t58+t7.*t27+m.*t9.*t27+m.*t9.*t56);
+
+    if CtrlVar.BasalDrag.CalculateDerivatives
+
+        if nargout > 2
+            t62 = t59.^t31;  % t59 sometimes becomes just slightly negative
+            dTauudu = mu.*t2.*t15.*t26.*t35.*t50.*t62.*(t38+t58+t7.*t27+m.*t9.*t27+m.*t9.*t56);
+        end
+        if nargout > 3
+            dTauvdv = mu.*t2.*t15.*t26.*t35.*t50.*t62.*(t38+t58+t9.*t27+m.*t7.*t27+m.*t7.*t56);
+        end
+        if nargout > 4
+            t63 = t59.^t33;
+            % t64 = mu.*t2.*t14.*t15.*t26.*t35.*t51.*t61.*u.*v;
+            t65 = mu.*t2.*t14.*t23.*t26.*t35.*t51.*t61.*u.*v;
+            % t66 = mu.*t2.*t15.*t34.*t36.*t52.*t55.*t63.*u.*v;
+            t67 = mu.*t2.*t23.*t34.*t36.*t52.*t55.*t63.*u.*v;
+            t68 = t65+t67;
+            dTauudv = t68;
+        end
+        if nargout > 5
+            dTauvdu = t68;
+        end
+        if nargout > 6
+            dTauudh = t16.*t17.*t22.*t25.*t35.*t48.*t60.*u+mu.*t11.*t34.*t35.*t48.*t54.*t63.*u;
+        end
+        if nargout > 7
+            dTauvdh = t16.*t17.*t22.*t25.*t35.*t48.*t60.*v+mu.*t11.*t34.*t35.*t48.*t54.*t63.*v;
+        end
+
+    else
+        dTauudu=[];
+        dTauvdv=[];
+        dTauudv=[];
+        dTauvdu=[];
+        dTauudh=[];
+        dTauvdh=[];
     end
-    if nargout > 3
-        dTauvdv = mu.*t2.*t15.*t26.*t35.*t50.*t62.*(t38+t58+t9.*t27+m.*t7.*t27+m.*t7.*t56);
-    end
-    if nargout > 4
-        t63 = t59.^t33;
-        % t64 = mu.*t2.*t14.*t15.*t26.*t35.*t51.*t61.*u.*v;
-        t65 = mu.*t2.*t14.*t23.*t26.*t35.*t51.*t61.*u.*v;
-        % t66 = mu.*t2.*t15.*t34.*t36.*t52.*t55.*t63.*u.*v;
-        t67 = mu.*t2.*t23.*t34.*t36.*t52.*t55.*t63.*u.*v;
-        t68 = t65+t67;
-        dTauudv = t68;
-    end
-    if nargout > 5
-        dTauvdu = t68;
-    end
-    if nargout > 6
-        dTauudh = t16.*t17.*t22.*t25.*t35.*t48.*t60.*u+mu.*t11.*t34.*t35.*t48.*t54.*t63.*u;
-    end
-    if nargout > 7
-        dTauvdh = t16.*t17.*t22.*t25.*t35.*t48.*t60.*v+mu.*t11.*t34.*t35.*t48.*t54.*t63.*v;
-    end
-    
-    
     
 end

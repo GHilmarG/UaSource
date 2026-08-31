@@ -21,6 +21,15 @@ narginchk(57,57)
 nargoutchk(15,19)
 
 
+if Ronly
+    CtrlVar.BasalDrag.CalculateDerivatives=false;  
+    CtrlVar.EffectiveViscosity.CalculateDerivatives=false;
+else
+    CtrlVar.BasalDrag.CalculateDerivatives=true;
+    CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
+
+end
+
 
 theta=CtrlVar.theta;
 
@@ -285,8 +294,14 @@ end
 [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
 %uoint=[];voint=[];Coint=[] ;moint=[] ;uaint=[] ;vaint=[] ;Caint=[]; maint=[];
+
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
     BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
+
+
+if ~isfield(CtrlVar,"OnlyCalcBasalDragAndEffectiveViscosity")
+    CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false;
+end
 
 if CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity
 

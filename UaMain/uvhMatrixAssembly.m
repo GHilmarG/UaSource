@@ -36,6 +36,16 @@ Ronly=CtrlVar.uvhMatrixAssembly.Ronly;
 if Ronly
     KdFuvhduvh=[];
 end
+
+
+if Ronly
+    CtrlVar.BasalDrag.CalculateDerivatives=false;  
+    CtrlVar.EffectiveViscosity.CalculateDerivatives=false;
+else
+    CtrlVar.BasalDrag.CalculateDerivatives=true;
+    CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
+
+end
 %
 % if nargin<7
 %     ZeroFields=false;
@@ -328,6 +338,10 @@ for Iint=1:MUA.nip
 
 end
 
+
+if ~isfield(CtrlVar,"OnlyCalcBasalDragAndEffectiveViscosity")
+    CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false;
+end
 
 
 if CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity

@@ -193,6 +193,9 @@ dl=luvh*0;
 
 nlubvb=numel(l1.ubvb) ; % I need to do this after the Luvh assembly, because l1 might have changed if linearly dependent BCs are discovered and corrected for.
 
+if ~isfield(CtrlVar,"uvhMakeInitialIterateFeasible")
+    CtrlVar.uvhMakeInitialIterateFeasible=true; 
+end
 
 if CtrlVar.uvhMakeInitialIterateFeasible
     %% Make sure iterate is feasible, at least with respect to direct BCs

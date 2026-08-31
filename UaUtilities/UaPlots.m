@@ -79,7 +79,7 @@ arguments
     options.PlotCalvingFronts  logical = true
     options.CalvingFrontColor char = "b"
     options.GroundingLineColor char = "r"
-    options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.GetRidOfValuesDownStreamOfCalvingFronts=false;
     options.GetRidOfValuesDownStreamOfGroundingLines=false;
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;

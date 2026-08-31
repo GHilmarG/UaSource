@@ -1,4 +1,13 @@
-function [Taux,Tauy,dTauxdu,dTauydv,dTauxdv,dTauydu,dTauxdh,dTauydh] = rCWV0(C,C0,V0,He,delta,m,u,v,u0)
+function [Taux,Tauy,dTauxdu,dTauydv,dTauxdv,dTauydu,dTauxdh,dTauydh] = rCWV0(CtrlVar,C,V0,He,delta,m,u,v)
+
+narginchk(8,8)
+
+narginchk(10,10)
+
+C0=CtrlVar.Czero;
+u0=CtrlVar.SpeedZero;
+
+
 %rCWV0
 %    [Taux,Tauy,dTauxdu,dTauydv,dTauxdv,dTauydu,dTauxdh,dTauydh] = rCWV0(C,C0,V0,H,HF,M,U,U0,V)
 
@@ -36,24 +45,37 @@ Taux = t14.*t18.*t26.*t27.*u;
 if nargout > 1
     Tauy = t14.*t18.*t26.*t27.*v;
 end
-if nargout > 2
-    t29 = t23.^t16;
-    dTauxdu = t9.*t14.*t18.*t28.*t29.*(t11+t24+V0.*t3+t2.*t5+t5.*t22);
+
+if CtrlVar.BasalDrag.CalculateDerivatives
+
+    if nargout > 2
+        t29 = t23.^t16;
+        dTauxdu = t9.*t14.*t18.*t28.*t29.*(t11+t24+V0.*t3+t2.*t5+t5.*t22);
+    end
+    if nargout > 3
+        dTauydv = t9.*t14.*t18.*t28.*t29.*(t11+t24+V0.*t5+t2.*t3+t3.*t22);
+    end
+    if nargout > 4
+        t31 = t12.*t14.*t18.*t25.*t28.*t29.*u.*v;
+        dTauxdv = t31;
+    end
+    if nargout > 5
+        dTauydu = t31;
+    end
+    if nargout > 6
+        dTauxdh = t13.*t18.*t26.*t27.*u;
+    end
+    if nargout > 7
+        dTauydh = t13.*t18.*t26.*t27.*v;
+    end
+else
+    dTauxdu=[];
+    dTauydv=[];
+    dTauxdv=[];
+    dTauydu=[];
+    dTauxdh=[];
+    dTauydh=[];
 end
-if nargout > 3
-    dTauydv = t9.*t14.*t18.*t28.*t29.*(t11+t24+V0.*t5+t2.*t3+t3.*t22);
-end
-if nargout > 4
-    t31 = t12.*t14.*t18.*t25.*t28.*t29.*u.*v;
-    dTauxdv = t31;
-end
-if nargout > 5
-    dTauydu = t31;
-end
-if nargout > 6
-    dTauxdh = t13.*t18.*t26.*t27.*u;
-end
-if nargout > 7
-    dTauydh = t13.*t18.*t26.*t27.*v;
-end
+
+
 end

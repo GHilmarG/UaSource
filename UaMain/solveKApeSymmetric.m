@@ -78,6 +78,10 @@ if ~isfield(CtrlVar,"Symmsolver")
 end
 
 %%
+if ~isfield(CtrlVar,"BCsRowSubsetSelection")
+    CtrlVar.BCsRowSubsetSelection=false;
+end
+
 
 if CtrlVar.BCsRowSubsetSelection
 

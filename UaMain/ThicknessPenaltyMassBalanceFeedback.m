@@ -21,8 +21,8 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 %
 % and where:
 %
-%   a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin 
-%   a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad; 
+%   a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin
+%   a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad;
 %   a_3= CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;
 %
 % Note: $a_1$ and $a_3$ need to be negative and $a_2$ positive, however, this is check internally so actually the sign on
@@ -33,6 +33,40 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 %
 % For this term to be positive or negative depending on ice thickness with respect to the desired thickness, the functions
 % are odd function of ice thickness and first and third power are allowed (but not second power).
+%
+% Setting
+%
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="softplus";
+%
+% adds a smooth linear trend
+%
+% $$ a=K \; f(k,-h,-h_{\min}) $$
+%
+%
+% where
+%
+% $$ f(k,x,x_0) =\mathrm{SoftPlus}(x) = \frac{1}{2k} \, \ln \left ( 1+e^{2k(x-x_0)} \right ) $$
+%
+% The function $f$ is the SoftPlus function. It is a smooth version of a function that is zero for $x < x_0$ with a smoothness determined
+% by  $k$ where $h$ has the units of inverse $x$.
+%
+% So, for example,
+%
+% $$a=K \;  f(1/(2 l),-h,-h_{\min}) $$
+%
+% gives $a$  that is zero for $h>h_{\min}$ and approximately  equal to $-K (h-h_{\min})$ for $h<h_{\min}$. This gives a positive mass
+% balance for $h$ smaller than $h_{\min}$ and zero if $h$ is greater than $h_{\min}$, with a smoothing distance scale $l$
+%
+%   K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K;
+%   l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
+%
+% Typical values might be:
+%
+%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="softplus";
+%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=10;
+%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin ;
+%
+%
 %
 %
 %%
@@ -66,7 +100,7 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         %% exponential barrier
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l;
-        hmin=CtrlVar.ThickMin ; 
+        hmin=CtrlVar.ThickMin ;
         %K=10; l=hmin/10 ;
         aPenalty1=K*exp(-(hint-hmin)/l);
         daPenaltydh1=-K*exp(-(hint-hmin))/l;
@@ -75,27 +109,27 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
     case "softplus"
         %% Softplus
 
-       
+
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
         hmin=CtrlVar.ThickMin ;
-        k=1/(2*l); 
+        k=1/(2*l);
 
 
         % E=exp(-(hint-hmin)/l);
         % SoftMinus=K*log(1+E);
         % dSoftMinusdh=(-K/l)./ (1./E+1);
-        % 
-        
-        % E=exp(-2*k*(hint-hmin)); 
+        %
+
+        % E=exp(-2*k*(hint-hmin));
         % SoftMinus=(K/(2*k)) * log(1+E);
-        % dSoftMinusdh=-K./(1+1./E );  
-        % 
-        % 
+        % dSoftMinusdh=-K./(1+1./E );
+        %
+        %
         % aPenalty1=SoftMinus;
         % daPenaltydh1=dSoftMinusdh;
 
-        % 
+        %
         % k=1/l ;
         [aPlus,daPlusdh] = SoftPlus(k,-hint,-hmin);
         aPenalty1=K*aPlus;
@@ -116,6 +150,7 @@ if CtrlVar.InfoLevelThickMin >= 10
     end
 
     if CtrlVar.InfoLevelThickMin >= 10
+        %%
         Fig=FindOrCreateFigure("a penalty versus ice thickness") ; clf(Fig)
 
         yyaxis left ;
@@ -126,12 +161,26 @@ if CtrlVar.InfoLevelThickMin >= 10
         yyaxis right ;
         plot(hint,daPenaltydh1,".r") ; ylabel("da/dh")
 
-        xlim([0 5*hmin]) ;
+        xlim([min(0,min(hint)) 5*hmin]) ;
         xlabel("hint") ;
         title("a penalty") ;
         xline(hmin,"--k","hmin") ;
         %ylim([-K/l 0])
 
+
+        switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
+
+            case "softplus"
+                hExample=linspace(min(min(hint,-CtrlVar.ThickMin)),CtrlVar.ThickMin) ;
+
+                % k=1/l ;
+                [aPlusExample,daPlusdhExample] = SoftPlus(k,-hExample,-hmin);
+                aPlusExample=K*aPlusExample;
+                daPlusdhExample=-K*daPlusdhExample ; %
+        end
+        hold on ; yyaxis left ; plot(hExample,aPlusExample,"--")
+        hold on ; yyaxis right ; plot(hExample,daPlusdhExample,"--")
+        %%
     end
 
 end
