@@ -109,8 +109,13 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
     case "softplus"
         %% Softplus
 
-
-        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K;
+        % note: Here K is scaled with dt. This change was done on 31 August, 2026
+        % It ensures that the penalty term is equal "per iteration" and makes sure
+        % it does its job even if dt goes down.  Otherwise, exactly when we have convergence issue due to small/negative ice
+        % thickness, and the time step therefore goes down (due to automated selection of dt within the time stepping) the penalty
+        % term goes to zero and does not help at all.
+        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K/(CtrlVar.dt+eps(CtrlVar.dt)) ;
+        
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
         hmin=CtrlVar.ThickMin ;
         k=1/(2*l);
@@ -171,7 +176,7 @@ if CtrlVar.InfoLevelThickMin >= 10
         switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 
             case "softplus"
-                hExample=linspace(min(min(hint,-CtrlVar.ThickMin)),CtrlVar.ThickMin) ;
+                hExample=linspace(min(min(hint,-CtrlVar.ThickMin)),5*CtrlVar.ThickMin) ;
 
                 % k=1/l ;
                 [aPlusExample,daPlusdhExample] = SoftPlus(k,-hExample,-hmin);

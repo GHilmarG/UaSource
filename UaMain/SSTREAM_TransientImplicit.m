@@ -452,7 +452,6 @@ while true
     r0=func(0,dub,dvb,dh,dl) ;
     r1=func(1,dub,dvb,dh,dl) ;
 
-
     [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
     %%
 

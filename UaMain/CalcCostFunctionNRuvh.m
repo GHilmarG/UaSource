@@ -83,8 +83,6 @@ rWork=full(D2^2);
 % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
 rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
 
-zz_ResidualLog('add',gamma,rForce,rWork,frhs,grhs,MUA.Nnodes);   % TEMPORARY DIAGNOSTIC
-
 %% Testing TestIng
 % rForce=(R'*R)/(fext0'*fext0);
 % rForce=full(rForce) ;
