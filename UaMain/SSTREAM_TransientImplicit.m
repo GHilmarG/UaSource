@@ -452,7 +452,7 @@ while true
     r0=func(0,dub,dvb,dh,dl) ;
     r1=func(1,dub,dvb,dh,dl) ;
 
-    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
+    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
     %%
 
     % slope0=-2*r0 ;
@@ -469,7 +469,7 @@ while true
 
     %% If desired, plot residual along search direction
     if CtrlVar.InfoLevelNonLinIt>=2 && CtrlVar.doplots==1
-        nnn=50;
+        nnn=20;
         gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
         Upper=2.2;
         Lower=-1 ;
@@ -593,8 +593,8 @@ while true
         end
 
         fprintf(...
-            'NR-SSTREAM(uvh):%3u/%-2u g%s=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g  \n ',...
-            iteration,RunInfo.BackTrack.iarm,Step,gamma,r/r0,r0,r,rForce,rWork,BCsError);
+            'NR-SSTREAM(uvh):%3u/%-2u g%s=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g,  ru=%-14.7g \t rv=%-14.7g, \t rh=%-14.7g \t rBCs=%g \n ',...
+            iteration,RunInfo.BackTrack.iarm,Step,gamma,r/r0,r0,r,rForce,rWork,BCsError,rBlocks);
 
     end
 

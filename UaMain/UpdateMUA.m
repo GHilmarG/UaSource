@@ -203,15 +203,11 @@ if MeshHasChanged
             MUA.dM=decomposition(MUA.M,'chol','upper') ;
         end
 
-        if CtrlVar.MUA.CholeskyMassMatrix
 
-            [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
-
-        end
 
     else
 
-        MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ;
+        MUA.M=[] ; MUA.dM=[] ; 
 
     end
 

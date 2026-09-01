@@ -2,7 +2,7 @@
 
 
 
-function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,du0,dv0,dh0,dl0,dJdu,dJdv,dJdh,dJdl,Normalisation,M)
+function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2,rBlocks] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,du0,dv0,dh0,dl0,dJdu,dJdv,dJdh,dJdl,Normalisation,M)
 
 %%
 % Does a dog-leg line search.
@@ -37,7 +37,7 @@ gammaminNewton=nan ; gammaminCauchyD=nan ; gammaCauchyD=nan ;  gammaminCauchyM=n
 normNewtonStep=nan ; normCauchyM=nan ; normCN=nan; normCauchyD=nan ; normNewton=nan ; 
 %% these will be the returns if no min is found
 gammamin=0 ; rmin=r0 ;   du=du0*0 ; dv=dv0*0 ; dh=dh0*0 ; dl=dl0*0 ;
-rForce=r0 ; rWork=nan ; D2=nan ;
+rForce=r0 ; rWork=nan ; D2=nan ; rBlocks=[nan nan nan nan];
 
 %%
 NoReduction=true; 
@@ -130,7 +130,7 @@ if contains(CtrlVar.rLineMinUa,"-Newton Step-")  || contains(CtrlVar.rLineMinUa,
         rmin=rminNewton;
         normNewton=norm([du;dv;dh;dl]) ;
 
-        [rTest,~,~,rForce,rWork,D2]=rNewtonFunc(gammamin);
+        [rTest,~,~,rForce,rWork,D2,rBlocks]=rNewtonFunc(gammamin);
         BackTrackInfo.Direction="N " ;
         BestMethod="Newton" ;
 

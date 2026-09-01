@@ -2,6 +2,40 @@
 
 %%
 %
+% *Release Notes* _August 2026_
+%
+%
+% * For the -uvh- solve, two normalization of the residuals are now available, selected by
+%
+%    CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
+%                                     = "blockwise"
+%
+% The new blockwise normalization option is seleted by setting 
+%
+%    CtrlVar.uvhResidualNormalisation="blockwise";
+%
+% It scales the uv and the h blocks of the residual vector separately. This should give a better measure of the residual and
+% be less affected by relative differences in the uv and h residual blocks. 
+%
+% * There is a new "softplus" positive ice-thickness penalty formulation. It can be used in connection with the active-set iteration
+% enforcing the min ice thickness constraint. It adds an implicit penalty term to the uvh system. The penalty term is a
+% "soft" i.e. smooth function of the thickness violation. It has two parameters:
+%
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l
+%
+% $K$ is the slope of the linear term and l is a smoothness parameter. Note that $l$ has the units of ice thickness and should be
+% selected to be somewhat smaller than CtrlVar.ThickMin
+%
+% Typical values might be
+%
+%   CtrlVar.ThicknessPenalty=true;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="softplus";
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
+%
+% (Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)
+%
 % *Release Notes* _July 2026_
 %
 % An option added to use Matérn covariance matrices in an inversion. The resulting precision matrices are either:

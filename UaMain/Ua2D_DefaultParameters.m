@@ -562,11 +562,19 @@ CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when 
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implicitly for h
 CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
+
+CtrlVar.uvhResidualNormalisation="lumped";  % The uvh residuals can be normalized together as a one vector ("lumped"), 
+                                            % or individually as blocks ("blockwise") whereby the u, v and h residuals 
+                                            % all have their own normalization. 
+
+
+
+
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.hMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"]; 
-
+CtrlVar.MustBe.uvhResidualNormalisation=["lumped","blockwise"]; 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
 CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
@@ -1580,7 +1588,6 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
 CtrlVar.MUA.DecomposeMassMatrix=true;
-CtrlVar.MUA.CholeskyMassMatrix=false;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 CtrlVar.MUA.AssemblyPattern.uv=true;

@@ -9,11 +9,11 @@
 
 
 
-function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
+function [r,UserVar,RunInfo,rForce,rWork,D2,rBlocks]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
 
 
 narginchk(17,17)
-nargoutchk(1,6)
+nargoutchk(1,7)
 
 if isnan(gamma)
     error("CalcCostFunctionNRuvh:nan","nan in gamma")
@@ -81,7 +81,83 @@ rWork=full(D2^2);
 
 % rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
 % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
-rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
+
+%% Force residual
+%
+% Two normalisations are available, selected by
+%
+%    CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
+%                                     = "blockwise"
+%
+% "pooled" divides the whole residual by the norm of the zero-field
+% reference residual fext0.  The difficulty is that the u, v and h rows of
+% the uvh residual are not commensurate: the momentum rows have units of
+% force while the thickness rows have units of mass, and the thickness rows
+% carry factors of dt. 
+%
+% "blockwise" weights each block by its own scale taken from the
+% corresponding block of fext0,
+%
+%     rForce = (|Ru|/suv)^2 + (|Rv|/suv)^2 + (|Rh|/sh)^2 + (|Rl|/sl)^2
+%
+% which is ||W*[frhs;grhs]||^2 for a fixed block-diagonal W.  Because W is
+% fixed through a Newton solve, the identity
+%
+%     dr/dgamma|_0 = -2 r(0)
+%
+% still holds exactly, so the Newton direction remains a descent direction
+% and the line search is unaffected.  Unlike max(...) over blocks, the
+% weighted 2-norm is smooth, which the backtracking model requires.
+%
+% The optional seventh output returns the individual block residuals so that
+% the caller can report which equation is the least converged.
+%%
+
+N=MUA.Nnodes;
+
+if isfield(CtrlVar,"uvhResidualNormalisation") && CtrlVar.uvhResidualNormalisation=="blockwise"
+
+    % block scales, fixed for the whole Newton solve because fext0 and cuvh are
+
+    suv=norm(fext0(1:2*N));      % same normalization for both u and v components
+    sh=norm(fext0(2*N+1:3*N));   % and a separate one for the h block 
+
+    % a block with no reference scale is measured absolutely rather than
+    % being allowed to blow up
+    Small=1000*eps;
+    if suv<Small ; suv=1 ; end
+ 
+    if sh<Small ; sh=1 ; end
+
+    ru=norm(frhs(1:N))/suv;
+    rv=norm(frhs(N+1:2*N))/suv;
+    rh=norm(frhs(2*N+1:3*N))/sh;
+
+    if isempty(grhs)
+        rl=0;
+    else
+        sl=norm(cuvh);          % constant during the Newton solve
+        if sl<Small ; sl=1 ; end
+        rl=norm(grhs)/sl;
+    end
+
+    rForce=full(ru^2+rv^2+rh^2+rl^2);
+    rBlocks=[ru rv rh rl];
+    rBlocks=rBlocks .^2; 
+
+else
+
+    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
+
+    if nargout>=7
+        Nrm=sqrt(fext0'*fext0+1000*eps);
+        rBlocks=full([norm(frhs(1:N)) norm(frhs(N+1:2*N)) norm(frhs(2*N+1:3*N)) norm(grhs)]/Nrm);
+        rBlocks=rBlocks .^2; 
+    else
+        rBlocks=[];
+    end
+
+end
 
 %% Testing TestIng
 % rForce=(R'*R)/(fext0'*fext0);
