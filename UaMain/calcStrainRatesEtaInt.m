@@ -108,8 +108,8 @@ if nargin>4
         n=nGlenint;
         % etaInt=real(0.5*AGlenint.^(-1./n).*e.^((1-n)./n));
         % Eint=real((1-n)./(4*n).*AGlenint.^(-1./n).*e.^((1-3*n)./n));
-
-        [etaInt,Eint,e,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,n,exx,eyy,exy) ;
+        CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
+        [etaInt,Eint,e]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,n,exx,eyy,exy) ;
     end
 end
 

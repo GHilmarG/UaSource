@@ -195,7 +195,7 @@ if MeshHasChanged
 
 
 
-    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ||  CtrlVar.MUA.CholeskyMassMatrix
+    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
 
         MUA.M=MassMatrix2D1dof(MUA);
 
@@ -207,7 +207,7 @@ if MeshHasChanged
 
     else
 
-        MUA.M=[] ; MUA.dM=[] ; 
+        MUA.M=[] ; MUA.dM=[] ;
 
     end
 

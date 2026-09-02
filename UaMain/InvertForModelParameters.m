@@ -173,7 +173,7 @@ func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns
                                                                                                       % trust-region-reflective
                                                                                                       % algorithm 
                                                                                                   
-Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method 
+Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method 
 
 % Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same

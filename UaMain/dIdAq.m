@@ -232,7 +232,7 @@ for Iint=1:MUA.nip
 
     detJw=detJ*MUA.weights(Iint);
 
-
+    CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
     [~,~,~,detadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
     %dEtadA=dEtadA.*hint;
 

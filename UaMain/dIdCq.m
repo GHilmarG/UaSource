@@ -107,8 +107,8 @@ narginchk(7,7)
 %%
 ndim=2;
 
-C0=CtrlVar.Czero;
-u0=CtrlVar.SpeedZero;
+% C0=CtrlVar.Czero;
+% u0=CtrlVar.SpeedZero;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
