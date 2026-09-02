@@ -10,11 +10,11 @@
 %    CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
 %                                     = "blockwise"
 %
-% The new blockwise normalization option is seleted by setting 
+% The new blockwise normalization option is selected by setting 
 %
 %    CtrlVar.uvhResidualNormalisation="blockwise";
 %
-% It scales the uv and the h blocks of the residual vector separately. This should give a better measure of the residual and
+% It scales the uv and the h blocks of the uvh residual vector separately. This should give a better measure of the residual and
 % be less affected by relative differences in the uv and h residual blocks. 
 %
 % * There is a new "softplus" positive ice-thickness penalty formulation. It can be used in connection with the active-set iteration
