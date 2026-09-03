@@ -357,7 +357,7 @@ while true
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
 
 
-    CtrlVar.TestForPosDefAlongNewtonDirection=true;
+    CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
     if CtrlVar.TestForPosDefAlongNewtonDirection
 
@@ -383,7 +383,7 @@ while true
 
         PD1=full(duvh'*K*duvh) ;
         PD2=full([duvh;dl]'*H*[duvh;dl]) ;
-        fprintf("Pos def test: %g \t %g \n",PD1,PD2)
+        % fprintf("Pos def test: %g \t %g \n",PD1,PD2)
         if PD1 <0 || PD2 < 0
 
             fprintf("Newton direction not pos def! \n")

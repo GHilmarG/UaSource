@@ -198,7 +198,7 @@ if CtrlVar.InverseRun
 
     if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,"fixpoint")
 
-        % if fixpoint, then only c inversion is possible
+        error("CtrlVarValidityCheck:fixpointOptionOutdated","The fixpoint option no longer supported") 
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"logAGlen","");
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"Aglen","");
         CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"logAGlen","");
@@ -207,6 +207,29 @@ if CtrlVar.InverseRun
 
 
     end
+
+
+    if contains(CtrlVar.Inverse.InvertFor,"-AGlen-")
+
+        error("CtrlVarValidityCheck:OptionOutdated","The AGlen inversion no longer supported, use logAGlen inversion instead. ")
+
+    end
+
+
+    if contains(CtrlVar.Inverse.InvertFor,"-C-")
+
+        error("CtrlVarValidityCheck:OptionOutdated","The C inversion no longer supported, use logC inversion instead. ")
+
+    end
+
+    if contains(CtrlVar.Inverse.Regularize.Field,"-C-")
+        error("CtrlVarValidityCheck:OptionOutdated","The C regularisation no longer supported, use logC regularisation instead. ")
+    end
+
+    if contains(CtrlVar.Inverse.Regularize.Field,"-AGlen-")
+        error("CtrlVarValidityCheck:OptionOutdated","The A regularisation no longer supported, use logAGlen regularisation instead. ")
+    end
+
 
     % Don't regularize A if not inverting for A, so
     if ~contains(CtrlVar.Inverse.InvertFor,"AGlen")

@@ -68,15 +68,15 @@ doSteepestDescent=false;
 doTrustRegion=true;
 
 
-JTrustRegion=inf ; DeltaMax=nan; 
+JTrustRegion=inf ; DeltaMax=nan;
 JNewton=inf;
-JSteepestDescent=nan;
+JSteepestDescent=inf;
 
 dpSteepestDescent=nan;
 gammaSteepestDescent=nan;
 gammaSDMax=nan;
 gammaNewton=nan;
-MetricMatrix=[]; 
+MetricMatrix=[];
 
 while true
 
@@ -121,12 +121,18 @@ while true
 
     end
 
+    %% Build metric matrix, i.e. the Gram matrix
+    if isempty(MetricMatrix)  % Only build it once, and reuse the decomposition
 
-    E=HessPosDefAddition(CtrlVar,MUA);
+        MetricMatrix=BuildMetricMatrix(CtrlVar,MUA); 
+        dMetricMatrix=decomposition(MetricMatrix);
+    end
+    %%
+ 
 
-    [Hessian,lStart]=CheckIfHessianIsSPDandIfNotMakeItSo(Hessian,E,lStart) ;
+    [Hessian,lStart]=CheckIfHessianIsSPDandIfNotMakeItSo(Hessian,MetricMatrix,lStart) ;
     lCondition=1e-5; lConditionMin=0;
-    Hessian=ImproveMatrixCondition(Hessian,MUA.M,lCondition,lConditionMin) ;
+    Hessian=ImproveMatrixCondition(Hessian,MetricMatrix,lCondition,lConditionMin) ;
 
     dpNewton=Hessian\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
     slope0Newton=g0'*dpNewton;
@@ -229,48 +235,7 @@ while true
     end
 
 
-    %% Build metric matrix, i.e. the Gram matrix
-    if isempty(MetricMatrix)  % Only build it once, and reuse the decomposition
-    Metric="H1" ;
-    nH=size(Hessian,1);
-    nNodes=MUA.Nnodes;
-    M=MUA.M ;
-    D=MUA.Dxx+MUA.Dyy;
-
-    if nH==2*nNodes
-        M=blkdiag(M,M) ;
-        D=blkdiag(D,D) ;
-
-    else
-        error("wrong dimensions")
-    end
-
-
-    % Build metric, this is the Gram matrix
-
-
-    switch Metric
-
-        case "L2"
-
-            MetricMatrix=M;
-
-        case "H1"
-
-            ga=1;
-            gs=1000;  % this has the units distance/length
-         
-            MetricMatrix=0.5*(ga^2*M+gs^2*D);
-
-        case "l2"
-
-            MetricMatrix=1;
-    end
-
-    % check if symmetrical
-    dMetricMatrix=decomposition(MetricMatrix);
-    end
-    %%
+   
 
 
     dpSteepestDescent=dMetricMatrix\(-g0); % pre-multiplying, note that I must use the inverse...!
@@ -317,7 +282,7 @@ while true
 
     %% testing two-dimensional subspace approach
     if doTrustRegion
-       
+
         if isnan(DeltaMax)
             % only set DeltaMax once, and set it to a generously large value
             DeltaMax=10*sqrt(dpNewton'*MetricMatrix*dpNewton);
@@ -330,9 +295,9 @@ while true
             Delta=Delta_new;
         end
 
-        accepted=false;
+        TrustRegionStepAccepted=false;
 
-        while ~accepted && Delta>DeltaMin
+        while ~TrustRegionStepAccepted && Delta>DeltaMin
 
             [dpTR,yTR,info]=TwoDSubspaceTrustRegionGram(g0,Hessian,dpNewton,dpSteepestDescent,Delta,MetricMatrix) ;
             JTrustRegion=func(p+dpTR)   ;
@@ -340,9 +305,9 @@ while true
             PredicedReduction = -(g0'*dpTR + 0.5 * dpTR' * Hessian * dpTR) ; % predicted reduction (note that J0 cancels)
             rho=ActualReduction/PredicedReduction ;
 
-            [p0_new, Delta_new, accepted] = TrustRegionUpdate(p, dpTR, J0, JTrustRegion, PredicedReduction, Delta, DeltaMax) ;
-        
-            fprintf("TrustRegion: accepted=%s \t case=%s \t rho=%f \t Delta=%f \t delta_new=%g  dp=%3.3f dNewton  %+3.3f dSteepestDescent \n ",string(accepted),info.case,rho,Delta,Delta_new,yTR(1),yTR(2)) 
+            [p0_new, Delta_new, TrustRegionStepAccepted] = TrustRegionUpdate(p, dpTR, J0, JTrustRegion, PredicedReduction, Delta, DeltaMax) ;
+
+            fprintf("TrustRegion: accepted=%s \t case=%s \t rho=%f \t Delta=%f \t delta_new=%g  dp=%3.3f dNewton  %+3.3f dSteepestDescent \n ",string(TrustRegionStepAccepted),info.case,rho,Delta,Delta_new,yTR(1),yTR(2))
 
             % if Delta==DeltaMax
             %        fprintf("Delta is hitting against DeltaMax for rho=%g\n",rho)
@@ -361,9 +326,22 @@ while true
 
     rhoJNewton=JNewton/J0;
     rhoJSteepestDescent=JSteepestDescent/J0;
-    rhoJTrustRegion=JTrustRegion/J0;
+ 
+    if TrustRegionStepAccepted
+        rhoJTrustRegion=JTrustRegion/J0;
+    else
+        rhoJTrustRegion=inf;
+    end
 
+    % pick the best
     [rhoJmin,iJmin]=min([rhoJNewton,rhoJSteepestDescent,rhoJTrustRegion]);
+
+    if rhoJmin> 1
+    
+        fprintf(" Value of cost function could not be reduced. \n")
+        break
+
+    end
 
     switch iJmin
         case 1
@@ -378,20 +356,20 @@ while true
 
         case "Newton"
 
-         
+
             dp=gammaNewton*dpNewton;
             p=p+dp;
-            SubOptimality=-g0'*dpNewton/2  ; % Newton decrement g0' H^{-1} g /2
+         
             dpNorm=norm(dp)/norm(p);
             J=JNewton;
             gamma=gammaNewton;
 
         case "SteepestDescent"
 
-           
+
             dp=gammaSteepestDescent*dpSteepestDescent;
             p=p+dp;
-            SubOptimality=-g0'*dpSteepestDescent/2;  % Steepest-descent decrement g0' H^{-1} g /2
+          
             dpNorm=norm(dp)/norm(p);
             J=JSteepestDescent;
             gamma=gammaSteepestDescent;
@@ -399,16 +377,15 @@ while true
         case "TrustRegion"
 
 
-    
+
             p=p0_new;
 
-            SubOptimality=PredicedReduction;
             dpNorm=norm(dpTR)/norm(p);
             J=JTrustRegion;
             gamma=nan;
     end
 
-
+   SubOptimality=-g0'*dpNewton/2  ; % Newton decrement g0' H^{-1} g /2
 
 
 
@@ -466,9 +443,9 @@ while true
 
 end
 
-I=~isnan(Jvector); 
+I=~isnan(Jvector);
 Jvector=Jvector(I);
-SubOptimalityVector=SubOptimalityVector(I); 
+SubOptimalityVector=SubOptimalityVector(I);
 itVector=0:(numel(Jvector)-1) ; itVector=itVector(:);
 
 I=~isnan(GradNormVector); GradNormVector=GradNormVector(I); GradNormVector=GradNormVector(:) ;  GradNormVector=[GradNormVector;NaN]; % Make sure it has the same length as itVector

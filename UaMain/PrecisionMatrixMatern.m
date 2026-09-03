@@ -132,7 +132,7 @@ else
 
 end
 
-
+Q=0.5*(Q+Q');
 
 
 end

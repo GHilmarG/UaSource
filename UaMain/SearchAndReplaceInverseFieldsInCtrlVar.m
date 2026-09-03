@@ -15,7 +15,7 @@ InvertString=string(InvertString) ;
 
 InvertString=replace(InvertString,"Aglen","A") ; 
 
-% first replace Aglen with A, although later I will return AGlen
+% first replace AGlen with A, although later I will return AGlen
 % doing this replacement reduces the number of cases to look at
 % and it is always possible to replace AGlen with A, whereas replacing A with
 % AGlen is potentially ambiguous

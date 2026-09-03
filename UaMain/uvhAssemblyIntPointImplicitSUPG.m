@@ -146,13 +146,18 @@ if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalan
     a1int=a1int+abLSF;
     dadhint=dadhint+dadhLSF ;
 
+  %  UaPlots(CtrlVar,MUA,[],abLSF,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="abLSF")  ; clim([-10 1]) ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+
 else
     LM=0; % Level set mask for melt not applied
 end
 
-h1barr=0 ; h0barr=0; lambda_h=1;
 
+h1barr=0 ; h0barr=0; lambda_h=1;
 hBC=[];
+
+
+
 if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
 
     %%  New simpler implementation of a thickness penalty term.
