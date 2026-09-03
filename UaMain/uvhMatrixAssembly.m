@@ -415,6 +415,7 @@ if ~Ronly
         % MUA.uvhAssemblyPattern.blocks, i.e. row-major (u,v,h)x(u,v,h).
         P=MUA.uvhAssemblyPattern;
         Xval=[Kxu(:);Kxv(:);Kxh(:);Kyu(:);Kyv(:);Kyh(:);Khu(:);Khv(:);Khh(:)];
+
         KdFuvhduvh=sparse(P.i0,P.j0,accumarray(P.map,Xval,[P.nk 1]),neq,neq);
     else
         %Iind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);
