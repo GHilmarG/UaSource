@@ -563,12 +563,12 @@ CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when s
 CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
 
-CtrlVar.uvhResidualNormalisation="lumped";  % The uvh residuals can be normalized together as a one vector ("lumped"), 
+% CtrlVar.uvhResidualNormalisation="lumped";  % The uvh residuals can be normalized together as a one vector ("lumped"), 
                                             % or individually as blocks ("blockwise") whereby the u, v and h residuals 
                                             % all have their own normalization. 
 
 
-
+CtrlVar.uvhResidualNormalisation="blockwise";   % the new blockwise uvh-residual calculation
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 

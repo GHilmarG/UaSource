@@ -290,16 +290,30 @@ if CtrlVar.MUA.AssemblyPattern.uv && CtrlVar.MUA.AssemblyPattern.uvh
 end
 
 
-if CtrlVar.MUA.AssemblyPattern.uv && isempty(MUA.uvAssemblyPattern)  
-        MUA.uvAssemblyPattern=AssemblyPatternCache(CtrlVar,MUA);
+if CtrlVar.MUA.AssemblyPattern.uv && isempty(MUA.uvAssemblyPattern)
+    MUA.uvAssemblyPattern=AssemblyPatternCache(CtrlVar,MUA);
 end
 
 
-if CtrlVar.MUA.AssemblyPattern.uvh && isempty(MUA.uvhAssemblyPattern)  
+if CtrlVar.MUA.AssemblyPattern.uvh && isempty(MUA.uvhAssemblyPattern)
     [~,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
 end
 
 
+%% it is possible that the mesh has not changed, but the AssemblyPattern is outdated.
+if CtrlVar.MUA.AssemblyPattern.uv  && MUA.uvAssemblyPattern.neq ~= 2* MUA.Nnodes
+
+ 
+    MUA.uvAssemblyPattern=AssemblyPatternCache(CtrlVar,MUA);
+
+end
+
+if CtrlVar.MUA.AssemblyPattern.uvh  && MUA.uvhAssemblyPattern.neq ~= 3* MUA.Nnodes
+
+  
+    [~,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+
+end
 
 %% It is possible that the decomposition object has somehow become invalid. Not sure how, but if, for example a mesh is re-read then possibly the decomposition object is still there but invalid
 %

@@ -7,6 +7,11 @@ function WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo)
 
 RestartFile=CtrlVar.NameOfRestartFiletoWrite;
 
+if isempty(RestartFile) || RestartFile==""
+    return
+end
+
+
 fprintf("\n ################## Experiment: %s ################### \n Writing restart file: %s  \n for simulation time t=%-g at wall-clock time %s\n \n ",CtrlVar.Experiment,CtrlVar.NameOfRestartFiletoWrite,CtrlVar.time,datetime);
 
 
