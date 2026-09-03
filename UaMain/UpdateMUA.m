@@ -192,9 +192,6 @@ if MeshHasChanged
 
 
 
-
-
-
     if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
 
         MUA.M=MassMatrix2D1dof(MUA);
