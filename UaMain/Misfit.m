@@ -8,7 +8,7 @@ function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAd
 
 narginchk(9,9)
 
-UserVar=[]; RunInfo=[]; 
+UserVar=[]; RunInfo=[];
 %%
 %
 %           J(q(p),p) = I(q(p)) + R(p)
@@ -25,21 +25,21 @@ UserVar=[]; RunInfo=[];
 %
 % The misfit term, $I$, on the form
 %
-% $$I= \|u-u_{\mathrm{Meas}} \| +  \|v-v_{\mathrm{Meas}} \| + \| \dot{h}-\dot{h}_{\mathrm{Meas}} \| $$ 
+% $$I= \|u-u_{\mathrm{Meas}} \| +  \|v-v_{\mathrm{Meas}} \| + \| \dot{h}-\dot{h}_{\mathrm{Meas}} \| $$
 %
-% where 
+% where
 %
 % $$ \dot{h} = a - \partial_x (u h ) - \partial_y (v h) $$
 %
-% that is 
+% that is
 %
-% $$I= \|u-u_{\mathrm{Meas}} \| +  \|v-v_{\mathrm{Meas}} \| + \| (\left ( a - \partial_x (u h ) - \partial_y (v h)  \right ) -\dot{h}_{\mathrm{Meas}} \| $$ 
+% $$I= \|u-u_{\mathrm{Meas}} \| +  \|v-v_{\mathrm{Meas}} \| + \| (\left ( a - \partial_x (u h ) - \partial_y (v h)  \right ) -\dot{h}_{\mathrm{Meas}} \| $$
 %
 % Thus, the misfit term is not an explicit function of $\dot{h}$
 %
 % $$I=I(u(p),v(p)) $$
 %
-% where $p$ are the parameters we want to invert for, i.e. any or all of $A$, $B$ and $C$.  
+% where $p$ are the parameters we want to invert for, i.e. any or all of $A$, $B$ and $C$.
 %
 % Since $\dot{h}$ is already expressed directly in terms of $u$ and $v$ using the mass-conservation equation, the forward
 % model consists of the momentum equations only.
@@ -48,8 +48,8 @@ UserVar=[]; RunInfo=[];
 %
 % $$\partial F /\partial u = \partial I/\partial u $$
 %
-% The partial derivatives of $I$ are straightforward to calculate, apart from 
-% 
+% The partial derivatives of $I$ are straightforward to calculate, apart from
+%
 % $$\partial I_{\dot{h}} / \partial u$$
 %
 % which more correctly should be written as
@@ -69,7 +69,7 @@ dIdp=[] ;
 ddIdpp=sparse(1,1);
 ddIdppDA=[];
 ddIdAA=[];
-ddIdBB=[]; 
+ddIdBB=[];
 ddIdCC=[];
 
 
@@ -77,68 +77,20 @@ MisfitOuts.dIduv=[];
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
-us=F.ub+F.ud ;
-vs=F.vb+F.vd ;
-
-%% Do some test on inputs, check if error covariance matrices are correctly defined
-% calculate residual terms, i.e. difference between measured and modeled values.
-if contains(CtrlVar.Inverse.Measurements,"-uv-","IgnoreCase",true)
-
-    if isempty(Meas.us)
-        fprintf('Meas.us is empty! \n')
-        fprintf('Meas.us cannot be empty when inverting using surface velocities as data.\n')
-        fprintf('Define Meas.us in DefineInputsForInverseRun.m \n')
-        error('Misfit:us','Meas.us is empty.')
-    end
+[is_uv_meas,is_dhdt_meas]=is_uv_dhdt_Meas(CtrlVar);
 
 
-    if isempty(Meas.vs)
-        fprintf('Meas.vs is empty! \n')
-        fprintf('Meas.vs cannot be empty when inverting using surface velocities as data.\n')
-        fprintf('Define Meas.vs in DefineInputsForInverseRun.m \n')
-        error('Misfit:us','Meas.vs is empty.')
-    end
+[isA,isB,isC] = isABC(CtrlVar) ;
 
-    if isdiag(Meas.usCov)
-        uErr=sqrt(spdiags(Meas.usCov));
-        usres=(us-Meas.us)./uErr;
-    else
-        error('Misfit:Cov','Data covariance matrices must vbe diagonal')
-    end
-
-    if isdiag(Meas.vsCov)
-        vErr=sqrt(spdiags(Meas.vsCov));
-        vsres=(vs-Meas.vs)./vErr;
-    else
-        error('Misfit:Cov','Data covariance matrices must be diagonal')
-    end
-end
-
-
-if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-
-    if isempty(Meas.dhdt)
-        fprintf('Meas.dhdt is empty! \n')
-        fprintf('Meas.dhdt cannot be empty when inverting using dhdt as data.\n')
-        fprintf('Define Meas.dhdt in DefineInputsForInverseRun.m \n')
-        error('Misfit:dhdt','Meas.dhdt is empty.')
-    end
-
-
-    if isempty(Meas.dhdtCov)
-        fprintf('Meas.dhdtCov is empty! \n')
-        fprintf('Meas.dhdtCov cannot be empty when inverting using dhdt as data.\n')
-        fprintf('Define Meas.dhdtCov in DefineInputsForInverseRun.m \n')
-        error('Misfit:dhdt','Meas.dhdt is empty.')
-    end
-
+if is_dhdt_meas
     [~,F.dhdt]=dhdtExplicit([],CtrlVar,MUA,F,BCs);
-
-    if ~isdiag(Meas.dhdtCov)
-        error('Misfit:Cov','Data covariance matrices must be diagonal')
-    end
-
 end
+
+
+uErr=full(sqrt(spdiags(Meas.usCov)));
+usres=(F.ub-Meas.us)./uErr;
+vErr=full(sqrt(spdiags(Meas.vsCov)));
+vsres=(F.vb-Meas.vs)./vErr;
 
 %% Calculate misfit term I and its (explicit) gradients with respect to the state variable q, i.e. u and v
 %
@@ -159,7 +111,7 @@ if ~isfield(MUA,"M")
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-if contains(CtrlVar.Inverse.Measurements,"-uv-")
+if is_uv_meas
 
     duIdu=(MUA.M*usres)./uErr/Area;    %    usres=(us-Meas.us)./uErr;
     dvIdv=(MUA.M*vsres)./vErr/Area;
@@ -179,12 +131,12 @@ end
 % from the regularization term (R).  Therefore, we must here calculate the derivative of the cost function term with respect
 % to both u and B. This addition is only needed when inverting for B while also including the hdot cost function term.
 %
-if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-     % when including dhdt meas, there is an extra contribution to the RHS of the adjoint system related to
-     %
-     % $$ \delta_u J_{\dot{h}} $$ and  $$ \delta_v J_{\dot{h}} $$ and 
-     %
-     %
+if is_dhdt_meas
+    % when including dhdt meas, there is an extra contribution to the RHS of the adjoint system related to
+    %
+    % $$ \delta_u J_{\dot{h}} $$ and  $$ \delta_v J_{\dot{h}} $$ and
+    %
+    %
     [Ihdot,duIhdot,dvIhdot,dhIhdot]=EvaluateJhdotAndDerivatives([],CtrlVar,MUA,F,BCs,Meas);
 
 end
@@ -196,18 +148,14 @@ if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
     CtrlVar.TestForRealValues=false;
 end
 
-if ~isreal(duvIduv)  && CtrlVar.TestForRealValues
-    save TestSave ; error("MisfitFunction:dIduvNoReal","dIduv is not real! Possibly a problem with covariance of data.")
-end
-
 
 MisfitOuts.dIduv=duvIduv;
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
-%% Calculate the (implicit) gradients with respect to the control variable q, i.e. A, B and C 
+%% Calculate the (implicit) gradients with respect to the control variable q, i.e. A, B and C
 %
-% 
+%
 % Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and B or C).
 %
 % This is a bit tricky because I=I(u(p))
@@ -219,10 +167,12 @@ if CtrlVar.Inverse.CalcGradI
 
         case {"fixpoint","fixpointc","-fixpoint-","-fixpointc-"}
 
-          error("Misfit:OptionNoLongerSupported","fixpoint gradients now obsolete and no longer supported")
+            error("Misfit:OptionNoLongerSupported","fixpoint gradients now obsolete and no longer supported")
 
 
         case {"adjoint","-adjoint-"}
+
+
             %% Inverse problem
             %
             % Forward model:
@@ -232,7 +182,7 @@ if CtrlVar.Inverse.CalcGradI
             %
 
             % We need a fully converged solution here
-            % This will have been done ahead of the call, but I found that doing this (possibly again) increases accuracy. 
+            % This will have been done ahead of the call, but I found that doing this (possibly again) increases accuracy.
             % Anyhow, it might be the case that just the Misfit.m is called from somewhere else, so one should really do this here as
             % well.
             [~,~,F,l,dFduv]= uv([],[],CtrlVar,MUA,BCs,F,l);
@@ -258,20 +208,12 @@ if CtrlVar.Inverse.CalcGradI
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
 
             %duvJ=duvIduv;     % Because this is the only J term that depends on (u,v).
-            RHS_Adjoint=-duvIduv; 
+            RHS_Adjoint=-duvIduv;
             % If the regularization term also depended on the measurements q, ie R=R(u,v) then this would not be correct.
 
             % Now solve the linear adjoint problem for lambda
             [lambda,lAdjoint]=solveKApeSymmetric(dFduv,LAdjoint,RHS_Adjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
 
-
-            if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
-                CtrlVar.TestForRealValues=false;
-            end
-
-            if CtrlVar.TestForRealValues && ~isreal(lAdjoint)
-                save TestSave ; error("When solving adjoint equation Lagrange parmeters complex ")
-            end
 
             Psi_x=real(lambda(1:MUA.Nnodes)) ;
             Psi_y=real(lambda(MUA.Nnodes+1:2*MUA.Nnodes));
@@ -279,7 +221,7 @@ if CtrlVar.Inverse.CalcGradI
             MisfitOuts.uAdjoint=Psi_x;
             MisfitOuts.vAdjoint=Psi_y;
 
-      
+
             %% Step 3:  <d_p F^* \lambda>,
             %
             % Note that I'm adding the d_p R term in the regularization step.
@@ -290,22 +232,22 @@ if CtrlVar.Inverse.CalcGradI
             %
             % But for b, d_b I = p_x (u db)
 
-            if contains(lower(CtrlVar.Inverse.InvertFor),"c")
+            if isC
 
                 % $$ \langle  \delta_{C_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{C_i} F^y \phi_i| \Psi_y \rangle $$
                 dCFuvLambda=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
-                dCI=0 ;      % This is the explicit derivative of the misfit term, I, with respect to C. There is no such dependency here 
-                             % as the misfit term I is not an explicit function of C, so this equals to zero.
-                             % Note, that there is an explicit dependency on C in the regularization term, but this is added elsewhere (in the
-                             % Regularisation.m function) 
+                dCI=0 ;      % This is the explicit derivative of the misfit term, I, with respect to C. There is no such dependency here
+                % as the misfit term I is not an explicit function of C, so this equals to zero.
+                % Note, that there is an explicit dependency on C in the regularization term, but this is added elsewhere (in the
+                % Regularisation.m function)
 
                 DCI=dCFuvLambda+dCI;  % this is the part of the dI/dC derivative which is due to the implicit dependency
                 % of I on C because the velocities depend on C,
 
             end
 
-            if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
+            if isA
 
 
                 dAFuvLambda=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
@@ -316,7 +258,7 @@ if CtrlVar.Inverse.CalcGradI
             end
 
 
-            if contains(CtrlVar.Inverse.InvertFor,"-B-")
+            if isB
 
                 OnlyGrounded=true;
 
@@ -378,11 +320,30 @@ if CtrlVar.Inverse.CalcGradI
 
 end
 
-%% Hessian
+%% Hessian calculations
 
 if CtrlVar.Inverse.CalcHessI
-    
-    
+
+    % Typically, in any large-scale inversions, the Hessian is never calculated here. Rather, an Hessian approximation is build
+    % up using a BFSG update.
+    %
+    % However, for some smaller sized problems the Hessian, or some approximations thereof, can be calculated and returned.
+    % 
+    % There are currently three options
+    %
+    % 1) Calculate the Hessian using the direct-adjoint method. This gives a full Hessian and a very exact estimate. This is as
+    % good as it gets, but requires large memory and gives a full Hessian!  This will only work for small to medium sized
+    % problems with a few tens of thousand nodes.
+    %
+    % 2) Calculate the Hessian using finite-differences as done by the MATLAB toolbox. This is done in a highly optimized way and
+    % works surprisingly good. For some reason the MATLAB toolbox wants a zero sparse matrix returned. And this is done here, but
+    % the Hessian approximation is calculated by the toolbox function.
+    %
+    % 3) Some ad-hoc approximations of the Hessian. This could be as simple as using the Metric Matrix or something similar,
+    % Sobolev smoothing, etc. None of these approaches work particularly well, and were here implemented basically out of
+    % a mixture of curiosity and unjustified optimism.
+    %
+
 
     if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
         error(' field no longer used ')
@@ -390,96 +351,42 @@ if CtrlVar.Inverse.CalcHessI
 
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
-     
-        ddIdppDA = CalcDirectAdjointHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y) ;
-    
+
+        ddIdpp = CalcDirectAdjointHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y) ;
+
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"MetricMatrixHessian")
+
+        ddIdpp=MUA.MetricMatrix;
+
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
 
-        np=numel([DAI;DBI;DCI]) ;  
-        ddIdppDA=sparse(np,np);
+        % Not sure I have fully correctly understood this, but it appears that the Matlab toolbox functions might still need a
+        % Hessian argument returned, even if the Hessian is calculated using finite differences. So here I am returning an empty
+        % sparse matrix of the right size. 
+        np=numel([DAI;DBI;DCI]) ;
+        ddIdpp=sparse(np,np);
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 
-        if contains(CtrlVar.Inverse.InvertForField,"C")
+         error("Misfit:IncorrectInputParametrs","No longer supported")
+    
 
-            if contains(CtrlVar.Inverse.Hessian,"IHC=FP")
-                [~,ddIdCC]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-            elseif contains(CtrlVar.Inverse.Hessian,"IHC=GN")
-                [ddIdCC]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,DCI,F,Meas);
-            elseif contains(CtrlVar.Inverse.Hessian,"IHC=M")
-                ddIdCC=MUA.M/MUA.Area;
-            elseif contains(CtrlVar.Inverse.Hessian,"IHC=D")
-                ddIdCC=(MUA.Dxx+MUA.Dyy)/MUA.Area;
-            elseif contains(CtrlVar.Inverse.Hessian,"IHC=0") || contains(CtrlVar.Inverse.Hessian,"IHC=O")
-                N=MUA.Nnodes;
-                ddIdCC=sparse(N,N);
-            elseif  contains(CtrlVar.Inverse.Hessian,"IHC=I") || contains(CtrlVar.Inverse.Hessian,"IHC=1")
-                N=MUA.Nnodes;
-                ddIdCC=speye(N,N);
-            else
-                error('case not found')
-            end
-        end
-
-        if contains(CtrlVar.Inverse.InvertForField,"A")
-            if contains(CtrlVar.Inverse.Hessian,"IHA=FP")
-                [~,ddIdAA]=FixPointGradHessianA(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-            elseif contains(CtrlVar.Inverse.Hessian,"IHA=GN")
-                ddIdAA=GaussNewtonHessianA(UserVar,CtrlVar,MUA,DAI,F,Meas);
-            elseif contains(CtrlVar.Inverse.Hessian,"IHA=M")
-                ddIdAA=MUA.M/MUA.Area;
-            elseif contains(CtrlVar.Inverse.Hessian,"IHA=D")
-                ddIdAA=(MUA.Dxx+MUA.Dyy)/MUA.Area;
-            elseif contains(CtrlVar.Inverse.Hessian,"IHA=0") || contains(CtrlVar.Inverse.Hessian,"IHA=O")
-                N=MUA.Nnodes;
-                ddIdAA=sparse(N,N);
-            elseif contains(CtrlVar.Inverse.Hessian,"IHA=I") || contains(CtrlVar.Inverse.Hessian,"IHA=1")
-                N=MUA.Nnodes;
-                ddIdAA=speye(N,N);
-            else
-                error('case not found')
-            end
-        end
     end
+
+
 end
 
 %% Work done! Arrange output vectors
 
-
 dIdp=[DAI;DBI;DCI] ;  % 2026 Feb
-
-
-if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian") 
-    
-    % This is the Hessian as calculated by the Direct-Adjoint approach
-    ddIdpp=ddIdppDA;
-
-elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")  
-    
-    % This is based on a (too?) simple Hessian approximation
-    ddIdpp=blkdiag(ddIdAA,ddIdBB,ddIdCC);
-
-end
-
-% For testing purposes it is possible to multiply terms with a constant, for example to set those to zero.
-% But otherwise these are always set to 1.
-
-I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
-
-if CtrlVar.Inverse.CalcGradI
-
-    dIdp=CtrlVar.Inverse.DataMisfit.Multiplier*dIdp;
-    ddIdpp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIdpp;
-
-end
-
 
 if nargout >= 4
     MisfitOuts.I=I;
-    MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCI;
-    MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAI;
-    MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBI;
+    MisfitOuts.dIdC=DCI;
+    MisfitOuts.dIdAGlen=DAI;
+    MisfitOuts.dIdB=DBI;
 end
 
 end
+
 

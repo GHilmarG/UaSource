@@ -20,6 +20,9 @@ BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
 %% Test inputs
 Meas=TestMeas(CtrlVar,MUA,Meas);
 
+
+
+
 [InvStartValues.AGlen,InvStartValues.n]=TestAGlenInputValues(CtrlVar,MUA,InvStartValues.AGlen,InvStartValues.n);
 %[Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
 

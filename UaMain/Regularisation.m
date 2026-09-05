@@ -298,6 +298,7 @@ if isB
 
         Berr=full(sqrt(spdiags(Meas.BCov)));
         Bres=(F.B-Meas.B)./Berr;
+        
         RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
         dRdBmeas=(MUA.M*Bres)./Berr/Area;
         iBerr = spdiags(1./Berr,0,MUA.Nnodes,MUA.Nnodes);

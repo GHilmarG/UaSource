@@ -203,6 +203,12 @@ if CtrlVar.Inverse.CalcHess  % Hessian needed
 end
 
 
+
+
+
+
+
+
 if F.solution=="-uv-"
     % To speed up the forward solve, the previous solution is stored locally and then used as a starting value in next
     % calculation. The idea is that usually the parameter vector (p) only changes slightly form one inverse iteration to the
