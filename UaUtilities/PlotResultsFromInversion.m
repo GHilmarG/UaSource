@@ -731,97 +731,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
 else
 
-    if ~isempty(InvFinalValues.dJdAGlen)
-
-        PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
-        figPMdJdA=FindOrCreateFigure(PM+"\dJdA "); clf(figPMdJdA) ;
-        UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
-
-        if PM=="M"
-            T="$\nabla_A J = M^{-1} dJ/dA$";
-        else
-            T="$\nabla_A J=dJ/dA$";
-        end
-        title(T,Interpreter="latex")
-
-        subtitle("")
-        cl=clim;
-        if min(cl) <0 && max(cl)> 0
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(figPMdJdA,CM);
-        else
-            CM=cmocean('balanced',25) ; colormap(figPMdJdA,CM);
-        end
-
-        if PM=="I"
-
-            if isempty(MUA.M)
-                MUA.M=MassMatrix2D1dof(MUA);
-            end
-
-
-            dJdA=MUA.M\InvFinalValues.dJdAGlen;
-            figMdJdA=FindOrCreateFigure("M\dJdA "+PM); clf(figMdJdA)
-            UaPlots(CtrlVar,MUA,F,dJdA,CreateNewFigure=false);
-            T="$\nabla_C J =M^{-1} dJdA$" ;
-            title(T,interpreter="latex")
-            subtitle("")
-            cl=clim;
-            if min(cl) <0 && max(cl)> 0
-                CM=cmocean('balanced',25,'pivot',0) ; colormap(figMdJdA,CM);
-            else
-                CM=cmocean('balanced',25) ; colormap(figMdJdA,CM);
-            end
-        end
-
-    end
-
-
-
-    if ~isempty(InvFinalValues.dJdC)
-
-        PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
-        figPMdJdC=FindOrCreateFigure(PM+"\dJdC "); clf(figPMdJdC)
-        UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
-
-        if PM=="M" || PM=="L2"
-            T="($\nabla_C J, \delta C)_{L^2} =  \delta_C J[\delta C]$ (log)";
-        elseif PM=="H1"
-            T="($\nabla_C J, \delta C)_{H^1} =  \delta_C J[\delta C] (log)$";
-        else
-            T="($\nabla_C J, \delta C)_{l^2} =  \delta_C J[\delta C] (log)$";
-        end
-
-
-        title(T,Interpreter="latex")
-        subtitle("")
-        cl=clim;
-        if min(cl) <0 && max(cl)> 0
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(figPMdJdC,CM);
-        else
-            CM=cmocean('balanced',25) ; colormap(figPMdJdC,CM);
-        end
-
-        if PM=="I"
-
-            if isempty(MUA.M)
-                MUA.M=MassMatrix2D1dof(MUA);
-            end
-
-
-            dJdC=MUA.M\InvFinalValues.dJdC;
-            figMdJdC=FindOrCreateFigure("M\dJdC "+PM); clf(figMdJdC)
-            UaPlots(CtrlVar,MUA,F,dJdC,CreateNewFigure=false);
-            T="$\nabla_C J =M^{-1} dJ/dC$";
-            title(T,interpreter="latex")
-            subtitle("")
-            cl=clim;
-            if min(cl) <0 && max(cl)> 0
-                CM=cmocean('balanced',25,'pivot',0) ; colormap(figMdJdC,CM);
-            else
-                CM=cmocean('balanced',25) ; colormap(figMdJdC,CM);
-            end
-        end
-    end
+ 
 
     if ~isempty(InvFinalValues.dJdB)
 
@@ -884,32 +794,43 @@ else
 
             T=tiledlayout("flow");
 
-            nexttile
+            nexttile % True A
             UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
             title("True $A$",Interpreter="latex") ; 
             set(gca,'ColorScale','log')
             CL=clim;
             subtitle("")
 
-            nexttile
+            nexttile % Retrieved A
             UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
             title("Retrieved $A$",Interpreter="latex") ; 
             set(gca,'ColorScale','log')
             clim(CL);
             subtitle("")
 
-            nexttile
+            nexttile % True - Retrieved 
 
             D=abs(Priors.TrueAGlen-InvFinalValues.AGlen) ;
             cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
-            title('abs(True A -Retrieved A)') ; set(gca,'ColorScale','log')
+            title("|(True $A$ - Retrieved $A$|",Interpreter="latex") ; 
             title(cbar,"$|A-\tilde{A}|$",interpreter="latex")
             subtitle("")
 
-            nexttile
+            nexttile % Start values
+            UaPlots(CtrlVar,MUA,F,InvStartValues.AGlen,CreateNewFigure=false);
+            title("$A$ at start of inversion",Interpreter="latex") ; set(gca,'ColorScale','log')
+            subtitle("")
+
+            nexttile % Prior 
             UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false) ;
             title("Prior $A$",Interpreter="latex") ; 
             set(gca,'ColorScale','log')
+            subtitle("")
+
+
+            nexttile  % Retrieved - Prior
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen-Priors.AGlen,CreateNewFigure=false);
+            title("Retrieved $A$ -  Prior $A$ ",Interpreter="latex") ; set(gca,'ColorScale','log')
             subtitle("")
 
             T.Padding="tight";   T.TileSpacing="tight";
@@ -929,42 +850,42 @@ else
 
             T=tiledlayout("flow");
 
-            nexttile
+            nexttile % True
             UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
             title("True $C$",interpreter="latex") ; 
             set(gca,'ColorScale','log')
             subtitle("")
             CL=clim;
 
-            nexttile
+            nexttile % Retrieved
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
             title("Retrieved $C$",interpreter="latex") ; 
             set(gca,'ColorScale','log')
             subtitle("")
             clim(CL)
 
-            nexttile
-
+            nexttile % True - Retrieved
             D=abs(Priors.TrueC-InvFinalValues.C) ;
             cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
-            title('abs(True C - Retrieved C)') ; set(gca,'ColorScale','log')
+            title("|(True $C$ - Retrieved $C$|",Interpreter="latex") ; 
+            set(gca,'ColorScale','log')
             title(cbar,"$|C-\tilde{C}|$",interpreter="latex")
             subtitle("")
 
-            nexttile
+            nexttile % Start values
             UaPlots(CtrlVar,MUA,F,InvStartValues.C,CreateNewFigure=false);
             title("C at start of inversion") ; set(gca,'ColorScale','log')
             subtitle("")
 
-            nexttile
+            nexttile  % Prior
             UaPlots(CtrlVar,MUA,F,Priors.C,CreateNewFigure=false) ;
-            title('Prior C') ; set(gca,'ColorScale','log')
+            title("Prior $C$",Interpreter="latex") ; set(gca,'ColorScale','log')
             subtitle("")
 
 
-            nexttile
+            nexttile  % Retrieved - Prior
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C-Priors.C,CreateNewFigure=false);
-            title("Retrieved C -  Prior C ") ; set(gca,'ColorScale','log')
+            title("Retrieved $C$ -  Prior $C$ ",interpreter="latex") ; set(gca,'ColorScale','log')
             subtitle("")
 
             %figC.Position=[400 200 1300 800];

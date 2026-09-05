@@ -119,6 +119,51 @@ if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
 
+%% What inversions are being performed?
+%  And make sure the Matern parameters are all correctly defined
+
+
+[isA,isB,isC] = isABC(CtrlVar);
+
+% make sure the Matern parameters are correct and can be used, even if the old Tikhonov approach is still being used
+if CtrlVar.Inverse.Methodology=="-Tikhonov-"
+
+    if isA
+        [CtrlVar.Inverse.Matern.logAGlen.alpha,CtrlVar.Inverse.Matern.logAGlen.tau,CtrlVar.Inverse.Matern.logAGlen.kappa]=Tikhonov2MaternParameters(CtrlVar.Inverse.Regularize.logAGlen.ga,CtrlVar.Inverse.Regularize.logAGlen.gs,MUA.Area);
+    end
+
+    if isB
+        [CtrlVar.Inverse.Matern.B.alpha,CtrlVar.Inverse.Matern.B.tau,CtrlVar.Inverse.Matern.B.kappa]=Tikhonov2MaternParameters(CtrlVar.Inverse.Regularize.B.ga,CtrlVar.Inverse.Regularize.B.gs,MUA.Area);
+    end
+
+    if isC
+        [CtrlVar.Inverse.Matern.logC.alpha,CtrlVar.Inverse.Matern.logC.tau,CtrlVar.Inverse.Matern.logC.kappa]=Tikhonov2MaternParameters(CtrlVar.Inverse.Regularize.logC.ga,CtrlVar.Inverse.Regularize.logC.gs,MUA.Area);
+    end
+
+
+end
+
+% Although the user defines alpha, kappa and tau, I might find it useful to work in terms of rho, sigma and nu.
+if isA
+    [CtrlVar.Inverse.Matern.logAGlen.rho,CtrlVar.Inverse.Matern.logAGlen.sigma,CtrlVar.Inverse.Matern.logAGlen.nu]=Matern_alpha_kappa_tau(CtrlVar.Inverse.Matern.logAGlen.alpha,CtrlVar.Inverse.Matern.logAGlen.kappa,CtrlVar.Inverse.Matern.logAGlen.tau);
+end
+if isB
+    [CtrlVar.Inverse.Matern.B.rho,CtrlVar.Inverse.Matern.B.sigma,CtrlVar.Inverse.Matern.B.nu]=Matern_alpha_kappa_tau(CtrlVar.Inverse.Matern.B.alpha,CtrlVar.Inverse.Matern.B.kappa,CtrlVar.Inverse.Matern.B.tau);
+end
+if isC
+    [CtrlVar.Inverse.Matern.logC.rho,CtrlVar.Inverse.Matern.logC.sigma,CtrlVar.Inverse.Matern.logC.nu]=Matern_alpha_kappa_tau(CtrlVar.Inverse.Matern.logC.alpha,CtrlVar.Inverse.Matern.logC.kappa,CtrlVar.Inverse.Matern.logC.tau);
+end
+
+% Now build the metric/precision matrix once and keep in MUA. This is OK because in an inversion MUA never changes
+% 
+% The metric matrix is here built from the blocks of the precision matrices, it plays a number of different roles. It is the
+% precision matrix in the inversion, the metric matrix when using the trust-region approach, and the inner-product matrix
+% when defining the inner product and the steepest descent direction. 
+%
+% I'm storing here individual blocks as well as the block matrix (MetricMatrix). This is a bit of a waste of memory, but
+% these are all sparse matrices. But this could be revisited at a later stage.
+[MUA.MetricMatrix,MUA.QA,MUA.QB,MUA.QC]=BuildMetricMatrix(CtrlVar,MUA,isA,isB,isC);
+ 
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
@@ -159,28 +204,23 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 
 
-% Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
-% This is then passed to the optimization libraries. 
+% Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian. This
+% is then passed to the optimization libraries.
         
 CtrlVar.JGH.CalcHessian=true; % But will only do so if the number of output arguments is also 3 or greater
 func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns the cost (J), gradient (G) and Hessian (H)
-                                                                                                      % The Hessian
-                                                                                                      % output is used
-                                                                                                      % with the
-                                                                                                      % UaOptimisation
-                                                                                                      % toolbox, and
-                                                                                                      % when using the
-                                                                                                      % trust-region-reflective
-                                                                                                      % algorithm 
+                                                                       % The Hessian output is used with the UaOptimisation toolbox, and when using the trust-region-reflective algorithm
                                                                                                   
-Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method 
+
 
 % Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same
 % Hessian as JGH.
 %
-% But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the
-% Hfunc is not needed.
+% But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the Hfunc is
+% not needed.
+Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method 
+
 
 %%
 
@@ -200,6 +240,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations. 
 
     % Get the gradient using the adjoint method
+ 
     [J,dJdp]=func(p0);
 
     NA=MUA.Nnodes;
@@ -216,7 +257,9 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     iRange=iRange(I);
 
     % if the inversion is done for more than one field, then expand iRange accordingly.
-    switch strlength(CtrlVar.Inverse.InvertForField)
+    nBlocks=isA+isB+isC; 
+
+    switch nBlocks 
         case 2
             iRange=[iRange(:);iRange(:)+NA];
         case 3

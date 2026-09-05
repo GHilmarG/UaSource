@@ -1,10 +1,12 @@
 
 
-function MetricMatrix=BuildMetricMatrix(CtrlVar,MUA)
+function [MetricMatrix,QA,QB,QC]=BuildMetricMatrix(CtrlVar,MUA,isA,isB,isC)
 
- [QA,QB,QC]=BuildRegularisationPrecisionMatrices(CtrlVar,MUA);
+nargoutchk(1,4)
+narginchk(5,5)
 
 
+[QA,QB,QC]=BuildRegularisationPrecisionMatrices(CtrlVar,MUA,isA,isB,isC);
 
 MetricMatrix=blkdiag(QA,QB,QC);
 

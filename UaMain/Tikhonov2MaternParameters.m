@@ -5,7 +5,11 @@
 
 
 
-function [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)
+function [alphaMatern,tauMatern,kappaMatern]=Tikhonov2MaternParameters(ga,gs,Area)
+
+nargoutchk(3,3)
+narginchk(3,3)
+
 
 %% Calculates the Matern parameters from the Tikhonov parameters
 %
@@ -19,7 +23,7 @@ function [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tik
 % $$Q = \frac{1}{2 \mathcal{A}} ( \gamma_a^2 M + \gamma_s^2 D ) $$
 %
 % therefore
-% 
+%
 % $$\alpha=1 $$
 %
 % $$\tau=\frac{\gamma_s}{\sqrt{2 \mathcal{A} }} $$
@@ -28,6 +32,12 @@ function [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tik
 %
 %%
 
+
+if isapprox(ga,0)
+    fprintf("The amplitude regularisation term in the Tikhonov formulation is close to zero. \n")
+    fprintf("Run continues, but precision matrices likley to be singular or near singular.  \n")
+    warning("Tikhonov2MaternParameters:gaTooSmall","The amplitude regularisation term in the Tikhonov formulation is close to zero. \n")
+end
 
 alphaMatern=1;
 tauMatern=gs/sqrt(2*Area);
@@ -38,11 +48,6 @@ else
     kappaMatern=ga/(gs+eps(gs));
 end
 
-d=2; 
-nuMatern=alphaMatern-d/2;
-
-sigma2Matern = gamma(nuMatern) / (gamma(alphaMatern) * (4*pi)^(d/2) * kappaMatern^(2*nuMatern) * tauMatern^2);
-rhoMatern=sqrt(8*nuMatern)/kappaMatern;
 
 
 end

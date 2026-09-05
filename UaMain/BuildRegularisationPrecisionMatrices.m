@@ -1,6 +1,9 @@
 
 
-function [QA,QB,QC,isA,isB,isC]=BuildRegularisationPrecisionMatrices(CtrlVar,MUA)
+function [QA,QB,QC]=BuildRegularisationPrecisionMatrices(CtrlVar,MUA,isA,isB,isC)
+
+nargoutchk(3,3)
+narginchk(5,5)
 
 %% Builds a metric matrix
 %
@@ -43,23 +46,7 @@ function [QA,QB,QC,isA,isB,isC]=BuildRegularisationPrecisionMatrices(CtrlVar,MUA
 %%
 
 
-if contains(CtrlVar.Inverse.InvertFor,"-logAGlen-")
-    isA=true;
-else
-    isA=false;
-end
 
-if contains(CtrlVar.Inverse.InvertFor,'-B-')
-    isB=true;
-else 
-    isB=false;
-end
-
-if contains(CtrlVar.Inverse.InvertFor,"-logC-")
-    isC=true;
-else
-    isC=false; 
-end
 
 QA=[] ; QB=[]; QC=[];
 
@@ -95,3 +82,4 @@ end
 
 
 end
+

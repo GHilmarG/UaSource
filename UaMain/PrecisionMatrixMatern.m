@@ -2,7 +2,7 @@
 
 
 
-function Q=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,ga,gs,Methodology)
+function [Q,alphaMatern,kappaMatern,tauMatern]=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,ga,gs,Methodology)
 
 narginchk(7,7)
 nargoutchk(1,1)
@@ -70,7 +70,7 @@ nargoutchk(1,1)
 % Matern hyper-parameters and the $$\kappa$$ and $$\tau$$ parameters.
 %%
 
-Area=MUA.Area;
+
 M=MUA.M;
 D=MUA.Dxx+MUA.Dyy;
 
@@ -86,12 +86,10 @@ D=D+Ieps ;
 % [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 
 
-if Methodology=="-Tikhonov-"
-
-    [alphaMatern,tauMatern,kappaMatern]=Tikhonov2MaternParameters(ga,gs,Area);
-
+if kappaMatern ==0
+    fprintf("PrecisionMatrixMatern: Based on user input, the kappa in the Matern precision matrix definition is zero. \n")
+    fprintf("PrecisionMatrixMatern: This will give a singular matrix.  I continue, but mucho problemos likely ahead... \n")
 end
-
 
 A = kappaMatern^2*M + D;
 

@@ -9,6 +9,27 @@ function [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunIn
 
 narginchk(8,8)
 
+
+%% Does an inversion using the Hessian
+%
+% Here the Hessian itself is constructed, i.e. not build iteratively as done in the BFSG method. 
+%
+% The Hessian is either approximated using brute-force finite-differences.
+%
+% Or by using the Direct-Adjoint method.
+%
+% This approach is memory hungry and building the Hessian can take a long time. 
+%
+% Consequently, this approach can only be used for small to medium sized problems with nodes on the order of few 10,000 or 
+%
+% The minimum is found using a two-dimensional (exact) trust-region approach.
+%
+% It is also possible to activate a Newton backtracking step, but this is mostly for testing purposes and once full confidence
+% has been obtained in the trust-region approach, the Newton set can, and should, be deactivated. 
+%
+%
+%%
+
 %%
 % good summary at
 %
@@ -37,8 +58,46 @@ narginchk(8,8)
 %
 %%
 
+%%
+[isA,isB,isC] = isABC(CtrlVar);
 
 
+if isA
+    if CtrlVar.Inverse.Matern.logAGlen.alpha==1
+     error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+    end
+end
+
+
+if isB
+    if CtrlVar.Inverse.Matern.logB.alpha==1
+        error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+    end
+end
+
+
+if isC
+    if CtrlVar.Inverse.Matern.logC.alpha==1
+        error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+    end
+end
+
+
+%%
+
+doNewton=true;
+doSteepestDescent=true; 
+doTrustRegion=true;
+
+
+% Tolerances: (me to do)  These are currently hardwired, but should be included in CtrlVar.
+SubOptimalityTolerance=1e-10;
+JTolerance=0.01;
+dJTolerance=0.0 ; 
+dpTolerance=0.0;
+
+
+%%
 p=p0;
 
 
@@ -53,30 +112,24 @@ nPar=numel(p);
 
 iRange=1:nPar; % all of them
 
-
-
-
-SubOptimalityTolerance=1e-10;
-JTolerance=0.01;
-dJTolerance=0.0;
-dpTolerance=0.0;
 Delta_new=nan;
-iIteration=0; lStart=0 ; gammaSDLast=inf;
-
-doNewton=true;
-doSteepestDescent=false;
-doTrustRegion=true;
-
-
+iIteration=0; lStart=0 ; 
+gammaSteepestDescentLast=nan;
 JTrustRegion=inf ; DeltaMax=nan;
-JNewton=inf;
-JSteepestDescent=inf;
+TrustRegionStepAccepted=false;
 
-dpSteepestDescent=nan;
-gammaSteepestDescent=nan;
-gammaSDMax=nan;
-gammaNewton=nan;
-MetricMatrix=[];
+
+%% Build metric matrix, i.e. the Gram matrix
+
+
+if  ~isfield(MUA,"MetricMatrix") || isempty(MUA.MetricMatrix)
+    error("UaOptimisationHessianEstimate:MetricMatrix","Was expecting MetricMatrix to be a field of MUA, but it is not. \n")
+end
+
+
+MetricMatrix=MUA.MetricMatrix;
+dMetricMatrix=decomposition(MetricMatrix);
+
 
 while true
 
@@ -121,20 +174,14 @@ while true
 
     end
 
-    %% Build metric matrix, i.e. the Gram matrix
-    if isempty(MetricMatrix)  % Only build it once, and reuse the decomposition
 
-        MetricMatrix=BuildMetricMatrix(CtrlVar,MUA); 
-        dMetricMatrix=decomposition(MetricMatrix);
-    end
-    %%
- 
 
     [Hessian,lStart]=CheckIfHessianIsSPDandIfNotMakeItSo(Hessian,MetricMatrix,lStart) ;
     lCondition=1e-5; lConditionMin=0;
     Hessian=ImproveMatrixCondition(Hessian,MetricMatrix,lCondition,lConditionMin) ;
 
     dpNewton=Hessian\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
+    % To do: Currently there are not BCs applied to the inversion fields, but this should be an option going forward.
     slope0Newton=g0'*dpNewton;
 
     if anynan(dpNewton)
@@ -147,147 +194,134 @@ while true
         error("UaOptimisationHessianEstimate:pIsNaN","NaN in p")
     end
 
-
-    CtrlVar.GradientReflective=false;
-
-    if CtrlVar.GradientReflective
-
-        % This just about OK.
-        %
-        % The Reflective Transformation, R(p), only reflects points that are outside of the box constraints. If for some i, p_i=l_i
-        % or p_i=u_i, the value of p_i is not changed. This means that for a given search direction (-g) direction, g, the line-search may result
-        % in values being exactly at the boundary, but never outside the box constraints.
-        %
-        % Once the gradient is recalculated, i.e. at the start of next iteration, the corresponding elements of the search direction
-        % are flipped where p is at the boundary and the unmodified search direction points out. This ensures that the next update
-        % will shift p away from the box boundary. However, now the gradient is no longer the gradient of the cost function!
-        %
-        % 1) change the sign of a gradient element whenever a box constraint is violated
-        % 2)
-        %
-        %
-        gammaUpperVector=(pub-p)./dpNewton;
-        gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
-        [gammaNewtonMax,Imin]=min(gammaUpperVector)  ; % this is the smallest positive gamma that does not violate
-
-        % What to do where p_i=pub_i and dp_i > 0  ? Then any finite positive step size will violate pub at those locations
-        % This would cause zero step size, or more generally, a very small step size if p_i is very close to pub_i and dp_i >0.
-        %
-        % Here one can try 'reflection' where p_i is reflected by setting it to -p_i
-
-
-        %% reflection
-        gammaNewtonMin=0.2;
-        if gammaNewtonMax < gammaNewtonMin
-
-            I=find(gammaVector<gammaNewtonMin);
-            dpNewton(I)=-dpNewton(I) ;      % Reflection
-
-            gammaVector=(pub-p)./dpNewton;
-            gammaVector(gammaVector<eps)=nan ;
-            [gammaNewtonMax,Imin]=min(gammaVector)  ;
-
-        end
-    else
-        gammaNewtonMax=inf;
+    if slope0Newton >0
+        fprintf("Slope at origin in Newton direction is positive! \n")
+        gammaNewton=nan;
+        JNewton=inf;
+  
     end
-    %%
 
-    if doNewton
+    if doNewton && slope0Newton < 0
 
         gamma=1;  % This is the initial guess for a good gamma, now that the DA Hessian is accurate, seems best to use this by default
-
-        if gammaNewtonMax< gamma
-            gamma=gammaNewtonMax;
-            CtrlVar.LineSearchAllowedToUseExtrapolation=false;
-            pUpperViolation=pub-(p+gamma*dpNewton) ;
-            UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation Newton")  ;
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
-            min(pUpperViolation)
-
-        end
-
-
-
         J1=func(p+gamma*dpNewton);
-
         while isnan(J1)
             gamma=gamma/10;
             J1=func(p+gamma*dpNewton);
         end
-
         Func=@(gamma) func(p+gamma*dpNewton); % here a plus sign because I'm going in the direction dp, this is the Newton direction
 
-        CtrlVar.InfoLevelBackTrack=0;
-        % Newton direction
-        slope0Newton=g0'*dpNewton;
+        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/1e5; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+        CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
+        [gammaNewton,JNewton]=BackTracking(slope0Newton,gamma,J0,J1,Func,CtrlVar);
 
-        if slope0Newton<0
-            CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/1e5; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
-            CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
-            [gammaNewton,JNewton]=BackTracking(slope0Newton,gamma,J0,J1,Func,CtrlVar);
-        else
-            fprintf("Slope at origin in Newton direction is positive! \n")
-            gammaNewton=nan;
-            JNewton=inf;
+    end
+
+
+
+
+    % To do: Here I must add the boundary conditions for A/B/C. At the moment I do not prescribe any BCs for any of these fields
+    % so there is nothing to add here currently. However, I intent to add in the boundary conditions for the B inversion, but the
+    % B inversion is currently under development.
+    dpSteepestDescent=dMetricMatrix\(-g0); % pre-multiplying, note that I must use the inverse...!
+    slope0SteepestDescent=g0'*dpSteepestDescent;
+
+    if slope0SteepestDescent >0
+        fprintf("Slope at origin in steepest descent direction is positive! \n")
+        gammaSteepestDescent=nan;
+        JSteepestDescent=inf;
+        doSteepestDescent=0;
+    end
+
+    if doSteepestDescent
+
+        % If I believe in the quadratic model then
+        %
+        % m(p)=f + g p + 0.5 p H p
+        %
+        % line search: g p \gamma +0.5 p H p \gamma^2
+        %
+        % If I select the search direction p as p= -G\g
+        % 
+        % minimum found for:
+        %
+        % $$ \gamma=-\frac{g^T p}{p^T H p} $$
+        % 
+        % If $G=H$ then $p=-H \ g$ that is $g=-H p$ 
+        % I have the newton step and the best gamma is $\gamma=1$
+        %
+        %
+        %
+        %
+
+        %if isnan(gammaSteepestDescentLast)
+        % Estimate a good gamma from the minimum along the search direction
+        gamma=- g0' * dpSteepestDescent/(dpSteepestDescent'*Hessian*dpSteepestDescent);
+        % else
+        %     % Not sure I always trust the quadratic model that well. Maybe best to estimate a reasonable guess for gamma based on last
+        %     % gamma min value, increased by a factor
+        %     gamma=2*gammaSteepestDescentLast;
+        % end
+
+        J1=func(p+gamma*dpSteepestDescent);
+        while isnan(J1)
+            gamma=gamma/10;
+            J1=func(p+gamma*dpSteepestDescent);
         end
+        Func=@(gamma) func(p+gamma*dpSteepestDescent); % here a plus sign because I'm going in the direction dp, this is the Newton direction
+
+        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/1e5; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+        CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
+        [gammaSteepestDescent,JSteepestDescent]=BackTracking(slope0SteepestDescent,gamma,J0,J1,Func,CtrlVar);
+        gammaSteepestDescentLast=gammaSteepestDescent;
 
     end
 
 
    
 
-
-    dpSteepestDescent=dMetricMatrix\(-g0); % pre-multiplying, note that I must use the inverse...!
-
-    % steepest decent
-    if doSteepestDescent
-
-        Func=@(gamma) func(p+gamma*dpSteepestDescent);
-
-        slope0=g0'*dpSteepestDescent;
-
-        if slope0 > 0
-            fprintf("Slope at origin in steepest-descent direction is positive! \n")
-        end
-
-        % calculate maximum step-size that does not violate upper limit
-        %if CtrlVar.GradientReflective
-
-        gammaUpperVector=(pub-p)./dpSteepestDescent;
-        gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
-
-        gammaSDMax=min(gammaUpperVector);
-
-
-
-        gamma=min(2*gammaSDLast,gammaSDMax);
-        J1=Func(gamma);
-        while isnan(J1)
-            gamma=gamma/10;
-            J1=func(p+gamma*dpSteepestDescent);
-        end
-
-        gammaSDLast=min(gammaSDLast,gamma);
-
-        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gammaSDLast/1e6;
-        [gammaSteepestDescent,JSteepestDescent]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
-        gammaSDLast=gammaSteepestDescent;
-
-
-
-    end
-
-
-
     %% testing two-dimensional subspace approach
     if doTrustRegion
 
         if isnan(DeltaMax)
-            % only set DeltaMax once, and set it to a generously large value
-            DeltaMax=10*sqrt(dpNewton'*MetricMatrix*dpNewton);
+
+            [isA,isB,isC] = isABC(CtrlVar);
+
+            Neff=0;
+
+            if isA
+                Neff  = Neff+ MUA.Area/CtrlVar.Inverse.Matern.logAGlen.rho^2;
+            end
+
+            if isB
+                Neff  = Neff + MUA.Area/CtrlVar.Inverse.Matern.B.rho^2;
+            end
+
+            if isC
+                Neff  = Neff + MUA.Area/CtrlVar.Inverse.Matern.logC.rho^2;
+            end
+
+
+
+
+            DeltaRef = 0.8* CtrlVar.TrustRegion.nSigma*sqrt(Neff);
+
+            % DeltaMax = min(10*sqrt(dpNewton'*MetricMatrix*dpNewton), 10*DeltaRef);
+            % DeltaMax = max(DeltaMax, DeltaRef/10);
+
+            DeltaMax=DeltaRef;
             DeltaMin=DeltaMax/1e6;
+
+            % The way DeltaMax is selected, only works for alpha>1 in the Matern formulation. This will also not work if one is using the old Tikhonov approach.
+            % going forward, I'm simply going to insist on using alpha>1.
+            %
+            % The other inversion parts of the code that do not use the subspace minimization still work for alpha=1.
+            %
+            assert(isfinite(DeltaMax) && DeltaMax>0, ...
+                "UaOptimisationHessianEstimate:BadDeltaMax","DeltaMax=%g",DeltaMax)
+
         end
+
 
         if isnan(Delta_new)
             Delta=DeltaMax;
@@ -305,29 +339,48 @@ while true
             PredicedReduction = -(g0'*dpTR + 0.5 * dpTR' * Hessian * dpTR) ; % predicted reduction (note that J0 cancels)
             rho=ActualReduction/PredicedReduction ;
 
-            [p0_new, Delta_new, TrustRegionStepAccepted] = TrustRegionUpdate(p, dpTR, J0, JTrustRegion, PredicedReduction, Delta, DeltaMax) ;
+            [p0_new, Delta_new, TrustRegionStepAccepted] = TrustRegionUpdate(p, dpTR, J0, JTrustRegion, PredicedReduction, Delta, DeltaMax,info.stepnormG) ;
 
             fprintf("TrustRegion: accepted=%s \t case=%s \t rho=%f \t Delta=%f \t delta_new=%g  dp=%3.3f dNewton  %+3.3f dSteepestDescent \n ",string(TrustRegionStepAccepted),info.case,rho,Delta,Delta_new,yTR(1),yTR(2))
 
-            % if Delta==DeltaMax
-            %        fprintf("Delta is hitting against DeltaMax for rho=%g\n",rho)
-            % end
+
 
             Delta=Delta_new;
 
         end
 
+        if Delta==DeltaMax && rho >0.95 && rho < 1.05
+            fprintf("Delta is hitting against DeltaMax for rho=%g\n",rho)
+            fprintf("Note: If Delta sits at DeltaMax repeatedly while steps are accepted with rho near 1, the cap is binding and should be raised. \n")
+            fprintf("      The place to change this is by increasing the value of CtrlVar.TrustRegion.nSigma, currently at %f\n",CtrlVar.TrustRegion.nSigma)
+        end
+
     end
 
     %%
-    % PlotCostVersusStepSizeAlongNewtonDirection(func,p,dpNewton,g0,Hessian,gammaNewton,JNewton,dpSteepestDescent,gammaSteepestDescent,JSteepestDescent,gammaNewtonMax,gammaSDMax,doSteepestDescent);
+    % gammaSteepestDescent=nan; JSteepestDescent=nan ; gammaSDMax=nan 
+    
+    gammaNewtonMax=1.5; gammaSDMax=gammaSteepestDescent*2;
+    PlotCostVersusStepSizeAlongNewtonDirection(func,p,dpNewton,g0,Hessian,gammaNewton,JNewton,dpSteepestDescent,gammaSteepestDescent,JSteepestDescent,gammaNewtonMax,gammaSDMax,doSteepestDescent);
+    drawnow
 
-    %fprintf("====> JNewton/J0=%g \t JSteepestDescent/J0=%g \t JTrustRegion/J0=%g \n",JNewton/J0,JSteepestDescent/J0,JTrustRegion/J0)
+    fprintf("====> JNewton/J0=%g \t JSteepestDescent/J0=%g \t JTrustRegion/J0=%g \n",JNewton/J0,JSteepestDescent/J0,JTrustRegion/J0)
 
-    rhoJNewton=JNewton/J0;
-    rhoJSteepestDescent=JSteepestDescent/J0;
+    if doNewton
+        rhoJNewton=JNewton/J0;
+    else
+        rhoJNewton=inf;
+    end
  
-    if TrustRegionStepAccepted
+
+    if doSteepestDescent
+        rhoJSteepestDescent=JSteepestDescent/J0;
+    else
+        rhoJSteepestDescent=inf;
+    end
+
+
+    if doTrustRegion && TrustRegionStepAccepted
         rhoJTrustRegion=JTrustRegion/J0;
     else
         rhoJTrustRegion=inf;
@@ -337,13 +390,14 @@ while true
     [rhoJmin,iJmin]=min([rhoJNewton,rhoJSteepestDescent,rhoJTrustRegion]);
 
     if rhoJmin> 1
-    
+
         fprintf(" Value of cost function could not be reduced. \n")
         break
 
     end
 
     switch iJmin
+
         case 1
             Direction="Newton";
         case 2
@@ -376,8 +430,6 @@ while true
 
         case "TrustRegion"
 
-
-
             p=p0_new;
 
             dpNorm=norm(dpTR)/norm(p);
@@ -386,11 +438,9 @@ while true
     end
 
    SubOptimality=-g0'*dpNewton/2  ; % Newton decrement g0' H^{-1} g /2
-
-
+   
 
     dJ=J0-J;
-
 
 
     pUpperViolation=pub-p;
@@ -416,7 +466,7 @@ while true
         break
     end
 
-    if SubOptimality<SubOptimalityTolerance
+    if slope0Newton< 0 && SubOptimality<SubOptimalityTolerance
         fprintf("subtolerance (%g) reached with %g. \n",SubOptimalityTolerance,SubOptimality)
         break
     end
@@ -436,10 +486,10 @@ while true
         break
     end
 
-    if J/J0>=0.999999
-        fprintf("stagnated. \n")
-        break
-    end
+    % if J/J0>=0.999999
+    %     fprintf("stagnated. \n")
+    %     break
+    % end
 
 end
 
@@ -462,7 +512,7 @@ hold off
 semilogy(itVector,GradNormVector,"or-",LineWidth=2,DisplayName="$\|\nabla J \|$") ;
 ylabel("$\|\nabla J \|$",Interpreter="latex") ;
 xlabel("Iteration")
-lg=legend(Interpreter="latex");
+legend(Interpreter="latex");
 
 
 itRestart=max(RunInfo.Inverse.Iterations);

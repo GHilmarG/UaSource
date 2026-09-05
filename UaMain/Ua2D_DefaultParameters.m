@@ -1084,7 +1084,16 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % HR: Hestenes-Stiefel
                                         % DY :Dai-Yan
                    
-CtrlVar.ReflectiveTransformation=false ; %                      
+CtrlVar.ReflectiveTransformation=false ; %      
+
+CtrlVar.TrustRegion.nSigma=2; % Relevant if using the Ua TrustRegion algorithm. 
+                              %
+                              % Currently (Sept 2026) only used if CtrlVar.Inverse.MinimisationMethod="-Ua-DirectAdjointHessian-"
+                              % 
+                              % Sets DeltaMax. The largest trust-region step is one costing as much prior probability as a coherent shift of nSigma prior
+                              % standard deviations across the whole domain, in all inverted fields jointly. Dimensionless and shared across logA, B and
+                              % logC. Default 2; range 1-5.
+
 % end, UaOptimization parameters
 % ------------]
 

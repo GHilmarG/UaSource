@@ -4,7 +4,7 @@
 
 
 
-function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dp,g0,H0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDmax,doSteepestDecent)
+function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dpNewton,g0,H0,gammaNewton,JNewton,dpSD,gammaSD,JSD,gammaNewtonMax,gammaSDmax,doSD)
 
 %   PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,gammaSD,JSD);
 
@@ -35,12 +35,12 @@ JVector=nan(nPoints,1);
 
 parfor I=1:nPoints
 
-    p=p0+gammaVector(I)*dp;
+    p=p0+gammaVector(I)*dpNewton;
     JVector(I)=func(p);
 
 end
 
-slope0=g0'*dp;
+slope0=g0'*dpNewton;
 
 Fig=FindOrCreateFigure("J Newton") ; clf(Fig)
 plot(gammaVector,JVector,"or-",DisplayName="$J(\gamma)$")
@@ -55,18 +55,18 @@ title("Cost function ($J$) along Newton (dp) direction",Interpreter="latex")
 subtitle(sprintf("$J(\\gamma)$=%g  and $\\gamma$=%g",JNewton,gammaNewton),Interpreter="latex") 
 
 gammaRange=linspace(min(gammaVector),max(gammaVector)) ;
-Q= J0 + (g0'*dp) *gammaRange + (0.5 * dp' * H0 *dp ) * gammaRange.^2 ;
+Q= J0 + (g0'*dpNewton) *gammaRange + (0.5 * dpNewton' * H0 *dpNewton ) * gammaRange.^2 ;
 hold on ; plot(gammaRange,Q,"--",color="b",DisplayName="Local quadradic approximation")
 
 lg=legend(Interpreter="latex");
 %% gradient direction
 
 
-if doSteepestDecent
+if doSD
 
     nPoints=13;
 
-    slope0=g0'*g0SD;
+    slope0=g0'*dpSD;
     gammaUp=-0.1*J0/slope0;
 
     if isnan(gammaSD)
@@ -86,7 +86,7 @@ if doSteepestDecent
 
     parfor I=1:nPoints
 
-        p=p0+gammaVector(I)*g0SD;
+        p=p0+gammaVector(I)*dpSD;
         JVector(I)=func(p);
 
     end
@@ -94,24 +94,31 @@ if doSteepestDecent
 
 
     Fig=FindOrCreateFigure("J grad") ; clf(Fig)
-    plot(gammaVector,JVector,"or-")
+    plot(gammaVector,JVector,"or-",DisplayName="$J(\gamma)$")
     hold on
     dgamma=0.1*gammaUp;
-    plot([0 dgamma],[J0 J0+dgamma*slope0],"k--",LineWidth=2)
+    plot([0 dgamma],[J0 J0+dgamma*slope0],"k--",LineWidth=2,DisplayName="slope at origin")
 
-    plot(gammaSD,JSD,Marker="hexagram",MarkerFaceColor="b",MarkerSize=10)
+    plot(gammaSD,JSD,Marker="hexagram",MarkerFaceColor="b",MarkerSize=10,DisplayName="Minimum as found")
 
     xlabel("$\gamma$",Interpreter="latex")
     ylabel("$J$",Interpreter="latex")
     title("Cost function ($J$) along negative grad direction",Interpreter="latex")
     subtitle(sprintf("$J(\\gamma)$=%g  and  $\\gamma$=%g",JSD,gammaSD),Interpreter="latex")
+
+    gammaRange=linspace(min(gammaVector),max(gammaVector)) ;
+    Q= J0 + (g0'*dpSD) *gammaRange + (0.5 * dpSD' * H0 *dpSD   ) * gammaRange.^2 ;
+    hold on ; plot(gammaRange,Q,"--",color="b",DisplayName="Local quadradic approximation")
+
+    legend(Interpreter="latex")
+
 end
 %%
 
 
 
 
-alpha=angleBetweenVector(-g0SD,dp);
+alpha=angleBetweenVector(-dpSD,dpNewton);
 
 fprintf("angle between dp and (-g0) is %f degrees\n",alpha)
 

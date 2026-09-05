@@ -246,13 +246,17 @@ end
 if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
+%%
 
 % the expression for the prior, is
 %
 % $$-\log P(B) = \frac{1}{2}(B-B_{prior})^{T} Q (B-B_{prior}) + \frac{1}{2}\log\left|Q^{-1}\right| + \text{const} $$
 
-[QA,QB,QC,isA,isB,isC]=BuildRegularisationPrecisionMatrices(CtrlVar,MUA);
+QA=MUA.QA;
+QB=MUA.QB;
+QC=MUA.QC;
 
+ [isA,isB,isC] = isABC(CtrlVar) ; 
 
 if isA
     dpA=log10(F.AGlen)-log10(Priors.AGlen);
@@ -289,8 +293,10 @@ if isB
         % distinction is simply rhetorical as these terms are all added up
 
         % This term needs to be improved, as it stands the statistical interpretation is not sound
+        %
+        % Also, I think I really should shift this over to the Misfit part of the evaluation.
 
-        Berr=sqrt(spdiags(Meas.BCov));
+        Berr=full(sqrt(spdiags(Meas.BCov)));
         Bres=(F.B-Meas.B)./Berr;
         RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
         dRdBmeas=(MUA.M*Bres)./Berr/Area;
@@ -346,8 +352,18 @@ dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.Ad
 R=RA+RB+RC;
 dRdp=[dRdA;dRdB;dRdC];
 
+assert(isscalar(R),"Regularisation:RnotScalar","R is not a scalar")
+
 if nargout >= 3 &&  CtrlVar.Inverse.CalcHessR
-    ddRdpp=blkdiag(QA,QB,QC) ;  % much faster
+    ddRdpp=blkdiag(QA,QB,QC) ;  % For the time being I must recreate the Hessian part of the regularization term here, 
+    % because I might have added to the QB part above. However, once I have shifted the B term related to misfit with direct
+    % measurements (which I should do), and I've taken the B penalty term inside of the Misfit term as well, I can use the
+    % MUA.MetricMatrix here and it will be the correct Hessian of the regularization term. 
+
+   
+    assert(numel(dRdp)==size(ddRdpp,1),"Regularisation:DimentionalMismatch","sizes of gradient and Hessian not compatible.")
+
+
 end
 
 % for testing purposes only

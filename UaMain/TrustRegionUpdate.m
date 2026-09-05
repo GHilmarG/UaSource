@@ -1,6 +1,6 @@
 
 
-function [p0_new, Delta_new, accepted] = TrustRegionUpdate(p0, dp, J0, Jnew, pred, Delta, DeltaMax)
+function [p0_new, Delta_new, accepted] = TrustRegionUpdate(p0, dp, J0, Jnew, pred, Delta, DeltaMax,stepnorm)
 
 
 %%
@@ -31,7 +31,8 @@ else
     rho = ared / pred;
 end
 
-stepnorm = norm(dp);
+%stepnorm = norm(dp);
+
 
 % Update Radius
 if rho < eta1
