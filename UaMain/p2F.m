@@ -159,6 +159,23 @@ if isC
 
 end
 
+if anynan(F.C)
+    error("p2F:Cnan","nan in C")
+end
+if anynan(F.AGlen)
+    error("p2F:Anan","nan in A")
+end
+if anynan(F.B)
+    error("p2F:Bnan","nan in B")
+end
+
+if any(F.C<0)
+    error("p2F:Cneg","negative C values")
+end
+
+if any(F.AGlen<0)
+    error("p2F:Cneg","negative A values")
+end
 
 
 end

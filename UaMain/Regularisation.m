@@ -1,10 +1,10 @@
 
 
 
-function [R,dRdp,ddRdpp,RegOuts]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
+function [R,dRdp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
 
 narginchk(8,8)
-
+nargoutchk(2,2)
 
 %%
 %
@@ -234,7 +234,7 @@ if nargout > 3
 end
 %%
 
-ddRdpp=[];
+
 Area=MUA.Area;
 
 
@@ -279,62 +279,63 @@ else
 end
 
 if isB
+    
     dpB=F.B-Priors.B;
     RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
     dRdB=QB*dpB ;  %   dR/dB:  (a vector)
 
 
-    if ~isempty(Meas.B)  &&  ~isempty(Meas.BCov)  &&    isdiag(Meas.BCov)
-
-        % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
-        % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
-        %
-        % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
-        % distinction is simply rhetorical as these terms are all added up
-
-        % This term needs to be improved, as it stands the statistical interpretation is not sound
-        %
-        % Also, I think I really should shift this over to the Misfit part of the evaluation.
-
-        Berr=full(sqrt(spdiags(Meas.BCov)));
-        Bres=(F.B-Meas.B)./Berr;
-        
-        RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
-        dRdBmeas=(MUA.M*Bres)./Berr/Area;
-        iBerr = spdiags(1./Berr,0,MUA.Nnodes,MUA.Nnodes);
-        ddRdBmeasBmeas = iBerr*MUA.M*iBerr/Area;
-
-        RB=RB+RBmeas;
-        dRdB=dRdB+dRdBmeas;
-        QB=QB+ddRdBmeasBmeas;
-
-    end
-
-    CtrlVar.Inverse.Penalty=false;
-    if CtrlVar.Inverse.Penalty  % This was more of a try, and most likely will be deleted
 
 
-        %%  Barrier term to push B solution away from min ice thickness, i.e. to discourage F.B being close to F.s/Meas.s#
-        %
-        % Idea:  Add a quadratic penalty in terms of min thickness violation.
-        %
-        % Thickness violation: F.s - F.B < hmin
+    % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
+    % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
+    %
+    % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
+    % distinction is simply rhetorical as these terms are all added up
 
-        x=F.B - (F.s-20*CtrlVar.ThickMin);
-        x0=zeros(MUA.Nnodes,1);
-        k=0.1; a=5;  % 1/k is the softness and a the amplitude
-        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(CtrlVar,MUA,x,x0,k,a) ;
+    % This term needs to be improved, as it stands the statistical interpretation is not sound
+    %
+    % Also, I think I really should shift this over to the Misfit part of the evaluation.
 
-        Bbarr=Bbarr/Area;
-        dBarrdB=dBarrdB/Area;
-        ddBbarrdBB=ddBbarrdBB/Area;
+    Berr=full(sqrt(spdiags(Meas.BCov)));
+    Bres=(F.B-Meas.B)./Berr;
+
+    RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
+    dRdBmeas=(MUA.M*Bres)./Berr/Area;
+
+  
+
+    RB=RB+RBmeas;
+    dRdB=dRdB+dRdBmeas;
+  
 
 
-        RB=RB+Bbarr;
-        dRdB=dRdB+dBarrdB;
-        QB=QB+ddBbarrdBB;
-
-    end
+    % 
+    % CtrlVar.Inverse.Penalty=false;
+    % if CtrlVar.Inverse.Penalty  % This was more of a try, and most likely will be deleted
+    % 
+    % 
+    %     %%  Barrier term to push B solution away from min ice thickness, i.e. to discourage F.B being close to F.s/Meas.s#
+    %     %
+    %     % Idea:  Add a quadratic penalty in terms of min thickness violation.
+    %     %
+    %     % Thickness violation: F.s - F.B < hmin
+    % 
+    %     x=F.B - (F.s-20*CtrlVar.ThickMin);
+    %     x0=zeros(MUA.Nnodes,1);
+    %     k=0.1; a=5;  % 1/k is the softness and a the amplitude
+    %     [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(CtrlVar,MUA,x,x0,k,a) ;
+    % 
+    %     Bbarr=Bbarr/Area;
+    %     dBarrdB=dBarrdB/Area;
+    %     ddBbarrdBB=ddBbarrdBB/Area;
+    % 
+    % 
+    %     RB=RB+Bbarr;
+    %     dRdB=dRdB+dBarrdB;
+    %     QB=QB+ddBbarrdBB;
+    % 
+    % end
 
 else
     RB=0;
@@ -355,36 +356,11 @@ dRdp=[dRdA;dRdB;dRdC];
 
 assert(isscalar(R),"Regularisation:RnotScalar","R is not a scalar")
 
-if nargout >= 3 &&  CtrlVar.Inverse.CalcHessR
-    ddRdpp=blkdiag(QA,QB,QC) ;  % For the time being I must recreate the Hessian part of the regularization term here, 
-    % because I might have added to the QB part above. However, once I have shifted the B term related to misfit with direct
-    % measurements (which I should do), and I've taken the B penalty term inside of the Misfit term as well, I can use the
-    % MUA.MetricMatrix here and it will be the correct Hessian of the regularization term. 
 
-   
-    assert(numel(dRdp)==size(ddRdpp,1),"Regularisation:DimentionalMismatch","sizes of gradient and Hessian not compatible.")
-
-
-end
-
-% for testing purposes only
-% R=CtrlVar.Inverse.Regularize.Multiplier*R;
-% dRdp=CtrlVar.Inverse.Regularize.Multiplier*dRdp;
-% ddRdpp=CtrlVar.Inverse.Regularize.Multiplier*ddRdpp;
 
 if nargout > 3
 
-    RegOuts.R=R;
-    RegOuts.dRdp=dRdp;
-
-    RegOuts.RAGlen=RA;
-    RegOuts.dRdAGlen=dRdA;
-
-    RegOuts.RC=RC;
-    RegOuts.dRdC=dRdC;
-
-    RegOuts.RB=RB;
-    RegOuts.dRdB=dRdB;
+ 
 end
 
 if R< 0

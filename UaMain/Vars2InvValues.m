@@ -17,10 +17,10 @@ InvValues.R=JGHouts.RegOuts.R;
 InvValues.RAGlen=JGHouts.RegOuts.RAGlen;
 InvValues.RC=JGHouts.RegOuts.RC;
 
-InvValues.RCa=JGHouts.RegOuts.RCa;
-InvValues.RCs=JGHouts.RegOuts.RCs;
-InvValues.RAa=JGHouts.RegOuts.RAa;
-InvValues.RAs=JGHouts.RegOuts.RAs;
+InvValues.RCa=[];
+InvValues.RCs=[];
+InvValues.RAa=[];
+InvValues.RAs=[];
 
 if isprop(InvValues,'uAdjoint')
     InvValues.uAdjoint=JGHouts.MisfitOuts.uAdjoint;

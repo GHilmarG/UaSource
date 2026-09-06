@@ -77,7 +77,7 @@ switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
     case {"central-second-order"}
 
 
-        parfor k=1:numel(iRange)
+        for k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
             pm1=p0;

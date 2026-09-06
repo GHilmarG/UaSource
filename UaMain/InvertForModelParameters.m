@@ -207,7 +207,16 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian. This
 % is then passed to the optimization libraries.
         
-CtrlVar.JGH.CalcHessian=true; % But will only do so if the number of output arguments is also 3 or greater
+% It is not easy to pass updated information to the cost function after it has been defined. The only updated variable in
+% each call is p itself.  I need to decide at this stage if the Hessian will ever be needed.
+
+
+if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+    CtrlVar.JGH.CalcHessian=true; % But will only do so if the number of output arguments is also 3 or greater
+else
+    CtrlVar.JGH.CalcHessian=false; % But will only do so if the number of output arguments is also 3 or greater
+end
+
 func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns the cost (J), gradient (G) and Hessian (H)
                                                                        % The Hessian output is used with the UaOptimisation toolbox, and when using the trust-region-reflective algorithm
                                                                                                   
@@ -240,7 +249,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations. 
 
     % Get the gradient using the adjoint method
- 
+   
     [J,dJdp]=func(p0);
 
     NA=MUA.Nnodes;
@@ -266,8 +275,6 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
             iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
 
-
-
     % Gradient calculated using a brute-force finite difference approach
     dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange);
 
@@ -275,8 +282,6 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     fprintf("Test Adjoint gradients: Normalized differences between adjoint gradient and FD: %g \n ",Diff)
 
     fig_dJdpTest=FindOrCreateFigure("Test dJdp") ; clf(fig_dJdpTest)
-
-
     plot(dJdp(iRange),dJdpTest(iRange),"or") ; axis equal ;
     hold on ;
     plot([min(dJdp(iRange)) max(dJdp(iRange))],[min(dJdp(iRange)) max(dJdp(iRange))],"--k")
@@ -288,7 +293,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
 
     drawnow
-
+    %%
     
     
     

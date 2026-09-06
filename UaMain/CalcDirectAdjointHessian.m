@@ -92,7 +92,7 @@ narginchk(10,10)
 
 %% I label individual Hessian terms and have the option of only calculating a subset of those for testing purposes.
 
-HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-" ;
+HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;
 
 %% Do I need to calculate the sensitivity matrices?
 
@@ -111,66 +111,48 @@ end
 %% sensitivity matrix, \xi = \partial q / \partial p   % tested
 if GetSensitivites
 
-
     [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs);
     xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ;
 
-
-
-    %% H^{qq}
-    %
-    % $$\xi^T (J^{qq}+\mathcal{F}^{qq} )\xi$$
-    %
-
-    KJqq=0; KFqq=0; 
-
-    if contains(HessianTerms,"-xi Jqq xi-")
-
-        KJqq=Jqq(CtrlVar,MUA,F,BCs,Meas);
-
-    end
-
-
-    if contains(HessianTerms,"-xi Fqq xi-")
-
-        KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-    end
-
-    KJqqFqq=KJqq+KFqq;  
-
-
-    % the numerical sparsity of xi is close to 1 (ie not sparse at all)
-    % much better to use full matrix in the multiplication
-    %
-    % requires
-    %
-
-    % tMult=tic;
-    % H=xi'*(d2Jdqq*xi)+H ;
-    %
-    % H=0.5*(H+H');
-    % tMult=toc(tMult);
-    % fprintf(" Multiplication calculated in %f sec\n",tMult)
-
-    xiNumericalSparsity=nnz(xi)/numel(xi);
-    if xiNumericalSparsity>0.5
-        xi=full(xi);
-    end
-
-
-    tMult=tic;
-    H=xi'*(KJqqFqq*xi)+H ;
-
-
-    tMult=toc(tMult);
-    %  fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
 
-%%  H^{pp} , (here only the F^pp contribution)  : Tested
+%% H^{qq}
+%
+% $$\xi^T (J^{qq}+\mathcal{F}^{qq} )\xi$$
+%
+
+KJqq=0; KFqq=0;
+
+if contains(HessianTerms,"-xi Jqq xi-")
+    KJqq=Jqq(CtrlVar,MUA,F,BCs,Meas);
+end
+
+
+if contains(HessianTerms,"-xi Fqq xi-")
+    KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+end
+KJqqFqq=KJqq+KFqq;
+
+
+xiNumericalSparsity=nnz(xi)/numel(xi);
+if xiNumericalSparsity>0.5
+    xi=full(xi);
+end
+
+
+tMult=tic;
+H=xi'*(KJqqFqq*xi)+H ;
+
+
+tMult=toc(tMult);
+%  fprintf(" Multiplication calculated in %f sec\n",tMult)
+
+
+%%  H^{pp} , )
 %
 % $$H^{p}=J^{pp}+\mathcal{F}^{pp}$$
 %
-%
+% F^pp contribution
 if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
     KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
@@ -178,6 +160,14 @@ if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
 end
 
+% Jpp
+if contains(HessianTerms,"-Jpp-")  % explicit dependency of J on p=(logA,B,logC)
+
+   
+    KJpp=Jpp(CtrlVar,MUA,Meas);
+    H=H+KJpp; 
+
+end
 
 %% H^{pq}+H^{qp}  : Tested
 %
@@ -227,11 +217,6 @@ end
 function   FiniteDifferenceTestAndPlots(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,H)
 
 
- % Since the above calculation of the Hessian does not include Jpp, I better add that here
-[R,dRdp,ddRdpp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ; 
-
-H=H+ddRdpp;
-
 % First map all A and C fields to p. This takes care of the log conversion
 [p,plb,pub]=F2p(CtrlVar,MUA,F); 
 
@@ -275,7 +260,7 @@ Diff=norm(Hcolumn-H_FD)/norm(Hcolumn);
 fprintf("H: normalized norm of difference between Direct-Adjoint and FD for column %i is %g \n",iColumn,Diff)
 
 
-figDA=FindOrCreateFigure("Test: Direct-Adjoint") ; clf(figDA)
+figDA=FindOrCreateFigure("Test: Direct-Adjoint H") ; clf(figDA)
 
 
 plot(Hcolumn,H_FD,"or") ; axis equal ;
@@ -286,7 +271,7 @@ ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axi
 
 xlabel("Direct-Adjoint",Interpreter="latex")  ;
 ylabel("Finite difference",Interpreter="latex")
-title("$H$",Interpreter="latex")
+title("$H$, Direct-Adjoint approach",Interpreter="latex")
 subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpreter="latex")
 
 

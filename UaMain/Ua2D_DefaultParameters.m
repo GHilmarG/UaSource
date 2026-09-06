@@ -907,8 +907,8 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % The default option is Hessian-based optimization using the matlab optimization toolbox.
 %
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, MATLAB toolbox
-%                                  ="MatlabOptimization-GradientBased";     % gradient-based, MATLAB toolbox
+CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";      % gradient-based, MATLAB toolbox
+%                                  ="MatlabOptimization-HessianBased";      % hessian-based, MATLAB toolbox
 %                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
 %                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
 %
@@ -916,7 +916,9 @@ CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hes
 %   CtrlVar.Inverse.Hessian="FiniteDifferences";
 %
 % If a Hessian-based optimization is used, the the expressions for the Hessians can be selected as follows:
-CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
+CtrlVar.Inverse.Hessian="-Jpp-" ; % "-DirectAdjoint-","-Jpp-","-FiniteDifferences-" ; 
+
+
 % Here R stands for Regularization and I stands for Misfit.
 % E stands for 'exact' and 'FP' for 'fixed-point'
 %

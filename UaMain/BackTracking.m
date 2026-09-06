@@ -709,12 +709,12 @@ BackTrackingPlot()
                     dx=(Upper-Lower)/100;
                 end
                 gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)];
-                for I=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
-                    gammaTest=gammaTestVector(I);
+                for Itest=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
+                    gammaTest=gammaTestVector(Itest);
                     rTest=Func(gammaTest);
                     rTest=full(rTest);
-                    gammaTestVector(I)=gammaTest ;
-                    rTestVector(I)=rTest;
+                    gammaTestVector(Itest)=gammaTest ;
+                    rTestVector(Itest)=rTest;
                 end
             else
                 gammaTestVector=[] ;

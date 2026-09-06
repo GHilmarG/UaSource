@@ -4,11 +4,12 @@
 
 
 
-function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv)
+function [I,dIdp,Psi_x,Psi_y,F,dFduv]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv)
 
 narginchk(9,9)
+nargoutchk(6,6)
 
-UserVar=[]; RunInfo=[];
+
 %%
 %
 %           J(q(p),p) = I(q(p)) + R(p)
@@ -59,27 +60,17 @@ UserVar=[]; RunInfo=[];
 %%
 
 
-Area=MUA.Area;
+
 
 DAI=[];
 DBI=[];
 DCI=[];
-
 dIdp=[] ;
-ddIdpp=sparse(1,1);
-ddIdppDA=[];
-ddIdAA=[];
-ddIdBB=[];
-ddIdCC=[];
 
+Psi_x=[]; Psi_y=[]; 
 
-MisfitOuts.dIduv=[];
-MisfitOuts.uAdjoint=[];
-MisfitOuts.vAdjoint=[];
 
 [is_uv_meas,is_dhdt_meas]=is_uv_dhdt_Meas(CtrlVar);
-
-
 [isA,isB,isC] = isABC(CtrlVar) ;
 
 if is_dhdt_meas
@@ -113,9 +104,9 @@ end
 
 if is_uv_meas
 
-    duIdu=(MUA.M*usres)./uErr/Area;    %    usres=(us-Meas.us)./uErr;
-    dvIdv=(MUA.M*vsres)./vErr/Area;
-    Iuv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
+    duIdu=(MUA.M*usres)./uErr/MUA.Area;    %    usres=(us-Meas.us)./uErr;
+    dvIdv=(MUA.M*vsres)./vErr/MUA.Area;
+    Iuv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/MUA.Area;
 
 end
 
@@ -149,9 +140,6 @@ if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
 end
 
 
-MisfitOuts.dIduv=duvIduv;
-MisfitOuts.uAdjoint=[];
-MisfitOuts.vAdjoint=[];
 
 %% Calculate the (implicit) gradients with respect to the control variable q, i.e. A, B and C
 %
@@ -218,8 +206,7 @@ if CtrlVar.Inverse.CalcGradI
             Psi_x=real(lambda(1:MUA.Nnodes)) ;
             Psi_y=real(lambda(MUA.Nnodes+1:2*MUA.Nnodes));
 
-            MisfitOuts.uAdjoint=Psi_x;
-            MisfitOuts.vAdjoint=Psi_y;
+         
 
 
             %% Step 3:  <d_p F^* \lambda>,
@@ -318,74 +305,11 @@ if CtrlVar.Inverse.CalcGradI
 
     end
 
+    dIdp=[DAI;DBI;DCI] ;  % 2026 Feb
 end
 
-%% Hessian calculations
-
-if CtrlVar.Inverse.CalcHessI
-
-    % Typically, in any large-scale inversions, the Hessian is never calculated here. Rather, an Hessian approximation is build
-    % up using a BFSG update.
-    %
-    % However, for some smaller sized problems the Hessian, or some approximations thereof, can be calculated and returned.
-    % 
-    % There are currently three options
-    %
-    % 1) Calculate the Hessian using the direct-adjoint method. This gives a full Hessian and a very exact estimate. This is as
-    % good as it gets, but requires large memory and gives a full Hessian!  This will only work for small to medium sized
-    % problems with a few tens of thousand nodes.
-    %
-    % 2) Calculate the Hessian using finite-differences as done by the MATLAB toolbox. This is done in a highly optimized way and
-    % works surprisingly good. For some reason the MATLAB toolbox wants a zero sparse matrix returned. And this is done here, but
-    % the Hessian approximation is calculated by the toolbox function.
-    %
-    % 3) Some ad-hoc approximations of the Hessian. This could be as simple as using the Metric Matrix or something similar,
-    % Sobolev smoothing, etc. None of these approaches work particularly well, and were here implemented basically out of
-    % a mixture of curiosity and unjustified optimism.
-    %
 
 
-    if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
-        error(' field no longer used ')
-    end
-
-
-    if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
-
-        ddIdpp = CalcDirectAdjointHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y) ;
-
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"MetricMatrixHessian")
-
-        ddIdpp=MUA.MetricMatrix;
-
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
-
-        % Not sure I have fully correctly understood this, but it appears that the Matlab toolbox functions might still need a
-        % Hessian argument returned, even if the Hessian is calculated using finite differences. So here I am returning an empty
-        % sparse matrix of the right size. 
-        np=numel([DAI;DBI;DCI]) ;
-        ddIdpp=sparse(np,np);
-
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-
-         error("Misfit:IncorrectInputParametrs","No longer supported")
-    
-
-    end
-
-
-end
-
-%% Work done! Arrange output vectors
-
-dIdp=[DAI;DBI;DCI] ;  % 2026 Feb
-
-if nargout >= 4
-    MisfitOuts.I=I;
-    MisfitOuts.dIdC=DCI;
-    MisfitOuts.dIdAGlen=DAI;
-    MisfitOuts.dIdB=DBI;
-end
 
 end
 

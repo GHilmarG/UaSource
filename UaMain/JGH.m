@@ -6,6 +6,7 @@
 function [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
 
 
+
 %%
 %
 % JGH: Returns the cost function (J), the gradient of the cost function with respect to p (dJdp), and the Hessian (ddJddp).
@@ -27,28 +28,15 @@ narginchk(11,11)
 %% some counters for how often JGH is called and with what number of arguments
 if isempty(JGH1)
     JGH1=0;  % counter for 1-argument output, just cost function evaluation
-    JGH2=0;  % counter for 2-argument output, cost and gradient 
+    JGH2=0;  % counter for 2-argument output, cost and gradient
     JGH3=0;  % counter for 3-argument output, cost, gradient and Hessian
 end
 
-if nargout==3
 
-    JGH1=JGH1+1;
-    JGH2=JGH2+1;
-    JGH3=JGH3+1;
+JGH1=JGH1+1;
 
-elseif nargout==2
 
-    JGH1=JGH1+1;
-    JGH2=JGH2+1;
-
-elseif nargout==1
-
-    JGH1=JGH1+1;
-
-end
-
-%% Create some internal flags indicating if cost, gradient or Hessian need to be calculated and returned. 
+%% Create some internal flags indicating if cost, gradient or Hessian need to be calculated and returned.
 
 CtrlVar.Inverse.CalcGrad=false;
 CtrlVar.Inverse.CalcGradI=false;
@@ -70,20 +58,28 @@ if nargout>=2  % always calculates the gradient if number of output arguments is
 end
 
 % Calculate the Hessian provided:
-%     1) CtrlVar.JGH.CalcHessian=true; 
+%     1) CtrlVar.JGH.CalcHessian=true;
 % and 2) number of output arguments is larger or equal to 3
-if nargout>= 3  &&  CtrlVar.JGH.CalcHessian 
+if nargout>= 3  &&  CtrlVar.JGH.CalcHessian
     CtrlVar.Inverse.CalcHess=true;
-    CtrlVar.Inverse.CalcHessI=true;
-    CtrlVar.Inverse.CalcHessR=true;
+    CtrlVar.Inverse.CalcHessI=false;
+    CtrlVar.Inverse.CalcHessR=false;
 else
     CtrlVar.Inverse.CalcHess=false;
     CtrlVar.Inverse.CalcHessI=false;
     CtrlVar.Inverse.CalcHessR=false;
-    Hessian=[]; 
+    Hessian=[];
 end
 
-%% The function requires a solution of the forward model, often with just a slightly different input parameters. 
+
+%%
+
+[isA,isB,isC] = isABC(CtrlVar);
+[is_uv_meas,is_dhdt_meas]=is_uv_dhdt_Meas(CtrlVar);
+
+
+
+%% The function requires a solution of the forward model, often with just a slightly different input parameters.
 % Therefore, save previous velocity solution as persistent variables and use as initial staring point for next uv-solve.
 
 if CtrlVar.Inverse.ResetPersistentVariables
@@ -97,43 +93,6 @@ if ~isempty(ubP)
 end
 
 
-%% Reflection?
-% 
-% if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
-%     % pub and plb are enforced by the MATLAB optimization toolbox in a different way
-%     if CtrlVar.ReflectiveTransformation
-% 
-%         if ~isempty(pub)  && isempty(plb)
-% 
-%             iu=p>pub;
-%             p(iu)=pub(iu)+2*p(iu) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
-% 
-%         elseif isempty(pub)  && ~isempty(plb)
-% 
-%             il=p>plb;
-%             p(il)=pub(il)+2*p(il) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
-% 
-%         elseif ~isempty(pub)  && ~isempty(plb)
-% 
-%             %%
-%             % pub=[10 8]; plb=[1 2] ; p=[1 9] ;
-% 
-%             d=pub-plb;
-%             t=mod(p-plb,2*d);
-%             p=plb+min(t,2*d-t);
-%             %%
-% 
-%         end
-%     else
-% 
-%         p=kk_proj(p,pub,plb);
-%     end
-% 
-% end
-% 
-%%
-
-
 
 
 % The vector p contains the variables for which the inversion is being performed. So if the inversion is done over log(c)
@@ -141,34 +100,17 @@ end
 
 % Populate F with the current values in the vector p ahead of a call the the forward model.
 F=p2F(CtrlVar,MUA,p,F,Meas,Priors);  % This maps from the vector p to the field variables F
-                                     % p is the vector of control variables. This is some combination of A, B and C 
-                                     % When inverting for A, we have p=[log10(AGlen]
-                                     % When inverting for C, we have p=[log10(C)]
-                                     % When inverting for A and C we have p=[log10(AGlen);log10(C)]
-                                     % and so on
-if anynan(F.C)
-    error("JGH:Cnan","nan in C")
-end
-if anynan(F.AGlen)
-    error("JGH:Anan","nan in A")
-end
-if anynan(F.B)
-    error("JGH:Bnan","nan in B")
-end
-
-if any(F.C<0)
-    error("JGH:Cneg","negative C values")
-end
-
-if any(F.AGlen<0)
-    error("JGH:Cneg","negative A values")
-end
+% p is the vector of control variables. This is some combination of A, B and C
+% When inverting for A, we have p=[log10(AGlen]
+% When inverting for C, we have p=[log10(C)]
+% When inverting for A and C we have p=[log10(AGlen);log10(C)]
+% and so on
 
 
 %% Forward model solution
 [~,~,F,l,dFduv]= uv([],[],CtrlVar,MUA,BCs,F,l);
 
-if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+if is_dhdt_meas
     % If dh/dt is included as measurements, I need that calculated dh/dt, which in turn requires the mass-balance, a, as well
     if isempty(F.as) || isempty(F.ab)
         [~,F]=GetMassBalance([],CtrlVar,MUA,F);
@@ -181,32 +123,22 @@ end
 % terms.
 %
 % Get the I and R terms, and the gradients if required.
-if nargout==1
-    R=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ;
-    I=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv) ;
-else
-    [R,dRdp,ddRddp,RegOuts]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ;
-    [I,dIdp,ddIddp,MisfitOuts]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv) ;
-end
 
+
+[R,dRdp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+[I,dIdp,Psi_x,Psi_y,F,dFduv]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv);
 
 if  CtrlVar.Inverse.CalcGrad  % gradient needed
     dJdp=dRdp+dIdp;
+    JGH2=JGH2+1;
 end
 
 if CtrlVar.Inverse.CalcHess  % Hessian needed
-    if isempty(ddIddp)
-        Hessian=ddRddp;
-    else
-        Hessian=ddRddp+ddIddp;
-    end
+
+    Hessian = BuildInversionHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y);
+    assert(numel(dJdp)==size(Hessian,1),"Regularisation:DimentionalMismatch","sizes of gradient and Hessian not compatible.")
+    JGH3=JGH3+1;
 end
-
-
-
-
-
-
 
 
 if F.solution=="-uv-"
@@ -233,26 +165,41 @@ end
 
 
 if nargout>3  % additional information needed as output
+
+    MisfitOuts.I=I;
+    MisfitOuts.dIdC=[];
+    MisfitOuts.dIdAGlen=[];
+    MisfitOuts.dIdB=[];
+    MisfitOuts.dIduv=[];
+    MisfitOuts.uAdjoint=Psi_x;
+    MisfitOuts.vAdjoint=Psi_y;
+    RegOuts.R=R;
+    RegOuts.dRdp=dRdp;
+    RegOuts.RAGlen=[];
+    RegOuts.dRdAGlen=[];
+    RegOuts.RC=[];
+    RegOuts.dRdC=[];
+    RegOuts.RB=[];
+    RegOuts.dRdB=[];
+
     JGHouts.dRdp=dRdp;
     JGHouts.dIdp=dIdp;
-    JGHouts.ddIdpp=ddIddp;
-    JGHouts.ddRdpp=ddRddp;
+    JGHouts.ddIdpp=[];
+    JGHouts.ddRdpp=[];
     JGHouts.RegOuts=RegOuts;
     JGHouts.MisfitOuts=MisfitOuts;
 else
     JGHouts=[];
 end
 
-if  CtrlVar.Inverse.MinimisationMethod=="-MatlabOptimization-HessianVectorProduct-"
-    % This is when using trust-region-reflective and Hessian-Vector-Product
-    Hessian=p ;
 
-end
 
 if isnan(J)
     warning("JGH:ObjectivFunctionIsNaN","objective function is nan")
 end
 
+
+% fprintf("JGH(%i,%i,%i): \t J=%g\n",JGH1,JGH2,JGH3,J)
 
 end
 
