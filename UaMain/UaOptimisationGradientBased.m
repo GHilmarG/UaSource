@@ -6,16 +6,15 @@ function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInf
 % It does a reasonably good job. Importantly it does allow for an arbitrary metric, which here is defined by the metric
 % matrix G.  This is something that most optimization packages appear not to allow for.
 %
-% At the moment it is evaluating the cost function too often I think. I think the line-search, which is basically my modified
-% backtracking algorithm with extrapolation allowed, needs improvements. Or maybe it should be replaced with a new line-search
-% code that takes into account the Wolfe condition. The backtracking algorithm is really optimized for backtracking and only
-% uses the Amarillo condition. 
+% The line search is now done using a new function,LineSearchWolfe, and it returns a minimum satisfying both Wolfe
+% conditions, i.e. both the Armijo rule and the curvature condition. 
+% 
+%
 %
 % func is the function to me minimized
+%
 %  p is the parameter set, i.e. func(p)
 %
-%  Func is func evaluated as a function of step-size gamma in the direction of
-%  the gradient: Func=@(gamma) func(p-gamma*dJdp);
 %
 %%
 
@@ -41,9 +40,6 @@ if isempty(CtrlVar)
 end
 
 CtrlVar.Inverse.DecrementTolerance=1e-10;
-JTolerance=0.01;
-dJTolerance=0.0 ; 
-dpTolerance=0.0;
 
 
 
@@ -57,7 +53,7 @@ p=kk_proj(p,pub,plb);
 
 %% Note: for anything other then the l2 gradient, this is not quite OK
 %
-% To do: I need to make sure that I'm using the same metric matrix, G, throughout the code. 
+% To do: I need to make sure that I'm using the same metric matrix, G, throughout the code.
 % This is now easy to do as I calculate the metric matrix in one function, but I still need to change the
 % ApplyAdjointGradientPreMultiplier.m
 %
@@ -82,7 +78,8 @@ dJdp=dJdp(:);
 mdJdp=-dJdp ; % this is the steepest descent direction in the G metric
 d=mdJdp ;     % first search direction is simply the steepest-descent direction.
 
-GradNorm=norm(dJdp)/sqrt(numel(dJdp));
+sGs=dJdp'*G*dJdp;
+Decrement = 0.5*sGs;
 
 RunInfo.Inverse.ConjGradUpdate=0;
 
@@ -101,7 +98,7 @@ if isempty(RunInfo) ||  numel(RunInfo.Inverse.Iterations)<=1
         RunInfo.Inverse.I(1)=fOuts.MisfitOuts.I;
     end
     RunInfo.Inverse.StepSize(1)=0;
-    RunInfo.Inverse.GradNorm=GradNorm;
+    RunInfo.Inverse.GradNorm=Decrement;
     RunInfo.Inverse.ConjGradUpdate=0;
 end
 
@@ -112,20 +109,12 @@ if ~(isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.Init
     slope0=dJdp'*G*d;
 else
     slope0=dJdp'*G*d;
-    gamma1=-0.01*J0/slope0 ; % linear approx
+    gamma1=-0.05*J0/slope0 ; % linear approx
     p1=p+gamma1*d;
     J1=func(p1);
 
-    iCount=0 ; % sometimes the initial guess is so small that there is almost no change in the cost function
-    % try to increase gamma by factor of 10 until at least 1% change has been generated.
-    while (abs(J1-J0)/J1 < 0.01) && iCount<10
-
-        gamma1=gamma1*10 ;
-        p1=p+gamma1*d;
-        J1=func(p1);
-        iCount=iCount+1;
-    end
-
+    % OK, so now I have J0 at gamma=0, J1 at gamma1, and the slope at gamma=0
+    % with these three numbers I can build a quadratic approximation and estimate the minimum gamma
     gamma=-gamma1*slope0/2/((J1-J0)/gamma1-slope0);  % quadratic approx
     if gamma<0 ; gamma=gamma1; end
 
@@ -133,34 +122,23 @@ end
 
 
 %%
-fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \t \t gamma=%-g \n \n',J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma)
+fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \t \t gamma=%-g \n \n',J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,Decrement,gamma)
 
 
-Func=@(gamma) func(p+gamma*d);
-J1=Func(gamma);
+J1=func(p+gamma*d);
 nFuncEval=1;
 
-
-if isnan(J1)
-    slope0=dJdp'*G*d; 
-    gamma=-0.1*J0/slope0 ;  % modification on 23 Jan, 2019. Resetting gamma
-    J1=Func(gamma);
+while isnan(J1)
+    gamma=gamma/10;
+    J1=func(p+gamma*d);
     nFuncEval=nFuncEval+1;
 end
 
-while RunInfo.Forward.uvIterations==0
 
-    % the gamma step caused so little change in the model parameters that the previous J0 uv solution was accepted.
-    % So increase gamma
-    fprintf(" Increasing the stepsize as the previous one caused insufficient changes in model parameters to require a new uv solution.\n")
-    fprintf(" gamma increased from %g to %g \n",gamma,gamma*1000)
-    gamma=gamma*1000 ;
-    J1=Func(gamma);
-    nFuncEval=nFuncEval+1;
-
-end
-gammaStart=gamma; 
 %% Backtracking parameter modifications
+% These are here because I used to use the backtracking algorithm, but now I'm using the line-search algorithm, so these are
+% now reduntant and can be deleted in the future.
+%
 CtrlVar.BacktrackingGammaMin=CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize;
 CtrlVar.BackTrackMinXfrac=CtrlVar.Inverse.MinimumRelativelLineSearchStepSize;
 CtrlVar.BackTrackMaxIterations=CtrlVar.Inverse.MaximumNumberOfLineSearchSteps;
@@ -172,94 +150,67 @@ CtrlVar.BackTrackGuardUpper=0.95;
 CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
 CtrlVar.NewtonAcceptRatio=0.5;
 CtrlVar.BackTrackExtrapolationRatio=10;
-%%
 
+
+%% Line-search parameters, here used for the LineSearchWolfe
+LineSearchOptions.c1=1e-4;  % Armijo parameter
+LineSearchOptions.c2=0.2 ;  % Wolfe, curvature parameter.
+
+
+
+%%
 It0=RunInfo.Inverse.Iterations(end);
 
-fprintf('\n   It   #fEval      J           I          R        decrement      gamma   #cgUpdate\n')
+fprintf('\n   It   #fEval      J           I          R        decrement      gamma  \t #cgUpdate\n')
 %fprintf('123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\n')
 
-fprintf('%5i  %5i %10g  %10g  %10g  %10g  %10g  %5i\n',It0,nFuncEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma,RunInfo.Inverse.ConjGradUpdate)
+fprintf('%5i  %5i %10g  %10g  %10g  %10g  %10g  %5i\n',It0,nFuncEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,Decrement,gamma,RunInfo.Inverse.ConjGradUpdate)
 CtrlVar.GradientUpgradeMethod=CtrlVar.Inverse.GradientUpgradeMethod;
 
-LineSearchInfo=[];
-iBackTry=0; gammaLast=gamma;
 
-for It=1:CtrlVar.Inverse.Iterations
+ExitInfo=[];                              % state carried by CGExitCriteria
+
+
+gammaStart=gamma;
+
+for Iteration=1:CtrlVar.Inverse.Iterations
 
 
     %CtrlVar.InfoLevelBackTrack=100 ;CtrlVar.doplots=1;
     CtrlVar.LineSearchAllowedToUseExtrapolation=true;
-    J1=Func(gammaStart);
+
+    J1=func(p+gammaStart*d);
 
 
 
     Gd = G*d ;                                   % once, outside the line search
     Phi = @(gamma) PhiEval(gamma,p,d,Gd,func) ;
-    [gamma,JgammaNew,LineSearchInfo]=LineSearchWolfe(slope0,gammaStart,J0,J1,Phi,LineSearchInfo);
+    [gamma,JgammaNew,LineSearchInfo]=LineSearchWolfe(slope0,gammaStart,J0,J1,Phi,LineSearchOptions);
     nFuncEval=LineSearchInfo.nFuncEvaluations+1 ; % adding the one I did to get J1
 
-    dJ=J0-JgammaNew; 
-    % 
+  
+    gammaLastMinimum=gamma;
+    %
     % [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gammaStart,J0,J1,Func,CtrlVar);
     % nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
-
-
-    dpNorm=gamma * sqrt(d'*G*d); 
 
     p=p+gamma*d;
     p=kk_proj(p,pub,plb);
     mdJdpLast=mdJdp;
- 
-    % Get the new steepest descent direction. 
-    [J0,dJdp,~,fOuts]=func(p);
+
+    % Get the new steepest descent direction.
+    [J0,dJdp,~,fOuts]=func(p);  % this is with gamma=0
     mdJdp=-dJdp ; % this is the steepest descent direction in the G metric
     nFuncEval=nFuncEval+1; % here J0 and JgammaNew must be (almost) equal
 
- 
-    Decrement = sqrt(0.5*(dJdp'*G*dJdp)) ; % with dJdp the Riesz-mapped descent direction 
 
-    if Decrement < CtrlVar.Inverse.DecrementTolerance
+    sGs=dJdp'*G*dJdp;
+    Decrement = 0.5*sGs;
+    Misfit=fOuts.MisfitOuts.I;
 
-        fprintf("Breking out of inverse iteration loop as decrement has reached tolerance.\ n")
-        fprintf("          Decrement=%g\n",Decrement)
-        fprintf("Decrement tolerance=%g \n",CtrlVar.Inverse.DecrementTolerance)
-
-        break 
-    
-    end
-
-    
-    if dJ<dJTolerance
-        fprintf("dJ tolerance (%g) reached with dJ=%g. \n",dJTolerance,dJ)
-        break
-    end
-
-    if J0<JTolerance  % I can use J0 here because it has already been updated, i.e. this is currently the best J
-        fprintf("J tolerance (%g) reached with J=%g. \n",JTolerance,J)
-        break
-    end
-
-    if dpNorm< dpTolerance
-        fprintf("dp tolerance (%g) reached with dpNorm=%g. \n",dpTolerance,dpNorm)
-        break
-    end
-
-
-    % update search direction.
-    [d,cgInfo]=NextSearchDirection(mdJdp,mdJdpLast,d,G,CtrlVar,cgInfo);
-    
-    RunInfo.Inverse.ConjGradUpdate=cgInfo.NumberOfConjGradUpdatesWithoutReset;
-
-    Func=@(gamma) func(p+gamma*d);
-    slope0=dJdp'*G*d;  
-
- 
-
-    gammaStart=2*gammaLast;
-
-
-    fprintf('%5i  %5i %10g  %10g  %10g  %10g  \t %10g \t %5i\n',It+It0,nFuncEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,Decrement,gamma,cgInfo.NumberOfConjGradUpdatesWithoutReset)
+    % Record this iteration BEFORE testing for exit, otherwise the last
+    % iteration is missing from RunInfo whenever the loop breaks.
+    fprintf('%5i  %5i %10g  %10g  %10g  %10g  \t %10g \t %5i\n',Iteration+It0,nFuncEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,Decrement,gamma,cgInfo.NumberOfConjGradUpdatesWithoutReset)
 
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
     RunInfo.Inverse.J=[RunInfo.Inverse.J;J0];
@@ -268,17 +219,55 @@ for It=1:CtrlVar.Inverse.Iterations
     RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Decrement];
     RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];
 
-end
+    [Exit,ExitInfo]=CGExitCriteria(CtrlVar,ExitInfo,Iteration,J0,sGs,cgInfo,LineSearchInfo,Misfit);
+
+    if Exit
+        fprintf('\n Inversion stopped after %i iterations, exit flag %i : %s \n',...
+            Iteration,ExitInfo.Flag,ExitInfo.Message)
+        fprintf(' Totals: %i cost function evaluations, %i gradient evaluations, %i CG restarts. \n\n',...
+            ExitInfo.nFuncTotal,ExitInfo.nGradTotal,ExitInfo.nRestart)
+        break
+    end
+
+  
+
+    % update search direction. ExitInfo.ForceRestart is set by CGExitCriteria
+    % when a line search has failed on a CG direction, or on the first sign of
+    % stagnation, and asks for the CG history to be discarded.
+    [d,cgInfo]=NextSearchDirection(mdJdp,mdJdpLast,d,G,CtrlVar,cgInfo,ExitInfo.ForceRestart);
+
+    RunInfo.Inverse.ConjGradUpdate=cgInfo.NumberOfConjGradUpdatesWithoutReset;
+
+    slope0=dJdp'*G*d;
+
+    % What is a sensible start value for gamma for the next line-search?
+    % Should I extend it a bit from last minimum, or since I'm now using a line search maybe best to just use directly
+    % gammaLastMinimum? 
+    gammaStart=2*gammaLastMinimum;
 
 end
 
-
-%%%%%%%%%%%%%%%%
-
+end
 
 
-function [d1,cgInfo]=NextSearchDirection(mdJdp,mdJdpLast,d0,G,CtrlVar,cgInfo)
+%%%%%%%%%%%%%%%% Local Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+function [d1,cgInfo]=NextSearchDirection(mdJdp,mdJdpLast,d0,G,CtrlVar,cgInfo,ForceRestart)
+
+if nargin<7 || isempty(ForceRestart) ; ForceRestart=false ; end
+
+if ForceRestart
+    % Discard the CG history and drop back onto steepest descent. This is the
+    % same state the CG routine returns after one of its own resets.
+    d1=mdJdp ;
+    cgInfo.NumberOfConjGradUpdatesWithoutReset=0 ;
+    cgInfo.teta=0 ;
+    cgInfo.ConjGradAngle=0 ;
+    cgInfo.ddAngle=nan ;
+    return
+end
 
 switch lower(CtrlVar.GradientUpgradeMethod)
 
@@ -288,7 +277,15 @@ switch lower(CtrlVar.GradientUpgradeMethod)
 
     otherwise
 
-        d1=d0;
+        % Steepest descent. Note that this previously returned d1=d0, i.e. the
+        % PREVIOUS search direction, which froze the direction at the initial
+        % -dJdp for the whole run, so that every subsequent line search was a
+        % search along a stale direction.
+        d1=mdJdp ;
+        cgInfo.NumberOfConjGradUpdatesWithoutReset=0 ;
+        cgInfo.teta=0 ;
+        cgInfo.ConjGradAngle=0 ;
+        cgInfo.ddAngle=nan ;
 end
 
 end
