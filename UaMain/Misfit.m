@@ -280,7 +280,9 @@ if CtrlVar.Inverse.CalcGradI
 
                 dBI=dhdp.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.
 
-                dBI=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dBI); % added 7 Jan 2025
+               % dBI=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dBI); 
+               % added 7 Jan 2025, 
+               % removed 9 Sept 2026, as now done for the whole gradient below
 
                 DBI=dBFuvLambda+dBI;
                 %
@@ -306,6 +308,8 @@ if CtrlVar.Inverse.CalcGradI
     end
 
     dIdp=[DAI;DBI;DCI] ;  % 2026 Feb
+
+  
 end
 
 

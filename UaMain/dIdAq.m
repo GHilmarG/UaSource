@@ -265,7 +265,8 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
 end
 
 %% sometimes I modify the gradient to make it a L^2 or H^1 gradient instead of the l^2 gradient that I have just calculated.
-dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.A,dIdA);
+% dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.A,dIdA);
+% I now do this once and for all in Regularisation/Misfit
 
 
 

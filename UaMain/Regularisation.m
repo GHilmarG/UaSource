@@ -344,15 +344,9 @@ end
 
 
 
-
-%% If I'm performing an inversion, where I do not use $\nabla^2 R$ at all, I can modify the gradient to create L2 or H1 gradient
-% if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
-dRdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.A,dRdA);
-dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dRdC);
-dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dRdB);
-
 R=RA+RB+RC;
 dRdp=[dRdA;dRdB;dRdC];
+
 
 assert(isscalar(R),"Regularisation:RnotScalar","R is not a scalar")
 

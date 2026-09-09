@@ -57,17 +57,9 @@ p=kk_proj(p,pub,plb);
 % This is now easy to do as I calculate the metric matrix in one function, but I still need to change the
 % ApplyAdjointGradientPreMultiplier.m
 %
-% I need the MetricMatrix, for example for L2 this would be
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M" || CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"
 
-    G=MUA.M/MUA.Area ;
-    [isA,isB,isC] = isABC(CtrlVar);
-
-    if isA && isC
-        G=blkdiag(G,G);
-    end
-elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="H1"
-    error("not implemented")
+if CtrlVar.Inverse.RieszMapGradient
+    G=MUA.MetricMatrix; 
 else
     G=1;
 end
@@ -181,6 +173,14 @@ for Iteration=1:CtrlVar.Inverse.Iterations
 
     J1=func(p+gammaStart*d);
 
+    % This is the old backtracking approach. Now no longer used. Instead I'm using line search with Wolfe conditions
+    %
+    % CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1;   
+    % Func=@(gamma) func(p+gamma*d);
+    % [gammaTest,JgammaTest,BackTrackingInfoVector]=BackTracking(slope0,gammaStart,J0,J1,Func,CtrlVar);
+    %
+    %
+    %
 
 
     Gd = G*d ;                                   % once, outside the line search
@@ -190,10 +190,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
 
   
     gammaLastMinimum=gamma;
-    %
-    % [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gammaStart,J0,J1,Func,CtrlVar);
-    % nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
-
+  
     p=p+gamma*d;
     p=kk_proj(p,pub,plb);
     mdJdpLast=mdJdp;
@@ -218,7 +215,8 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.MisfitOuts.I];
     RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Decrement];
     RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];
-
+    
+    CtrlVar.Inverse.InfoLevel=0; 
     [Exit,ExitInfo]=CGExitCriteria(CtrlVar,ExitInfo,Iteration,J0,sGs,cgInfo,LineSearchInfo,Misfit);
 
     if Exit

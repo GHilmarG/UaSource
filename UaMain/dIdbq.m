@@ -373,7 +373,8 @@ for Inod=1:MUA.nod
 end
 
 
-dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dFdhlambda);
+% dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dFdhlambda);
+% Now this is done for the whole assembled dIdp gradient
  
 end
 

@@ -16,11 +16,14 @@ dt=CtrlVar.dt;
 
 MUA.workers=[]; % saving composites is not supported, MATLAB 2024
 
-save(CtrlVar.Inverse.NameOfRestartOutputFile,...
-    'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
-    'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','time','dt','-v7.3');
-
-
+try
+    save(CtrlVar.Inverse.NameOfRestartOutputFile,...
+        'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
+        'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','time','dt','-v7.3');
+catch
+    warning("WriteAdjointRestartFile:CouldNotWriteAdjointRestartFile","for some reason, saving an adjoint restart file throws an error.")
+    fprintf("CtrlVar.Inverse.NameOfRestartOutputFile:%s",CtrlVar.Inverse.NameOfRestartOutputFile)
+end
 
 
 if CtrlVar.AGlenisElementBased

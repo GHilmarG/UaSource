@@ -934,13 +934,28 @@ CtrlVar.Inverse.Hessian="-Jpp-" ; % "-DirectAdjoint-","-Jpp-","-FiniteDifference
 % if, for example, dJdC is the directional derivative of the cost function J with respect to C, specifying
 % CtrlVar.Inverse.AdjointGradientPreMultiplier="M" results in dJdC being recalculated as dJdC=M\dJdC ; 
 %
-CtrlVar.Inverse.AdjointGradientPreMultiplier="L2"; % {"l2","L2","H1"}
-CtrlVar.Inverse.AdjointGradient.UseBCs.A=false;
-CtrlVar.Inverse.AdjointGradient.UseBCs.B=false;
-CtrlVar.Inverse.AdjointGradient.UseBCs.C=false;
 
-CtrlVar.Inverse.PreMultiplier.H1.ga=nan;  % These are the values for ga and gs when using the H1 inner product to define the gradient 
-CtrlVar.Inverse.PreMultiplier.H1.gs=nan; 
+% Should a Riesz-mapped gradient be used?
+%
+% This should be set to true when using a gradient based method such as conjugated gradients, or a BFGS update.
+%
+% Only if we are building the Hessian directly should we not use the Riesz-mapped gradient.
+%
+% 
+%
+if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
+    CtrlVar.Inverse.RieszMapGradient=true;
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+    CtrlVar.Inverse.RieszMapGradient=false;
+end
+
+% CtrlVar.Inverse.AdjointGradientPreMultiplier="L2"; % {"l2","L2","H1"}
+% CtrlVar.Inverse.AdjointGradient.UseBCs.A=false;
+% CtrlVar.Inverse.AdjointGradient.UseBCs.B=false;
+% CtrlVar.Inverse.AdjointGradient.UseBCs.C=false;
+% 
+% CtrlVar.Inverse.PreMultiplier.H1.ga=nan;  % These are the values for ga and gs when using the H1 inner product to define the gradient 
+% CtrlVar.Inverse.PreMultiplier.H1.gs=nan; 
 
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
 % If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,

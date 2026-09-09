@@ -118,6 +118,17 @@ end
 if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
+%%
+
+if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
+    CtrlVar.Inverse.RieszMapGradient=true;
+    fprintf(" The optimisation will use a Riesz-mapped gradient.\n")
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+    CtrlVar.Inverse.RieszMapGradient=false;
+    fprintf(" The optimisation will not use a Riesz-mapped gradient.\n")
+end
+
+
 
 %% What inversions are being performed?
 %  And make sure the Matern parameters are all correctly defined
@@ -163,7 +174,7 @@ end
 % I'm storing here individual blocks as well as the block matrix (MetricMatrix). This is a bit of a waste of memory, but
 % these are all sparse matrices. But this could be revisited at a later stage.
 [MUA.MetricMatrix,MUA.QA,MUA.QB,MUA.QC]=BuildMetricMatrix(CtrlVar,MUA,isA,isB,isC);
- 
+MUA.dMetricMatrix=decompositionUa(MUA.MetricMatrix);
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %

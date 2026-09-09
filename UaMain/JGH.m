@@ -131,6 +131,20 @@ end
 if  CtrlVar.Inverse.CalcGrad  % gradient needed
     dJdp=dRdp+dIdp;
     JGH2=JGH2+1;
+
+    if CtrlVar.Inverse.RieszMapGradient
+
+        if ~isfield(MUA,"dMetricMatrix") && isempty(MUA.dMetricMatrix)
+            dJdp=MUA.MetricMatrix\dJdp; 
+        else
+            dJdp=MUA.dMetricMatrix\dJdp;
+        end
+
+        % To do: Here I could add the BCs in the future
+
+    end
+
+
 end
 
 if CtrlVar.Inverse.CalcHess  % Hessian needed
