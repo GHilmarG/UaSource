@@ -229,18 +229,19 @@ else
     
     den=d0'*(Gs0-Gs1) ;   % <s0-s1,d0>_G , used by HS and DY
     
+    
     switch upper(CtrlVar.ConjugatedGradientsUpdate)
         
-        case 'FR'
+        case "FR"
             teta=n1Sqr/n0Sqr;                    % Fletcher-Reeves
             
-        case 'PR'
+        case "PR"
             teta=(n1Sqr-s1Gs0)/n0Sqr;            % Polak-Ribiere
             
-        case 'HS'
+        case "HS"
             teta=(n1Sqr-s1Gs0)/den;              % Hestenes-Stiefel
             
-        case 'DY'
+        case "DY"
             teta=n1Sqr/den;                      % Dai-Yuan
             
         otherwise

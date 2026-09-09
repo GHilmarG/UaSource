@@ -1082,26 +1082,42 @@ CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 %%
 % [----------  The following parameters are only relevant if using the
 % UaOptimization i.e. only if
-% CtrlVar.Inverse.MinimisationMethod='UaOptimization'; 
+% CtrlVar.Inverse.MinimisationMethod="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
+%                                   ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
 %
-% The Ua optimization is a simple non-linear conjugate-gradient method with
-% automated resets, combined with a (one-sided) line search. The reset is done
-% if the angle between subsequent steepest decent directions is to far from 90
-% degrees, or if the update parameter becomes negative (only relevant for
-% Polak-Ribiere and Hestens-Stiefel).
-CtrlVar.Inverse.GradientUpgradeMethod='ConjGrad' ; %{'SteepestDecent','ConjGrad'}
-CtrlVar.Inverse.InitialLineSearchStepSize=[];
-CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
-CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size
-CtrlVar.Inverse.MaximumNumberOfLineSearchSteps=50;
-CtrlVar.ConjugatedGradientsRestartThreshold=40 ; % degrees!
-CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
-                                        % FR ;Fletcher-Reeves
-                                        % PR :Polak-Ribi\`ere
-                                        % HR: Hestenes-Stiefel
-                                        % DY :Dai-Yan
-                   
-CtrlVar.ReflectiveTransformation=false ; %      
+% As when using the MATLAB optimization toolbox, there are two basic options: 1) using the gradient  and 2) using the Hessian 
+%
+% When using the gradient, the Hessian information is provided through a conjugated gradient updates, and the Hessian itself is
+% not calculated.  This is conceptually similar to when using the MATLAB toolbox when the Hessian information is obtained using
+% the BFSG update, i.e. again the Hessian itself is never built. 
+%
+% When using a Hessian based inversion the Hessian is calculated or approximated. 
+%
+% If a Hessian-based optimization is used, the the expressions for the Hessian can be selected by setting the field
+%
+%   CtrlVar.Inverse.Hessian   (see above for options for this field)
+%
+%
+%
+
+CtrlVar.Inverse.UaConjugatedGradients.Armijo=1e-4;
+CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature=0.2;
+CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvalutionsInLineSearch=15;
+CtrlVar.Inverse.UaConjugatedGradients.InfoLevel=0;
+
+CtrlVar.Inverse.UaConjugatedGradients.UpdateMethod="-ConjGrad-" ; %{'SteepestDecent','ConjGrad'}
+
+% cg updates. All update options appear to perform about the same, but in some test HR came out best. All cg updates are
+%             considerably better than steepest decent
+CtrlVar.ConjugatedGradientsUpdate="PR"; % (FR|PR|HS|DY)
+                                        % FR Fletcher-Reeves
+                                        % PR Polak-Ribi\`ere
+                                        % HS Hestenes-Stiefel
+                                        % DY Dai-Yan
+                                        
+
+CtrlVar.Inverse.DecrementTolerance=1e-10;
+
 
 CtrlVar.TrustRegion.nSigma=2; % Relevant if using the Ua TrustRegion algorithm. 
                               %

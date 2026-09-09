@@ -105,9 +105,7 @@ narginchk(11,11)
 %
 %%
 
-if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0
-    CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
-end
+
 
 %%
 

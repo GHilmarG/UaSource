@@ -21,7 +21,7 @@ try
         'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
         'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','time','dt','-v7.3');
 catch
-    warning("WriteAdjointRestartFile:CouldNotWriteAdjointRestartFile","for some reason, saving an adjoint restart file throws an error.")
+    warning("WriteAdjointRestartFile:CouldNotWriteAdjointRestartFile","for some reason, saving an adjoint restart file throws an error.\n")
     fprintf("CtrlVar.Inverse.NameOfRestartOutputFile:%s",CtrlVar.Inverse.NameOfRestartOutputFile)
 end
 
