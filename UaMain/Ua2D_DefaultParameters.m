@@ -907,33 +907,23 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % The default option is Hessian-based optimization using the matlab optimization toolbox.
 %
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";      % gradient-based, MATLAB toolbox
-%                                  ="MatlabOptimization-HessianBased";      % hessian-based, MATLAB toolbox
-%                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
-%                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
-%
-%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-HessianFiniteDifferences-BandWidth5-";
-%   CtrlVar.Inverse.Hessian="FiniteDifferences";
-%
+CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-GradientBased-";      % gradient-based, MATLAB toolbox
+
+CtrlVar.Inverse.MinimisationMethodOptions=[...
+    "-MatlabOptimization-GradientBased-"; ...        % gradient-based, MATLAB toolbox
+    "-MatlabOptimization-HessianBased-"; ...         % Hessian-based, MATLAB toolbox
+    "-UaOptimization-GradientBased-"; ...            % gradient-based, Ua optimization toolbox
+    "-UaOptimization-HessianBased-"     ];       % Hessian-based, Ua optimization toolbox
+   
 % If a Hessian-based optimization is used, the the expressions for the Hessians can be selected as follows:
-CtrlVar.Inverse.Hessian="-Jpp-" ; % "-DirectAdjoint-","-Jpp-","-FiniteDifferences-" ; 
 
+CtrlVar.Inverse.Hessian="-DirectAdjoint-" ; % "-DirectAdjoint-","-Jpp-","-FiniteDifferences-" ; 
 
-% Here R stands for Regularization and I stands for Misfit.
-% E stands for 'exact' and 'FP' for 'fixed-point'
-%
-% So RHA=E implies that the Hessian (H) for the AGlen (A) regularization term (R) is based on the exact (E) expression for H. 
-% So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H. 
+CtrlVar.Inverse.HessianOptions=[...
+    "-DirectAdjoint-";...
+    "-FiniteDifferences-";...
+    "-Jpp-"];
 
-
-% If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass
-% matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
-% presumably to use 'I', and then to try out 'M' for comparison.
-%
-% Note: using the pre-multiplier results in the directional derivatives being multiplied by INVERSE of the pre-multiplier. So
-% if, for example, dJdC is the directional derivative of the cost function J with respect to C, specifying
-% CtrlVar.Inverse.AdjointGradientPreMultiplier="M" results in dJdC being recalculated as dJdC=M\dJdC ; 
-%
 
 % Should a Riesz-mapped gradient be used?
 %
@@ -949,18 +939,6 @@ elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     CtrlVar.Inverse.RieszMapGradient=false;
 end
 
-% CtrlVar.Inverse.AdjointGradientPreMultiplier="L2"; % {"l2","L2","H1"}
-% CtrlVar.Inverse.AdjointGradient.UseBCs.A=false;
-% CtrlVar.Inverse.AdjointGradient.UseBCs.B=false;
-% CtrlVar.Inverse.AdjointGradient.UseBCs.C=false;
-% 
-% CtrlVar.Inverse.PreMultiplier.H1.ga=nan;  % These are the values for ga and gs when using the H1 inner product to define the gradient 
-% CtrlVar.Inverse.PreMultiplier.H1.gs=nan; 
-
-% If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
-% If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,
-% and with respect to the l2 inner product when using the I pre-multiplier.
-%
 
 CtrlVar.Inverse.Iterations=1; % Maximum number of inverse iterations
 CtrlVar.Inverse.OptimalityTolerance=1e-10; % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
@@ -1341,7 +1319,6 @@ CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which br
 % 
 % Note: When testing adjoint gradients, the perturbation is done with respect of nodal values and one must set
 %
-%   CtrlVar.Inverse.AdjointGradientPreMultiplier="I";
 % 
 
 

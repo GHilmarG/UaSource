@@ -221,9 +221,16 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 
 if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-    CtrlVar.JGH.CalcHessian=true; % But will only do so if the number of output arguments is also 3 or greater
+    CtrlVar.JGH.CalcHessian=true;  % From now on I CAN use JGH to calculate the Hessian. 
+                                   % But JGH will only do so if the number of output arguments is ALSO 3 or greater. 
+                                   %
+                                   % This means that the number of output arguments to JGH 
+                                   % (and therefore to func), controls if the Hessian is calculated or not.
 else
-    CtrlVar.JGH.CalcHessian=false; % But will only do so if the number of output arguments is also 3 or greater
+    CtrlVar.JGH.CalcHessian=false; % From now on I can NOT use JGH to calculate the Hessian. 
+                                   %
+                                   % This means that irrespective of the number of output arguments to JGH
+                                   % (and therefore to func), the Hessian will never be calculated by JGH (or func).
 end
 
 func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns the cost (J), gradient (G) and Hessian (H)
@@ -231,7 +238,7 @@ func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns
                                                                                                   
 
 
-% Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
+% Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimization toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same
 % Hessian as JGH.
 %

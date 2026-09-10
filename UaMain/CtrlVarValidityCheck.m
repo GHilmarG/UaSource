@@ -198,7 +198,7 @@ if CtrlVar.InverseRun
 
     if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,"fixpoint")
 
-        error("CtrlVarValidityCheck:fixpointOptionOutdated","The fixpoint option no longer supported") 
+        error("CtrlVarValidityCheck:fixpointOptionOutdated","The fixpoint option no longer supported")
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"logAGlen","");
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"Aglen","");
         CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"logAGlen","");
@@ -388,6 +388,56 @@ if CtrlVar.InverseRun
 
             end
         end
+    end
+
+    if isfield(CtrlVar,"ConjugatedGradientsUpdate")
+
+        fprintf("'CtrlVar.ConjugatedGradientsUpdate' no longer used. \n")
+        fprintf("Use insted: 'CtrlVar.Inverse.UaConjugatedGradients.Update' \n")
+        warning("CtrlVar.ConjugatedGradientsUpdate no longer used")
+        CtrlVar.Inverse.UaConjugatedGradients.Update=CtrlVar.ConjugatedGradientsUpdate;
+
+    end
+
+
+
+
+
+    if ~ismember(CtrlVar.Inverse.MinimisationMethod,CtrlVar.Inverse.MinimisationMethodOptions)
+
+        fprintf("CtrlVar.Inverse.MinimisationMethod=%s\n",CtrlVar.Inverse.MinimisationMethod)
+        fprintf("But must be one of these options:")
+        fprintf(" \t %s\n",CtrlVar.Inverse.MinimisationMethodOptions)
+        error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.MinimisationMethod does not have a valid value. \n")
+
+    end
+
+    if ~ismember(CtrlVar.Inverse.Hessian,CtrlVar.Inverse.HessianOptions)
+
+        fprintf("CtrlVar.Inverse.Hessian=%s\n",CtrlVar.Inverse.Hessian)
+        fprintf("But must be one of these options:")
+        fprintf(" \t %s\n",CtrlVar.Inverse.HessianOptions)
+        error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.Hessian does not have a valid value. \n")
+
+    end
+
+
+ 
+
+
+    if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
+        CtrlVar.Inverse.RieszMapGradient=true;
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        CtrlVar.Inverse.RieszMapGradient=false;
+    end
+
+    if  CtrlVar.Inverse.TestDirectAdjoint.isTrue || CtrlVar.Inverse.TestAdjoint.isTrue
+
+        CtrlVar.Inverse.RieszMapGradient=false;
+    
+        fprintf("In this run the gradient and/or the Hessian will be tested against finite-differences.\n")
+        fprintf("\tTherefore the Riesz mappting is disabled.\n")    
+        fprintf("\tSetting: 'CtrlVar.Inverse.RieszMapGradient=false;'\n")
     end
 
 
@@ -586,7 +636,7 @@ if CtrlVar.ForwardTimeIntegration=="-uv-h-" && CtrlVar.FlowApproximation=="SSHEE
     fprintf(" CtrlVar.ForwardTimeIntegration=%s \n", CtrlVar.ForwardTimeIntegration)
     fprintf(" CtrlVar.FlowApproximation=%s \n", CtrlVar.FlowApproximation)
     fprintf("\t is not recommended. \n")
-    fprintf("Instead solve transient flow in the SSHEET approximaton set: \n ")  
+    fprintf("Instead solve transient flow in the SSHEET approximaton set: \n ")
     fprintf('CtrlVar.ForwardTimeIntegration=="-uvh-" \n')
     fprintf("This does a fully implicit solve with respect to h and provides uv as well.\n")
     warning("CtrlVarValidityCheck:SSHEET","parameter combination not recommended, see above. \n")
@@ -594,25 +644,12 @@ if CtrlVar.ForwardTimeIntegration=="-uv-h-" && CtrlVar.FlowApproximation=="SSHEE
 end
 
 
-if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  
+if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
 
     fprintf("The cov regularisation has now been disabled. This was not used by anyone, and the Matern optons is much better anyhow. \n ")
-    error("CtrlVarValidityCheck:InvalidInputs","cov regularisation no longer suppoerted") 
+    error("CtrlVarValidityCheck:InvalidInputs","cov regularisation no longer suppoerted")
 
 end
 
 
-if isfield(CtrlVar,"ConjugatedGradientsUpdate")
- 
-    fprintf("'CtrlVar.ConjugatedGradientsUpdate' no longer used. \n")
-    fprintf("Use insted: 'CtrlVar.Inverse.UaConjugatedGradients.Update' \n")
-    warning("CtrlVar.ConjugatedGradientsUpdate no longer used")
-    CtrlVar.Inverse.UaConjugatedGradients.Update=CtrlVar.ConjugatedGradientsUpdate;
-
 end
-
-
-
-
-
-

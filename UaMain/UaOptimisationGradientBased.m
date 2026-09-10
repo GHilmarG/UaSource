@@ -1,7 +1,7 @@
 function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
 
 %%
-% This is basically a conjugated-gradient minimizer.
+% This is basically a non-linear conjugated-gradient minimizer.
 %
 % It does a reasonably good job. Importantly it does allow for an arbitrary metric, which here is defined by the metric
 % matrix G.  This is something that most optimization packages appear not to allow for.
@@ -9,7 +9,11 @@ function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInf
 % The line search is done using LineSearchWolfe, which returns a minimum satisfying both Wolfe conditions, i.e. both the
 % Armijo rule and the curvature condition.
 %
-% func is the function to be minimized, p is the parameter set, i.e. func(p)
+% func is the function to be minimized, 
+% 
+%   [J,dJdp]=func(p+gamma*d) 
+% 
+%  where p is the parameter set, gamma is the (scalar) line search step size, and d the search direction. 
 %
 %
 %% Cost-function evaluations
@@ -61,13 +65,6 @@ LineSearchOptions.c2=CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature;
 LineSearchOptions.MaxFuncEvaluations=CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvalutionsInLineSearch;
 LineSearchOptions.InfoLevel=CtrlVar.Inverse.UaConjugatedGradients.InfoLevel;
 
-% Options for the conjugated-gradient update, used by NewConjugatedGradMetric.m
-%
-% NOTE: NewConjugatedGradMetric reads CtrlVar.ConjugatedGradientsUpdate and CtrlVar.ConjugatedGradientsSufficientDescent.
-% These are NOT the same fields as CtrlVar.Inverse.UaConjugatedGradients.* set above, and neither is defined in
-% Ua2D_DefaultParameters, so they must be copied across explicitly here. Without this the update method silently
-% defaults to Fletcher-Reeves whatever is set in DefineInitialInputs.
-
 
 
 if isfield(CtrlVar,"ConjugatedGradientsUpdate")
@@ -81,22 +78,6 @@ end
 if isfield(CtrlVar,"ConjugatedGradientsSufficientDescent")
     error("FieldNoLongerUsed")
 end
-% 
-% 
-% 
-% 
-% 
-% if isfield(CtrlVar.Inverse,'UaConjugatedGradient') && isfield(CtrlVar.Inverse.UaConjugatedGradient,'Update')
-%     CtrlVar.ConjugatedGradientsUpdate=char(CtrlVar.Inverse.UaConjugatedGradients.Update);
-% else
-%     CtrlVar.ConjugatedGradientsUpdate='HS';
-% end
-% 
-% if isfield(CtrlVar.Inverse,'UaConjugatedGradient') && isfield(CtrlVar.Inverse.UaConjugatedGradient,'SufficientDescent')
-%     CtrlVar.ConjugatedGradientsSufficientDescent=CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent;
-% else
-%     CtrlVar.ConjugatedGradientsSufficientDescent=0.1;
-% end
 
 cgInfo.NumberOfConjGradUpdatesWithoutReset=0;
 cgInfo.ConjGradAngle=nan;
@@ -138,6 +119,7 @@ sGs=dJdp'*(G*dJdp);
 Decrement = 0.5*sGs;
 slope0=dJdp'*Gd;
 
+GradNorm=sqrt(sGs); 
 %% Make sure the RunInfo field is OK and properly set
 
 if isempty(RunInfo) ||  ~isfield(RunInfo,'Inverse') || numel(RunInfo.Inverse.Iterations)<=1
@@ -156,7 +138,8 @@ if isempty(RunInfo) ||  ~isfield(RunInfo,'Inverse') || numel(RunInfo.Inverse.Ite
         RunInfo.Inverse.I(1)=fOuts.MisfitOuts.I;
     end
     RunInfo.Inverse.StepSize(1)=0;
-    RunInfo.Inverse.GradNorm(1)=Decrement;
+    RunInfo.Inverse.Decrement(1)=Decrement;
+    RunInfo.Inverse.GradNorm(1)=GradNorm;
 end
 
 RunInfo.Inverse.ConjGradUpdate=0;
@@ -172,7 +155,7 @@ RunInfo.Inverse.ConjGradUpdate=0;
 gamma1=-0.05*abs(J0)/slope0 ;
 [J1,~]=PhiCached(gamma1) ;
 
-% the forward model may fail to converge for this step, in which case reduce until it does
+% the forward model may fail to converge for this step size, in which case reduce gamma until it does
 while isnan(J1) && gamma1>eps
     gamma1=gamma1/10;
     [J1,~]=PhiCached(gamma1) ;
@@ -239,6 +222,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
 
     sGs=dJdp'*(G*dJdp);
     Decrement = 0.5*sGs;
+    GradNorm=sqrt(sGs); 
     Misfit=fOuts.MisfitOuts.I;
 
     fprintf('%5i\t%5i\t%5i\t%5i %10g  %10g  %10g  %10g  \t %10g \t %8.4f %8.4f \n',...
@@ -249,13 +233,9 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     RunInfo.Inverse.J=[RunInfo.Inverse.J;J0];
     RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.RegOuts.R];
     RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.MisfitOuts.I];
-    RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Decrement];
+    RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement;Decrement];
+    RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
     RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];
-
-    if CtrlVar.Inverse.StoreSolutionAtEachIteration
-        if ~isfield(RunInfo.Inverse,'p') ; RunInfo.Inverse.p={} ; end
-        RunInfo.Inverse.p{end+1}=p;
-    end
 
     [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J0,sGs,cgInfo,LineSearchInfo,Misfit);
 

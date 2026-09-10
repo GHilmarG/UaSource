@@ -33,6 +33,7 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             obj.Inverse.R = NaN ;
             obj.Inverse.StepSize = NaN ;
             obj.Inverse.GradNorm = NaN ;
+            obj.Inverse.Decrement = NaN ;
             obj.Inverse.nFuncEval = 0 ;
             obj.Inverse.ConjGradUpdate = 0 ;
             obj.Inverse.fmincon=struct;
