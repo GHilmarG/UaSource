@@ -177,6 +177,10 @@ info=SetDefault(info,'InfoLevel',0) ;
 
 c1=info.c1 ; c2=info.c2 ; gammaMax=info.gammaMax ;
 
+
+
+
+
 if ~(0<c1 && c1<c2 && c2<1)
     error('LineSearchWolfe:BadParameters','Require 0<c1<c2<1, but c1=%g and c2=%g.',c1,c2)
 end

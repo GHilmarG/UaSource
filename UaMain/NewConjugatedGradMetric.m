@@ -43,8 +43,8 @@ function [d1,cgInfo]=NewConjugatedGradMetric(mdJdp,mdJdplast,d0,G,CtrlVar,cgInfo
 %                       []                : Euclidean metric, G=I
 %                       a (sparse) matrix : products formed as G*x
 %                       a function handle : G(x) must return G*x
-%   CtrlVar         uses  CtrlVar.ConjugatedGradientsUpdate             ('FR'|'PR'|'HS'|'DY')
-%                         CtrlVar.ConjugatedGradientsSufficientDescent   (default 0.1)
+%   CtrlVar         uses  CtrlVar.Inverse.UaConjugatedGradients.Update           ('FR'|'PR'|'HS'|'DY')
+%                         CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent  (default 0.1)
 %                         CtrlVar.Inverse.InfoLevel
 %   cgInfo          uses/updates cgInfo.ConjGradUpdate
 %                   returns      cgInfo.ConjGradAngle , cgInfo.ddAngle
@@ -62,7 +62,7 @@ function [d1,cgInfo]=NewConjugatedGradMetric(mdJdp,mdJdplast,d0,G,CtrlVar,cgInfo
 %      (Powell 1984), whereas PR+ is globally convergent under a suitable line
 %      search (Gilbert & Nocedal 1992)
 %   4) the sufficient-descent condition <s1,d1>_G >= c ||s1||_G^2 is violated,
-%      with c = CtrlVar.ConjugatedGradientsSufficientDescent
+%      with c = CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent
 %
 % ddAngle, the angle between successive steepest-descent directions, is computed
 % and returned in cgInfo as a diagnostic but is NOT used to trigger a restart.
@@ -135,7 +135,7 @@ if ~isfield(cgInfo,"NumberOfConjGradUpdatesWithoutReset")
     cgInfo.NumberOfConjGradUpdatesWithoutReset=0;
 end
 
-cgInfo.NumberOfConjGradUpdatesWithoutReset=cgInfo.NumberOfConjGradUpdatesWithoutReset+1; 
+cgInfo.NumberOfConjGradUpdatesWithoutReset=cgInfo.NumberOfConjGradUpdatesWithoutReset+1;
 
 if ~isfield(cgInfo,"ConjGradAngle")
     cgInfo.ConjGradAngle=nan;
@@ -148,20 +148,29 @@ end
 
 % Sufficient-descent parameter c. c=0 reduces the test to the bare descent
 % requirement <s1,d1>_G>0 ; c=1 forces a restart at every iteration.
-if isempty(CtrlVar) || ~isfield(CtrlVar,'ConjugatedGradientsSufficientDescent') ...
-        || isempty(CtrlVar.ConjugatedGradientsSufficientDescent)
-    CtrlVar.ConjugatedGradientsSufficientDescent=0.1 ;
+if isempty(CtrlVar)...
+        || ~isfield(CtrlVar,"Inverse") ...
+        || ~isfield(CtrlVar.Inverse,"UaConjugatedGradients") ...
+        || ~isfield(CtrlVar.Inverse.UaConjugatedGradients,"SufficientDescent") ...
+        ||  isempty(CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent)
+
+    CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=0.1;
 end
 
-if ~isfield(CtrlVar,'ConjugatedGradientsUpdate')
-    CtrlVar.ConjugatedGradientsUpdate='FR';
+if ~isfield(CtrlVar,"Inverse") ...
+        || ~isfield(CtrlVar.Inverse,"UaConjugatedGradients") ...
+        || ~isfield(CtrlVar.Inverse.UaConjugatedGradients,"Update") ...
+        ||  isempty(CtrlVar.Inverse.UaConjugatedGradients.Update)
+
+    CtrlVar.Inverse.UaConjugatedGradients.Update="PR";
+
 end
 
 if ~isfield(CtrlVar,'Inverse') || ~isfield(CtrlVar.Inverse,'InfoLevel')
     CtrlVar.Inverse.InfoLevel=0;
 end
 
- 
+
 
 %% define the metric operator  x -> G x
 
@@ -202,18 +211,22 @@ else
 end
 ddAngle=acosd(dd);  % diagnostic only, see the note on restarts in the header
 
+% Diagnostics returned in cgInfo. Defaults here cover the branches that return
+% steepest descent, where the update is by definition undegraded.
+SufficientDescentRatio=1 ; PowellRatio=nan ; CGCorrectionRatio=0 ;
+
 %%
 
 if n1<eps || n0<eps
-    
+
     % return the (G-metric) steepest-descent direction
     ConjGradAngle=0 ; teta=0; d1=s1;
     iCount=0;
-    cgInfo.NumberOfConjGradUpdatesWithoutReset=0; 
- 
-    
+    cgInfo.NumberOfConjGradUpdatesWithoutReset=0;
+
+
 else
-    
+
     % seems that Polak-Ribiere is the best update
     %
     % NOTE on HS and DY: the denominator is <s0-s1,d0>_G , which is the G-metric
@@ -226,27 +239,27 @@ else
     % With d0 a descent direction and the Wolfe conditions satisfied we have
     % (g1-g0)'d0 > 0, and since s1-s0 = -(g1-g0) the denominator below is then
     % positive, which is what guarantees teta>0 for Dai-Yuan.
-    
+
     den=d0'*(Gs0-Gs1) ;   % <s0-s1,d0>_G , used by HS and DY
-    
-    
-    switch upper(CtrlVar.ConjugatedGradientsUpdate)
-        
+
+
+    switch upper(CtrlVar.Inverse.UaConjugatedGradients.Update)
+
         case "FR"
             teta=n1Sqr/n0Sqr;                    % Fletcher-Reeves
-            
+
         case "PR"
             teta=(n1Sqr-s1Gs0)/n0Sqr;            % Polak-Ribiere
-            
+
         case "HS"
             teta=(n1Sqr-s1Gs0)/den;              % Hestenes-Stiefel
-            
+
         case "DY"
             teta=n1Sqr/den;                      % Dai-Yuan
-            
+
         otherwise
-            error('NewConjugatedGradMetric:CaseNotFound','CtrlVar.ConjugatedGradientsUpdate=%s not recognized',...
-                CtrlVar.ConjugatedGradientsUpdate)
+            error('NewConjugatedGradMetric:CaseNotFound','CtrlVar.Inverse.UaConjugatedGradients.Update=%s not recognized',...
+                CtrlVar.Inverse.UaConjugatedGradients.Update)
     end
 
     if ~isfinite(teta)
@@ -260,38 +273,70 @@ else
         teta=0;
 
     end
-    
+
     if teta<0
-        
+
         if CtrlVar.Inverse.InfoLevel>=2
             fprintf(' resetting conjugated gradients because teta=%g<0. \n ',teta)
         end
         iCount=0;
-        cgInfo.NumberOfConjGradUpdatesWithoutReset=0; 
-   
+        cgInfo.NumberOfConjGradUpdatesWithoutReset=0;
+
         teta=0;
-        
+
     end
-    
+
     d1=s1 + teta * d0 ; % new search direction
-    
+
     % Angle between the current steepest-descent and the conj-grad search
     % direction, measured in the G metric.
     %
     % Note that DJ(p)[d1] = g' d1 = -<s1,d1>_G , so d1 is a descent direction
     % if and only if <s1,d1>_G > 0, i.e. if and only if ConjGradAngle < 90 deg.
-    
+
     Gd1=Gmul(d1) ;
     nd1=sqrt(max(d1'*Gd1,0)) ;
     s1Gd1=s1'*Gd1 ;
-    
+
     if n1>0 && nd1>0
         cosAngle=min(max(s1Gd1/(n1*nd1),-1),1) ;
     else
         cosAngle=1 ;
     end
     ConjGradAngle=acosd(cosAngle);
-    
+
+    % Diagnostics on how far the accumulated CG direction has degraded. These are
+    % deliberately recorded for the PROPOSED update, before the sufficient-descent
+    % reset below may replace d1 by s1, since it is the proposed update that
+    % carries the degradation signal.
+    %
+    %   SufficientDescentRatio  <s1,d1>_G/||s1||_G^2 . Equal to 1 in exact
+    %                           arithmetic with an exact line search, because
+    %                           then <s1,d0>_G=0. Decay below 1 measures the
+    %                           inexactness of the line search and the loss of
+    %                           conjugacy.
+    %
+    %   PowellRatio             |<s1,s0>_G|/||s1||_G^2 . The quantity in Powell's
+    %                           restart test, which restarts when it reaches
+    %                           about 0.1 (Nocedal & Wright 5.52). Unlike ddAngle
+    %                           it is scaled by the norm ratio, so it stays
+    %                           meaningful near convergence where ||s1||<<||s0||.
+    %
+    %   CGCorrectionRatio       ||teta*d0||_G/||s1||_G = ||d1-s1||_G/||s1||_G .
+    %                           How large the conjugacy correction is relative to
+    %                           the steepest-descent part. If this is small the
+    %                           updates are being accepted but contributing
+    %                           almost nothing, and the method is steepest
+    %                           descent in all but name, whatever the update
+    %                           counter says.
+    %
+    % All three are formed from quantities already computed, at no extra cost:
+    % ||d1-s1||_G^2 = ||d1||_G^2 - 2<s1,d1>_G + ||s1||_G^2 .
+
+    SufficientDescentRatio=s1Gd1/n1Sqr ;
+    PowellRatio=abs(s1Gs0)/n1Sqr ;
+    CGCorrectionRatio=sqrt(max(nd1*nd1-2*s1Gd1+n1Sqr,0))/n1 ;
+
     % Sufficient-descent safeguard.
     %
     % In exact arithmetic with an exact line search <s1,d0>_G=0, so that
@@ -299,21 +344,21 @@ else
     % a dimensionless measure of how far the update has degraded, equal to one in
     % the ideal case. Requiring only <s1,d1>_G>0 is weak: a d1 almost G-orthogonal
     % to s1 passes the test while being of little use as a search direction.
-    
-    if s1Gd1 < CtrlVar.ConjugatedGradientsSufficientDescent*n1Sqr
+
+    if s1Gd1 < CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent*n1Sqr
         if CtrlVar.Inverse.InfoLevel>=2
             fprintf(' resetting conjugated gradients because the sufficient-descent condition is violated: \n')
-            fprintf('  <s1,d1>_G/||s1||_G^2=%g < CtrlVar.ConjugatedGradientsSufficientDescent=%g , angle=%g deg. \n',...
-                s1Gd1/n1Sqr,CtrlVar.ConjugatedGradientsSufficientDescent,ConjGradAngle)
+            fprintf('  <s1,d1>_G/||s1||_G^2=%g < CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=%g , angle=%g deg. \n',...
+                s1Gd1/n1Sqr,CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent,ConjGradAngle)
         end
         iCount=0;
-        cgInfo.NumberOfConjGradUpdatesWithoutReset=0; 
-      
+        cgInfo.NumberOfConjGradUpdatesWithoutReset=0;
+
         teta=0;
         d1=s1;
         ConjGradAngle=0;
     end
-    
+
 end
 
 %%
@@ -321,9 +366,12 @@ end
 cgInfo.ConjGradAngle=ConjGradAngle;
 cgInfo.ddAngle=ddAngle;
 cgInfo.teta=teta;
+cgInfo.SufficientDescentRatio=SufficientDescentRatio;
+cgInfo.PowellRatio=PowellRatio;
+cgInfo.CGCorrectionRatio=CGCorrectionRatio;
 
 if CtrlVar.Inverse.InfoLevel>=2
-    fprintf(' Conj. Grad update %s # %-i \n ',CtrlVar.ConjugatedGradientsUpdate,iCount)
+    fprintf(' Conj. Grad update %s # %-i \n ',CtrlVar.Inverse.UaConjugatedGradients.Update,iCount)
     fprintf(' teta=%g \n',teta)
     fprintf('angle between current and previous steepest descent directions is %-20.10g degrees \n',ddAngle)
     fprintf('     angle between conj. grad. and steepest descent directions is %-20.10g degrees \n',ConjGradAngle)

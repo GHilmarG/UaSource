@@ -1104,12 +1104,16 @@ CtrlVar.Inverse.UaConjugatedGradients.Armijo=1e-4;
 CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature=0.2;
 CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvalutionsInLineSearch=15;
 CtrlVar.Inverse.UaConjugatedGradients.InfoLevel=0;
-
+CtrlVar.Inverse.UaConjugatedGradients.DecrementTolerance=1e-10;
+CtrlVar.Inverse.UaConjugatedGradients.DecrementAbsTolerance=1e-10;
+CtrlVar.Inverse.UaConjugatedGradients.dJTolerance=1e-10; 
 CtrlVar.Inverse.UaConjugatedGradients.UpdateMethod="-ConjGrad-" ; %{'SteepestDecent','ConjGrad'}
+CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=0.1; 
 
 % cg updates. All update options appear to perform about the same, but in some test HR came out best. All cg updates are
 %             considerably better than steepest decent
-CtrlVar.ConjugatedGradientsUpdate="PR"; % (FR|PR|HS|DY)
+CtrlVar.Inverse.UaConjugatedGradients.Update="PR";
+                                        % {FR|PR|HS|DY}
                                         % FR Fletcher-Reeves
                                         % PR Polak-Ribi\`ere
                                         % HS Hestenes-Stiefel

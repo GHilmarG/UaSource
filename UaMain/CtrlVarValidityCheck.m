@@ -601,6 +601,14 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
 
 end
 
+
+if isfield(CtrlVar,"ConjugatedGradientsUpdate")
+ 
+    fprintf("'CtrlVar.ConjugatedGradientsUpdate' no longer used. \n")
+    fprintf("Use insted: 'CtrlVar.Inverse.UaConjugatedGradients.Update' \n")
+    warning("CtrlVar.ConjugatedGradientsUpdate no longer used")
+    CtrlVar.Inverse.UaConjugatedGradients.Update=CtrlVar.ConjugatedGradientsUpdate;
+
 end
 
 

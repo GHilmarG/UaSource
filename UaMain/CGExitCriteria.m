@@ -1,4 +1,4 @@
-function [Exit,ExitInfo]=CGExitCriteria(CtrlVar,ExitInfo,Iteration,J,sGs,cgInfo,lsInfo,Misfit)
+function [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J,sGs,cgInfo,lsInfo,Misfit)
 
 %%
 %
@@ -137,21 +137,16 @@ if nargin<6 ; cgInfo=[] ; end
 
 %% options
 
-CtrlVar=SetDefault(CtrlVar,'DecrementTolerance',1e-8) ;
-CtrlVar=SetDefault(CtrlVar,'DecrementAbsTolerance',0) ;
-CtrlVar=SetDefault(CtrlVar,'dJTolerance',1e-10) ;
-CtrlVar=SetDefault(CtrlVar,'nStagnateMax',3) ;
-CtrlVar=SetDefault(CtrlVar,'MaxIterations',100) ;
-CtrlVar=SetDefault(CtrlVar,'MaxFuncEvaluations',inf) ;
-CtrlVar=SetDefault(CtrlVar,'MaxGradEvaluations',inf) ;
-CtrlVar=SetDefault(CtrlVar,'TargetMisfit',[]) ;
-CtrlVar=SetDefault(CtrlVar,'InfoLevel',0) ;
+CGExitOptions=SetDefault(CGExitOptions,'DecrementTolerance',1e-8) ;
+CGExitOptions=SetDefault(CGExitOptions,'DecrementAbsTolerance',0) ;
+CGExitOptions=SetDefault(CGExitOptions,'dJTolerance',1e-10) ;
+CGExitOptions=SetDefault(CGExitOptions,'nStagnateMax',3) ;
+CGExitOptions=SetDefault(CGExitOptions,'MaxIterations',100) ;
+CGExitOptions=SetDefault(CGExitOptions,'MaxFuncEvaluations',inf) ;
+CGExitOptions=SetDefault(CGExitOptions,'MaxGradEvaluations',inf) ;
+CGExitOptions=SetDefault(CGExitOptions,'TargetMisfit',[]) ;
+CGExitOptions=SetDefault(CGExitOptions,'InfoLevel',0) ;
 
-Opt=CtrlVar.Inverse ;
-
-Opt.MaxIterations=CtrlVar.Inverse.Iterations;
-Opt.MaxFuncEvaluations=inf;
-Opt.MaxGradEvaluations=inf; 
 
 %% state
 
@@ -166,7 +161,9 @@ if isempty(ExitInfo) || ~isstruct(ExitInfo)
     ExitInfo.nNoisy=0 ;
     ExitInfo.nRestart=0 ;
     ExitInfo.History=struct('Iteration',[],'J',[],'Decrement',[],'dJ',[],...
-        'nFunc',[],'nGrad',[],'iExitLineSearch',[],'teta',[]) ;
+        'nFunc',[],'nGrad',[],'iExitLineSearch',[],'teta',[],...
+        'SufficientDescentRatio',[],'PowellRatio',[],'CGCorrectionRatio',[],...
+        'ddAngle',[],'nCGUpdate',[]) ;
 end
 
 ExitInfo.ForceRestart=false ;
@@ -199,7 +196,7 @@ elseif isfield(cgInfo,'ConjGradUpdate')
     IsSteepestDescent = cgInfo.ConjGradUpdate==0 ;
 else
     IsSteepestDescent=true ;
-    if Opt.InfoLevel>=1 && Iteration==1
+    if CGExitOptions.InfoLevel>=1 && Iteration==1
         warning('CGExitCriteria:NoCGCounter',...
             ['cgInfo has no recognised CG update counter, so every direction is ',...
             'being treated as steepest descent and no restarts will be requested.'])
@@ -229,6 +226,14 @@ else
     ExitInfo.History.teta(end+1,1)=cgInfo.teta ;
 end
 
+% CG degradation diagnostics, see NewConjugatedGradMetric. Recorded here so that
+% they can be plotted against the update counter later.
+ExitInfo.History.SufficientDescentRatio(end+1,1)=GetField(cgInfo,'SufficientDescentRatio') ;
+ExitInfo.History.PowellRatio(end+1,1)=GetField(cgInfo,'PowellRatio') ;
+ExitInfo.History.CGCorrectionRatio(end+1,1)=GetField(cgInfo,'CGCorrectionRatio') ;
+ExitInfo.History.ddAngle(end+1,1)=GetField(cgInfo,'ddAngle') ;
+ExitInfo.History.nCGUpdate(end+1,1)=GetField(cgInfo,'NumberOfConjGradUpdatesWithoutReset') ;
+
 %% the tests, in order of priority
 
 Exit=true ;
@@ -244,17 +249,17 @@ elseif ~isempty(lsInfo) && lsInfo.iExit==-1
     ExitInfo.Message=['line search reports a non-descent direction. Suspect an ',...
         'inconsistency between J and its gradient.'] ;
     
-elseif Decrement < max(Opt.DecrementTolerance*Scale,Opt.DecrementAbsTolerance)
+elseif Decrement < max(CGExitOptions.DecrementTolerance*Scale,CGExitOptions.DecrementAbsTolerance)
     
     ExitInfo.Flag=1 ;
     ExitInfo.Message=sprintf('converged, decrement=%g < %g.',...
-        Decrement,max(Opt.DecrementTolerance*Scale,Opt.DecrementAbsTolerance)) ;
+        Decrement,max(CGExitOptions.DecrementTolerance*Scale,CGExitOptions.DecrementAbsTolerance)) ;
     
-elseif ~isempty(Opt.TargetMisfit) && ~isempty(Misfit) && Misfit<=Opt.TargetMisfit
+elseif ~isempty(CGExitOptions.TargetMisfit) && ~isempty(Misfit) && Misfit<=CGExitOptions.TargetMisfit
     
     ExitInfo.Flag=3 ;
     ExitInfo.Message=sprintf('data misfit %g has reached the target %g.',...
-        Misfit,Opt.TargetMisfit) ;
+        Misfit,CGExitOptions.TargetMisfit) ;
     
 else
     
@@ -287,16 +292,16 @@ else
     % stagnation
     if ~Exit && Iteration>0
         
-        if isfinite(dJ) && dJ < Opt.dJTolerance*Scale
+        if isfinite(dJ) && dJ < CGExitOptions.dJTolerance*Scale
             
             ExitInfo.nStagnate=ExitInfo.nStagnate+1 ;
             
-            if ExitInfo.nStagnate>=Opt.nStagnateMax
+            if ExitInfo.nStagnate>=CGExitOptions.nStagnateMax
                 Exit=true ;
                 ExitInfo.Flag=2 ;
                 ExitInfo.Message=sprintf(...
                     ['stagnated, relative decrease in J below %g for %i ',...
-                    'consecutive iterations.'],Opt.dJTolerance,ExitInfo.nStagnate) ;
+                    'consecutive iterations.'],CGExitOptions.dJTolerance,ExitInfo.nStagnate) ;
             elseif ~IsSteepestDescent
                 % first sign of stagnation on a CG direction: try a restart
                 % before giving up on it
@@ -310,19 +315,19 @@ else
     end
     
     % budgets
-    if ~Exit && Iteration>=Opt.MaxIterations
+    if ~Exit && Iteration>=CGExitOptions.MaxIterations
         Exit=true ; ExitInfo.Flag=5 ;
-        ExitInfo.Message=sprintf('maximum number of iterations (%i) reached.',Opt.MaxIterations) ;
+        ExitInfo.Message=sprintf('maximum number of iterations (%i) reached.',CGExitOptions.MaxIterations) ;
     end
     
-    if ~Exit && ExitInfo.nFuncTotal>=Opt.MaxFuncEvaluations
+    if ~Exit && ExitInfo.nFuncTotal>=CGExitOptions.MaxFuncEvaluations
         Exit=true ; ExitInfo.Flag=6 ;
-        ExitInfo.Message=sprintf('Func evaluation budget (%g) exhausted.',Opt.MaxFuncEvaluations) ;
+        ExitInfo.Message=sprintf('Func evaluation budget (%g) exhausted.',CGExitOptions.MaxFuncEvaluations) ;
     end
     
-    if ~Exit && ExitInfo.nGradTotal>=Opt.MaxGradEvaluations
+    if ~Exit && ExitInfo.nGradTotal>=CGExitOptions.MaxGradEvaluations
         Exit=true ; ExitInfo.Flag=7 ;
-        ExitInfo.Message=sprintf('gradient evaluation budget (%g) exhausted.',Opt.MaxGradEvaluations) ;
+        ExitInfo.Message=sprintf('gradient evaluation budget (%g) exhausted.',CGExitOptions.MaxGradEvaluations) ;
     end
     
 end
@@ -333,12 +338,12 @@ ExitInfo.JLast=J ;
 
 %% reporting
 
-if Opt.InfoLevel>=1
+if CGExitOptions.InfoLevel>=1
     fprintf(' It %-4i J=%-14.8g dJ=%-12.5g decrement=%-12.5g nFunc=%-5i nGrad=%-5i \n',...
         Iteration,J,dJ,Decrement,ExitInfo.nFuncTotal,ExitInfo.nGradTotal)
 end
 
-if Opt.InfoLevel>=1 && ~isempty(ExitInfo.Message)
+if CGExitOptions.InfoLevel>=1 && ~isempty(ExitInfo.Message)
     fprintf('   CGExitCriteria: %s \n',ExitInfo.Message)
 end
 
@@ -346,12 +351,24 @@ end
 
 %%
 
-function CtrlVar=SetDefault(CtrlVar,Field,Value)
+function CGExitOptions=SetDefault(CGExitOptions,Field,Value)
 
-if ~isfield(CtrlVar,'Inverse') ; CtrlVar.Inverse=struct ; end
+if ~isfield(CGExitOptions,Field) || isempty(CGExitOptions.(Field))
+    CGExitOptions.(Field)=Value ;
+end
 
-if ~isfield(CtrlVar.Inverse,Field) || isempty(CtrlVar.Inverse.(Field))
-    CtrlVar.Inverse.(Field)=Value ;
+end
+
+%%
+
+function v=GetField(S,Field)
+
+% value of S.(Field) if present, NaN otherwise
+
+if isstruct(S) && isfield(S,Field) && ~isempty(S.(Field))
+    v=S.(Field) ;
+else
+    v=nan ;
 end
 
 end
