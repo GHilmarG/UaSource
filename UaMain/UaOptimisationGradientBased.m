@@ -131,7 +131,7 @@ RunInfo.Inverse.ConjGradUpdatenFuncEval=0;
 nFuncEval=0;
 
 %%
-fprintf('\n   It #cgUpdate  #fEval      J           I          R       decrement      gamma  \n')
+fprintf('\n   It #cgUpdate  F-count     J           I          R       decrement      gamma  \n')
 %fprintf('123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\n')
 
 
@@ -147,14 +147,12 @@ gammaStart=gamma;
 for Iteration=1:CtrlVar.Inverse.Iterations
 
 
-    %CtrlVar.InfoLevelBackTrack=100 ;CtrlVar.doplots=1;
-    CtrlVar.LineSearchAllowedToUseExtrapolation=true;
 
-    J1=func(p+gammaStart*d);
+    J1=func(p+gammaStart*d); nFuncEval=nFuncEval+1; 
 
     % This is the old backtracking approach. Now no longer used. Instead I'm using line search with Wolfe conditions
     %
-    % CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1;   
+    % CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1;   CtrlVar.LineSearchAllowedToUseExtrapolation=true;
     % Func=@(gamma) func(p+gamma*d);
     % [gammaTest,JgammaTest,BackTrackingInfoVector]=BackTracking(slope0,gammaStart,J0,J1,Func,CtrlVar);
     %
@@ -165,7 +163,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     Gd = G*d ;                                   % once, outside the line search
     Phi = @(gamma) PhiEval(gamma,p,d,Gd,func) ;
     [gamma,JgammaNew,LineSearchInfo]=LineSearchWolfe(slope0,gammaStart,J0,J1,Phi,LineSearchOptions);
-    nFuncEval=LineSearchInfo.nFuncEvaluations+1 ; % adding the one I did to get J1
+    nFuncEval=nFuncEval+LineSearchInfo.nFuncEvaluations; % adding the one I did to get J1
 
   
     gammaLastMinimum=gamma;

@@ -149,6 +149,10 @@ CtrlVar=SetDefault(CtrlVar,'InfoLevel',0) ;
 
 Opt=CtrlVar.Inverse ;
 
+Opt.MaxIterations=CtrlVar.Inverse.Iterations;
+Opt.MaxFuncEvaluations=inf;
+Opt.MaxGradEvaluations=inf; 
+
 %% state
 
 if isempty(ExitInfo) || ~isstruct(ExitInfo)
