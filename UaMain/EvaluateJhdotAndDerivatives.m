@@ -194,7 +194,7 @@ end
 
 % assemble right-hand side
 
-Jhdot=sum(JhdotIntSum) ;
+Jhdot=full(sum(JhdotIntSum)) ;
 
 duJhdot=sparseUA(neq,1);
 dvJhdot=sparseUA(neq,1);

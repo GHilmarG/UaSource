@@ -422,9 +422,6 @@ if CtrlVar.InverseRun
     end
 
 
- 
-
-
     if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
         CtrlVar.Inverse.RieszMapGradient=true;
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")

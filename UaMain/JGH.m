@@ -118,7 +118,7 @@ if is_dhdt_meas
     [~,F.dhdt]=dhdtExplicit([],CtrlVar,MUA,F,BCs) ;
 end
 
-%%
+%% Cost function and gradient
 % The cost function, J), is split into a misfit (I) and a regularization term (R). These usually consist of further
 % terms.
 %
@@ -134,19 +134,28 @@ if  CtrlVar.Inverse.CalcGrad  % gradient needed
 
     if CtrlVar.Inverse.RieszMapGradient
 
-        if ~isfield(MUA,"dMetricMatrix") && isempty(MUA.dMetricMatrix)
-            dJdp=MUA.MetricMatrix\dJdp; 
+        if ~isfield(MUA,"dG") && isempty(MUA.dG)
+            dJdp=MUA.G\dJdp; 
         else
-            dJdp=MUA.dMetricMatrix\dJdp;
+            dJdp=MUA.dG\dJdp;
         end
 
         % To do: Here I could add the BCs in the future
 
     end
 
+    if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+       
+        %fprintf("Cholesky-mapped gradient.\n")
+     
+        %dJdp=MUA.RG*dJdp; 
+        dJdp=MUA.RG*(MUA.PRG'*dJdp);
+
+    end
 
 end
 
+%% Hessian
 if CtrlVar.Inverse.CalcHess  % Hessian needed
 
     Hessian = BuildInversionHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y);
@@ -171,7 +180,7 @@ else
     MisfitOuts.I=NaN;
 end
 
-J=R+I;
+J=full(R+I);
 
 if J < 0
     fprintf("J less that zero!! \n")

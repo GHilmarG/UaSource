@@ -23,118 +23,115 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
     % I don't think this is needed when using the trust-region-reflective, because this algorithm uses the third
     % argument of @func which here is JGH
 
-    if contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-DirectAdjointHessian-")
+    switch  CtrlVar.Inverse.HessianOptions
+
+        case "-DirectAdjoint-"
+            %% Hessian provided
+
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn','objective');
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
+
+        case "-HessianVectorProduct-"
+
+            %% Hessian-vector product
+
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn', @(Hinfo,v) HessianVectorProduct(Hinfo,v,func));
+
+        case "-FiniteDifferences-"
+
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
+
+            %HessPattern=speye(numel(p0),numel(p0));    % diagonal
+            % HessPattern=spdiags([1 1 1],-1:1,numel(p0),numel(p0));  % tri-diagonal
+
+            % As expected, the convergence does improve as the Hessian sparsity is decreased (higher n), however, not significantly so
+            % and the convergence was always linear.
 
 
-        %% Hessian provided
+            if contains(CtrlVar.Inverse.MinimisationMethod,"-BandWidth")
+                n=str2double(extractBetween(CtrlVar.Inverse.MinimisationMethod,"-BandWidth","-")) ;
+            else
+                n=5;
+            end
 
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn','objective');
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
+            HessPattern=spdiags(ones(1,n),-(n-1)/2:(n-1)/2,numel(p0),numel(p0));  % n-diagonal
 
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianVectorProduct-")
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessPattern',HessPattern);
+            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceType','central');
+            % v=zeros(numel(p0),1)+1e100;
+            % CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceStepSize',v);
 
-        %% Hessian-vector product
+        otherwise
 
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn', @(Hinfo,v) HessianVectorProduct(Hinfo,v,func));
-
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
-
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
-        
-       %HessPattern=speye(numel(p0),numel(p0));    % diagonal
-       % HessPattern=spdiags([1 1 1],-1:1,numel(p0),numel(p0));  % tri-diagonal 
-
-       % As expected, the convergence does improve as the Hessian sparsity is decreased (higher n), however, not significantly so
-       % and the convergence was always linear.
-
-
-       if contains(CtrlVar.Inverse.MinimisationMethod,"-BandWidth")
-           n=str2double(extractBetween(CtrlVar.Inverse.MinimisationMethod,"-BandWidth","-")) ;
-       else
-           n=5;
-       end
-
-       HessPattern=spdiags(ones(1,n),-(n-1)/2:(n-1)/2,numel(p0),numel(p0));  % n-diagonal
-
-       CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessPattern',HessPattern);
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceType','central');
-        % v=zeros(numel(p0),1)+1e100;
-        % CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceStepSize',v);
-        
-
+            error("CaseNotFound")
 
     end
 
 else
-    CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);
-end
+
+    Test=CtrlVar.Inverse.MatlabOptimisationGradientParameters;
 
 
-Test=CtrlVar.Inverse.MatlabOptimisationGradientParameters;
+    if isa(Test,'optim.options.Fminunc')
+
+        [p,J,exitflag,output] = fminunc(func,p0,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
+
+        if isfield(RunInfo.Inverse,'fminunc')
+            RunInfo.Inverse.fminunc=output;
+        end
+
+    elseif isa(Test,'optim.options.Fmincon')
 
 
+        Aeq = [];
+        beq = [];
+        nonlcon = [];
 
 
-if isa(Test,'optim.options.Fminunc')
-
-    [p,J,exitflag,output] = fminunc(func,p0,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
-
-    if isfield(RunInfo.Inverse,'fminunc')
-        RunInfo.Inverse.fminunc=output;
-    end
-
-elseif isa(Test,'optim.options.Fmincon')
-
-
-    Aeq = [];
-    beq = [];
-    nonlcon = [];
-
-
-    if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 
 
 
-        [p,J,exitflag,output,lambda,grad,hessian] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
+            [p,J,exitflag,output,lambda,grad,hessian] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
 
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
+        elseif contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
 
 
-        [p,J,exitflag,output] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
+            [p,J,exitflag,output] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
+
+        else
+
+            fprintf("The variable CtrlVar.Inverse.MinimisationMethod has an invalid value. ")
+            error("InversionUsingMatlabOptimizationToolbox3:InvalidParameters","CtrlVar.Inverse.MinimisationMethod invalid.")
+
+        end
+
+        if isfield(RunInfo.Inverse,'fmincon')
+            RunInfo.Inverse.fmincon=output;
+        end
 
     else
 
-        fprintf("The variable CtrlVar.Inverse.MinimisationMethod has an invalid value. ")
-        error("InversionUsingMatlabOptimizationToolbox3:InvalidParameters","CtrlVar.Inverse.MinimisationMethod invalid.")
+        fprintf('Matlab Optimization selected, but Matlab optimization routine not recognized.\n')
+        fprintf(' Either select fminunc or fmincon. \n')
+        error(' invalid input parameters ')
 
     end
 
-    if isfield(RunInfo.Inverse,'fmincon')
-        RunInfo.Inverse.fmincon=output;
-    end
-
-else
-
-    fprintf('Matlab Optimization selected, but Matlab optimization routine not recognized.\n')
-    fprintf(' Either select fminunc or fmincon. \n')
-    error(' invalid input parameters ')
-
-end
-
-[stop,Outs] = fminuncOutfun();
+    [stop,Outs] = fminuncOutfun();
 
 
 
-RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+Outs.iteration];
-RunInfo.Inverse.J=[RunInfo.Inverse.J;Outs.fval];
-RunInfo.Inverse.StepSize=[RunInfo.Inverse.J;Outs.StepSize];
-RunInfo.Inverse.R=[RunInfo.Inverse.R;Outs.fval+NaN];
-RunInfo.Inverse.I=[RunInfo.Inverse.I;Outs.fval+NaN];
-RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Outs.GradNorm];
-RunInfo.Inverse.p=Outs.p;
-% If I need some further info and want to update F
+    RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+Outs.iteration];
+    RunInfo.Inverse.J=[RunInfo.Inverse.J;Outs.fval];
+    RunInfo.Inverse.StepSize=[RunInfo.Inverse.J;Outs.StepSize];
+    RunInfo.Inverse.R=[RunInfo.Inverse.R;Outs.fval+NaN];
+    RunInfo.Inverse.I=[RunInfo.Inverse.I;Outs.fval+NaN];
+    RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Outs.GradNorm];
+    RunInfo.Inverse.p=Outs.p;
+    % If I need some further info and want to update F
 
 
 

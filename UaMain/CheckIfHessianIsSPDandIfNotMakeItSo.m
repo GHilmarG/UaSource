@@ -1,8 +1,9 @@
 
 
 
-function [HlE,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(H,E,lStart)
+function [HlE,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(CtrlVar,H,E,lStart)
 
+narginchk(4,4)
 
 %%
 %
@@ -19,8 +20,9 @@ lmin=lStart/1e6;
 if l==0
     [~, flag] = chol(H);
     if flag==0
-
-        fprintf("H is pos def, i.e.  for l=0 \n")
+        if CtrlVar.InfoLevelInverse>=10
+            fprintf("H is pos def, i.e.  for l=0 \n")
+        end
         HlE=H ;
         lEnd=0;
         return
@@ -47,14 +49,19 @@ if flag==0 % H + l E is positive definite, but can I reduce l?
         l=l/DownFactor;
         HlE = H + l * E;
         [~, flag] = chol(HlE);
-        iDecrease=iDecrease+1; 
-        fprintf(sprintf("%i: Decreasing l until no longer positive definite. l=%g \n",iDecrease,l));
+        iDecrease=iDecrease+1;
+        if CtrlVar.InfoLevelInverse>=10
+
+            fprintf(sprintf("%i: Decreasing l until no longer positive definite. l=%g \n",iDecrease,l));
+        end
 
     end
 
     if flag~=0
         lEnd=l*DownFactor;  % this was the value before it failed.
-        fprintf("Hessian is positive definite for l=%g \n",l);
+        if CtrlVar.InfoLevelInverse>=10
+            fprintf("Hessian is positive definite for l=%g \n",l);
+        end
     else
         lEnd=l;
     end
@@ -69,10 +76,14 @@ else
         [~, flag] = chol(HlE);
 
         if flag == 0
-            fprintf("Hessian is positive definite for l=%g \n",l);
+            if CtrlVar.InfoLevelInverse>=10
+                fprintf("Hessian is positive definite for l=%g \n",l);
+            end
             break;
         else
-            fprintf(sprintf("Modifying Hessian to make it positive definite. l=%g \n",l));
+            if CtrlVar.InfoLevelInverse >=10
+                fprintf(sprintf("Modifying Hessian to make it positive definite. l=%g \n",l));
+            end
         end
     end
 

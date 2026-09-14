@@ -13,8 +13,12 @@ classdef Measurements
         dhdtCov=[];
 
         s=[] ; sCov=[];
-        B=[]; BCov=[];
-        
+
+        Bobs=[]; 
+        Bx=[];
+        By=[];
+        BErr=[];
+    
         as=[] ;
         ab=[] ; 
 

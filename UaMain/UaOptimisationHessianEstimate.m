@@ -10,6 +10,7 @@ function [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunIn
 narginchk(8,8)
 
 
+error("no longer used")
 %% Does an inversion using the Hessian
 %
 % Here the Hessian itself is constructed, i.e. not build iteratively as done in the BFSG method. 

@@ -132,7 +132,7 @@ if is_dhdt_meas
 
 end
 
-I=Iuv+Ihdot ;  %
+I=full(Iuv+Ihdot) ;  %
 duvIduv=[duIdu(:)+duIhdot(:);dvIdv(:)+dvIhdot(:)];
 
 if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"

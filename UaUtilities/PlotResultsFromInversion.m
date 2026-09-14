@@ -935,7 +935,7 @@ else
 
         if ~all(isnan(RunInfo.Inverse.R))
 
-            figJIR=FindOrCreateFigure('J=I+R');
+            figJIR=FindOrCreateFigure("J=I+R");
             clf(figJIR)
             hold off
             yyaxis left
@@ -950,7 +950,7 @@ else
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
             ylabel('$R$','interpreter','latex')
             xlabel('Inverse iteration','interpreter','latex');
-            legend('Objective function','$I$','$R$','Location','southwest','interpreter','latex')
+            legend('Objective function','$I$','$R$',location="best",interpreter="latex")
 
         end
 

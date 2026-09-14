@@ -735,7 +735,6 @@ CtrlVar.QuadratureRuleDegree=[] ;   % leaving empty means automated selection
 %
 
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
- 
 CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
                             % Note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0;
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
@@ -1083,8 +1082,10 @@ CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature=0.2;
 CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvalutionsInLineSearch=15;
 CtrlVar.Inverse.UaConjugatedGradients.InfoLevel=0;
 CtrlVar.Inverse.UaConjugatedGradients.DecrementTolerance=1e-10;
-CtrlVar.Inverse.UaConjugatedGradients.DecrementAbsTolerance=1e-10;
+CtrlVar.Inverse.UaConjugatedGradients.DecrementAbsTolerance=0;
+CtrlVar.Inverse.UaConjugatedGradients.DecrementRelativeTolerance=1e-10;
 CtrlVar.Inverse.UaConjugatedGradients.dJTolerance=1e-10; 
+CtrlVar.Inverse.UaConjugatedGradients.JTolerance=1e-10; 
 CtrlVar.Inverse.UaConjugatedGradients.UpdateMethod="-ConjGrad-" ; %{'SteepestDecent','ConjGrad'}
 CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=0.1; 
 
@@ -2779,7 +2780,7 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 % functions
 %
 
-CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant","ShapeAndScattered"}
+
 CtrlVar.MapOldToNew.method="ShapeAndScattered"    ; % This is the new default option as of 2 April 2023.
                                                     % The old method was based on the MATLAB scatteredinterpolant, and it was discovered that this MATLAB function sometimes
                                                     % produced bizarre results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and

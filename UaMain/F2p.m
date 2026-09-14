@@ -19,46 +19,28 @@ pB=[];
 lbB=[];
 ubB=[];
 
-if contains(lower(CtrlVar.Inverse.InvertFor),'-logaglen-')
+
+[isA,isB,isC] = isABC(CtrlVar);
+
+if isA 
     
     pA=log10(F.AGlen);
     
     lbA=log10(F.AGlenmin)+zeros(size(pA));
     ubA=log10(F.AGlenmax)+zeros(size(pA));
-    
-    
-elseif contains(lower(CtrlVar.Inverse.InvertFor),'-aglen-')
-    
-    pA=F.AGlen;
-    lbA=F.AGlenmin+zeros(size(pA));
-    ubA=F.AGlenmax+zeros(size(pA));
-    
+        
 end
 
 
-if contains(lower(CtrlVar.Inverse.InvertFor),'-logc-')
+if isC
     
     pC=log10(F.C);
     lbC=log10(F.Cmin)+zeros(size(pC));
     ubC=log10(F.Cmax)+zeros(size(pC));
     
-elseif contains(lower(CtrlVar.Inverse.InvertFor),'-c-')
-    
-    pC=F.C;
-    lbC=F.Cmin+zeros(size(pC));
-    ubC=F.Cmax+zeros(size(pC));
-    
 end
 
-if contains(CtrlVar.Inverse.InvertFor,'-b-')
-    
-    error('fdsa')
- 
-    
-end
-
-
-if contains(CtrlVar.Inverse.InvertFor,'-B-')
+if isB
 
     pB=F.B;
 
@@ -75,11 +57,6 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
     lbB=nan(MUA.Nnodes,1);
     lbB(GF)=Bstar(GF) ;      % where grounded, set lower bound just above flotation as based on s, S and densities 
     lbB(~GF)=F.B(~GF)-100 ;  % where afloat, set lower bound to some small value, although this should not really have an impact on retrieved B
-
-
-
-    % set
-
 
     % ensure that min ice thickness is not violated
     %ubB=[];
@@ -101,6 +78,23 @@ pub=[ubA;ubB;ubC];
 
 % make sure is feasible
 p=kk_proj(p,pub,plb) ;
+
+
+if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+
+
+    % p=MUA.RG*p;
+    p=MUA.RG*(MUA.PRG'*p);
+
+    plb=[];
+    pub=[];
+    fprintf("Note: For Cholesky mapping of cost function and gradient, box constraints can not be used.\n")
+    fprintf("      Box constraints are now eliminated. \n")
+    fprintf("      No box constraints on any of the inverted fields are used.\n")
+
+
+end
+
 
 end
 

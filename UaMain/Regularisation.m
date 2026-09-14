@@ -260,7 +260,7 @@ QC=MUA.QC;
 
 if isA
     dpA=log10(F.AGlen)-log10(Priors.AGlen);
-    RA=0.5*dpA'*QA*dpA;           % costs function term
+    RA=full(0.5*dpA'*QA*dpA);           % costs function term
     dRdA=QA*dpA;                  % derivative,
 else
    
@@ -270,7 +270,7 @@ end
 
 if isC
     dpC=log10(F.C)  -log10(Priors.C);
-    RC=0.5*dpC'*QC*dpC;           % costs function term
+    RC=full(0.5*dpC'*QC*dpC);           % costs function term
     dRdC=(QC*dpC);      % derivative,
 else
    
@@ -281,7 +281,7 @@ end
 if isB
     
     dpB=F.B-Priors.B;
-    RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
+    RB=full(0.5*dpB'*QB*dpB);               %       R: Regularisation term for B (a scalar)
     dRdB=QB*dpB ;  %   dR/dB:  (a vector)
 
 
@@ -297,16 +297,19 @@ if isB
     %
     % Also, I think I really should shift this over to the Misfit part of the evaluation.
 
-    Berr=full(sqrt(spdiags(Meas.BCov)));
-    Bres=(F.B-Meas.B)./Berr;
+    [O,Inside,ID,MUA]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By); 
+    BRes = O(Inside,:)*F.B - Meas.Bobs(Inside) ;
 
-    RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
-    dRdBmeas=(MUA.M*Bres)./Berr/Area;
+    nMeas=numel(Meas.Bobs);
+    iSigma=sparse(1:nMeas,1:nMeas,1./Meas.BErr.^2,nMeas,nMeas);
 
-  
+    JBobs = (O*F.B-Meas.Bobs)' * iSigma * (O*F.B-Meas.Bobs)/ 2; 
+    dJdBobs = O' * iSigma * (O*F.B-Meas.Bobs); 
+    HBobs=O' * iSigma * O; 
 
-    RB=RB+RBmeas;
-    dRdB=dRdB+dRdBmeas;
+
+    RB=RB+JBobs;
+    dRdB=dRdB+dJdBobs;
   
 
 
@@ -344,7 +347,7 @@ end
 
 
 
-R=RA+RB+RC;
+R=full(RA+RB+RC);
 dRdp=[dRdA;dRdB;dRdC];
 
 

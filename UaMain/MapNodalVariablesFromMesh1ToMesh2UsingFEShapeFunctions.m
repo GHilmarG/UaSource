@@ -1,3 +1,6 @@
+
+
+
 function varargout=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,MUA1,x2,y2,varargin)
 
 % varargout=srMapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,varargin)
@@ -53,7 +56,7 @@ Outside = false(nmap,1);
 
 % PROBLEM!! many new nodes are along edges... these generate a NaN value in
 % the call to pointLocation because they are in two elements at once.
-% need to somehow move the point arbirtary small distance to get it
+% need to somehow move the point arbitrary small distance to get it
 % definitively inside a triangle
 % this should only affect the solution by a very tiny amount as long as the
 % element size >> tol (micro meters)

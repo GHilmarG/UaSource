@@ -54,7 +54,7 @@ if isempty(CtrlVar)
     CtrlVar.Inverse.UaConjugatedGradients.Update="HS";
     CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=0.1;
  
-    CtrlVar.Inverse.UaConjugatedGradients.DecrementTolerance=1e-10;
+  
     CtrlVar.Inverse.UaConjugatedGradients.DecrementAbsTolerance=1e-10;
     CtrlVar.Inverse.UaConjugatedGradients.dJTolerance=1e-10;
 end
@@ -91,6 +91,7 @@ cgInfo.CGCorrectionRatio=nan;
 CGExitOptions.MaxIterations=CtrlVar.Inverse.Iterations;
 CGExitOptions.DecrementTolerance=CtrlVar.Inverse.UaConjugatedGradients.DecrementTolerance;
 CGExitOptions.DecrementAbsTolerance=CtrlVar.Inverse.UaConjugatedGradients.DecrementAbsTolerance;
+CGExitOptions.DecrementRelativeTolerance=CtrlVar.Inverse.UaConjugatedGradients.DecrementRelativeTolerance;
 CGExitOptions.dJTolerance=CtrlVar.Inverse.UaConjugatedGradients.dJTolerance;
 
 %% make initial iterate feasible
@@ -99,7 +100,7 @@ p=kk_proj(p,pub,plb);
 
 %%  Get the metric matrix
 if CtrlVar.Inverse.RieszMapGradient
-    G=MUA.MetricMatrix;
+    G=MUA.G;
 else
     G=1;
 end
@@ -157,6 +158,7 @@ gamma1=-0.05*abs(J0)/slope0 ;
 
 % the forward model may fail to converge for this step size, in which case reduce gamma until it does
 while isnan(J1) && gamma1>eps
+    fprintf("Objective function returned NaN; trying a new point...\n")
     gamma1=gamma1/10;
     [J1,~]=PhiCached(gamma1) ;
 end
@@ -174,9 +176,9 @@ fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  decr
 
 It0=RunInfo.Inverse.Iterations(end);
 
-fprintf('\n   It\t #cgUpd F-count G-count     J           I          R       decrement      gamma   \t  SDratio    CGcorr \n')
+fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R  \t  decrement        gamma  \t SDratio    CGcorr \n')
 
-fprintf('%5i\t%5i\t%5i\t%5i %10g  %10g  %10g  %10g  \t %10g \t %8.4f %8.4f \n',...
+fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t%10g \t %10g\t%8.4f %8.4f \n',...
     It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,Decrement,gamma,nan,nan)
 
 %%
@@ -222,10 +224,12 @@ for Iteration=1:CtrlVar.Inverse.Iterations
 
     sGs=dJdp'*(G*dJdp);
     Decrement = 0.5*sGs;
-    GradNorm=sqrt(sGs); 
+    GradNorm=sqrt(sGs);
     Misfit=fOuts.MisfitOuts.I;
 
-    fprintf('%5i\t%5i\t%5i\t%5i %10g  %10g  %10g  %10g  \t %10g \t %8.4f %8.4f \n',...
+  
+
+    fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t%10g \t %10g\t%8.4f %8.4f \n',...
         Iteration+It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,...
         Decrement,gamma,cgInfo.SufficientDescentRatio,cgInfo.CGCorrectionRatio)
 

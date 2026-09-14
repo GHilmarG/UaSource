@@ -39,7 +39,8 @@ function [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J,sGs,c
 %                                        on the next iteration
 %                 ExitInfo.Decrement     current decrement estimate, 0.5*sGs
 %                 ExitInfo.dJ            decrease in J over the last iteration
-%                 ExitInfo.nStagnate     consecutive stagnating iterations
+%                 ExitInfo.nStagnate     stagnating iterations within the last
+%                                        nStagnateWindow iterations
 %                 ExitInfo.nFuncTotal    running total of Func evaluations
 %                 ExitInfo.nGradTotal    running total of gradient evaluations
 %                 ExitInfo.History       per-iteration record, see below
@@ -76,11 +77,25 @@ function [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J,sGs,c
 %
 %   DecrementTolerance      1e-8    stop when Decrement < DecrementTolerance*|J|
 %   DecrementAbsTolerance   0       absolute floor on the same test
-%   dJTolerance             1e-10   an iteration counts as stagnating when the
-%                                   relative decrease in J falls below this
-%   nStagnateMax            3       stop after this many consecutive stagnating
-%                                   iterations. The first one triggers a CG
-%                                   restart rather than an exit.
+%   DecrementRelativeTolerance 1e-8 stop when the decrement has fallen to this
+%                                   fraction of its value on the first call. This
+%                                   is the criterion that calibrates reliably
+%                                   across problems, since it does not depend on
+%                                   how well G approximates the Hessian. Set to
+%                                   0 to disable. (Not [] : SetDefault treats an
+%                                   empty value as unset and restores the
+%                                   default.)
+%   dJTolerance             1e-8    an iteration counts as stagnating when the
+%                                   relative decrease in J falls below this. Do
+%                                   not set this below the noise floor in J: if
+%                                   it sits inside the noise, dJ fluctuates
+%                                   across it and stagnation is never detected
+%                                   reliably.
+%   nStagnateMax            3       stop once this many of the last
+%                                   nStagnateWindow iterations have stagnated.
+%                                   A stagnating CG iteration that does not
+%                                   trigger the exit requests a restart instead.
+%   nStagnateWindow         5       length of that sliding window
 %   MaxIterations           100
 %   MaxFuncEvaluations      inf     budget, counted across all line searches
 %   MaxGradEvaluations      inf
@@ -93,7 +108,7 @@ function [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J,sGs,c
 %
 %    0   continue
 %    1   converged, decrement below tolerance
-%    2   stagnated, no useful decrease in J over nStagnateMax iterations
+%    2   stagnated, no useful decrease in J over the last nStagnateWindow iterations
 %    3   data misfit reached the target, discrepancy principle
 %    4   line search failed on a steepest-descent direction
 %    5   maximum number of iterations reached
@@ -139,8 +154,10 @@ if nargin<6 ; cgInfo=[] ; end
 
 CGExitOptions=SetDefault(CGExitOptions,'DecrementTolerance',1e-8) ;
 CGExitOptions=SetDefault(CGExitOptions,'DecrementAbsTolerance',0) ;
-CGExitOptions=SetDefault(CGExitOptions,'dJTolerance',1e-10) ;
+CGExitOptions=SetDefault(CGExitOptions,'DecrementRelativeTolerance',1e-8) ;
+CGExitOptions=SetDefault(CGExitOptions,'dJTolerance',1e-8) ;
 CGExitOptions=SetDefault(CGExitOptions,'nStagnateMax',3) ;
+CGExitOptions=SetDefault(CGExitOptions,'nStagnateWindow',5) ;
 CGExitOptions=SetDefault(CGExitOptions,'MaxIterations',100) ;
 CGExitOptions=SetDefault(CGExitOptions,'MaxFuncEvaluations',inf) ;
 CGExitOptions=SetDefault(CGExitOptions,'MaxGradEvaluations',inf) ;
@@ -154,6 +171,8 @@ if isempty(ExitInfo) || ~isstruct(ExitInfo)
     ExitInfo=struct ;
     ExitInfo.JLast=inf ;
     ExitInfo.nStagnate=0 ;
+    ExitInfo.StagnateWindow=false(0,1) ;   % sliding window of stagnation flags
+    ExitInfo.DecrementStart=[] ;           % decrement on the first call
     ExitInfo.nFuncTotal=0 ;
     ExitInfo.nGradTotal=0 ;
     ExitInfo.nLineSearchFail=0 ;
@@ -172,6 +191,12 @@ ExitInfo.Message='' ;
 
 Decrement=0.5*sGs ;
 ExitInfo.Decrement=Decrement ;
+
+% The decrement on the first call, used as the reference for the relative test
+% below. Only set once, and only from a finite value.
+if isempty(ExitInfo.DecrementStart) && isfinite(Decrement) && Decrement>0
+    ExitInfo.DecrementStart=Decrement ;
+end
 
 dJ=ExitInfo.JLast-J ;
 if ~isfinite(dJ) ; dJ=nan ; end
@@ -255,6 +280,21 @@ elseif Decrement < max(CGExitOptions.DecrementTolerance*Scale,CGExitOptions.Decr
     ExitInfo.Message=sprintf('converged, decrement=%g < %g.',...
         Decrement,max(CGExitOptions.DecrementTolerance*Scale,CGExitOptions.DecrementAbsTolerance)) ;
     
+elseif ~isempty(CGExitOptions.DecrementRelativeTolerance) && ~isempty(ExitInfo.DecrementStart) ...
+        && Decrement < CGExitOptions.DecrementRelativeTolerance*ExitInfo.DecrementStart
+    
+    % Decrement relative to its own starting value. This is the criterion that
+    % actually works in practice. Testing the decrement against |J| requires a
+    % tolerance that depends on how well G approximates the Hessian, which varies
+    % by orders of magnitude between problems: in the Hoffsjokull run the final
+    % decrement was 0.071 against J=222.7, so Decrement/|J|=3e-4, whereas the
+    % same point is at 6e-11 of the starting decrement. The relative measure is
+    % scale free, and calibrates consistently.
+    
+    ExitInfo.Flag=1 ;
+    ExitInfo.Message=sprintf('converged, decrement has fallen to %g of its starting value (tolerance %g).',...
+        Decrement/ExitInfo.DecrementStart,CGExitOptions.DecrementRelativeTolerance) ;
+    
 elseif ~isempty(CGExitOptions.TargetMisfit) && ~isempty(Misfit) && Misfit<=CGExitOptions.TargetMisfit
     
     ExitInfo.Flag=3 ;
@@ -289,27 +329,44 @@ else
         
     end
     
-    % stagnation
+    % Stagnation, measured over a sliding window rather than on consecutive
+    % iterations.
+    %
+    % The consecutive version deadlocks against the restart mechanism. Stagnation
+    % on a CG direction requests a ForceRestart; the next iteration is then
+    % steepest descent, which usually squeezes out just enough progress to exceed
+    % the threshold, which reset the counter to zero. The cycle then repeats
+    % indefinitely and the exit never fires. In the 1000-iteration Hoffsjokull
+    % run this produced 23 restarts in the tail with gaps of 2 to 6 iterations,
+    % never the 3 consecutive hits the old test required, and roughly 400
+    % iterations were spent at a value of J that was constant to six figures.
+    %
+    % Counting nStagnateMax stagnating iterations within the last nStagnateWindow
+    % breaks that deadlock: isolated good iterations no longer wipe the record.
+    
     if ~Exit && Iteration>0
         
-        if isfinite(dJ) && dJ < CGExitOptions.dJTolerance*Scale
+        IsStagnating = isfinite(dJ) && dJ < CGExitOptions.dJTolerance*Scale ;
+        
+        ExitInfo.StagnateWindow=[ExitInfo.StagnateWindow ; IsStagnating] ;
+        if numel(ExitInfo.StagnateWindow)>CGExitOptions.nStagnateWindow
+            ExitInfo.StagnateWindow(1)=[] ;
+        end
+        ExitInfo.nStagnate=sum(ExitInfo.StagnateWindow) ;
+        
+        if ExitInfo.nStagnate>=CGExitOptions.nStagnateMax
             
-            ExitInfo.nStagnate=ExitInfo.nStagnate+1 ;
+            Exit=true ;
+            ExitInfo.Flag=2 ;
+            ExitInfo.Message=sprintf(...
+                ['stagnated, relative decrease in J below %g on %i of the last %i ',...
+                'iterations.'],CGExitOptions.dJTolerance,ExitInfo.nStagnate,numel(ExitInfo.StagnateWindow)) ;
             
-            if ExitInfo.nStagnate>=CGExitOptions.nStagnateMax
-                Exit=true ;
-                ExitInfo.Flag=2 ;
-                ExitInfo.Message=sprintf(...
-                    ['stagnated, relative decrease in J below %g for %i ',...
-                    'consecutive iterations.'],CGExitOptions.dJTolerance,ExitInfo.nStagnate) ;
-            elseif ~IsSteepestDescent
-                % first sign of stagnation on a CG direction: try a restart
-                % before giving up on it
-                ExitInfo.ForceRestart=true ;
-            end
+        elseif IsStagnating && ~IsSteepestDescent
             
-        else
-            ExitInfo.nStagnate=0 ;
+            % stagnating on a CG direction: try a restart before giving up on it
+            ExitInfo.ForceRestart=true ;
+            
         end
         
     end
