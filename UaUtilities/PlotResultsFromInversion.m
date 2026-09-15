@@ -300,37 +300,37 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
 
-    if ~isempty(Meas.B)
-
-        figBmeas=FindOrCreateFigure("Direct measurements of B") ; clf(figBmeas)
-
-        T=tiledlayout("flow");
-
-        T1=nexttile ;
-        cbar=UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);
-        title("Direct $B$ Measurements",Interpreter="latex")
-        subtitle("")
-        title(cbar, '(m)')
-        xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-        colormap(othercolor("Mdarkterrain",32))
-
-        T2=nexttile ;
-
-        Berr=full(sqrt(diag(Meas.BCov)))  ; Berr(~isfinite(Berr))=nan ;
-        cbar=UaPlots(CtrlVar,MUA,F,Berr,CreateNewFigure=false,logColorbar=true);
-
-        title("Direct $B$ Measurement Errors",Interpreter="latex")
-        subtitle("")
-        title(cbar, '(m)')
-        xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-
-        T.Padding="tight";   T.TileSpacing="tight";
-
-        set(figBmeas,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
-        set(figBmeas,CurrentAxes=T2) ;  colormap(T2,parula)
-
-
-    end
+    % if ~isempty(Meas.Bobs)
+    % 
+    %     figBmeas=FindOrCreateFigure("Direct measurements of B") ; clf(figBmeas)
+    % 
+    %     T=tiledlayout("flow");
+    % 
+    %     T1=nexttile ;
+    %     cbar=UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);
+    %     title("Direct $B$ Measurements",Interpreter="latex")
+    %     subtitle("")
+    %     title(cbar, '(m)')
+    %     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    %     colormap(othercolor("Mdarkterrain",32))
+    % 
+    %     T2=nexttile ;
+    % 
+    %     Berr=full(sqrt(diag(Meas.BCov)))  ; Berr(~isfinite(Berr))=nan ;
+    %     cbar=UaPlots(CtrlVar,MUA,F,Berr,CreateNewFigure=false,logColorbar=true);
+    % 
+    %     title("Direct $B$ Measurement Errors",Interpreter="latex")
+    %     subtitle("")
+    %     title(cbar, '(m)')
+    %     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % 
+    %     T.Padding="tight";   T.TileSpacing="tight";
+    % 
+    %     set(figBmeas,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
+    %     set(figBmeas,CurrentAxes=T2) ;  colormap(T2,parula)
+    % 
+    % 
+    % end
 
 
 end

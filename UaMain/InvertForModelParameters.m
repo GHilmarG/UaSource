@@ -223,6 +223,21 @@ end
 %  And make sure the Matern parameters are all correctly defined
 [CtrlVar] = TikhonovToMaternMapping(CtrlVar,MUA);
 
+%%
+[isA,isB,isC] = isABC(CtrlVar);
+
+if isB
+    if ~isempty(Meas.Bobs)
+        if isempty(Meas.BO)
+            % I'm expecting this field to have been populated already (this should have been done in GetInputsForInverseRun.m) but if
+            % is has not, do it here. 
+            % Create the NBode2DataMap matrix O, and keep information about meas inside/outside mesh
+            [Meas.BO,Meas.BInside,Meas.BEleID]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By) ;
+        end
+    end
+end
+
+
 %% Now build the metric/precision matrix once and keep in MUA. This is OK because in an inversion MUA never changes
 %
 % The metric matrix is here built from the blocks of the precision matrices, it plays a number of different roles. It is the
@@ -231,7 +246,7 @@ end
 %
 % I'm storing here individual blocks as well as the block matrix (MetricMatrix). This is a bit of a waste of memory, but
 % these are all sparse matrices. But this could be revisited at a later stage.
-[MUA.G,MUA.QA,MUA.QB,MUA.QC]=BuildMetricMatrix(CtrlVar,MUA);
+[MUA.G,MUA.QA,MUA.QB,MUA.QC]=BuildMetricMatrix(CtrlVar,MUA,Meas);
 MUA.dG=decompositionUa(MUA.G);
 [MUA.RG,flag,MUA.PRG]=chol(MUA.G) ;
 

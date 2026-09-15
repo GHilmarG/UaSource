@@ -13,6 +13,7 @@ InvStartValues=InversionValues;
 
 [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
+[isA,isB,isC] = isABC(CtrlVar);
 
 BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
 
@@ -147,8 +148,7 @@ if CtrlVar.Inverse.Methodology=="-Tikhonov-"
 end
 
 %% special test for B inversion
-
-if contains(CtrlVar.Inverse.InvertFor,"-B-")
+if isB
 
 
     if isempty(Meas.as)
@@ -175,27 +175,52 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
     end
 
-    if anynan(Meas.B)
+    if anynan(Meas.Bobs)
 
-        fprintf('Meas.B contains NaN.\n')
+        fprintf('Meas.Bobs contains NaN.\n')
         error('GetInputsForInverseRun:Meas.BHasNaNs')
 
 
     end
 
+    if  (numel(Meas.Bx) ~= numel(Meas.Bobs)) ||  (numel(Meas.By) ~= numel(Meas.Bobs))
+
+        fprintf("Meas.Bx and Meas.By do not have same number of elements as Meas.Bobs.\n")
+        fprintf("We must have same number of measurment locations (Meas.Bx,Meas.By) as observations (Meas.Bobs). \n ")
+        error("GetInputsForInverseRun:IncorrectInputs")
+
+    end
+
+    if  numel(Meas.BErr) ~= numel(Meas.Bobs)
+
+        fprintf("Meas.BErr and Meas.Bobs do not have same number of elements.\n")
+        fprintf("We must have same number of error estimates (Meas.BErr) as observations (Meas.Bobs). \n ")
+        error("GetInputsForInverseRun:IncorrectInputs")
+
+    end
+
+
+
     if isscalar(InvStartValues.B)
         InvStartValues.B=InvStartValues.B+zeros(MUA.Nnodes,1);
     end
-        
-   Ind=(Meas.s-InvStartValues.B) < CtrlVar.ThickMin;
 
-   if any(Ind)
+    Ind=(Meas.s-InvStartValues.B) < CtrlVar.ThickMin;
 
-       fprintf("Start values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
-       fprintf("Start values for B are shifted to make sure initial thickness is positive. \n")
-       InvStartValues.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+    if any(Ind)
 
-   end
+        fprintf("Start values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
+        fprintf("Start values for B are shifted to make sure initial thickness is positive. \n")
+        InvStartValues.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+
+    end
+
+    if ~isempty(Meas.Bobs)
+
+        [Meas.BO,Meas.BInside,Meas.BEleID]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By) ;
+    end
+
+
 
 end
 

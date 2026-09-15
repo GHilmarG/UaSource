@@ -44,22 +44,64 @@ if isB
 
     pB=F.B;
 
-    % lbB=F.Bmin+zeros(size(pB));
-    % ubB=F.Bmax+zeros(size(pB));
-
-
-
-    % Where initially grounded, make sure ice never goes afloat
-    BAboveFloatationMinimum=10;
-    Bstar=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % this is Bmin, we must have B > Bmin
+ 
+    %% Set upper and lower limits for B
+    %
+    % We have two constraints:
+    %
+    % 1) B (the bedrock) must be below F.s (the upper glacier surface). Otherwise the ice thickness (F.h) over grounded areas becomes
+    % negative. The ice thickness is 
+    % 
+    %   F.h=F.s-F.b
+    % 
+    % and where the ice is grounded we have
+    %
+    % F.B=F.b
+    %
+    % This condition can be therefore expressed as
+    % 
+    % B < F.s
+    %
+    % 2) Additionally, we want to enforce that the ice that was grounded at the beginning of the iteration, never becomes
+    % un-grounded. 
+    %
+    % This can be expressed as 
+    %
+    %   B>Bstar
+    %
+    % where
+    %
+    %   Bstar
+    %
+    % is the bedrock elevation at flotation.  
+    %
+    % We only apply B>Bstar where the ice is grounded, i.e. where the nodal grounded/flotation mask, F.GF.node, is greater than 1/2
+    %
+    % So the condition is
+    %
+    % B>Bstar where F.GF.node>0.5
+    %
+    % Similarly, we don't want ice which was afloat to become grounded, i.e. 
+    % 
+    %
+    % B<Bstar where F.GF.node<0.5
+    %
+    % This second situation is not going to happen if we do not update the bed, B, where the ice is already afloat. 
+    %
+   
+    BAboveFloatationMinimum = 10/CtrlVar.kH ;   % ~10 grounding-line widths
+ 
+    Bstar=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % we must have B > Bstar
 
     GF=F.GF.node>0.5;
     lbB=nan(MUA.Nnodes,1);
     lbB(GF)=Bstar(GF) ;      % where grounded, set lower bound just above flotation as based on s, S and densities 
-    lbB(~GF)=F.B(~GF)-100 ;  % where afloat, set lower bound to some small value, although this should not really have an impact on retrieved B
+    BfloatationOffsetBound=100;
+    lbB(~GF)=F.B(~GF)-BfloatationOffsetBound ;  % where afloat, set lower bound to some offset value below the current B. 
+                                                % I'm not expecting this to matter much as the B where the ice is afloat will not change much during the inversion.
+                                                % However, because of regularization on B, I might still have some changes in B across the grounding line.
 
-    % ensure that min ice thickness is not violated
-    %ubB=[];
+  
     ubB=F.s-CtrlVar.ThickMin ; % This is Bmax, we must have B < Bmax
 
     ubB=max(lbB,ubB) ; % make sure ubB >= lbB

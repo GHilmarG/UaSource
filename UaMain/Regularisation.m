@@ -6,14 +6,19 @@ function [R,dRdp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
 narginchk(8,8)
 nargoutchk(2,2)
 
-%%
+%% Calculates the explicit terms of the cost function and their derivatives. (But not the Hessian)
+%
+% Mostly, this is what would generally be considered to be a regularization term. However, in case of direct B measurements
+% this also includes the misfit term between FE B values and Bobs. But this is an explicit term of B, and therefore included
+% here.
+%
 %
 % Note: New greatly simplified version created in September 2026.
 %
 % Simplification included getting rid of A and C inversions and A and C regularization that nobody used. From now on only
 % logA and logC inversions are supported.
 %
-% Calculates the regularization term R, and the gradient and the Hessian of R with respect to p.
+% Calculates the regularization term R, and the gradient of R with respect to p.
 %
 %
 % This is a fairly simple thing to do as the regularization term is an explicit function of p, and the Hessian calculation can
@@ -232,10 +237,6 @@ if nargout > 3
     RegOuts.RCs=nan  ; RegOuts.RCa=nan;
 
 end
-%%
-
-
-Area=MUA.Area;
 
 
 %%
@@ -273,44 +274,40 @@ if isC
     RC=full(0.5*dpC'*QC*dpC);           % costs function term
     dRdC=(QC*dpC);      % derivative,
 else
-   
+
     RC=0;
     dRdC=[];
 end
 
 if isB
-    
+
+    %% B regularization
     dpB=F.B-Priors.B;
     RB=full(0.5*dpB'*QB*dpB);               %       R: Regularisation term for B (a scalar)
     dRdB=QB*dpB ;  %   dR/dB:  (a vector)
 
 
 
+    %% B misfit with respect to direct observations of B
+    OInside=Meas.BO(Meas.BInside,:);
+    Inside=Meas.BInside;
+    BobsInside=Meas.Bobs(Inside);
+    BErrInside=Meas.BErr(Inside);
 
-    % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
-    % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
-    %
-    % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
-    % distinction is simply rhetorical as these terms are all added up
+    BResInside = OInside*F.B - BobsInside ;
 
-    % This term needs to be improved, as it stands the statistical interpretation is not sound
-    %
-    % Also, I think I really should shift this over to the Misfit part of the evaluation.
+    nMeasInside=numel(BobsInside);
+    iSigma=sparse(1:nMeasInside,1:nMeasInside,1./BErrInside.^2,nMeasInside,nMeasInside);
 
-    [O,Inside,ID,MUA]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By); 
-    BRes = O(Inside,:)*F.B - Meas.Bobs(Inside) ;
 
-    nMeas=numel(Meas.Bobs);
-    iSigma=sparse(1:nMeas,1:nMeas,1./Meas.BErr.^2,nMeas,nMeas);
+    JBobs = BResInside' * iSigma * BResInside/ 2;
+    dJdBobs = OInside' * iSigma * BResInside;
 
-    JBobs = (O*F.B-Meas.Bobs)' * iSigma * (O*F.B-Meas.Bobs)/ 2; 
-    dJdBobs = O' * iSigma * (O*F.B-Meas.Bobs); 
-    HBobs=O' * iSigma * O; 
 
 
     RB=RB+JBobs;
     dRdB=dRdB+dJdBobs;
-  
+
 
 
     % 

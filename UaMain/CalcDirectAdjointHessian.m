@@ -164,7 +164,7 @@ end
 if contains(HessianTerms,"-Jpp-")  % explicit dependency of J on p=(logA,B,logC)
 
    
-    KJpp=Jpp(CtrlVar,MUA,Meas);
+    KJpp=Jpp(CtrlVar,MUA);
     H=H+KJpp; 
 
 end
