@@ -85,11 +85,7 @@ rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 [~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
 
-if ~isempty(F.dhdt) || ~isnan(F.dhdt)
-    dhdtnod=reshape(F.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
-else
-    dhdtnod=nan;
-end
+
 
 dhdtMeasnod=reshape(Meas.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -196,14 +192,14 @@ end
 
 Jhdot=full(sum(JhdotIntSum)) ;
 
-duJhdot=sparseUA(neq,1);
-dvJhdot=sparseUA(neq,1);
-dhJhdot=sparseUA(neq,1);
+duJhdot=sparse(neq,1);
+dvJhdot=sparse(neq,1);
+dhJhdot=sparse(neq,1);
 for Inod=1:MUA.nod
     
-    duJhdot=duJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),duJhdotIntSum(:,Inod),neq,1);
-    dvJhdot=dvJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dvJhdotIntSum(:,Inod),neq,1);
-    dhJhdot=dhJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dhJhdotIntSum(:,Inod),neq,1);
+    duJhdot=duJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),duJhdotIntSum(:,Inod),neq,1);
+    dvJhdot=dvJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dvJhdotIntSum(:,Inod),neq,1);
+    dhJhdot=dhJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dhJhdotIntSum(:,Inod),neq,1);
     
 end
 
@@ -213,15 +209,9 @@ dvJhdot=full(dvJhdot);
 dhJhdot=full(dhJhdot);
 
 
-%% If F.dhdt is available this should give the same answer
+%% If F.dhdt is available this should give (approx) the same answer
 % dhdtErr=sqrt(spdiags(Meas.dhdtCov)) ;  dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr ;  JhdotTest=full(dhdtres'*MUA.M*dhdtres)/2/Area;
 %%
-
-
-% Don't apply this here!  Because duJhdot and dvJhdot contribute to the right-hand side of the Adjoint equations.
-% However, dhJhdot does not and this derivative needs to be projected, but do this later
-%
-% [duJhdot,dvJhdot,dhJhdot]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCs,duJhdot,dvJhdot,dhJhdot);
 
 
 

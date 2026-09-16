@@ -23,7 +23,7 @@ if n1~=MUA.Nele || n2~=MUA.nip
 end
 
 ndim=2;
-P=sparseUA(MUA.Nnodes,1);
+P=sparse(MUA.Nnodes,1);
 R=zeros(MUA.Nele,MUA.nod);
 
 if isempty(MUA.Deriv) || isempty(MUA.DetJ)
@@ -43,7 +43,7 @@ for Iint=1:MUA.nip
 end
 
 for Inod=1:MUA.nod
-    P=P+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),MUA.Nnodes,1);
+    P=P+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),MUA.Nnodes,1);
 end
 
 end

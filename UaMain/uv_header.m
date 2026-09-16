@@ -35,7 +35,7 @@
 %
 % where:
 % 
-% $h$ is the ice thickness
+% $h=s-b$ is the ice thickness
 %
 % $\rho$ the ice density
 %
@@ -55,6 +55,17 @@
 %
 % $v$ the $y$ velocity component
 %
+% $d$ is the submarine ice thickness (always positive), defined as: 
+% 
+% $$d=\mathcal{H}(h_f-h) \, \rho h / \rho_o + \mathcal{H}(h-h_f) \, H^{+} $$
+%
+% which we can also write as
+%
+% $$d= (1-\mathcal{G} )\, \frac{\rho}{\rho_o}  h + \mathcal{G} \, H^{+} $$
+%
+% $$H^{+} = \mathcal{H}(H) \, H $$
+%
+% $$H=S-B $$
 %
 % The effective viscosity is: 
 %

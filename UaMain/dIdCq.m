@@ -48,7 +48,7 @@ narginchk(7,7)
 %
 % where:
 % 
-% $h$ is the ice thickness
+% $h=s-b$ is the ice thickness
 %
 % $\rho$ the ice density
 %
@@ -68,6 +68,17 @@ narginchk(7,7)
 %
 % $v$ the $y$ velocity component
 %
+% $d$ is the submarine ice thickness (always positive), defined as: 
+% 
+% $$d=\mathcal{H}(h_f-h) \, \rho h / \rho_o + \mathcal{H}(h-h_f) \, H^{+} $$
+%
+% which we can also write as
+%
+% $$d= (1-\mathcal{G} )\, \frac{\rho}{\rho_o}  h + \mathcal{G} \, H^{+} $$
+%
+% $$H^{+} = \mathcal{H}(H) \, H $$
+%
+% $$H=S-B $$
 %
 % The effective viscosity is: 
 %
@@ -77,6 +88,12 @@ narginchk(7,7)
 %
 %
 % The effective viscosity is therefore a function of the velocity components and the rheological parameters $A$ and $n$.
+%
+% The function
+% 
+%   EffectiveViscositySSTREAM.m
+%
+% returns the effective viscosity, eta, as well as some derivatives with respect to $A$.
 %
 % In the particular case of Weertman sliding law $$\beta^2$$ is given by:
 %
@@ -102,7 +119,6 @@ narginchk(7,7)
 %   BasalDrag.m
 %
 % returns $t_{bx}$ and $t_{by}$ as well as various derivatives with respect to $u$, $v$,  $h$ and $C$
-%
 %
 %%
 ndim=2;
@@ -184,20 +200,6 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
     
-
-
-    % this is a temporary change which only works for Weertman sliding law, 
-     % speed=sqrt(uint.*uint+vint.*vint+u0^2);
-     % Um=speed.^(1./mint-1) ;
-     % Ctemp =  Heint.*    (1./mint).*(Cint+C0).^(-1./mint-1)   .*Um;  % Um=speed.^(1./m-1) ; This is the same Ctemp as returned by BasalDrag for Weertman sliding law, 
-    % but the BasalDrag function is more general and will return this quantity for various other sliding laws as well 
-    %%
-
-
-    % Note: I include the u and v in the adjoint calculation itself below, so I just need the
-    % derivative without the u and the v. Therefore 
-    %
-
 
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod

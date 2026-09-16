@@ -288,29 +288,30 @@ if isB
 
 
 
-    %% B misfit with respect to direct observations of B
-    OInside=Meas.BO(Meas.BInside,:);
-    Inside=Meas.BInside;
-    BobsInside=Meas.Bobs(Inside);
-    BErrInside=Meas.BErr(Inside);
+    if ~isempty(Meas.Bobs)
+        %% B misfit with respect to direct observations of B
+        OInside=Meas.BO(Meas.BInside,:);
+        Inside=Meas.BInside;
+        BobsInside=Meas.Bobs(Inside);
+        BErrInside=Meas.BErr(Inside);
 
-    BResInside = OInside*F.B - BobsInside ;
+        BResInside = OInside*F.B - BobsInside ;
 
-    nMeasInside=numel(BobsInside);
-    iSigma=sparse(1:nMeasInside,1:nMeasInside,1./BErrInside.^2,nMeasInside,nMeasInside);
-
-
-    JBobs = BResInside' * iSigma * BResInside/ 2;
-    dJdBobs = OInside' * iSigma * BResInside;
+        nMeasInside=numel(BobsInside);
+        iSigma=sparse(1:nMeasInside,1:nMeasInside,1./BErrInside.^2,nMeasInside,nMeasInside);
 
 
-
-    RB=RB+JBobs;
-    dRdB=dRdB+dJdBobs;
+        JBobs = BResInside' * iSigma * BResInside/ 2;
+        dJdBobs = OInside' * iSigma * BResInside;
 
 
 
-    % 
+        RB=RB+JBobs;
+        dRdB=dRdB+dJdBobs;
+
+    end
+
+    %
     % CtrlVar.Inverse.Penalty=false;
     % if CtrlVar.Inverse.Penalty  % This was more of a try, and most likely will be deleted
     % 

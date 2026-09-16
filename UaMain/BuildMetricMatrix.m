@@ -12,7 +12,7 @@ narginchk(3,3)
 if isB
 
     if ~isempty(Meas.Bobs)
-   
+ 
         O=Meas.BO;
         nMeas=numel(Meas.Bobs);
         iSigma=sparse(1:nMeas,1:nMeas,1./Meas.BErr.^2,nMeas,nMeas);

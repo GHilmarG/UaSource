@@ -186,25 +186,7 @@ end
 %
 %%
 
-switch CtrlVar.Inverse.MinimisationMethod
 
-    case "-UaOptimization-GradientBased-"
-        % Use Riesz-mapped gradient. The Ua conjugate gradient optimizer if provided with the metric-matrix G as an input, and it
-        % uses this information to calculate the true directional derivative and all inner products are done with respect to G.
-        CtrlVar.Inverse.RieszMapGradient=true;
-        CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
-    case "-MatlabOptimization-GradientBased-"
-        CtrlVar.Inverse.RieszMapGradient=false;
-        % User the Riesz-mapped gradient. But we can NOT feed this gradient directly as described above. The key difference is that
-        % the MATLAB optimization toolbox does not allow for the metric matrix G to be provided as an input.
-        CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=true;
-    case {"-UaOptimization-HessianBased-", "-MatlabOptimization-HessianBased-"}
-        % Do NOT use the Riesz-mapped gradient. The Newton system is "metric-free"
-        CtrlVar.Inverse.RieszMapGradient=false;
-        CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
-    otherwise
-        error("case not found")
-end
 
 if CtrlVar.Inverse.RieszMapGradient
     fprintf(" The optimisation will use a Riesz-mapped gradient.\n")
@@ -432,13 +414,15 @@ end
 function [J,dJdp,dJdpTest] = TestCorrectnessOfAdjointGradient(func,p0,MUA,CtrlVar,plb,pub)
 % Get the gradient using the adjoint method
 
+[isA,isB,isC] = isABC(CtrlVar); 
+
 [J,dJdp]=func(p0);
 
 NA=MUA.Nnodes;
 
 % Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
 if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
-    nTests=min(20,numel(p0));    % just test for 20 random nodes
+    nTests=min(20,numel(p0));    % just test for some random nodes
     iRange=randi(MUA.Nnodes,nTests,1);
 else
     iRange=CtrlVar.Inverse.TestAdjoint.iRange;

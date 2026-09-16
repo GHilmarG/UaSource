@@ -145,6 +145,18 @@ end
 
 RunInfo.Inverse.ConjGradUpdate=0;
 
+%% Is the starting point already stationary?
+%
+% If the gradient vanishes identically, as happens with perfect synthetic data and the true parameter field, then d=0
+% and slope0=0, and the linear model below gives gamma1=-0.05*abs(J0)/slope0 = 0/0 = NaN. The first trial point would
+% then be p+NaN*0 = NaN and the forward solve would fail. Catch it here instead.
+
+if ~any(d) || ~(slope0<0)
+    fprintf('\n +++++++++++ At the starting point the gradient is zero (decrement=%g, slope0=%g). \n',Decrement,slope0)
+    fprintf(' +++++++++++ p is already a stationary point, nothing to do. \n\n')
+    return
+end
+
 %% Determine an initial step size for the first line search
 %
 % A linear approximation aiming for a 5% reduction, refined by a quadratic through J0, slope0 and J at that trial step.
@@ -154,6 +166,13 @@ RunInfo.Inverse.ConjGradUpdate=0;
 % negative trial step, i.e. a step in the ascent direction.
 
 gamma1=-0.05*abs(J0)/slope0 ;
+
+% J0 can be zero, or so small that the linear model provides no useful length scale, in which case gamma1 comes out as 0
+% or NaN. Fall back on a step that moves p by roughly 0.1% of its own norm.
+if ~isfinite(gamma1) || gamma1<=0
+    gamma1=1e-3*max(norm(p),1)/max(norm(d),realmin) ;
+end
+
 [J1,~]=PhiCached(gamma1) ;
 
 % the forward model may fail to converge for this step size, in which case reduce gamma until it does
@@ -213,7 +232,10 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     % The accepted point has already been evaluated inside the line search, so read it back rather than calling func
     % again. Only if kk_proj moved p, or the accepted step is somehow not in the cache, is a fresh evaluation needed.
     kc=find(CacheGamma==gamma,1,'last') ;
-    if ~Projected && ~isempty(kc)
+    if gamma==0
+        % The line search found no point better than phi(0), so p is unchanged and J0, dJdp and fOuts still refer to it.
+        % Nothing needs re-evaluating.
+    elseif ~Projected && ~isempty(kc)
         J0=CacheJ(kc) ; dJdp=CacheGrad{kc} ; fOuts=CacheFOuts{kc} ;
     else
         [J0,dJdp,~,fOuts]=func(p) ;  nFuncEval=nFuncEval+1 ; nGradEval=nGradEval+1 ;
@@ -262,13 +284,22 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     % Initial step for the next line search, Nocedal & Wright eq 3.60: scale the last accepted step by the ratio of the
     % directional derivatives at the two starting points. This is the standard choice for a Wolfe line search and is
     % better scaled than simply extending the previous step.
-    if slope0<0 && isfinite(slope0Last) && slope0Last<0
+    if slope0<0 && isfinite(slope0Last) && slope0Last<0 && gammaLastMinimum>0
         gammaStart=gammaLastMinimum*slope0Last/slope0 ;
     else
         gammaStart=gammaLastMinimum ;
     end
+
+    % gammaLastMinimum is ZERO whenever the line search found no point better than phi(0), i.e. LineSearchWolfe returned
+    % iExit=-2. Falling back on it would feed gammaStart=0 into the next line search, which then errors on
+    % ~(gammaStart>0). Re-derive a step from the linear model instead, which is positive because slope0<0.
     if ~isfinite(gammaStart) || gammaStart<=0
-        gammaStart=gammaLastMinimum ;
+        gammaStart=-0.05*abs(J0)/slope0 ;
+    end
+
+    if ~isfinite(gammaStart) || gammaStart<=0
+        fprintf('\n Inversion stopped after %i iterations: no positive step is available. \n',Iteration)
+        break
     end
 
     % the cache refers to the old p and d, so it is no longer valid

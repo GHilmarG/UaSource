@@ -421,19 +421,34 @@ if CtrlVar.InverseRun
 
     end
 
+    switch CtrlVar.Inverse.MinimisationMethod
 
-    if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
-        CtrlVar.Inverse.RieszMapGradient=true;
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-        CtrlVar.Inverse.RieszMapGradient=false;
+        case "-UaOptimization-GradientBased-"
+            % Use Riesz-mapped gradient. The Ua conjugate gradient optimizer if provided with the metric-matrix G as an input, and it
+            % uses this information to calculate the true directional derivative and all inner products are done with respect to G.
+            CtrlVar.Inverse.RieszMapGradient=true;
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+        case "-MatlabOptimization-GradientBased-"
+            CtrlVar.Inverse.RieszMapGradient=false;
+            % User the Riesz-mapped gradient. But we can NOT feed this gradient directly as described above. The key difference is that
+            % the MATLAB optimization toolbox does not allow for the metric matrix G to be provided as an input.
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=true;
+        case {"-UaOptimization-HessianBased-", "-MatlabOptimization-HessianBased-"}
+            % Do NOT use the Riesz-mapped gradient. The Newton system is "metric-free"
+            CtrlVar.Inverse.RieszMapGradient=false;
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+        otherwise
+            error("case not found")
     end
+
 
     if  CtrlVar.Inverse.TestDirectAdjoint.isTrue || CtrlVar.Inverse.TestAdjoint.isTrue
 
-        CtrlVar.Inverse.RieszMapGradient=false;
     
+        CtrlVar.Inverse.RieszMapGradient=false;
+        CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
         fprintf("In this run the gradient and/or the Hessian will be tested against finite-differences.\n")
-        fprintf("\tTherefore the Riesz mappting is disabled.\n")    
+        fprintf("\tTherefore the Riesz mappting is disabled.\n")
         fprintf("\tSetting: 'CtrlVar.Inverse.RieszMapGradient=false;'\n")
     end
 

@@ -1,42 +1,132 @@
 
 
 
-function dFdhlambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp)
+function dFdhlambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dhdp,dbdp,dBdp)
         
 
-%%
-%
-% This function should be called something like dFdBtimesLamba
-%
-% Evaluates:
+%% Calculates the vector quantity:
 %
 %
-% $$\langle (dF/dB)^*  | \lambda \rangle $$
+% $$ \langle  \delta_{b_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{b_i} F^y \phi_i| \Psi_y \rangle $$
+%
+%
+% Note: Here we only consider grounded ice where $B=b$$. This function does not work correctly for sections with floating
+% ice. It is assumed that ALL ice is grounded thorough the domain. 
+% 
+%% Relates to the solution for the velocity components u and v of the system:
 %
 % 
-% $$ B(x) = B_i \phi_i(x) $$
-%
-% $$ \lambda(x) = \lambda_j \phi_j(x) $$
-%
-% The derivative is taken with respect to one of the nodal variables, $B_i$, at a time.
-%
-% Consider, as an example, $F=B(x)$. Then
-%
-% $$\langle (dF/dB)^*  | \lambda \rangle_i  = \langle dB/dB_i | \lambda \rangle = \langle \phi_i(x) | \lambda_j \phi_j(x)  \rangle  =
-% M_{ij} \lambda_j $$
 % 
-% And for
+% $$
+% F^x_i= \left \langle  h \eta \, ( 4 \partial_x u + 2 \partial_y v) \vert  \, \partial_x \phi_i \right \rangle
+% + \langle   h \eta \, (\partial_y u + \partial_x v)  \vert  \partial_y \phi_i \rangle
+% + \langle \mathcal{G} \beta^2\, u , \phi_i \rangle 
+%  - \left \langle \frac{1}{2} g \cos(\alpha) \,  (\rho h^2 -  \rho_o d^2)  \Big\vert \partial_x \phi_i \right \rangle
+% + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x B \vert  \phi_i \rangle  - \langle \rho g \sin(\alpha) \, h  | \phi_i \rangle   =0 
+% $$
 %
-% $$F=\partial_x (\eta \, (s-B) \partial u) $$
+% $$
+% F^y_i= \langle  h \eta \, ( 4 \partial_y v + 2 \partial_x u) \vert \partial_y \phi_i \rangle
+% +\langle   h \eta \, (\partial_x v + \partial_y u)  \vert \, \partial_x \phi_i \rangle 
+% + \langle \mathcal{G} \, \beta^2 \, v \vert  \phi_i \rangle 
+%   - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) \Big|   \, \partial_y \phi_i \right \rangle
+% +  \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_y B \vert \phi_i \rangle=0
+% $$
 %
-% we have
 %
-% $$\langle (dF/dB)^* | \lambda \rangle_i = \langle d ( \partial_x (\eta \, (s-B) \partial_x u)/dB_i | \lambda \rangle =
-% -\langle \eta \, (0 -\phi_i(x)) \; \partial_x u | \partial_x \lambda \rangle =  \langle \eta \,  \phi_i(x) \; \partial_x u | \partial_x \lambda \rangle $$
 %
-% and some possible additional boundary terms.
+% Here we use
+% 
+% $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$
+%
+% $\mathcal{G}$ is the floating mask, 1 if grounded, 0 if afloat.
+%
+% $$\mathcal{G}=\mathcal{H}(h-h_f) $$
+%
+% where $\mathcal{H}$ is the Heaviside step function and
+%
+%
+% $$h_f=(S-B) \rho_o/\rho $$
+%
+% where:
+% 
+% $h=s-b$ is the ice thickness
+%
+% $\rho$ the ice density
+%
+% $\rho_o$ the ocean density 
+%
+% $B$ the bedrock
+%
+% $s$ the upper glacier surface
+%
+% $b$ the lower glacier surface
+%
+% $S$ the ocean surface
+%
+% $$\alpha$$ the slope of the vertical axis of the coordinate system with respect to gravity
+%
+% $u$ the $x$ velocity component
+%
+% $v$ the $y$ velocity component
+%
+% $d$ is the submarine ice thickness (always positive), defined as: 
+% 
+% $$d=\mathcal{H}(h_f-h) \, \rho h / \rho_o + \mathcal{H}(h-h_f) \, H^{+} $$
+%
+% which we can also write as
+%
+% $$d= (1-\mathcal{G} )\, \frac{\rho}{\rho_o}  h + \mathcal{G} \, H^{+} $$
+%
+% $$H^{+} = \mathcal{H}(H) \, H $$
+%
+% $$H=S-B $$
+%
+% The effective viscosity is: 
+%
+% $$
+% \eta= \frac{1}{2} A^{-1/n} \, \left ((\partial_x u)^2 + (\partial_y v)^2 + \partial_x u \,\partial_y v + (\partial_x v + \partial_y u)^2/4+\epsilon_0^2 \right)^{(1-n)/2n} +\eta_0
+% $$
+%
+%
+% The effective viscosity is therefore a function of the velocity components and the rheological parameters $A$ and $n$.
+%
+% The function
+% 
+%   EffectiveViscositySSTREAM.m
+%
+% returns the effective viscosity, eta, as well as some derivatives with respect to $A$.
+%
+% In the particular case of Weertman sliding law $$\beta^2$$ is given by:
+%
+% $$
+% \beta^2=(C+C_0)^{-1/m} \; \left (u_b^2+v_b^2+u_0^2 \right)^{(1-m)/2m} 
+% $$
+%
+% $$\beta^2$$ is therefore a function of the velocity components, and the basal sliding law parameter $C$. For more general sliding
+% laws $\beta^2$ may depend on some other parameters as well.  
+%
+% Often the basal drag term is written as
+%
+%
+% $$t_{bx} =\mathcal{G} \beta^2\, u $$
+%
+% $$t_{by} =\mathcal{G} \beta^2\, v $$
+%
+%
+% where $t_{bx}$ and $t_{by}$ are the basal traction components.
+%
+% The function
+% 
+%   BasalDrag.m
+%
+% returns $t_{bx}$ and $t_{by}$ as well as various derivatives with respect to $u$, $v$,  $h$ and $C$
 %
 %%
+
+
+
+
 
 narginchk(10,10)
 
@@ -75,8 +165,8 @@ rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psi_x_node=reshape(Psi_x(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psi_y_node=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
 nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -149,8 +239,8 @@ for Iint=1:MUA.nip
     end
 
 
-    uAdjointint=uAdjointnod*fun;
-    vAdjointint=vAdjointnod*fun;
+    Psi_x_int=Psi_x_node*fun;
+    Psi_y_int=Psi_y_node*fun;
     
     hfint=F.rhow*Hint./rhoint;
     
@@ -206,11 +296,11 @@ for Iint=1:MUA.nip
         exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod));
         
         
-        dlxdx=dlxdx+Deriv(:,1,Inod).*uAdjointnod(:,Inod);
-        dlxdy=dlxdy+Deriv(:,2,Inod).*uAdjointnod(:,Inod);
+        dlxdx=dlxdx+Deriv(:,1,Inod).*Psi_x_node(:,Inod);
+        dlxdy=dlxdy+Deriv(:,2,Inod).*Psi_x_node(:,Inod);
         
-        dlydx=dlydx+Deriv(:,1,Inod).*vAdjointnod(:,Inod);
-        dlydy=dlydy+Deriv(:,2,Inod).*vAdjointnod(:,Inod);
+        dlydx=dlydx+Deriv(:,1,Inod).*Psi_y_node(:,Inod);
+        dlydy=dlydy+Deriv(:,2,Inod).*Psi_y_node(:,Inod);
         
         ddbdpdx=ddbdpdx+Deriv(:,1,Inod).*dbdpnod(:,Inod);
         ddbdpdy=ddbdpdy+Deriv(:,2,Inod).*dbdpnod(:,Inod);
@@ -315,8 +405,8 @@ for Iint=1:MUA.nip
             (...
               (rhoint.*hint-F.rhow*dint).*(test1*deltaint.*(dhdx-dhfdx).*fun(Inod)+ dbdpint.*Deriv(:,1,Inod))...
               +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdx...
-              ).*uAdjointint ...
-            +rhoint.*F.g.*sa.*dhdpint.*fun(Inod).*uAdjointint;
+              ).*Psi_x_int ...
+            +rhoint.*F.g.*sa.*dhdpint.*fun(Inod).*Psi_x_int;
         
         %         t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
         
@@ -325,7 +415,7 @@ for Iint=1:MUA.nip
         
         t3=dhdpint.*fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
         t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlxdy;
-        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
+        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*Psi_x_int.*fun(Inod);
         t5=0;
         
         Fx=(t1+t2).*detJw;
@@ -338,7 +428,7 @@ for Iint=1:MUA.nip
         t1=-F.g*ca*...
             (  (rhoint.*hint-F.rhow*dint).*(test1*deltaint.*(dhdy-dhfdy).*fun(Inod)+dbdpint.*Deriv(:,2,Inod))...
             +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdy)...
-            .*vAdjointint;
+            .*Psi_y_int;
         
         Tx=(t3+t4+t5).*detJw;
         
@@ -348,7 +438,7 @@ for Iint=1:MUA.nip
         
         t3=dhdpint.*fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubydh.*Psi_y_int.*fun(Inod);   % 5=tauy.*fun(Inod);
         t5=0; 
         
         
@@ -369,9 +459,10 @@ dFdhlambda=zeros(MUA.Nnodes,1);
 
 
 for Inod=1:MUA.nod
-    dFdhlambda=dFdhlambda+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dFdhlambda=dFdhlambda+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
+dFdhlambda=-dFdhlambda;
 
 % dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dFdhlambda);
 % Now this is done for the whole assembled dIdp gradient

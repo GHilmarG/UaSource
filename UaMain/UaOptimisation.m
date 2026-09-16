@@ -28,7 +28,8 @@ switch CtrlVar.Inverse.MinimisationMethod
     case  "-UaOptimization-GradientBased-"
 
 
-        [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+       %[p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+       [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
 
 
     otherwise

@@ -162,7 +162,7 @@ if isB
 
         fprintf('Meas.ab can not be left empty when inverting for B.\n')
         error('GetInputsForInverseRun:Meas.abIsNotDefined')
-        
+
 
     end
 
@@ -171,7 +171,7 @@ if isB
 
         fprintf('InvStartValues.B can not be left empty when inverting for B.\n')
         error('GetInputsForInverseRun:InvStartValues.BIsNotDefined')
-        
+
 
     end
 
@@ -205,6 +205,23 @@ if isB
         InvStartValues.B=InvStartValues.B+zeros(MUA.Nnodes,1);
     end
 
+     if numel(InvStartValues.B)~=numel(F.B)
+         fprintf("numel(InvStartValues.B)~=numel(F.B)\n")
+         error("IncorrectInputs")
+     end
+
+    Ind=(Meas.s-Priors.B) < CtrlVar.ThickMin;
+
+    if any(Ind)
+
+        fprintf("Priors for B were in places below measured surface, i.e. (Meas.s-Priors.B) < CtrlVar.ThickMin) \n")
+        fprintf("Priors for B are shifted to make sure ice thickness for B prior is positive. \n")
+        Priors.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+
+    end
+
+
+
     Ind=(Meas.s-InvStartValues.B) < CtrlVar.ThickMin;
 
     if any(Ind)
@@ -223,28 +240,3 @@ if isB
 
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -106,10 +106,12 @@ function [gammaMin,Jmin,info]=LineSearchWolfe(slope0,gammaStart,J0,J1,Func,info)
 %    1   strong Wolfe conditions satisfied
 %    2   evaluation limit reached, returning best point found, Armijo satisfied
 %    3   bracket collapsed before the curvature condition was met. Usually means
-%        phi is very flat, or noisy at the level of the requested accuracy.
+%        phi is very flat, or noisy at the level of the requested accuracy. The
+%        step returned is non-zero.
 %    4   gammaMax reached
 %   -1   slope0 >= 0 , the direction is not a descent direction
-%   -2   no point better than phi(0) was found
+%   -2   no point better than phi(0) was found, so gammaMin=0 is returned. The
+%        caller must not feed this back as the next gammaStart.
 %
 %
 %% A warning on non-scalar inputs
@@ -341,8 +343,18 @@ end
 
             if Width <= info.xtol*max(1,gHigh)
                 gamma=gammaBest ; J=JBest ; info.slopeMin=slopeBest ;
-                info.iExit=3 ;
-                info.Message='bracket collapsed before the curvature condition was met.' ;
+                if gammaBest==0
+                    % The bracket collapsed without any trial point beating phi(0), so the step returned is zero. That
+                    % is a different outcome from "a step was found but the curvature condition was not met", and the
+                    % caller has to be able to tell them apart: a zero step means no progress at all, and feeding it
+                    % back as the next gammaStart would leave the optimisation stuck. Report it as iExit=-2, the same
+                    % flag GiveUp uses for this case.
+                    info.iExit=-2 ;
+                    info.Message='bracket collapsed and no point better than phi(0) was found.' ;
+                else
+                    info.iExit=3 ;
+                    info.Message='bracket collapsed before the curvature condition was met.' ;
+                end
                 return
             end
 
