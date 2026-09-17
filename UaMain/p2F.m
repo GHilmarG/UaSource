@@ -6,11 +6,21 @@ narginchk(6,6)
 
 
 
+% Undo the mappings applied in F2p, in reverse order: the Cholesky mapping was applied last, so it is undone first, and
+% the box transformation is undone after it.
+
 if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
     %p=MUA.RG\p;
      p=MUA.PRG*(MUA.RG\p);
 
    
+
+end
+
+if CtrlVar.Inverse.BoxTransform
+
+    % u -> p , putting the variable back inside its box. See BoxTransform.m .
+    p=BoxTransform("inverse",p,MUA.BoxTransform) ;
 
 end
 

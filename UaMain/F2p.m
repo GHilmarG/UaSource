@@ -122,18 +122,51 @@ pub=[ubA;ubB;ubC];
 p=kk_proj(p,pub,plb) ;
 
 
-if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+%% Box transformation
+%
+% Eliminate the box constraints by the logistic change of variables, p -> u, see BoxTransform.m . After this the problem
+% is genuinely unconstrained, so setting plb and pub empty is now a correct description rather than a temporary measure.
+%
+% This has to come BEFORE the Cholesky mapping below. The Cholesky mapping mixes components, so a box in p would become
+% a general polytope in the mapped variable, which is why box constraints could not be used with it. Applied after the
+% box transformation there is no box left to mix up, and the two compose cleanly.
+%
+% The bounds are taken from MUA rather than from the plb and pub just computed, so that exactly the same box is used
+% here, in p2F and in JGH, and for the whole run. See the note in InvertForModelParameters.m .
 
+if CtrlVar.Inverse.BoxTransform
 
-    % p=MUA.RG*p;
-    p=MUA.RG*(MUA.PRG'*p);
+    if ~isfield(MUA,'BoxTransform') || isempty(MUA.BoxTransform)
+        error('F2p:NoStoredBox',...
+            ['CtrlVar.Inverse.BoxTransform is true but MUA.BoxTransform has not been set.\n',...
+            'It must be built once, before the inversion starts, in InvertForModelParameters.m .'])
+    end
+
+    p=BoxTransform("forward",p,MUA.BoxTransform) ;
 
     plb=[];
     pub=[];
-    fprintf("Note: For Cholesky mapping of cost function and gradient, box constraints can not be used.\n")
-    fprintf("      Box constraints are now eliminated. \n")
-    fprintf("      No box constraints on any of the inverted fields are used.\n")
 
+end
+
+
+if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+
+    % If the box transformation was applied above, plb and pub are already empty and the mapping acts on a genuinely
+    % unconstrained variable, which is the case it was designed for. Otherwise the old behaviour applies: the box
+    % constraints cannot be carried through the mapping and are discarded, with a note.
+    if ~isempty(plb) || ~isempty(pub)
+        plb=[];
+        pub=[];
+        fprintf("Note: For Cholesky mapping of cost function and gradient, box constraints can not be used.\n")
+        fprintf("      Box constraints are now eliminated. \n")
+        fprintf("      No box constraints on any of the inverted fields are used.\n")
+        fprintf("      Set CtrlVar.Inverse.BoxTransform=true to eliminate them by a change of variables instead,\n")
+        fprintf("      which retains them rather than discarding them.\n")
+    end
+
+    % p=MUA.RG*p;
+    p=MUA.RG*(MUA.PRG'*p);
 
 end
 

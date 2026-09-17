@@ -34,7 +34,7 @@ switch CtrlVar.Inverse.MinimisationMethod
 
         else
 
-            fprintf("Box contraints are enforced using bounded gradients. \m ")
+            fprintf("Box contraints are enforced using bounded gradients. \n ")
             [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
 
         end

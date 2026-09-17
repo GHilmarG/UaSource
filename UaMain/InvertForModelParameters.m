@@ -262,6 +262,67 @@ F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 % This does the mapping from the (control) variables that we are inverting for (one or more of logA, B, and logC), to the
 % control parameter vector p. The parameter that we are inverting for are therefore all contained in the variable p. p0 is
 % the starting value.
+
+%% Box transformation: freeze the box before any mapping is done
+%
+% If CtrlVar.Inverse.BoxTransform is true, the box constraints are eliminated by the logistic change of variables in
+% BoxTransform.m, and the optimisation is then unconstrained.
+%
+% The bounds have to be stored, and stored ONCE. They are needed in three places: F2p (forward map), p2F (inverse map)
+% and JGH (gradient chain rule), and they must be the same bounds in all three and throughout the run. Recomputing them
+% is not safe, because the B bounds in F2p depend on F.GF.node and, where the ice is afloat, on F.B itself. Both change
+% as the inversion proceeds, so a recomputed box would silently redefine u on every cost-function evaluation and the
+% optimiser would be chasing a moving target.
+%
+% They are put on MUA, which is already passed to all three functions, in the same way as MUA.RG and MUA.PRG are used for
+% the Cholesky mapping. The box is obtained by calling F2p with the transformation switched off, so that it is by
+% construction exactly the box F2p would have produced, and the transformation is anchored at that starting p so that
+% dp/du is one there. See BoxTransformSetup.m for why the anchoring matters.
+
+if CtrlVar.Inverse.BoxTransform
+
+    CtrlVarBox=CtrlVar ;
+    CtrlVarBox.Inverse.BoxTransform=false ;
+    CtrlVarBox.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;
+
+    [pPhysical,BoxLower,BoxUpper]=F2p(CtrlVarBox,MUA,F) ;
+
+    if isempty(BoxLower) || isempty(BoxUpper)
+        error('InvertForModelParameters:NoBox',...
+            'CtrlVar.Inverse.BoxTransform is true but F2p returned no box constraints.')
+    end
+
+    if isfield(CtrlVar.Inverse,'BoxTransformType') && ~isempty(CtrlVar.Inverse.BoxTransformType)
+        BoxType=CtrlVar.Inverse.BoxTransformType ;
+    else
+        BoxType="softplus" ;
+    end
+
+    if isfield(CtrlVar.Inverse,'BoxTransformWidthFraction') && ~isempty(CtrlVar.Inverse.BoxTransformWidthFraction)
+        BoxWidthFraction=CtrlVar.Inverse.BoxTransformWidthFraction ;
+    else
+        BoxWidthFraction=0.1 ;
+    end
+
+    MUA.BoxTransform=BoxTransformSetup(pPhysical,BoxLower,BoxUpper,BoxType,BoxWidthFraction) ;
+
+    W=MUA.BoxTransform.Width ;
+    Ok=MUA.BoxTransform.Ok ;
+    D0=MUA.BoxTransform.JacobianAtAnchor ;
+    fprintf('Box transformation of the control variables is used, type "%s". \n',MUA.BoxTransform.Type)
+    fprintf('  %i of %i variables have a usable box (finite and of positive width). \n',sum(Ok),numel(Ok))
+    fprintf('  box width       : min %g , median %g , max %g \n',min(W(Ok)),median(W(Ok)),max(W(Ok)))
+    fprintf('  dp/dv at start  : min %.6f , median %.6f , max %.6f \n',min(D0(Ok)),median(D0(Ok)),max(D0(Ok)))
+    if MUA.BoxTransform.Type=="softplus"
+        fprintf('  barrier width s : min %g , median %g , max %g \n',...
+            min(MUA.BoxTransform.Width_s(Ok)),median(MUA.BoxTransform.Width_s(Ok)),max(MUA.BoxTransform.Width_s(Ok)))
+    end
+    if any(~Ok)
+        fprintf('  %i variables have a degenerate or unbounded box and are left untransformed. \n',sum(~Ok))
+    end
+
+end
+
 [p0,plb,pub]=F2p(CtrlVar,MUA,F);
 
 

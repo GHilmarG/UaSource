@@ -46,7 +46,7 @@ if isempty(CtrlVar)
 
     CtrlVar.Inverse.UaConjugatedGradients.Armijo=1e-4;
     CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature=0.1;
-    CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvalutionsInLineSearch=15;
+    CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvaluationsInLineSearch=15;
     CtrlVar.Inverse.UaConjugatedGradients.InfoLevel=0;
 
     CtrlVar.Inverse.UaConjugatedGradients.UpdateMethod="-ConjGrad-" ; %{'SteepestDecent','ConjGrad'}
@@ -62,7 +62,7 @@ end
 % Options for line search, used below by LineSearchWolfe.m
 LineSearchOptions.c1=CtrlVar.Inverse.UaConjugatedGradients.Armijo;
 LineSearchOptions.c2=CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature;
-LineSearchOptions.MaxFuncEvaluations=CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvalutionsInLineSearch;
+LineSearchOptions.MaxFuncEvaluations=CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvaluationsInLineSearch;
 LineSearchOptions.InfoLevel=CtrlVar.Inverse.UaConjugatedGradients.InfoLevel;
 
 

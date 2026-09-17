@@ -132,6 +132,30 @@ if  CtrlVar.Inverse.CalcGrad  % gradient needed
     dJdp=dRdp+dIdp;
     JGH2=JGH2+1;
 
+    %% Box transformation: chain rule
+    %
+    % dJ/du = (dp/du) * dJ/dp , with dp/du = (ub-lb)*r*(1-r) , see BoxTransform.m .
+    %
+    % This is a relation between l2 gradients, so it MUST be applied here, to dRdp+dIdp, and before the Riesz map below.
+    % Applied after the Riesz map it would read G\(D.*(G*dJdp)) instead of D.*dJdp, costing an extra matrix-vector
+    % product and an extra solve with G on every cost-function evaluation.
+    %
+    % The Jacobian is evaluated at u. The vector p arriving here is the variable the optimiser holds, which is u if only
+    % the box transformation is used, and the Cholesky-mapped u if that mapping is used as well. In the latter case u has
+    % to be recovered first, by the same inverse mapping p2F applies.
+
+    if CtrlVar.Inverse.BoxTransform
+
+        if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+            u=MUA.PRG*(MUA.RG\p) ;
+        else
+            u=p ;
+        end
+
+        dJdp=BoxTransform("jacobian",u,MUA.BoxTransform).*dJdp ;
+
+    end
+
     if CtrlVar.Inverse.RieszMapGradient
 
         if ~isfield(MUA,"dG") && isempty(MUA.dG)

@@ -1079,13 +1079,12 @@ CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 
 CtrlVar.Inverse.UaConjugatedGradients.Armijo=1e-4;
 CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature=0.2;
-CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvalutionsInLineSearch=20;
+CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvaluationsInLineSearch=20;
 CtrlVar.Inverse.UaConjugatedGradients.InfoLevel=0;
 CtrlVar.Inverse.UaConjugatedGradients.DecrementTolerance=1e-10;
 CtrlVar.Inverse.UaConjugatedGradients.DecrementAbsTolerance=0;
 CtrlVar.Inverse.UaConjugatedGradients.DecrementRelativeTolerance=1e-10;
 CtrlVar.Inverse.UaConjugatedGradients.dJTolerance=1e-10; 
-CtrlVar.Inverse.UaConjugatedGradients.JTolerance=1e-10; 
 CtrlVar.Inverse.UaConjugatedGradients.UpdateMethod="-ConjGrad-" ; %{'SteepestDecent','ConjGrad'}
 CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=0.1; 
 CtrlVar.Inverse.UaConjugatedGradients.ActiveSetPositionTolerance=1e-8;
@@ -1093,6 +1092,11 @@ CtrlVar.Inverse.UaConjugatedGradients.ActiveSetReleaseTolerance=0.3;
 
 
 CtrlVar.Inverse.BoxTransform=false; 
+CtrlVar.Inverse.BoxTransformType="softplus";      % or "logistic"
+CtrlVar.Inverse.BoxTransformWidthFraction=0.1;
+
+
+
 
 % cg updates. All update options appear to perform about the same, but in some test HR came out best. All cg updates are
 %             considerably better than steepest decent
