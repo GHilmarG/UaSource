@@ -27,9 +27,17 @@ switch CtrlVar.Inverse.MinimisationMethod
 
     case  "-UaOptimization-GradientBased-"
 
+        if  isempty(plb)  && isempty(pub)
 
-       %[p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
-       [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+       
+            [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+
+        else
+
+            fprintf("Box contraints are enforced using bounded gradients. \m ")
+            [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+
+        end
 
 
     otherwise

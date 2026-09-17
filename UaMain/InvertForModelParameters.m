@@ -200,7 +200,9 @@ else
     fprintf(" The optimisation will not use a Cholesky mapping of cost function and gradient.\n")
 end
 
-
+if CtrlVar.Inverse.BoxTransform
+    fprintf("Box contraints are implemented through variable transform. \n ")
+end
 %% What inversions are being performed?
 %  And make sure the Matern parameters are all correctly defined
 [CtrlVar] = TikhonovToMaternMapping(CtrlVar,MUA);

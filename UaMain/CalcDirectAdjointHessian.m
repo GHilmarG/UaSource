@@ -88,8 +88,14 @@ narginchk(10,10)
 
 % [~,~,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
 
+%%
 
 
+if CtrlVar.Inverse.BoxTransform
+    fprtinf("CtrlVar.Inverse.BoxTransform=true, but this is not yet implemented for the Direct-Adjoint Hessian approach.\n")
+    fprintf("CalcDirectAdjointHessian:Not implemented for box transform.\n")
+    error("NotImplemented")
+end
 %% I label individual Hessian terms and have the option of only calculating a subset of those for testing purposes.
 
 HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;

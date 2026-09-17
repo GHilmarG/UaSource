@@ -8,6 +8,15 @@ function KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
 narginchk(7,7)
 
+
+[isA,isB,isC] = isABC(CtrlVar);
+
+if isB
+    fprintf("Fqq: not implemented for B inversion.\n")
+    error("OptionNotImplemented")
+end
+
+
 ndim=2;
 
 Eps0=CtrlVar.EpsZero;

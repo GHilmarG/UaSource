@@ -1091,6 +1091,9 @@ CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=0.1;
 CtrlVar.Inverse.UaConjugatedGradients.ActiveSetPositionTolerance=1e-8;
 CtrlVar.Inverse.UaConjugatedGradients.ActiveSetReleaseTolerance=0.3;
 
+
+CtrlVar.Inverse.BoxTransform=false; 
+
 % cg updates. All update options appear to perform about the same, but in some test HR came out best. All cg updates are
 %             considerably better than steepest decent
 CtrlVar.Inverse.UaConjugatedGradients.Update="PR";
