@@ -1,8 +1,8 @@
 
-function [dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs)
+function [dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs,isA,isB,isC)
 
 
-narginchk(5,5)
+narginchk(5,8)
 nargoutchk(9,9)
 
 dudA=[]; dvdA=[]; dhdA=[];
@@ -11,8 +11,13 @@ dudC=[]; dvdC=[]; dhdC=[];
 
 [~,~,F,l,KdFuvduv]= uv([],[],CtrlVar,MUA,BCs,F,l);
 
+if nargin<=5 
 
-if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
+[isA,isB,isC] = isABC(CtrlVar); 
+
+end
+
+if isA
     tA=tic;
     [dudA,dvdA,dhdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good, also for dhdotdA
     tA=toc(tA);
@@ -28,14 +33,14 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     end
 end
 
-if contains(CtrlVar.Inverse.InvertFor,"-B-")
+if isB
     tB=tic;
     [dudB,dvdB,dhdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
     tB=toc(tB);
-    %fprintf("B sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
+    fprintf("B sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
 end
 
-if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
+if isC
     tC=tic;
     [dudC,dvdC,dhdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ; % this has been tested against finite-differences and is good
     tC=toc(tC);
