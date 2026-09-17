@@ -86,7 +86,7 @@ function [gammaMin,Jmin,info]=LineSearchWolfe(slope0,gammaStart,J0,J1,Func,info)
 %                                     5.2); 0.9 is for quasi-Newton and is far
 %                                     too loose to keep CG directions conjugate.
 %                                     Must satisfy 0 < c1 < c2 < 1.
-%   info.MaxFuncEvaluations   15
+%   info.MaxFuncEvaluations   20
 %   info.gammaMax             1e6*gammaStart   upper bound on the step. Tying
 %                                     this to gammaStart is only a fallback: a
 %                                     poor initial guess then becomes a hard
@@ -95,7 +95,12 @@ function [gammaMin,Jmin,info]=LineSearchWolfe(slope0,gammaStart,J0,J1,Func,info)
 %                                     curvature condition. Set it from the
 %                                     problem where a genuine bound exists, e.g.
 %                                     a trust-region radius or parameter bounds.
-%   info.xtol                 1e-10   bracket collapse tolerance, relative
+%   info.xtol                 1e-8    bracket collapse tolerance, relative. The
+%                                     test is Width <= xtol*max(1,gHigh), so for
+%                                     a small step, gHigh<1, it is effectively
+%                                     absolute. Tightening it much below this
+%                                     makes the search give up on resolving a
+%                                     bracket it could not have resolved anyway.
 %   info.slopeStart           []      phi'(gammaStart) if the caller already has
 %                                     it. Supplying it saves one evaluation.
 %   info.InfoLevel            0
@@ -171,9 +176,9 @@ if nargin<6 || ~isstruct(info) ; info=struct ; end
 
 info=SetDefault(info,'c1',1e-4) ;
 info=SetDefault(info,'c2',0.1) ;
-info=SetDefault(info,'MaxFuncEvaluations',15) ;
+info=SetDefault(info,'MaxFuncEvaluations',20) ;
 info=SetDefault(info,'gammaMax',1e6*gammaStart) ;
-info=SetDefault(info,'xtol',1e-10) ;
+info=SetDefault(info,'xtol',1e-8) ;
 info=SetDefault(info,'slopeStart',[]) ;
 info=SetDefault(info,'InfoLevel',0) ;
 

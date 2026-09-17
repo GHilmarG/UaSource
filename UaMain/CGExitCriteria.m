@@ -110,7 +110,7 @@ function [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J,sGs,c
 %    1   converged, decrement below tolerance
 %    2   stagnated, no useful decrease in J over the last nStagnateWindow iterations
 %    3   data misfit reached the target, discrepancy principle
-%    4   line search failed on a steepest-descent direction
+%    4   line search returned no useful step on a steepest-descent direction
 %    5   maximum number of iterations reached
 %    6   Func evaluation budget exhausted
 %    7   gradient evaluation budget exhausted
@@ -127,22 +127,35 @@ function [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J,sGs,c
 %% How the line-search exit flags are used
 %
 % A single line-search failure is usually a badly scaled gammaStart rather than
-% convergence, so it is not by itself a reason to stop. The rule applied here is
+% convergence, so it is not by itself a reason to stop. Only a line search that
+% returns NO USEFUL STEP is treated as terminal, i.e. gamma=0 (iExit=-2), or a
+% non-zero step that fails the Armijo condition:
 %
-%   failure on a CG direction               request a restart and carry on
-%   failure on a steepest-descent direction stop, flag 4
+%   no useful step on a CG direction         request a restart and carry on
+%   no useful step on steepest descent       stop, flag 4
 %
 % the reasoning being that if no progress can be made downhill along -inv(G)*g
-% itself, there is no progress left to be had. LineSearchWolfe iExit=4, meaning
-% gammaMax was reached, is not treated as a failure, but is counted in
-% ExitInfo.nGammaMax since a run where it happens often is one where gammaMax is
-% set too small.
+% itself, there is no progress left to be had.
 %
-% iExit=3, a collapsed bracket, usually means J is noisy at the level of
-% accuracy being asked for, most often through incompletely converged forward
-% solves. It is counted separately in ExitInfo.nNoisy. If it recurs, the fix is
-% a tighter forward solve or a looser tolerance here, not a change to the line
-% search.
+% iExit=2 and iExit=3 are NOT terminal. In both a step was taken and Armijo was
+% satisfied, so J did decrease; only the curvature condition was not met to the
+% accuracy asked for. Treating them as failures stopped runs that were still
+% making good progress: in one Hoffsjokull B inversion the run ended at iteration
+% 255 with flag 4 and iExit=3 while J was still falling by about 0.5 per
+% iteration, with the decrement within a factor of three of its tolerance. They
+% now request a restart on a CG direction and are otherwise ignored, leaving the
+% decrement and stagnation tests to decide when to stop. There is no risk of
+% looping, since the stagnation test catches the case where such steps stop
+% buying anything.
+%
+% LineSearchWolfe iExit=4, gammaMax reached, is not a failure at all and is
+% counted in ExitInfo.nGammaMax. In the bounded optimiser it simply means a new
+% bound became active.
+%
+% iExit=3, a collapsed bracket, is counted in ExitInfo.nNoisy. It usually means
+% either that J is noisy at the accuracy being asked for, through incompletely
+% converged forward solves, or that gammaStart was badly scaled because the
+% search direction changed abruptly, as happens when the active set flips.
 %
 %%
 
@@ -308,22 +321,37 @@ else
     % line-search diagnostics
     if ~isempty(lsInfo)
         
-        if lsInfo.iExit==4 ; ExitInfo.nGammaMax=ExitInfo.nGammaMax+1 ; end
-        if lsInfo.iExit==3 ; ExitInfo.nNoisy=ExitInfo.nNoisy+1 ; end
+        if any(lsInfo.iExit==4) ; ExitInfo.nGammaMax=ExitInfo.nGammaMax+1 ; end
+        if any(lsInfo.iExit==3) ; ExitInfo.nNoisy=ExitInfo.nNoisy+1 ; end
         
-        if any(lsInfo.iExit==[2 3 -2])
+        % A step of zero, or a non-zero step that fails the Armijo condition, means no
+        % useful progress was made along the direction, and that IS terminal on a
+        % steepest-descent direction. Anything else means J decreased, and is not a
+        % reason to stop. See the note on the line-search exit flags in the header.
+        ArmijoOK = ~isfield(lsInfo,'Armijo') || isempty(lsInfo.Armijo) || lsInfo.Armijo ;
+        NoProgress = lsInfo.iExit==-2 || ~ArmijoOK ;
+        
+        if NoProgress
             ExitInfo.nLineSearchFail=ExitInfo.nLineSearchFail+1 ;
             if IsSteepestDescent
                 Exit=true ;
                 ExitInfo.Flag=4 ;
                 ExitInfo.Message=sprintf(...
-                    ['line search failed on a steepest-descent direction ',...
-                    '(iExit=%i, %s).'],lsInfo.iExit,lsInfo.Message) ;
+                    ['line search returned no useful step on a steepest-descent ',...
+                    'direction (iExit=%i, %s).'],lsInfo.iExit,lsInfo.Message) ;
             else
                 ExitInfo.ForceRestart=true ;
                 ExitInfo.Message=sprintf(...
-                    ['line search failed on a CG direction (iExit=%i), ',...
+                    ['line search returned no useful step on a CG direction (iExit=%i), ',...
                     'restarting with steepest descent.'],lsInfo.iExit) ;
+            end
+        elseif any(lsInfo.iExit==[2 3])
+            % A step was taken and Armijo holds, so J did decrease. Not terminal. Ask for
+            % a restart on a CG direction, since a badly scaled gammaStart after an abrupt
+            % change of direction is a common cause, but carry on either way.
+            ExitInfo.nLineSearchFail=ExitInfo.nLineSearchFail+1 ;
+            if ~IsSteepestDescent
+                ExitInfo.ForceRestart=true ;
             end
         end
         
