@@ -196,7 +196,7 @@ for Inod=1:MUA.nod
 
 end
 
-g=sparseUA(ig,One,Xval,neq,1);
+g=sparse(ig,One,Xval,neq,1);
 g=full(g);
 
 Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
@@ -214,7 +214,7 @@ for Inod=1:MUA.nod
     end
 end
 
-H=sparseUA(Iind,Jind,Xval,neq,neq);
+H=sparse(Iind,Jind,Xval,neq,neq);
 H=(H+H.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strictly so
 
 

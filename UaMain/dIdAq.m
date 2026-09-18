@@ -249,7 +249,7 @@ end
 dIdA=zeros(MUA.Nnodes,1);
 
 for Inod=1:MUA.nod
-    dIdA=dIdA+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dIdA=dIdA+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
 

@@ -33,18 +33,18 @@ for J=1:nod
     end
 end
 
-M=sparseUA(i,j,s,Nnod,Nnod);
+M=sparse(i,j,s,Nnod,Nnod);
 
 
 
 %% same as graph theory
 % diag_M = diag(M);
 % MD = sparse(1:length(diag_M), 1:length(diag_M), diag_M);
-% M=sparseUA(i,j,s,Nnod,Nnod);
+% M=sparse(i,j,s,Nnod,Nnod);
 % M = M - MD;
 % [i,j,s]=find(M);
 % s=s*0+1;
-% M=sparseUA(i,j,s,Nnod,Nnod);
+% M=sparse(i,j,s,Nnod,Nnod);
 %%
 
 % g = graph(connectivity, connectivity(:, [2 3 1]));    M2 = adjacency(g);

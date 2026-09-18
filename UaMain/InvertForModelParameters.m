@@ -230,8 +230,8 @@ end
 %
 % I'm storing here individual blocks as well as the block matrix (MetricMatrix). This is a bit of a waste of memory, but
 % these are all sparse matrices. But this could be revisited at a later stage.
-[MUA.G,MUA.QA,MUA.QB,MUA.QC]=BuildMetricMatrix(CtrlVar,MUA,Meas);
-MUA.dG=decompositionUa(MUA.G);
+[MUA.G,MUA.QA,MUA.QB,MUA.QC,MUA.HBobs]=BuildMetricMatrix(CtrlVar,MUA,Meas);
+MUA.dG=decomposition(MUA.G);
 [MUA.RG,flag,MUA.PRG]=chol(MUA.G) ;
 
 
@@ -381,7 +381,7 @@ Aineq=[];
 bineq=[];
 
 
-fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
+fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.I,JGHouts.R,norm(dJdp))
 
 dJdpTest=[];
 
@@ -419,7 +419,7 @@ else
     % know how...
     CtrlVar.JGH.CalcHessian=false;  % Make sure that I don't calculate the Hessian again here as well.
     [J,dJdp,~,JGHouts,F]=JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
-    fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
+    fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.I,JGHouts.R,norm(dJdp))
 
 
 end

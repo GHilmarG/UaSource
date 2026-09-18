@@ -214,7 +214,7 @@ if isB
 
     if any(Ind)
 
-        fprintf("Priors for B were in places below measured surface, i.e. (Meas.s-Priors.B) < CtrlVar.ThickMin) \n")
+        fprintf("\nPriors for B were in places below measured surface, i.e. (Meas.s-Priors.B) < CtrlVar.ThickMin) \n")
         fprintf("Priors for B are shifted to make sure ice thickness for B prior is positive. \n")
         Priors.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
 
@@ -226,7 +226,7 @@ if isB
 
     if any(Ind)
 
-        fprintf("Start values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
+        fprintf("\nStart values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
         fprintf("Start values for B are shifted to make sure initial thickness is positive. \n")
         InvStartValues.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
 

@@ -495,7 +495,7 @@ if ~Ronly
 
     end
 
-    % Kuv=sparseUA(iK,jK,Kval,neq,neq);
+    % Kuv=sparse(iK,jK,Kval,neq,neq);
     %
     % if CtrlVar.TestForRealValues
     %     Kuv=(Kuv+Kuv.')/2 ;

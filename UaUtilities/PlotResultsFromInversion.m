@@ -300,37 +300,64 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
 
-    % if ~isempty(Meas.Bobs)
-    % 
-    %     figBmeas=FindOrCreateFigure("Direct measurements of B") ; clf(figBmeas)
-    % 
-    %     T=tiledlayout("flow");
-    % 
-    %     T1=nexttile ;
-    %     cbar=UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);
-    %     title("Direct $B$ Measurements",Interpreter="latex")
-    %     subtitle("")
-    %     title(cbar, '(m)')
-    %     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    %     colormap(othercolor("Mdarkterrain",32))
-    % 
-    %     T2=nexttile ;
-    % 
-    %     Berr=full(sqrt(diag(Meas.BCov)))  ; Berr(~isfinite(Berr))=nan ;
-    %     cbar=UaPlots(CtrlVar,MUA,F,Berr,CreateNewFigure=false,logColorbar=true);
-    % 
-    %     title("Direct $B$ Measurement Errors",Interpreter="latex")
-    %     subtitle("")
-    %     title(cbar, '(m)')
-    %     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % 
-    %     T.Padding="tight";   T.TileSpacing="tight";
-    % 
-    %     set(figBmeas,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
-    %     set(figBmeas,CurrentAxes=T2) ;  colormap(T2,parula)
-    % 
-    % 
-    % end
+    if ~isempty(Meas.Bobs)
+
+        %%
+
+
+
+
+        %% and just to make sure everything looks OK, interpolate direct measurements onto FE mesh and plot
+        figBmeas=FindOrCreateFigure("Direct measurements of B") ; clf(figBmeas)
+
+        T=tiledlayout("flow");
+        % 
+        % T1=nexttile ;
+        % 
+        % UaPlots(CtrlVar,MUA,F,F.B,CreateNewFigure=false);
+        % hold on
+        % plot(Meas.Bx/1000,Meas.By/1000,".r")
+        % title("Locations of B observations")
+        % subtitle("")
+        % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+
+        T2=nexttile ;
+
+        OInside=Meas.BO(Meas.BInside,:);
+        Inside=Meas.BInside;
+        BobsInside=Meas.Bobs(Inside);
+        Bx=Meas.Bx(Meas.BInside);
+        By=Meas.By(Meas.BInside);
+
+        Bmodelled = OInside*F.B ;
+        BResiduals = Bmodelled - BobsInside ;
+        scale=eps./max(abs(BResiduals));
+        scale=1e-4;
+        iPosResiduals=BResiduals>=0 ;
+
+
+        bubblechart(Bx(iPosResiduals)/CtrlVar.PlotXYscale,By(iPosResiduals)/CtrlVar.PlotXYscale,BResiduals(iPosResiduals),color="r")
+        hold on
+        bubblechart(Bx(~iPosResiduals)/CtrlVar.PlotXYscale,By(~iPosResiduals)/CtrlVar.PlotXYscale,-BResiduals(~iPosResiduals),color="b")
+        maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
+        bubblesize([maxBubbleSize/100 maxBubbleSize]);    
+        blg=bubblelegend("Bobs Misfit",Location="northeast");
+        lg=legend("Positive","Negative",Location="northwest") ;
+        xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+        axis equal tight
+        T.Padding="tight";   T.TileSpacing="tight";
+
+        %%
+        fHist=FindOrCreateFigure("Bobs Hist") ; clf(fHist)
+        hist=histogram(BResiduals);
+        title("$B$ residuals ",Interpreter="latex",FontWeight="bold",FontSize=14)
+        subtitle(sprintf("%i measurements",numel(BResiduals)),Interpreter="latex")
+        xlabel("Difference between obs and modelled $B$, ($m$)",Interpreter="latex")
+        ylabel("counts",Interpreter="latex")
+        %%
+
+        %%
+    end
 
 
 end
@@ -562,7 +589,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     T1clim=clim;
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
-   
+
 
 
     flux2=nexttile;
@@ -626,7 +653,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     [dbdx,dbdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
     [dbdx,dbdy]=ProjectFintOntoNodes(CtrlVar,MUA,dbdx,dbdy) ;
-    db=sqrt(dbdx.*dbdx+dbdy.*dbdy); 
+    db=sqrt(dbdx.*dbdx+dbdy.*dbdy);
     flux6=nexttile;
     cbar=UaPlots(CtrlVar,MUA,F,db,CreateNewFigure=false,logColorbar=true);
     title("Norm of lower ice surface gradients $\| \nabla b \|$",Interpreter="latex") ;
@@ -635,11 +662,11 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     hold on ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
- 
-  
+
+
     [dsdx,dsdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
     [dsdx,dsdy]=ProjectFintOntoNodes(CtrlVar,MUA,dsdx,dsdy) ;
-    ds=sqrt(dsdx.*dsdx+dsdy.*dsdy); 
+    ds=sqrt(dsdx.*dsdx+dsdy.*dsdy);
     flux7=nexttile;
     cbar=UaPlots(CtrlVar,MUA,F,ds,CreateNewFigure=false,logColorbar=true);
     title("Norm of upper ice surface gradients $\| \nabla s \|$",Interpreter="latex") ;
@@ -731,7 +758,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
 else
 
- 
+
 
     if ~isempty(InvFinalValues.dJdB)
 
@@ -796,23 +823,23 @@ else
 
             nexttile % True A
             UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
-            title("True $A$",Interpreter="latex") ; 
+            title("True $A$",Interpreter="latex") ;
             set(gca,'ColorScale','log')
             CL=clim;
             subtitle("")
 
             nexttile % Retrieved A
             UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
-            title("Retrieved $A$",Interpreter="latex") ; 
+            title("Retrieved $A$",Interpreter="latex") ;
             set(gca,'ColorScale','log')
             clim(CL);
             subtitle("")
 
-            nexttile % True - Retrieved 
+            nexttile % True - Retrieved
 
             D=abs(Priors.TrueAGlen-InvFinalValues.AGlen) ;
             cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
-            title("|(True $A$ - Retrieved $A$|",Interpreter="latex") ; 
+            title("|(True $A$ - Retrieved $A$|",Interpreter="latex") ;
             title(cbar,"$|A-\tilde{A}|$",interpreter="latex")
             subtitle("")
 
@@ -821,9 +848,9 @@ else
             title("$A$ at start of inversion",Interpreter="latex") ; set(gca,'ColorScale','log')
             subtitle("")
 
-            nexttile % Prior 
+            nexttile % Prior
             UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false) ;
-            title("Prior $A$",Interpreter="latex") ; 
+            title("Prior $A$",Interpreter="latex") ;
             set(gca,'ColorScale','log')
             subtitle("")
 
@@ -852,14 +879,14 @@ else
 
             nexttile % True
             UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
-            title("True $C$",interpreter="latex") ; 
+            title("True $C$",interpreter="latex") ;
             set(gca,'ColorScale','log')
             subtitle("")
             CL=clim;
 
             nexttile % Retrieved
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
-            title("Retrieved $C$",interpreter="latex") ; 
+            title("Retrieved $C$",interpreter="latex") ;
             set(gca,'ColorScale','log')
             subtitle("")
             clim(CL)
@@ -867,7 +894,7 @@ else
             nexttile % True - Retrieved
             D=abs(Priors.TrueC-InvFinalValues.C) ;
             cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
-            title("|(True $C$ - Retrieved $C$|",Interpreter="latex") ; 
+            title("|(True $C$ - Retrieved $C$|",Interpreter="latex") ;
             set(gca,'ColorScale','log')
             title(cbar,"$|C-\tilde{C}|$",interpreter="latex")
             subtitle("")

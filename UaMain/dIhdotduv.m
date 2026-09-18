@@ -69,10 +69,10 @@ end
 
 % assemble right-hand side
 
-rh=sparseUA(neq,1);
+rh=sparse(neq,1);
 for Inod=1:MUA.nod
-    rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
-    rh=rh+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),by(:,Inod),neq,1);
+    rh=rh+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
+    rh=rh+sparse(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),by(:,Inod),neq,1);
 end
 
 rh=full(rh) ; % This is a vector and I know it will not be particularly sparse

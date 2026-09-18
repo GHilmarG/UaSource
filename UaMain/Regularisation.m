@@ -231,13 +231,6 @@ nargoutchk(2,2)
 %%
 
 
-if nargout > 3
-    RegOuts=[];
-    RegOuts.RAs=nan  ; RegOuts.RAa=nan;
-    RegOuts.RCs=nan  ; RegOuts.RCa=nan;
-
-end
-
 
 %%
 if ~isfield(MUA,'M') || isempty(MUA.M)
@@ -262,7 +255,7 @@ QC=MUA.QC;
 if isA
     dpA=log10(F.AGlen)-log10(Priors.AGlen);
     RA=full(0.5*dpA'*QA*dpA);           % costs function term
-    dRdA=QA*dpA;                  % derivative,
+    dRdA=QA*dpA;                        % derivative,
 else
    
     RA=0;
@@ -271,8 +264,8 @@ end
 
 if isC
     dpC=log10(F.C)  -log10(Priors.C);
-    RC=full(0.5*dpC'*QC*dpC);           % costs function term
-    dRdC=(QC*dpC);      % derivative,
+    RC=full(0.5*dpC'*QC*dpC);            % costs function term
+    dRdC=(QC*dpC);                       % derivative,
 else
 
     RC=0;
@@ -290,19 +283,7 @@ if isB
 
     if ~isempty(Meas.Bobs)
         %% B misfit with respect to direct observations of B
-        OInside=Meas.BO(Meas.BInside,:);
-        Inside=Meas.BInside;
-        BobsInside=Meas.Bobs(Inside);
-        BErrInside=Meas.BErr(Inside);
-
-        BResInside = OInside*F.B - BobsInside ;
-
-        nMeasInside=numel(BobsInside);
-        iSigma=sparse(1:nMeasInside,1:nMeasInside,1./BErrInside.^2,nMeasInside,nMeasInside);
-
-
-        JBobs = BResInside' * iSigma * BResInside/ 2;
-        dJdBobs = OInside' * iSigma * BResInside;
+        [JBobs,dJdBobs] = BobsMisfit(Meas,F);
 
 
 
@@ -311,32 +292,7 @@ if isB
 
     end
 
-    %
-    % CtrlVar.Inverse.Penalty=false;
-    % if CtrlVar.Inverse.Penalty  % This was more of a try, and most likely will be deleted
-    % 
-    % 
-    %     %%  Barrier term to push B solution away from min ice thickness, i.e. to discourage F.B being close to F.s/Meas.s#
-    %     %
-    %     % Idea:  Add a quadratic penalty in terms of min thickness violation.
-    %     %
-    %     % Thickness violation: F.s - F.B < hmin
-    % 
-    %     x=F.B - (F.s-20*CtrlVar.ThickMin);
-    %     x0=zeros(MUA.Nnodes,1);
-    %     k=0.1; a=5;  % 1/k is the softness and a the amplitude
-    %     [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(CtrlVar,MUA,x,x0,k,a) ;
-    % 
-    %     Bbarr=Bbarr/Area;
-    %     dBarrdB=dBarrdB/Area;
-    %     ddBbarrdBB=ddBbarrdBB/Area;
-    % 
-    % 
-    %     RB=RB+Bbarr;
-    %     dRdB=dRdB+dBarrdB;
-    %     QB=QB+ddBbarrdBB;
-    % 
-    % end
+  
 
 else
     RB=0;
@@ -353,14 +309,36 @@ assert(isscalar(R),"Regularisation:RnotScalar","R is not a scalar")
 
 
 
+
 if nargout > 3
 
- 
+
 end
 
 if R< 0
     fprintf("Regularisation.m : R is negative \n")
 end
 
+
+end
+
+function [JBobs,dJdBobs] = BobsMisfit(Meas,F)
+
+Inside=Meas.BInside;
+O=Meas.BO(Inside,:);
+Bobs=Meas.Bobs(Inside);
+BErr=Meas.BErr(Inside);
+
+BRes = O*F.B - Bobs ;
+
+nMeas=numel(Bobs);
+iSigma=sparse(1:nMeas,1:nMeas,1./BErr.^2,nMeas,nMeas);
+
+
+JBobs = BRes' * iSigma * BRes/ 2;
+
+if nargout ==2
+    dJdBobs = O' * iSigma * BRes;
+end
 
 end

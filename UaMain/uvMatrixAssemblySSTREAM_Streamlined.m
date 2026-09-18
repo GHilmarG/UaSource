@@ -590,8 +590,8 @@ for Inod=1:MUA.nod
     istak=istak+MUA.Nele;
 
 end
-Tint=sparseUA(iR,One,Tval,neq,1);
-Fext=sparseUA(iR,One,Fval,neq,1);
+Tint=sparse(iR,One,Tval,neq,1);
+Fext=sparse(iR,One,Fval,neq,1);
 
 
 

@@ -80,10 +80,10 @@ end
 
 % assemble right-hand side
 
-rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);
+rhx=sparse(neq,1); rhy=sparse(neq,1);
 for Inod=1:MUA.nod
-    rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
-    rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),by(:,Inod),neq,1);
+    rhx=rhx+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
+    rhy=rhy+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),by(:,Inod),neq,1);
 end
 
 M=MassMatrix2D1dof(MUA);

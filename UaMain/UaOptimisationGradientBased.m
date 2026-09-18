@@ -131,12 +131,11 @@ if isempty(RunInfo) ||  ~isfield(RunInfo,'Inverse') || numel(RunInfo.Inverse.Ite
         RunInfo.Inverse.p{1}=p;
     end
 
-    % note: the outputs are fOuts.RegOuts.R and fOuts.MisfitOuts.I, so those are the fields to test for
-    if isfield(fOuts,'RegOuts')
-        RunInfo.Inverse.R(1)=fOuts.RegOuts.R;
+    if isfield(fOuts,'R')
+        RunInfo.Inverse.R(1)=fOuts.R;
     end
-    if isfield(fOuts,'MisfitOuts')
-        RunInfo.Inverse.I(1)=fOuts.MisfitOuts.I;
+    if isfield(fOuts,'I')
+        RunInfo.Inverse.I(1)=fOuts.I;
     end
     RunInfo.Inverse.StepSize(1)=0;
     RunInfo.Inverse.Decrement(1)=Decrement;
@@ -191,14 +190,14 @@ end
 gammaStart=gamma;
 
 %%
-fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  decrement=%g \t \t gamma=%-g \n \n',J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,Decrement,gamma)
+fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g \t  decrement=%g \t \t gamma=%-g \n \n',J0,fOuts.I,fOuts.R,Decrement,gamma)
 
 It0=RunInfo.Inverse.Iterations(end);
 
-fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R  \t  decrement        gamma  \t SDratio    CGcorr \n')
+fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R  \t  decrement  \t gamma  \t SDratio    CGcorr \n')
 
-fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t%10g \t %10g\t%8.4f %8.4f \n',...
-    It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,Decrement,gamma,nan,nan)
+fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f \n',...
+    It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.I,fOuts.R,Decrement,gamma,nan,nan)
 
 %%
 
@@ -247,18 +246,17 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     sGs=dJdp'*(G*dJdp);
     Decrement = 0.5*sGs;
     GradNorm=sqrt(sGs);
-    Misfit=fOuts.MisfitOuts.I;
+    Misfit=fOuts.I;
 
   
-
-    fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t%10g \t %10g\t%8.4f %8.4f \n',...
-        Iteration+It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,...
+    fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f \n',...
+        Iteration+It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.I,fOuts.R,...
         Decrement,gamma,cgInfo.SufficientDescentRatio,cgInfo.CGCorrectionRatio)
 
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
     RunInfo.Inverse.J=[RunInfo.Inverse.J;J0];
-    RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.RegOuts.R];
-    RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.MisfitOuts.I];
+    RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.R];
+    RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.I];
     RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement;Decrement];
     RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
     RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];

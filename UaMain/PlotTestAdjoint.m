@@ -72,41 +72,41 @@ if ~isempty(InvFinalValues.dJdCTest)
     set(gcf,'Color','white')
 end
 
-if ~isempty(InvFinalValues.dJdBTest)
-    fprintf('--------------------------------------- dJ/dB ----------------------------------------------------------------------\n')
-
-    IB=find(~isnan(InvFinalValues.dJdBTest)) ;
-
-    fprintf('#Node/Ele  dJdB          dJdBTest      dJdB-dJdBTest     dJdB/dtdBTest   \n')
-
-    for ii=1:numel(IB)
-        I=IB(ii);
-        fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
-            InvFinalValues.dJdB(I),...
-            InvFinalValues.dJdBTest(I),...
-            InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I),...
-            InvFinalValues.dJdB(I)/InvFinalValues.dJdBTest(I),...
-            (InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I))/InvFinalValues.dJdB(I))
-    end
-
-
-    fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
-
-    %%
-
-    figBgrad=FindOrCreateFigure("dJ/dB test") ;  clf(figBgrad)
-    plot(InvFinalValues.dJdB,InvFinalValues.dJdBTest,"or") ;
-    hold on
-    plot(InvFinalValues.dJdB,InvFinalValues.dJdB,"--k") ;
-    axis equal tight ;
-    axis([min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest) min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest)])
-    box off
-    xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ;
-    ylabel("Finite difference $dJ/dB$",Interpreter="latex")
-    ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
-    title("Comparision between adjoint and finite-differences gradient calculations")
-    set(gcf,'Color','white')
-end
+% if ~isempty(InvFinalValues.dJdBTest)
+%     fprintf('--------------------------------------- dJ/dB ----------------------------------------------------------------------\n')
+% 
+%     IB=find(~isnan(InvFinalValues.dJdBTest)) ;
+% 
+%     fprintf('#Node/Ele  dJdB          dJdBTest      dJdB-dJdBTest     dJdB/dtdBTest   \n')
+% 
+%     for ii=1:numel(IB)
+%         I=IB(ii);
+%         fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
+%             InvFinalValues.dJdB(I),...
+%             InvFinalValues.dJdBTest(I),...
+%             InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I),...
+%             InvFinalValues.dJdB(I)/InvFinalValues.dJdBTest(I),...
+%             (InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I))/InvFinalValues.dJdB(I))
+%     end
+% 
+% 
+%     fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
+% 
+%     %%
+% 
+%     figBgrad=FindOrCreateFigure("dJ/dB test") ;  clf(figBgrad)
+%     plot(InvFinalValues.dJdB,InvFinalValues.dJdBTest,"or") ;
+%     hold on
+%     plot(InvFinalValues.dJdB,InvFinalValues.dJdB,"--k") ;
+%     axis equal tight ;
+%     axis([min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest) min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest)])
+%     box off
+%     xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ;
+%     ylabel("Finite difference $dJ/dB$",Interpreter="latex")
+%     ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+%     title("Comparision between adjoint and finite-differences gradient calculations")
+%     set(gcf,'Color','white')
+% end
 %%
 %[dJdp(iRange) dJdpTest(iRange)   dJdp(iRange)-dJdpTest(iRange) dJdp(iRange)./dJdpTest(iRange)]
 % iRange=find(~isnan(dJdpTest));

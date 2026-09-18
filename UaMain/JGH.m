@@ -201,7 +201,7 @@ else
     I=NaN;
     R=NaN ;
     dJdp=p*0+NaN;
-    MisfitOuts.I=NaN;
+    
 end
 
 J=full(R+I);
@@ -212,29 +212,18 @@ end
 
 
 if nargout>3  % additional information needed as output
-
-    MisfitOuts.I=I;
-    MisfitOuts.dIdC=[];
-    MisfitOuts.dIdAGlen=[];
-    MisfitOuts.dIdB=[];
-    MisfitOuts.dIduv=[];
-    MisfitOuts.uAdjoint=Psi_x;
-    MisfitOuts.vAdjoint=Psi_y;
-    RegOuts.R=R;
-    RegOuts.dRdp=dRdp;
-    RegOuts.RAGlen=[];
-    RegOuts.dRdAGlen=[];
-    RegOuts.RC=[];
-    RegOuts.dRdC=[];
-    RegOuts.RB=[];
-    RegOuts.dRdB=[];
-
+   
+    JGHouts.J=J;
+    JGHouts.R=R;
+    JGHouts.I=I;
+ 
     JGHouts.dRdp=dRdp;
     JGHouts.dIdp=dIdp;
     JGHouts.ddIdpp=[];
     JGHouts.ddRdpp=[];
-    JGHouts.RegOuts=RegOuts;
-    JGHouts.MisfitOuts=MisfitOuts;
+    JGHouts.Psi_x=Psi_x;
+    JGHouts.Psi_y=Psi_y;
+
 else
     JGHouts=[];
 end

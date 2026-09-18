@@ -582,8 +582,8 @@ for Inod=1:MUA.nod
     istak=istak+MUA.Nele;
 
 end
-Tint=sparseUA(iR,One,Tval,neq,1);
-Fext=sparseUA(iR,One,Fval,neq,1);
+Tint=sparse(iR,One,Tval,neq,1);
+Fext=sparse(iR,One,Fval,neq,1);
 
 
 
@@ -622,7 +622,7 @@ if ~Ronly
     end
 
     % tSparse=tic;
-    Kuv=sparseUA(Iind,Jind,Xval,neq,neq);
+    Kuv=sparse(Iind,Jind,Xval,neq,neq);
     % tSparse=toc(tSparse);
 
     %if CtrlVar.Parallel.isTest
