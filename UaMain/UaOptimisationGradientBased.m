@@ -194,7 +194,7 @@ fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g \t  d
 
 It0=RunInfo.Inverse.Iterations(end);
 
-fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R  \t  decrement  \t gamma  \t SDratio    CGcorr \n')
+fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R           decrement  \t gamma  \t SDratio    CGcorr \n')
 
 fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f \n',...
     It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.I,fOuts.R,Decrement,gamma,nan,nan)

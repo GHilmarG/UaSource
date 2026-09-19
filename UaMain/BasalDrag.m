@@ -169,10 +169,9 @@ if CtrlVar.Inverse.dFuvdClambda
             %       = He.*Nqm.* (C+C0.^(-1./m).*U ; %   with U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
             %
 
-            hf=rhow.*H./rho;
-            hf(hf<eps)=0;
-            Dh=h-hf; Dh(Dh<eps)=0;
-            N=rho.*g.*Dh;
+    
+          
+            N=N0(CtrlVar,h,H,rho,rhow,g) ;
             qm=q./m;
             Nqm=N.^(qm) ;
 
@@ -215,7 +214,7 @@ if CtrlVar.Inverse.dFuvdClambda
         case {"Joughin","rCW-v0"}
 
             U=speed;
-            dFuvdC=   (U.^(1./m-1).*He.*(U+V0).^(-1./m).*(C+C0).^(-1./m-1))./m ;
+            dFuvdC=  -(U.^(1./m-1).*He.*(U+V0).^(-1./m).*(C+C0).^(-1./m-1))./m ;
 
 
         otherwise

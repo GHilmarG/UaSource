@@ -1,8 +1,15 @@
+
+
+
+
+
+
+
 function [Taux,Tauy,dTauxdu,dTauydv,dTauxdv,dTauydu,dTauxdh,dTauydh] = rCWV0(CtrlVar,C,V0,He,delta,m,u,v)
 
 narginchk(8,8)
 
-narginchk(10,10)
+narginchk(8,8)
 
 C0=CtrlVar.Czero;
 u0=CtrlVar.SpeedZero;
