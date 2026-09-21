@@ -17,23 +17,34 @@ narginchk(8,8)
 nargoutchk(3,3)
 
 
+switch CtrlVar.Inverse.MinimisationMethod
 
-if  contains(CtrlVar.Inverse.MinimisationMethod,"-BruteForceHessian-") || contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
+    case  "-UaOptimisation-HessianBased-"
 
-    
-     [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub); 
-     
 
-elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-    
-    [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+        [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub);
 
-    
-else
-    
-    [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
-    
-    
+
+    case  "-UaOptimisation-GradientBased-"
+
+        if  isempty(plb)  && isempty(pub)
+
+       
+            [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+
+        else
+
+            fprintf("Box contraints are enforced using bounded gradients. \n ")
+            [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+
+        end
+
+
+    otherwise
+
+        error("CaseNotFound")
+
+
 end
 
 

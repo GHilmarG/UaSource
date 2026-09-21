@@ -40,7 +40,7 @@ function [coordinates,connectivity,MUA]=UaSquareMesh(CtrlVar)
 %
 %   CtrlVar.UaSquareMesh.Refine=true;
 %
-% each triangle is additionally subdivided from the longest vertex.
+% each triangle is additionally subdivided from the longest vertex (this is the default option).
 %
 % If, for example, 
 %
@@ -96,7 +96,7 @@ if ~isfield(CtrlVar,"TriNodes")
     CtrlVar.TriNodes=3;
 end
 
-if ~isfield(CtrlVar,"QueadRules2021")
+if ~isfield(CtrlVar,"QuadRules2021")
     CtrlVar.QuadRules2021=true;
 end
 
@@ -115,7 +115,7 @@ if isfinite(nx) && isnan(ny)
     ny=round((CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin)/(CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin))*CtrlVar.UaSquareMesh.nx;
 end
 
-% If the user only defines nx, than calculate a reasonable ny
+% If the user only defines ny, than calculate a reasonable nx
 if isfinite(ny) && isnan(nx)
     nx=round((CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin)/(CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin))*CtrlVar.UaSquareMesh.ny;
 end

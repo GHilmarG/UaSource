@@ -9,14 +9,14 @@ narginchk(11,11)
 %
 % As shown in detail in the Ua compendium, an inversion for the parameters p, can be formulated as a constrained minimization
 % problem:
-% 
+%
 % $$J(p)=I(q(p),p) + R(p) $$
-% 
+%
 % subject to
 %
 % $$F(q(p),p)=0$$
-% 
-% To use a gradient-based optimization method, we need to be able to calculate the derivatives of J with respect to p.
+%
+% To use a gradient-based Optimisation method, we need to be able to calculate the derivatives of J with respect to p.
 %
 % Using the Lagrange method, we form the extended functional
 %
@@ -39,7 +39,7 @@ narginchk(11,11)
 %
 % As an example, consider a $B$ inversion using momentum and mass conservation (for grounded ice where $h=s-B$):
 %
-% 
+%
 % $$J(B)= I(v(B),B) + R(B) $$
 %
 % subject to
@@ -47,7 +47,7 @@ narginchk(11,11)
 % $$P(v(B),B) = 0 $$   (momentum)
 %
 % $$M(B) = 0 $$   (mass)
-% 
+%
 % we could introduce Lagrange multipliers for both of these equations, but we can also use the fact that $\dot{h}$ can so
 % easily be calculated from the mass conservation equation, and put the mass-conservation directly into the cost function $J$
 %
@@ -58,7 +58,7 @@ narginchk(11,11)
 % $$J(B)= I_v + I_{\dot{h}}  + R(B) + \langle P(v(B),B) | \lambda \rangle $$
 %
 % were $I_v$ and $I_{\dot{h}}$ are misfit terms,  and $R$ a regularization term, and where we simply calculate evaluate
-% 
+%
 % $$\dot{h}_c=a - \nabla (v \, (s-B) ) $$
 %
 % and insert into the misfit term, i.e.
@@ -99,15 +99,13 @@ narginchk(11,11)
 % $$D_{\delta B}f(B) = J_f\,\delta B = \lim_{\epsilon\to0}\frac{f(B+\epsilon\,\delta B)-f(B)}{\epsilon} $$
 %
 % $$\langle J_f\,\delta B,\, w\rangle_Y = \langle \delta B,\, J_f^{*}w\rangle_X$$
-% 
+%
 % where $X$ and $Y$ are infinite-dimensional Hilbert spaces. The adjoint PDE is derived from the (continuous) forward model
-% before it is discretized. 
+% before it is discretized.
 %
 %%
 
-if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0
-    CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
-end
+
 
 %%
 
@@ -118,13 +116,130 @@ end
 if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
+%%  Are we using the Riez-mapped gradient?
+%
+%
+% The answer to that is: yes when using a gradient-based approach, ie where the Hessian is not build directly.
+%
+% But how the Riez-mapped gradient is introduced differs deepening on if the Ua in-build conjugate-gradient optimiser or the
+% MATLAB fmincon optimizer is used:
+%
+% If:
+%
+%
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-GradientBased-"
+%
+% then the metric matrix, G, does the mapping as
+%
+% $$ \nabla_{H^1} J =G^{-1} \nabla_{l^2} J $$
+%
+% For
+%
+%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-GradientBased-"
+%
+% the Riez-based gradient is introduced through a change of variables and the minimisation is on
+%
+% $$J(u)$$
+%
+% instead of
+%
+% $$J(p)$$
+%
+% where
+%
+% $$ u = R p $$
+%
+% and
+%
+% $$\nabla J = R^{-T} \nabla_{l^2} J $$
+%
+%
+% where $R$ is the Cholesky factorisation of $G$ with
+%
+% $$G=R^{T} R $$
+%
+% This ensures that
+%
+%
+%   fmincon
+%
+% with the lBFGS update, uses a consistent pair of $J$ and $\nabla J$. This is essential for the MATLAB optimizer to use the
+% right slope $\nabla J \cdot d$ where $d$ is the search direction, and correct evaluation of any Armijo and curvature tests
+% it may do internally, and for descent to be guaranteed. The reason why a non-descent direction might be selected by MATLAB
+% fmincon without a warning if feeding it with
+%
+% $$\nabla J = R^{-T} \nabla_{l^2} J $$
+%
+% is subtle. fmincon with lBFGS update, selects a search direction as
+%
+% $$d=-M g_{L^2}$$
+%
+% where $M$ is its lBFGS approximation to the inverse Hessian. If we feed it with the Riez-mapped
+% gradient we get the search direction
+%
+%
+% $$d= -M G^{-1}  g_{l^2} $$
+%
+% but while both $M$ and $G$ are SPD, the produce $M G^{1}$ need not be! Therefore $d$ is not guaranteed to be a descent
+% direction.
+%
+%
+%%
+
+
+
+if CtrlVar.Inverse.RieszMapGradient
+    fprintf(" The Optimisation will use a Riesz-mapped gradient.\n")
+else
+    fprintf(" The Optimisation will not use a Riesz-mapped gradient.\n")
+end
+
+if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+    fprintf(" The Optimisation will use a Cholesky mapping of cost function and gradient.\n")
+else
+    fprintf(" The Optimisation will not use a Cholesky mapping of cost function and gradient.\n")
+end
+
+if CtrlVar.Inverse.BoxTransform
+    fprintf("Box contraints are implemented through variable transform. \n ")
+end
+%% What inversions are being performed?
+%  And make sure the Matern parameters are all correctly defined
+[CtrlVar] = TikhonovToMaternMapping(CtrlVar,MUA);
+
+%%
+[isA,isB,isC] = isABC(CtrlVar);
+
+if isB
+    if ~isempty(Meas.Bobs)
+        if isempty(Meas.BO)
+            % I'm expecting this field to have been populated already (this should have been done in GetInputsForInverseRun.m) but if
+            % is has not, do it here. 
+            % Create the NBode2DataMap matrix O, and keep information about meas inside/outside mesh
+            [Meas.BO,Meas.BInside,Meas.BEleID]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By) ;
+        end
+    end
+end
+
+
+%% Now build the metric/precision matrix once and keep in MUA. This is OK because in an inversion MUA never changes
+%
+% The metric matrix is here built from the blocks of the precision matrices, it plays a number of different roles. It is the
+% precision matrix in the inversion, the metric matrix when using the trust-region approach, and the inner-product matrix
+% when defining the inner product and the steepest descent direction.
+%
+% I'm storing here individual blocks as well as the block matrix (MetricMatrix). This is a bit of a waste of memory, but
+% these are all sparse matrices. But this could be revisited at a later stage.
+[MUA.G,MUA.QA,MUA.QB,MUA.QC,MUA.HBobs]=BuildMetricMatrix(CtrlVar,MUA,Meas);
+MUA.dG=decomposition(MUA.G);
+[MUA.RG,flag,MUA.PRG]=chol(MUA.G) ;
 
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
 % F should always be populated with the fields used at each stage of the inversion, and all the calculations are done using
-% F. Start by populating F with the starting values 
+% F. Start by populating F with the starting values
 F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
@@ -132,7 +247,7 @@ F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
 F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
 
 % p is the vector of the control variables, currently p=[A,B,C]
-% with A, B or C here only being nonempty when inverted for, 
+% with A, B or C here only being nonempty when inverted for,
 % This mapping between A, B and C into the control variable is done by F2p
 
 % Make sure initial point is feasible
@@ -140,8 +255,75 @@ F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
 F.B=kk_proj(F.B,F.Bmax,F.Bmin) ;
 F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 
-% The parameter that we are inverting for are contained in the variable p. p0 is the starting value.
-[p0,plb,pub]=F2p(CtrlVar,MUA,F); 
+% Get an initial correct forward solve.
+[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l) ;
+
+%%  Do the mapping from F to p :
+% This does the mapping from the (control) variables that we are inverting for (one or more of logA, B, and logC), to the
+% control parameter vector p. The parameter that we are inverting for are therefore all contained in the variable p. p0 is
+% the starting value.
+
+%% Box transformation: freeze the box before any mapping is done
+%
+% If CtrlVar.Inverse.BoxTransform is true, the box constraints are eliminated by the logistic change of variables in
+% BoxTransform.m, and the Optimisation is then unconstrained.
+%
+% The bounds have to be stored, and stored ONCE. They are needed in three places: F2p (forward map), p2F (inverse map)
+% and JGH (gradient chain rule), and they must be the same bounds in all three and throughout the run. Recomputing them
+% is not safe, because the B bounds in F2p depend on F.GF.node and, where the ice is afloat, on F.B itself. Both change
+% as the inversion proceeds, so a recomputed box would silently redefine u on every cost-function evaluation and the
+% optimiser would be chasing a moving target.
+%
+% They are put on MUA, which is already passed to all three functions, in the same way as MUA.RG and MUA.PRG are used for
+% the Cholesky mapping. The box is obtained by calling F2p with the transformation switched off, so that it is by
+% construction exactly the box F2p would have produced, and the transformation is anchored at that starting p so that
+% dp/du is one there. See BoxTransformSetup.m for why the anchoring matters.
+
+if CtrlVar.Inverse.BoxTransform
+
+    CtrlVarBox=CtrlVar ;
+    CtrlVarBox.Inverse.BoxTransform=false ;
+    CtrlVarBox.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;
+
+    [pPhysical,BoxLower,BoxUpper]=F2p(CtrlVarBox,MUA,F) ;
+
+    if isempty(BoxLower) || isempty(BoxUpper)
+        error('InvertForModelParameters:NoBox',...
+            'CtrlVar.Inverse.BoxTransform is true but F2p returned no box constraints.')
+    end
+
+    if isfield(CtrlVar.Inverse,'BoxTransformType') && ~isempty(CtrlVar.Inverse.BoxTransformType)
+        BoxType=CtrlVar.Inverse.BoxTransformType ;
+    else
+        BoxType="softplus" ;
+    end
+
+    if isfield(CtrlVar.Inverse,'BoxTransformWidthFraction') && ~isempty(CtrlVar.Inverse.BoxTransformWidthFraction)
+        BoxWidthFraction=CtrlVar.Inverse.BoxTransformWidthFraction ;
+    else
+        BoxWidthFraction=0.1 ;
+    end
+
+    MUA.BoxTransform=BoxTransformSetup(pPhysical,BoxLower,BoxUpper,BoxType,BoxWidthFraction) ;
+
+    W=MUA.BoxTransform.Width ;
+    Ok=MUA.BoxTransform.Ok ;
+    D0=MUA.BoxTransform.JacobianAtAnchor ;
+    fprintf('Box transformation of the control variables is used, type "%s". \n',MUA.BoxTransform.Type)
+    fprintf('  %i of %i variables have a usable box (finite and of positive width). \n',sum(Ok),numel(Ok))
+    fprintf('  box width       : min %g , median %g , max %g \n',min(W(Ok)),median(W(Ok)),max(W(Ok)))
+    fprintf('  dp/dv at start  : min %.6f , median %.6f , max %.6f \n',min(D0(Ok)),median(D0(Ok)),max(D0(Ok)))
+    if MUA.BoxTransform.Type=="softplus"
+        fprintf('  barrier width s : min %g , median %g , max %g \n',...
+            min(MUA.BoxTransform.Width_s(Ok)),median(MUA.BoxTransform.Width_s(Ok)),max(MUA.BoxTransform.Width_s(Ok)))
+    end
+    if any(~Ok)
+        fprintf('  %i variables have a degenerate or unbounded box and are left untransformed. \n',sum(~Ok))
+    end
+
+end
+
+[p0,plb,pub]=F2p(CtrlVar,MUA,F);
 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
@@ -150,33 +332,47 @@ CtrlVar.Inverse.ResetPersistentVariables=1;
 % JGH: Returns the cost function (J), the gradient of the cost function with respect to p (dJdp), and the Hessian (ddJddp).
 % The Hessian of the regularization term (R) can usually be calculated exactly, while the Hessian of the misfit/likelihood term
 % (I), can not. However, one can come up with an educated guess for the Hessian of I with respect to C.
-[J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+
+CtrlVar.JGH.CalcHessian=false;
+[J0,dJdp,~,JGHouts,F]=JGH(p0,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+
 CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
 
 
-% Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
-% This is then passed to the optimization libraries. 
+% Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian. This
+% is then passed to the Optimisation libraries.
 
-func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
-                                                                                                      % The Hessian
-                                                                                                      % output is used
-                                                                                                      % with the
-                                                                                                      % UaOptimisation
-                                                                                                      % toolbox, and
-                                                                                                      % when using the
-                                                                                                      % trust-region-reflective
-                                                                                                      % algorithm 
-                                                                                                  
-Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H) for the interior-point method 
+% It is not easy to pass updated information to the cost function after it has been defined. The only updated variable in
+% each call is p itself.  I need to decide at this stage if the Hessian will ever be needed.
 
-% Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
+
+if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+    CtrlVar.JGH.CalcHessian=true;  % From now on I CAN use JGH to calculate the Hessian.
+    % But JGH will only do so if the number of output arguments is ALSO 3 or greater.
+    %
+    % This means that the number of output arguments to JGH
+    % (and therefore to func), controls if the Hessian is calculated or not.
+else
+    CtrlVar.JGH.CalcHessian=false; % From now on I can NOT use JGH to calculate the Hessian.
+    %
+    % This means that irrespective of the number of output arguments to JGH
+    % (and therefore to func), the Hessian will never be calculated by JGH (or func).
+end
+
+func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns the cost (J), gradient (G) and Hessian (H)
+% The Hessian output is used with the UaOptimisation toolbox, and when using the trust-region-reflective algorithm
+
+
+% Somewhat annoyingly when using the interior-point algorithm, the MATLAB Optimisation toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same
 % Hessian as JGH.
 %
-% But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the
-% Hfunc is not needed.
+% But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the Hfunc is
+% not needed.
+Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method
+
 
 %%
 
@@ -185,86 +381,173 @@ Aineq=[];
 bineq=[];
 
 
-
-fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
+fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.I,JGHouts.R,norm(dJdp))
 
 dJdpTest=[];
 
 %%
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
-    %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations. 
+    %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations.
 
-    % Get the gradient using the adjoint method
-    [J,dJdp,Hessian,JGHouts]=func(p0);
-
-    NA=MUA.Nnodes;
-
-    % Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
-    if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
-        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes
-    else
-        iRange=CtrlVar.Inverse.TestAdjoint.iRange;
-    end
-
-    I=(iRange>=1) & (iRange <= numel(p0));  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
-    iRange=iRange(I);
-
-    % if the inversion is done for more than one field, then expand iRange accordingly.
-    switch strlength(CtrlVar.Inverse.InvertForField)
-        case 2
-            iRange=[iRange(:);iRange(:)+NA];
-        case 3
-            iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
-    end
+    [J,dJdp,dJdpTest] = TestCorrectnessOfAdjointGradient(func,p0,MUA,CtrlVar,plb,pub);
 
 
-
-    % Gradient calculated using a brute-force finite difference approach 
-    dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange);
-
-    filename="BruteForceGradient"+CtrlVar.Experiment;
-    fprintf('BruteForceGradient save of CtrlVar, UserVar, MUA, F, dJdpTest and iRange in the file : %s \n',filename)
-    save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange')
-    
-    
 else
-    
-    
-    %%
-    
-    if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
-        
-        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
-        
-        
-    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
-        
-        clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
-        
-    else
-        
 
-        fprintf(' CtrlVar.Inverse.MinimisationMethod has the value %s \n',CtrlVar.Inverse.MinimisationMethod)
-        fprintf(' but can only have the values ''MatlabOptimization'' or ''UaOptimization''\n')
-        error('what case? ')
+
+    %%
+
+    if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
+
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
+
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
+
+        clear fminconOutputFunction fminconHessianFcn fminuncOutfun
+        [p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
+
+    else
+        error("CaseNotFound")
     end
-    
+
     % Here the final values from inversion, which are in the vector p, are copied across to the corresponding fields of F
     F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
-   
-    % And a final additional call is made to get the cost function, J, and the gradient, dJdp, at the end of the optimization. In
-    % principle, I guess it should be possible to get this information from the (external) optimization subroutine, but I don't
+
+    % And a final additional call is made to get the cost function, J, and the gradient, dJdp, at the end of the Optimisation. In
+    % principle, I guess it should be possible to get this information from the (external) Optimisation subroutine, but I don't
     % know how...
-    [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
-    fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
-    
-    
+    CtrlVar.JGH.CalcHessian=false;  % Make sure that I don't calculate the Hessian again here as well.
+    [J,dJdp,~,JGHouts,F]=JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+    fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.I,JGHouts.R,norm(dJdp))
+
+
 end
 
 % Put RAa, RAs, RCa, RCs in InvFinalValues
-InvFinalValues=Vars2InvValues(CtrlVar,F,InvStartValues,J,dJdp,JGHouts,RunInfo,dJdpTest); 
+InvFinalValues=Vars2InvValues(CtrlVar,F,InvStartValues,J,dJdp,JGHouts,RunInfo,dJdpTest);
 
 
 end
+
+
+
+%%%%%%%%%%%%%%%%%%  LOCAL FUNCTIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%
+function [CtrlVar] = TikhonovToMaternMapping(CtrlVar,MUA)
+
+[isA,isB,isC] = isABC(CtrlVar);
+
+% make sure the Matern parameters are correct and can be used, even if the old Tikhonov approach is still being used
+if CtrlVar.Inverse.Methodology=="-Tikhonov-"
+
+    if isA
+        [CtrlVar.Inverse.Matern.logAGlen.alpha,CtrlVar.Inverse.Matern.logAGlen.tau,CtrlVar.Inverse.Matern.logAGlen.kappa]=Tikhonov2MaternParameters(CtrlVar.Inverse.Regularize.logAGlen.ga,CtrlVar.Inverse.Regularize.logAGlen.gs,MUA.Area);
+    end
+
+    if isB
+        [CtrlVar.Inverse.Matern.B.alpha,CtrlVar.Inverse.Matern.B.tau,CtrlVar.Inverse.Matern.B.kappa]=Tikhonov2MaternParameters(CtrlVar.Inverse.Regularize.B.ga,CtrlVar.Inverse.Regularize.B.gs,MUA.Area);
+    end
+
+    if isC
+        [CtrlVar.Inverse.Matern.logC.alpha,CtrlVar.Inverse.Matern.logC.tau,CtrlVar.Inverse.Matern.logC.kappa]=Tikhonov2MaternParameters(CtrlVar.Inverse.Regularize.logC.ga,CtrlVar.Inverse.Regularize.logC.gs,MUA.Area);
+    end
+
+
+end
+
+% Although the user defines alpha, kappa and tau, I might find it useful to work in terms of rho, sigma and nu.
+if isA
+    [CtrlVar.Inverse.Matern.logAGlen.rho,CtrlVar.Inverse.Matern.logAGlen.sigma,CtrlVar.Inverse.Matern.logAGlen.nu]=Matern_alpha_kappa_tau(CtrlVar.Inverse.Matern.logAGlen.alpha,CtrlVar.Inverse.Matern.logAGlen.kappa,CtrlVar.Inverse.Matern.logAGlen.tau);
+end
+if isB
+    [CtrlVar.Inverse.Matern.B.rho,CtrlVar.Inverse.Matern.B.sigma,CtrlVar.Inverse.Matern.B.nu]=Matern_alpha_kappa_tau(CtrlVar.Inverse.Matern.B.alpha,CtrlVar.Inverse.Matern.B.kappa,CtrlVar.Inverse.Matern.B.tau);
+end
+if isC
+    [CtrlVar.Inverse.Matern.logC.rho,CtrlVar.Inverse.Matern.logC.sigma,CtrlVar.Inverse.Matern.logC.nu]=Matern_alpha_kappa_tau(CtrlVar.Inverse.Matern.logC.alpha,CtrlVar.Inverse.Matern.logC.kappa,CtrlVar.Inverse.Matern.logC.tau);
+end
+end
+
+
+
+
+
+%%
+function [J,dJdp,dJdpTest] = TestCorrectnessOfAdjointGradient(func,p0,MUA,CtrlVar,plb,pub)
+% Get the gradient using the adjoint method
+%%
+[isA,isB,isC] = isABC(CtrlVar); 
+
+[J,dJdp]=func(p0);
+
+NA=MUA.Nnodes;
+
+% Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
+if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
+    nTests=min(20,numel(p0));    % just test for some random nodes
+    iRange=randi(MUA.Nnodes,nTests,1);
+else
+    iRange=CtrlVar.Inverse.TestAdjoint.iRange;
+end
+
+I=(iRange>=1) & (iRange <= MUA.Nnodes);  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
+iRange=iRange(I);
+
+% if the inversion is done for more than one field, then expand iRange accordingly.
+nBlocks=isA+isB+isC;
+
+switch nBlocks
+    case 2
+        iRange=[iRange(:);iRange(:)+NA];
+    case 3
+        iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
+end
+
+% select a reasonable step size. This could definitely be improved, but the key thing is to use a constant for log and
+% different step size of B compared to a and C.  Here is is also good to try different step sizes for convergence. 
+deltaA=0.0001;
+deltaB=1;
+deltaC=0.001; 
+if isA
+    deltaStepA=deltaA+zeros(MUA.Nnodes,1);
+else
+    deltaStepA=[];
+end
+if isB
+    deltaStepB=deltaB+zeros(MUA.Nnodes,1) ;
+else
+    deltaStepB=[];
+end
+if isC
+    deltaStepC=deltaC+zeros(MUA.Nnodes,1);
+else
+    deltaStepC=[];
+end
+
+deltaStep=[deltaStepA;deltaStepB;deltaStepC];
+
+
+% Gradient calculated using a brute-force finite difference approach
+dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange,deltaStep);
+
+Diff=norm(dJdp(iRange)-dJdpTest(iRange))/norm(dJdp(iRange));
+fprintf("Test Adjoint gradients: Normalized differences between adjoint gradient and FD: %g \n ",Diff)
+
+fig_dJdpTest=FindOrCreateFigure("Test dJdp") ; clf(fig_dJdpTest)
+plot(dJdp(iRange),dJdpTest(iRange),"or") ; axis equal ;
+hold on ;
+plot([min(dJdp(iRange)) max(dJdp(iRange))],[min(dJdp(iRange)) max(dJdp(iRange))],"--k")
+ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+xlabel("Adjoint $\partial J/\partial p$ ",Interpreter="latex")  ;
+ylabel("Finite difference $\partial J/\partial p$",Interpreter="latex")
+title("$\partial J/\partial p$ :  "+CtrlVar.Inverse.InvertFor,Interpreter="latex")
+subtitle(sprintf("Normalized diff %g",Diff),Interpreter="latex")
+
+
+drawnow
+
+%%
+
+end
+%%

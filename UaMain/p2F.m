@@ -3,8 +3,31 @@ function F=p2F(CtrlVar,MUA,p,F,Meas,Priors)
 
 narginchk(6,6)
 
+
+
+
+% Undo the mappings applied in F2p, in reverse order: the Cholesky mapping was applied last, so it is undone first, and
+% the box transformation is undone after it.
+
+if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+    %p=MUA.RG\p;
+     p=MUA.PRG*(MUA.RG\p);
+
+   
+
+end
+
+if CtrlVar.Inverse.BoxTransform
+
+    % u -> p , putting the variable back inside its box. See BoxTransform.m .
+    p=BoxTransform("inverse",p,MUA.BoxTransform) ;
+
+end
+
+
+[isA,isB,isC] = isABC(CtrlVar);
+
 NA=numel(F.AGlen);
-Nb=numel(F.b);
 NB=numel(F.B);
 NC=numel(F.C);
 
@@ -13,58 +36,30 @@ IB1=0 ; IB2=0;
 IC1=0 ; IC2=0;
 Itotal=0;
 
-isA=false ; isb=false ; isB=false ; isC=false;
 
-if contains(CtrlVar.Inverse.InvertForField,'A')
+
+if isA
     IA1=1 ; IA2=IA1+NA-1 ; isA=true;
     Itotal=IA2;
 end
 
-if contains(CtrlVar.Inverse.InvertForField,'b')
-    Ib1=Itotal+1 ; Ib2=Ib1+Nb-1 ; isb=true;
-    Itotal=Ib2;
-end
 
-if contains(CtrlVar.Inverse.InvertForField,'B')
+if isB
     IB1=Itotal+1 ; IB2=IB1+NB-1 ; isB=true;
     Itotal=IB2;
 end
 
-if contains(CtrlVar.Inverse.InvertForField,'C')
+if isC
     IC1=Itotal+1 ; IC2=IC1+NC-1 ; isC=true;
     Itotal=IC2;
 end
 
-%
-%   p = log(f)   <=> f=10^p
-%
-%   or
-%
-%   f=M^{1/2) p
-%
-
 
 if isA
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
         F.AGlen=10.^p(IA1:IA2);
-    else
-        F.AGlen=p(IA1:IA2);
-    end
+ 
 end
 
-if isb
-    error('fdsa')
-    %     F.h=F.s-p(Ib1:Ib2) ;
-    %     F.B=p.*F.GF.node+(1-F.GF.node).*F.B;
-    %
-    %
-    %     %  bfloat=F.S - F.rho.*(F.s-p) /F.rhow;
-    %     %  dbfloat/dp= F.rho./F.rhow
-    %     %
-    %     % F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
-    %
-    %     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
-end
 
 if isB
 
@@ -150,15 +145,26 @@ if isB
 end
 
 if isC
-
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
         F.C=10.^p(IC1:IC2);
-    else
-        F.C=p(IC1:IC2);
-    end
-
 end
 
+if anynan(F.C)
+    error("p2F:Cnan","nan in C")
+end
+if anynan(F.AGlen)
+    error("p2F:Anan","nan in A")
+end
+if anynan(F.B)
+    error("p2F:Bnan","nan in B")
+end
+
+if any(F.C<0)
+    error("p2F:Cneg","negative C values")
+end
+
+if any(F.AGlen<0)
+    error("p2F:Cneg","negative A values")
+end
 
 
 end

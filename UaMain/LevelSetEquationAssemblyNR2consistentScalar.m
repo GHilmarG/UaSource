@@ -415,17 +415,17 @@ for Iint=1:MUA.nip  %Integration points
 end
 
 
-Rh=sparseUA(neq,1);
+Rh=sparse(neq,1);
 
 for Inod=1:MUA.nod
-    Rh=Rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RTest(:,Inod),neq,1);
+    Rh=Rh+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RTest(:,Inod),neq,1);
 end
 
 if isC
-    Qx=sparseUA(neq,1); Qy=sparseUA(neq,1);
+    Qx=sparse(neq,1); Qy=sparse(neq,1);
     for Inod=1:MUA.nod
-        Qx=Qx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
-        Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
+        Qx=Qx+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
+        Qy=Qy+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
     end
 else
     Qx=[] ; Qy=[] ; 
@@ -449,7 +449,7 @@ if nargout>2
         end
     end
     
-    K=sparseUA(Iind,Jind,Xval,neq,neq);
+    K=sparse(Iind,Jind,Xval,neq,neq);
 end
 
 if ~isL

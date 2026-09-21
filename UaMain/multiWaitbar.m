@@ -620,7 +620,7 @@ if updated
     end
 end
 
-% As an optimization, don't update any text if the bar didn't move and the
+% As an Optimisation, don't update any text if the bar didn't move and the
 % percentage hasn't changed
 decval = round( val*100 );
 lastdecval = round( lastval*100 );

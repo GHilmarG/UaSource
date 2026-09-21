@@ -122,9 +122,9 @@ end
 
 % assemble right-hand side
 
-rh=sparseUA(neq,1);
+rh=sparse(neq,1);
 for Inod=1:MUA.nod
-    rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
+    rh=rh+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
 end
 
 if ~isfield(MUA,'M')

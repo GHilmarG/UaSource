@@ -148,9 +148,9 @@ CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
 Infovector=zeros(MaxIterations+3,2)+NaN;
 gamma=nan;
 fgamma=nan;
-f0=nan; 
+f0=nan;
 xStart=nan;
-fStart=nan; 
+fStart=nan;
 iarm=nan;
 Extrapolation=nan;
 
@@ -709,12 +709,12 @@ BackTrackingPlot()
                     dx=(Upper-Lower)/100;
                 end
                 gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)];
-                for I=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
-                    gammaTest=gammaTestVector(I);
+                for Itest=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
+                    gammaTest=gammaTestVector(Itest);
                     rTest=Func(gammaTest);
                     rTest=full(rTest);
-                    gammaTestVector(I)=gammaTest ;
-                    rTestVector(I)=rTest;
+                    gammaTestVector(Itest)=gammaTest ;
+                    rTestVector(Itest)=rTest;
                 end
             else
                 gammaTestVector=[] ;
@@ -738,7 +738,7 @@ BackTrackingPlot()
             plot(Infovector(:,1),Infovector(:,2),'or-',DisplayName="backtracking values") ;
 
             xlabel('$\gamma$',Interpreter='latex') ;
-            ylabel('Cost',Interpreter='latex') ;
+            ylabel('$J$',Interpreter='latex') ;
 
             hold on
             plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10,DisplayName="estimated minimum")
@@ -772,8 +772,14 @@ BackTrackingPlot()
 
             title(ItText+sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
 
-            if isfield(CtrlVar,"time")
-                subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+            subtitle(sprintf("$\\gamma$=%g   $J(\\gamma)$=%g",gamma,fgamma),Interpreter="latex")
+
+
+            xline(CtrlVar.BacktrackingGammaMin,LineStyle="--",Label="min",DisplayName="min allowed step size")
+
+            if ~NoSlopeInformation
+                plot([0 2*gamma],[f0 f0+beta*slope0*2*gamma],'m','LineWidth',2,LineStyle="--",DisplayName="Armijo condition")
             end
 
             drawnow

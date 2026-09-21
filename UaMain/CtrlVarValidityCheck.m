@@ -198,7 +198,7 @@ if CtrlVar.InverseRun
 
     if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,"fixpoint")
 
-        % if fixpoint, then only c inversion is possible
+        error("CtrlVarValidityCheck:fixpointOptionOutdated","The fixpoint option no longer supported")
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"logAGlen","");
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"Aglen","");
         CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"logAGlen","");
@@ -207,6 +207,29 @@ if CtrlVar.InverseRun
 
 
     end
+
+
+    if contains(CtrlVar.Inverse.InvertFor,"-AGlen-")
+
+        error("CtrlVarValidityCheck:OptionOutdated","The AGlen inversion no longer supported, use logAGlen inversion instead. ")
+
+    end
+
+
+    if contains(CtrlVar.Inverse.InvertFor,"-C-")
+
+        error("CtrlVarValidityCheck:OptionOutdated","The C inversion no longer supported, use logC inversion instead. ")
+
+    end
+
+    if contains(CtrlVar.Inverse.Regularize.Field,"-C-")
+        error("CtrlVarValidityCheck:OptionOutdated","The C regularisation no longer supported, use logC regularisation instead. ")
+    end
+
+    if contains(CtrlVar.Inverse.Regularize.Field,"-AGlen-")
+        error("CtrlVarValidityCheck:OptionOutdated","The A regularisation no longer supported, use logAGlen regularisation instead. ")
+    end
+
 
     % Don't regularize A if not inverting for A, so
     if ~contains(CtrlVar.Inverse.InvertFor,"AGlen")
@@ -239,20 +262,20 @@ if CtrlVar.InverseRun
     CtrlVar.Inverse.InvertForField=string(sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),"log","") ,"-",""),"AGlen","A")))) ;
 
 
-    if contains(CtrlVar.Inverse.MinimisationMethod,"MatlabOptimization")
+    if contains(CtrlVar.Inverse.MinimisationMethod,"MatlabOptimisation")
 
-        if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization"
+        if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimisation"
             fprintf("Inversion is HessianBased, ie provides a Hessian approximation. \n")
-            CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";
+            CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-HessianBased";
         end
 
     end
 
-    if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization-HessianBased" && CtrlVar.TriNodes>3
+    if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimisation-HessianBased" && CtrlVar.TriNodes>3
 
 
         fprintf("Using CtrlVar.Inverse.MinimisationMethod=%s for other then linear elements (ie for CtrlVar.TriNodes>3) is not recommended. \n",CtrlVar.Inverse.MinimisationMethod)
-        fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased" or using linear elements. \n')
+        fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased" or using linear elements. \n')
         warning("UaInputs:ParameterCombinationNotRecommended","ParameterCombinationNotRecommented")
 
     end
@@ -365,6 +388,68 @@ if CtrlVar.InverseRun
 
             end
         end
+    end
+
+    if isfield(CtrlVar,"ConjugatedGradientsUpdate")
+
+        fprintf("'CtrlVar.ConjugatedGradientsUpdate' no longer used. \n")
+        fprintf("Use insted: 'CtrlVar.Inverse.UaConjugatedGradients.Update' \n")
+        warning("CtrlVar.ConjugatedGradientsUpdate no longer used")
+        CtrlVar.Inverse.UaConjugatedGradients.Update=CtrlVar.ConjugatedGradientsUpdate;
+
+    end
+
+    CtrlVar.Inverse.MinimisationMethod="-"+ CtrlVar.Inverse.MinimisationMethod+"-"; 
+    CtrlVar.Inverse.MinimisationMethod=replace(CtrlVar.Inverse.MinimisationMethod,"--","-");
+
+  
+    if ~ismember(CtrlVar.Inverse.MinimisationMethod,CtrlVar.Inverse.MinimisationMethodOptions)
+
+        fprintf("CtrlVar.Inverse.MinimisationMethod=%s\n",CtrlVar.Inverse.MinimisationMethod)
+        fprintf("But must be one of these options:\n")
+        fprintf(" \t %s\n",CtrlVar.Inverse.MinimisationMethodOptions)
+        error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.MinimisationMethod does not have a valid value. \n")
+
+    end
+
+    % if ~ismember(CtrlVar.Inverse.Hessian,CtrlVar.Inverse.HessianOptions)
+    % 
+    %     fprintf("CtrlVar.Inverse.Hessian=%s\n",CtrlVar.Inverse.Hessian)
+    %     fprintf("But must be one of these options:")
+    %     fprintf(" \t %s\n",CtrlVar.Inverse.HessianOptions)
+    %     error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.Hessian does not have a valid value. \n")
+    % 
+    % end
+
+    switch CtrlVar.Inverse.MinimisationMethod
+
+        case "-UaOptimisation-GradientBased-"
+            % Use Riesz-mapped gradient. The Ua conjugate gradient optimizer if provided with the metric-matrix G as an input, and it
+            % uses this information to calculate the true directional derivative and all inner products are done with respect to G.
+            CtrlVar.Inverse.RieszMapGradient=true;
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+        case "-MatlabOptimisation-GradientBased-"
+            CtrlVar.Inverse.RieszMapGradient=false;
+            % User the Riesz-mapped gradient. But we can NOT feed this gradient directly as described above. The key difference is that
+            % the MATLAB Optimisation toolbox does not allow for the metric matrix G to be provided as an input.
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=true;
+        case {"-UaOptimisation-HessianBased-", "-MatlabOptimisation-HessianBased-"}
+            % Do NOT use the Riesz-mapped gradient. The Newton system is "metric-free"
+            CtrlVar.Inverse.RieszMapGradient=false;
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+        otherwise
+            error("case not found")
+    end
+
+
+    if  CtrlVar.Inverse.TestDirectAdjoint.isTrue || CtrlVar.Inverse.TestAdjoint.isTrue
+
+    
+        CtrlVar.Inverse.RieszMapGradient=false;
+        CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+        fprintf("In this run the gradient and/or the Hessian will be tested against finite-differences.\n")
+        fprintf("\tTherefore the Riesz mappting is disabled.\n")
+        fprintf("\tSetting: 'CtrlVar.Inverse.RieszMapGradient=false;'\n")
     end
 
 
@@ -563,17 +648,20 @@ if CtrlVar.ForwardTimeIntegration=="-uv-h-" && CtrlVar.FlowApproximation=="SSHEE
     fprintf(" CtrlVar.ForwardTimeIntegration=%s \n", CtrlVar.ForwardTimeIntegration)
     fprintf(" CtrlVar.FlowApproximation=%s \n", CtrlVar.FlowApproximation)
     fprintf("\t is not recommended. \n")
-    fprintf("Instead solve transient flow in the SSHEET approximaton set: \n ")  
+    fprintf("Instead solve transient flow in the SSHEET approximaton set: \n ")
     fprintf('CtrlVar.ForwardTimeIntegration=="-uvh-" \n')
     fprintf("This does a fully implicit solve with respect to h and provides uv as well.\n")
     warning("CtrlVarValidityCheck:SSHEET","parameter combination not recommended, see above. \n")
 
 end
 
+
+if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
+
+    fprintf("The cov regularisation has now been disabled. This was not used by anyone, and the Matern optons is much better anyhow. \n ")
+    error("CtrlVarValidityCheck:InvalidInputs","cov regularisation no longer suppoerted")
+
 end
 
 
-
-
-
-
+end

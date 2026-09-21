@@ -9,7 +9,7 @@ function stop = optimplotfirstorderopt(~,optimValues,state,varargin)
 %   plot function
 %     options = optimoptions('fmincon','PlotFcn',@optimplotfirstorderopt);
 %
-%   Pass the options into an optimization problem to view the plot
+%   Pass the options into an Optimisation problem to view the plot
 %      fmincon(@(x) 3*sin(x(1))+exp(x(2)),[1;1],[],[],[],[],[0 0],[],[],options)
 
 %   Copyright 2006-2023 The MathWorks, Inc.

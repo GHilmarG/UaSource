@@ -66,6 +66,10 @@ n=size(A,1) ; m=size(B,1);
 
 %%
 
+if ~isfield(CtrlVar,"BCsRowSubsetSelection")
+    CtrlVar.BCsRowSubsetSelection=false;
+end
+
 if CtrlVar.BCsRowSubsetSelection
 
     [B,row_idx,flag] = RowSubsetSelection(B) ;
@@ -109,6 +113,9 @@ if isequal(lower(CtrlVar.AsymmSolver),"auto")
 end
 
 % BB=B*B' ; [row,col,v]=find(BB); find(row~=col)
+
+
+% zz_NewtonMatrixLog('add',A,B,f,g);
 
 tSolve=tic;
 

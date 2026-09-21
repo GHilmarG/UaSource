@@ -4,7 +4,8 @@ function KdFuvdC=dFuvdC(CtrlVar,MUA,F)
 
 %%
 %
-% Note: There is a sign issue here, actually this has the incorrect sign, but this is dealt with later in the solve... 
+% Note: 
+% There is a sign issue here, actually this has the incorrect sign, but this is dealt with later in the solve... (sign issue)
 %
 %
 % assembles the matrix K which is the FE form of
@@ -157,7 +158,7 @@ for Inod=1:MUA.nod
     end
 end
 
-KdFuvdC=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
+KdFuvdC=sparse(Iind,Jind,Xval,2*nNodes,nNodes);
 
 end
 

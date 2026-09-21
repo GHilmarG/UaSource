@@ -51,6 +51,25 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 %
 % $$ \delta_u J_{\dot{h}} = -\frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{h_{err}^2}  \, \frac{1}{\rho} \partial_x ( \rho \, h \, \delta u )  \; dx \, dy $$ 
 %
+%
+%
+%
+% $$
+% r = \dot h_{obs} - a 
+% + \left(\partial_x h+\frac{h}{\rho}\partial_x\rho\right)u + h\,\partial_x u 
+% + \left(\partial_y h+\frac{h}{\rho}\partial_y\rho\right)v + h\,\partial_y v 
+% $$
+%
+% $$
+% \delta_uJ_{\dot h}[\phi_i] = 
+% \frac{1}{\mathcal A}\int r\,\epsilon_{\dot h}^{-2}\left[\left(\partial_xh+\frac{h}{\rho}\partial_x\rho\right)\phi_i +
+% h\,\partial_x\phi_i\right] dx\,dy 
+% $$
+%
+%
+% $$ \delta_vJ_{\dot h}[\phi_i] = 
+% \frac{1}{\mathcal A}\int r\,\epsilon_{\dot h}^{-2}\left[\left(\partial_yh+\frac{h}{\rho}\partial_y\rho\right)\phi_i + h\,\partial_y\phi_i\right]dx\,dy$$
+%
 % see also: dhdtExplicit.m
 %
 %%
@@ -66,11 +85,7 @@ rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 [~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
 
-if ~isempty(F.dhdt) || ~isnan(F.dhdt)
-    dhdtnod=reshape(F.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
-else
-    dhdtnod=nan;
-end
+
 
 dhdtMeasnod=reshape(Meas.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -123,14 +138,19 @@ for Iint=1:MUA.nip
     end
 
 
-    if ~isnan(dhdtnod)
-        hdot=dhdtnod*fun;
-    else
+   % for this to be a consistent derivative, I must evaluate this directly from the integration point values.
+   % Although F.dhdt has already been calculated by projecting onto the nodes, I must here use hdot calculated at int 
+   %
+   % if ~isnan(dhdtnod)
+   %     hdot=dhdtnod*fun;
+   % else
         hdot=aint-(rhoint.*dhdx.*uint+rhoint.*hint.*dudx+drhodx.*hint.*uint+rhoint.*dhdy.*vint+rhoint.*hint.*dvdy+drhody.*hint.*vint)./rhoint ;
-     end
+    % end
 
 
-    
+     R=(hdot-hdotMeasint)./hdotErrInt; 
+
+
     detJw=detJ*MUA.weights(Iint);
     
   
@@ -140,7 +160,7 @@ for Iint=1:MUA.nip
         
         % hdot=aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy) ; 
         
-        R=(hdot-hdotMeasint)./hdotErrInt; 
+       
 
         duJhdotInt=-R...
             .*(drhodx.*hint.*fun(Inod)+rhoint.*dhdx.*fun(Inod)+rhoint.*hint.*Deriv(:,1,Inod))./(hdotErrInt.*rhoint)...
@@ -170,16 +190,16 @@ end
 
 % assemble right-hand side
 
-Jhdot=sum(JhdotIntSum) ;
+Jhdot=full(sum(JhdotIntSum)) ;
 
-duJhdot=sparseUA(neq,1);
-dvJhdot=sparseUA(neq,1);
-dhJhdot=sparseUA(neq,1);
+duJhdot=sparse(neq,1);
+dvJhdot=sparse(neq,1);
+dhJhdot=sparse(neq,1);
 for Inod=1:MUA.nod
     
-    duJhdot=duJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),duJhdotIntSum(:,Inod),neq,1);
-    dvJhdot=dvJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dvJhdotIntSum(:,Inod),neq,1);
-    dhJhdot=dhJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dhJhdotIntSum(:,Inod),neq,1);
+    duJhdot=duJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),duJhdotIntSum(:,Inod),neq,1);
+    dvJhdot=dvJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dvJhdotIntSum(:,Inod),neq,1);
+    dhJhdot=dhJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dhJhdotIntSum(:,Inod),neq,1);
     
 end
 
@@ -189,15 +209,9 @@ dvJhdot=full(dvJhdot);
 dhJhdot=full(dhJhdot);
 
 
-%% If F.dhdt is available this should give the same answer
+%% If F.dhdt is available this should give (approx) the same answer
 % dhdtErr=sqrt(spdiags(Meas.dhdtCov)) ;  dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr ;  JhdotTest=full(dhdtres'*MUA.M*dhdtres)/2/Area;
 %%
-
-
-% Don't apply this here!  Because duJhdot and dvJhdot contribute to the right-hand side of the Adjoint equations.
-% However, dhJhdot does not and this derivative needs to be projected, but do this later
-%
-% [duJhdot,dvJhdot,dhJhdot]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCs,duJhdot,dvJhdot,dhJhdot);
 
 
 

@@ -12,19 +12,22 @@ InvValues.B=F.B;
 InvValues.C=F.C;
 
 InvValues.J=J;
-InvValues.I=JGHouts.MisfitOuts.I;
-InvValues.R=JGHouts.RegOuts.R;
-InvValues.RAGlen=JGHouts.RegOuts.RAGlen;
-InvValues.RC=JGHouts.RegOuts.RC;
+InvValues.I=JGHouts.I;
+InvValues.R=JGHouts.R;
+InvValues.RAGlen=[];
+InvValues.RC=[];
 
-InvValues.RCa=JGHouts.RegOuts.RCa;
-InvValues.RCs=JGHouts.RegOuts.RCs;
-InvValues.RAa=JGHouts.RegOuts.RAa;
-InvValues.RAs=JGHouts.RegOuts.RAs;
+InvValues.RCa=[];
+InvValues.RCs=[];
+InvValues.RAa=[];
+InvValues.RAs=[];
 
-if isprop(InvValues,'uAdjoint')
-    InvValues.uAdjoint=JGHouts.MisfitOuts.uAdjoint;
-    InvValues.vAdjoint=JGHouts.MisfitOuts.vAdjoint;
+if isfield(JGHouts,'Psi_x') && isfield(JGHouts,'Psi_y')
+    InvValues.uAdjoint=JGHouts.Psi_x;
+    InvValues.vAdjoint=JGHouts.Psi_y;
+else
+    InvValues.uAdjoint=[];
+    InvValues.vAdjoint=[];
 end
 
 
@@ -34,19 +37,6 @@ InvValues.dJdp=dJdp;
 
 InvValues.dIdp=JGHouts.dIdp;
 InvValues.dRdp=JGHouts.dRdp;
-
-InvValues.dJdAGlen=JGHouts.MisfitOuts.dIdAGlen+JGHouts.RegOuts.dRdAGlen;
-InvValues.dJdC=JGHouts.MisfitOuts.dIdC+JGHouts.RegOuts.dRdC;
-InvValues.dJdB=JGHouts.MisfitOuts.dIdB+JGHouts.RegOuts.dRdB;
-
-%% These are of less interest, but can be added
-%InvFinalValues.dIdAGlen=JGHouts.MisfitOuts.dIdAGlen;
-%InvFinalValues.dIdC=JGHouts.MisfitOuts.dIdC;
-
-%InvFinalValues.dRdAGlen=JGHouts.RegOuts.dRdAGlen;
-%InvFinalValues.dRdC=JGHouts.RegOuts.dRdC;
-
-
 InvValues.SearchStepSize=RunInfo.Inverse.StepSize(end);
 
 %%

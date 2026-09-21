@@ -354,7 +354,7 @@ for Inod=1:MUA.nod
     end
 end
 
-K=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
+K=sparse(Iind,Jind,Xval,2*nNodes,nNodes);
 end
 
 

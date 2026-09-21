@@ -58,11 +58,11 @@ tSparse=tic ;
 dof=2;   neq=dof*MUA.Nnodes;
 
 
-Kuv=sparseUA(iK,jK,Kval,neq,neq);
+Kuv=sparse(iK,jK,Kval,neq,neq);
 % Kuv=sparseSPMD(CtrlVar,iK,jK,Kval,neq,neq,nW) ;
 
-Tint=sparseUA(iR,1,Tval);
-Fext=sparseUA(iR,1,Fval);
+Tint=sparse(iR,1,Tval);
+Fext=sparse(iR,1,Fval);
 Ruv=Tint-Fext;
 tSparse=toc(tSparse);
 

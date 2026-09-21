@@ -266,7 +266,7 @@ while iteration <= ItMax
     if isnan(gammamin) || gammamin ==0
         % There is a special case when the backtracking does not find a minimum and either returns gamma as nan or as zero
         % In case of the trust-region approach, one could try to decrease the trust-region radius.
-        % Otherwise, one need to exit the optimization loop
+        % Otherwise, one need to exit the Optimisation loop
 
         if TrustRegionSubProblem
 
@@ -348,7 +348,7 @@ while iteration <= ItMax
         % However, I found by experimentation, in combination with my great insight and intelligence, that the step size in the
         % backtracking can be used to update the trust-region radius. Must allow for extrapolation. This works wonders for difficult
         % problems such as the Rosenbrock function where this leads in the end to full Newton steps being taken. The Matlab
-        % optimization could not improve on this results.
+        % Optimisation could not improve on this results.
         Delta=gammamin*Delta;
         %Delta=TrustRegionRadiusUpdate(Delta,rho) ;
         fprintf("Backtracking resulted in gamma=%g . Setting trust-region radius to Delta=%g. \n",gammamin,Delta)

@@ -1,7 +1,6 @@
 
 
 
-
 function PrintRunInfo(CtrlVar)
 
 fprintf(CtrlVar.fidlog,'\n \n');

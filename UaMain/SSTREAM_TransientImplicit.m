@@ -131,9 +131,6 @@ rVector.Direction=strings(CtrlVar.NRitmax+1,1);
 BackTrackSteps=0;
 
 
-% if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' F0 thickness negative ') ; end
-
-
 tStart=tic;
 
 
@@ -146,35 +143,6 @@ dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h;
 
 u1Start=F1.ub ; v1Start=F1.vb ;  h1Start=F1.h ;
 
-
-%%
-if CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step
-    N=3;
-
-    speed1=sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb);
-    speed0=sqrt(F0.ub.*F0.ub+F0.vb.*F0.vb);
-    Duv=(speed1-speed0)./(speed0+10*CtrlVar.SpeedZero);
-    Dh=(F1.h-F0.h)./(F0.h+10*CtrlVar.ThickMin);
-
-
-
-    %     figure ; histogram(Duv);
-    %     figure ; histogram(Dh);
-
-
-    Iuvh=((Duv-mean(Duv))> N*std(Duv)) | ((Dh-mean(Dh)) > N*std(Dh)) | abs(Duv)>0.1 | abs(Dh) > 0.1;
-
-
-    fprintf(' Guarding agains wild extrapolation in uvh step.\n')
-    fprintf(' Resetting %i forward explicit estimates out of %i to values at previous time step. \n',...
-        numel(find(Iuvh)),numel(Iuvh))
-
-
-
-    F1.ub(Iuvh)=F0.ub(Iuvh);
-    F1.vb(Iuvh)=F0.vb(Iuvh);
-    F1.h(Iuvh)=F0.h(Iuvh);
-end
 
 
 
@@ -193,9 +161,13 @@ dl=luvh*0;
 
 nlubvb=numel(l1.ubvb) ; % I need to do this after the Luvh assembly, because l1 might have changed if linearly dependent BCs are discovered and corrected for.
 
+if ~isfield(CtrlVar,"uvhMakeInitialIterateFeasible")
+    CtrlVar.uvhMakeInitialIterateFeasible=true; 
+end
 
 if CtrlVar.uvhMakeInitialIterateFeasible
     %% Make sure iterate is feasible, at least with respect to direct BCs
+    % This is a very simple way of doing this, does not respect ties though. 
     F1.ub(BCs1.ubFixedNode)=BCs1.ubFixedValue;
     F1.vb(BCs1.vbFixedNode)=BCs1.vbFixedValue;
     F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
@@ -385,7 +357,7 @@ while true
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
 
 
-    CtrlVar.TestForPosDefAlongNewtonDirection=true;
+    CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
     if CtrlVar.TestForPosDefAlongNewtonDirection
 
@@ -409,16 +381,16 @@ while true
         O=sparse(size(L,1),size(L,1)) ;
         H=[K L' ; L O];
 
-        % PD1=full(duvh'*K*duvh) ;
-        % PD2=full([duvh;dl]'*H*[duvh;dl]) ;
+        PD1=full(duvh'*K*duvh) ;
+        PD2=full([duvh;dl]'*H*[duvh;dl]) ;
         % fprintf("Pos def test: %g \t %g \n",PD1,PD2)
-        % if PD1 <0 || PD2 < 0
-        % 
-        %     fprintf("Newton direction not pos def! \n")
-        %     fprintf("Saving data for inspection in NewtonDirectionNotPosDef.mat \n")
-        %     save("NewtonDirectionNotPosDef.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F1","l1","BCs1","K","L","duvh","dl","frhs","grhs")
-        % 
-        % end
+        if PD1 <0 || PD2 < 0
+
+            fprintf("Newton direction not pos def! \n")
+            fprintf("Saving data for inspection in NewtonDirectionNotPosDef.mat \n")
+            save("NewtonDirectionNotPosDef.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F1","l1","BCs1","K","L","duvh","dl","frhs","grhs")
+
+        end
     end
 
     Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
@@ -449,8 +421,7 @@ while true
     r0=func(0,dub,dvb,dh,dl) ;
     r1=func(1,dub,dvb,dh,dl) ;
 
-
-    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
+    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
     %%
 
     % slope0=-2*r0 ;
@@ -467,7 +438,7 @@ while true
 
     %% If desired, plot residual along search direction
     if CtrlVar.InfoLevelNonLinIt>=2 && CtrlVar.doplots==1
-        nnn=50;
+        nnn=20;
         gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
         Upper=2.2;
         Lower=-1 ;
@@ -488,7 +459,7 @@ while true
 
         [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
         [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
-        % [temp,I0]=min(abs(gammaTestVector)) ;
+    
 
         SlopeForce=-2*rForce0;
         SlopeWork=-2*rWork0;
@@ -591,8 +562,8 @@ while true
         end
 
         fprintf(...
-            'NR-SSTREAM(uvh):%3u/%-2u g%s=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g  \n ',...
-            iteration,RunInfo.BackTrack.iarm,Step,gamma,r/r0,r0,r,rForce,rWork,BCsError);
+            'NR-SSTREAM(uvh):%3u/%-2u g%s=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g,  ru=%-14.7g \t rv=%-14.7g, \t rh=%-14.7g \t rBCs=%g \n ',...
+            iteration,RunInfo.BackTrack.iarm,Step,gamma,r/r0,r0,r,rForce,rWork,BCsError,rBlocks);
 
     end
 
@@ -621,101 +592,10 @@ end
 %% print/plot some info
 
 if CtrlVar.InfoLevelNonLinIt>=2 && iteration >= 1 && CtrlVar.doplots==1
-
-
-    figNR=FindOrCreateFigure(FigNames+"NR-uvh r"); clf(figNR) ;
-    yyaxis left
-    semilogy(0:iteration,rVector.rForce(1:iteration+1),'-') ;
-    ylabel('$r_{\mathrm{Force}}^2$',Interpreter='latex')
-    text(0:iteration,rVector.rForce(1:iteration+1),extractBefore(rVector.Direction(1:iteration+1),3),HorizontalAlignment="center") ;
-    yyaxis right
-    semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
-    ylabel('$r_{\mathrm{Work}}^2$',Interpreter='latex')
-
-    title('Force and Work residuals (NR $uvh$ transient step)',Interpreter='latex') ;
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-    xlabel('Iteration',Interpreter='latex') ;
-
-    drawnow
+    Plot_rVector(CtrlVar,iteration,FigNames,rVector);
 end
-
-
 if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
-
-    %%
-    [~,xGL0,yGL0]=UaPlots(CtrlVar,MUA,F0,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u0,v0) at start of NR iteration") ;
-    title("$(u_b,v_b)$ at start of time step",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1,v1) at end of NR iteration") ;
-    title("Converged $(u_b,v_b)$ at end of time step",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,[F1.ub-F0.ub,F1.vb-F0.vb],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1-v0,v1-v0) at end of NR iteration") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-    title("Change in $(u_b,v_b)$ during time step",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,[F1.ub-u1Start,F1.vb-v1Start],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in u1 during NR iteration from initial guess") ;
-    title("Change in converged $(u_b,v_b)$ from initial explicit guess",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-
-    UaPlots(CtrlVar,MUA,F1,F1.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-    title("Converged ice thickness ($h_1$). Markers show locations where $h_1\le h_{\mathrm{min}}$",Interpreter="latex")
-    I=F1.h<=CtrlVar.ThickMin ;
-    plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'+m',MarkerSize=3)  ;
-    plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'om',MarkerSize=3)
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,F1.h-h1Start,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in h1 during NR iteration from initial guess") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-    title("Change in converged ice thickness ($h_1$) from initial guess",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-
-    UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-
-    title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    [tbx0,tby0,~,~,HeInt0] = CalcBasalTraction(CtrlVar,[],MUA,F0,PlotResults=true,FigureTitle=" F0 ",FigureName=" F0 ") ;
-    [tbx1,tby1,~,~,HeInt1] = CalcBasalTraction(CtrlVar,[],MUA,F1,PlotResults=true,FigureTitle=" F1 ",FigureName=" F1 ") ;
-
-    dbx=tbx1-tbx0;
-    dby=tby1-tby0;
-
-    [F1.xint,F1.yint] = CalcIntegrationPointsCoordinates(MUA) ;
-    fdbt=FindOrCreateFigure("change in integration points traction ") ;  clf(fdbt);
-    cbar=QuiverColorGHG(F1.xint/CtrlVar.PlotXYscale,F1.yint/CtrlVar.PlotXYscale,dbx,dby,[]) ;
-    hold on
-    PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
-    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
-    PlotCalvingFronts(CtrlVar,MUA,F1,color="b");
-    PlotMuaBoundary(CtrlVar,MUA,"k--");
-    title(cbar,"(kPa)")
-    title("Change in basal tractions at integration points during time increment",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    cbar=UaPlots(CtrlVar,MUA,F1,F1.GF.node-F0.GF.node,GetRidOfValuesDownStreamOfCalvingFronts=false,GroundingLineColor="k",FigureTitle="F1.GF.node-F0.GF.node") ;
-    hold on
-    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
-    title("Change in GF.node during time increment (F1.GF.node-F0.GF.node)",Interpreter="latex")
-    title(cbar,"")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-
-    cbar=UaPlots(CtrlVar,MUA,F1,HeInt1-HeInt0,FigureTitle="HeInt1- Heint0") ;
-    hold on
-    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
-    title("$\Delta \mathcal{H}(h-h_f)$ at integration points",interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-    title(cbar,"",interpreter="latex")
-
-    drawnow
-    %%
+    Plot_DiagnosticsForConvergenceAnalysis(CtrlVar,MUA,F0,F1,u1Start,v1Start,h1Start);
 end
 
 
@@ -748,7 +628,104 @@ RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ;
 
 
 
+return
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   local functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function Plot_rVector(CtrlVar,iteration,FigNames,rVector)
+
+
+
+    figNR=FindOrCreateFigure(FigNames+"NR-uvh r"); clf(figNR) ;
+    yyaxis left
+    semilogy(0:iteration,rVector.rForce(1:iteration+1),'-') ;
+    ylabel('$r_{\mathrm{Force}}^2$',Interpreter='latex')
+    text(0:iteration,rVector.rForce(1:iteration+1),extractBefore(rVector.Direction(1:iteration+1),3),HorizontalAlignment="center") ;
+    yyaxis right
+    semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
+    ylabel('$r_{\mathrm{Work}}^2$',Interpreter='latex')
+
+    title('Force and Work residuals (NR $uvh$ transient step)',Interpreter='latex') ;
+    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+    xlabel('Iteration',Interpreter='latex') ;
+
+    drawnow
 
 end
 
+function Plot_DiagnosticsForConvergenceAnalysis(CtrlVar,MUA,F0,F1,u1Start,v1Start,h1Start)
+%%
+[~,xGL0,yGL0]=UaPlots(CtrlVar,MUA,F0,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u0,v0) at start of NR iteration") ;
+title("$(u_b,v_b)$ at start of time step",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 
+UaPlots(CtrlVar,MUA,F1,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1,v1) at end of NR iteration") ;
+title("Converged $(u_b,v_b)$ at end of time step",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+UaPlots(CtrlVar,MUA,F1,[F1.ub-F0.ub,F1.vb-F0.vb],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1-v0,v1-v0) at end of NR iteration") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+title("Change in $(u_b,v_b)$ during time step",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+UaPlots(CtrlVar,MUA,F1,[F1.ub-u1Start,F1.vb-v1Start],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in u1 during NR iteration from initial guess") ;
+title("Change in converged $(u_b,v_b)$ from initial explicit guess",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+
+UaPlots(CtrlVar,MUA,F1,F1.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+title("Converged ice thickness ($h_1$). Markers show locations where $h_1\le h_{\mathrm{min}}$",Interpreter="latex")
+I=F1.h<=CtrlVar.ThickMin ;
+plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'+m',MarkerSize=3)  ;
+plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'om',MarkerSize=3)
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+UaPlots(CtrlVar,MUA,F1,F1.h-h1Start,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in h1 during NR iteration from initial guess") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+title("Change in converged ice thickness ($h_1$) from initial guess",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+
+UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+
+title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+[tbx0,tby0,~,~,HeInt0] = CalcBasalTraction(CtrlVar,[],MUA,F0,PlotResults=true,FigureTitle=" F0 ",FigureName=" F0 ") ;
+[tbx1,tby1,~,~,HeInt1] = CalcBasalTraction(CtrlVar,[],MUA,F1,PlotResults=true,FigureTitle=" F1 ",FigureName=" F1 ") ;
+
+dbx=tbx1-tbx0;
+dby=tby1-tby0;
+
+[xint,yint] = CalcIntegrationPointsCoordinates(MUA) ;
+fdbt=FindOrCreateFigure("change in integration points traction ") ;  clf(fdbt);
+cbar=QuiverColorGHG(xint/CtrlVar.PlotXYscale,yint/CtrlVar.PlotXYscale,dbx,dby,[]) ;
+hold on
+PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
+PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+PlotCalvingFronts(CtrlVar,MUA,F1,color="b");
+PlotMuaBoundary(CtrlVar,MUA,"k--");
+title(cbar,"(kPa)")
+title("Change in basal tractions at integration points during time increment",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+cbar=UaPlots(CtrlVar,MUA,F1,F1.GF.node-F0.GF.node,GetRidOfValuesDownStreamOfCalvingFronts=false,GroundingLineColor="k",FigureTitle="F1.GF.node-F0.GF.node") ;
+hold on
+PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+title("Change in GF.node during time increment (F1.GF.node-F0.GF.node)",Interpreter="latex")
+title(cbar,"")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+
+cbar=UaPlots(CtrlVar,MUA,F1,HeInt1-HeInt0,FigureTitle="HeInt1- Heint0") ;
+hold on
+PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+title("$\Delta \mathcal{H}(h-h_f)$ at integration points",interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+title(cbar,"",interpreter="latex")
+
+drawnow
+end

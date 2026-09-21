@@ -64,6 +64,13 @@ else
     MUA.DetJ=[];
 end
 
+
+if CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh
+    [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+end
+
+
+
 if CtrlVar.FindMUA_Boundary
     [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
 else
@@ -83,14 +90,10 @@ if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ||  CtrlVar.MUA.Cho
         MUA.dM=decomposition(MUA.M,'chol','upper') ;
     end
 
-    if CtrlVar.MUA.CholeskyMassMatrix
-
-        [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
-
-    end
+ 
 else
 
-    MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ; 
+    MUA.M=[] ; MUA.dM=[] ;
 
 end
 

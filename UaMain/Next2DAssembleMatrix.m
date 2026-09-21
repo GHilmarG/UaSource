@@ -110,15 +110,15 @@ function [kv,rh]=Next2DAssembleMatrix(dt,h0,u0,v0,a0,u1,v1,a1,coordinates,connec
 	
 	% assemble right-hand side
 	
-	rh=sparseUA(neq,1);
+	rh=sparse(neq,1);
 	for Inod=1:nod
-		rh=rh+sparseUA(connectivity(:,Inod),ones(Nele,1),b1(:,Inod),neq,1);
+		rh=rh+sparse(connectivity(:,Inod),ones(Nele,1),b1(:,Inod),neq,1);
 	end
 	
 	
 	for Inod=1:nod
 		for Jnod=1:nod
-			kv=kv+sparseUA(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
+			kv=kv+sparse(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
 		end
 	end
 	

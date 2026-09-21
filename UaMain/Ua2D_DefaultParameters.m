@@ -464,11 +464,8 @@ CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculatin
                             %
 CtrlVar.Nzero=1e-20    ;    % lower value for effective pressure 
 
-CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularization parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
 CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees. 
-CtrlVar.AGlenAdjointZero=100*eps; 
-CtrlVar.AdjointEpsZero=CtrlVar.EpsZero;
 %% Constraints on viscosity and slipperiness
 % These constraints are always enforced, but only really of any importance when inverting for A and/or C.
 % (Using SIA or the hybrid approximation Cmin MUST be set to 0, or at least to a value much less than Czero!)
@@ -483,6 +480,10 @@ CtrlVar.Cmax=1e50;
 CtrlVar.AGlenmin=1e-20;
 CtrlVar.AGlenmax=1e20;
 
+% New fields to make the clipping to min AGlen and min C smooth
+
+CtrlVar.CminWidthRelative     = 1e-10 ;
+CtrlVar.AGlenminWidthRelative = 1e-10 ;
 %% Non-linear iteration-loop parameters
 % The non-linear system is considered solved once the residuals are smaller than 
 %
@@ -562,11 +563,19 @@ CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when 
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implicitly for h
 CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
+
+% CtrlVar.uvhResidualNormalisation="lumped";  % The uvh residuals can be normalized together as a one vector ("lumped"), 
+                                            % or individually as blocks ("blockwise") whereby the u, v and h residuals 
+                                            % all have their own normalization. 
+
+
+CtrlVar.uvhResidualNormalisation="blockwise";   % the new blockwise uvh-residual calculation
+
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.hMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"]; 
-
+CtrlVar.MustBe.uvhResidualNormalisation=["lumped","blockwise"]; 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
 CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
@@ -624,12 +633,7 @@ CtrlVar.LineSearchAllowedToUseExtrapolation=0; % If true, backtracking algorithm
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolute step size, i.e. not a fraction of initial step size.)
 
-CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
 
-
-
-CtrlVar.uvGroupAssembly=false;
-CtrlVar.uvhGroupAssembly=false;
 
 %% Backtracking parameters  -line search 
 % Parameters affecting the backtracking algorithm
@@ -732,7 +736,6 @@ CtrlVar.QuadratureRuleDegree=[] ;   % leaving empty means automated selection
 %
 
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
- 
 CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
                             % Note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0;
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
@@ -840,7 +843,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % There are number of different minimization methods implemented. Although the
 % methodology behind the inversion is rigorous, in practice when working with
 % real data the inversions sometimes get stuck in some local minimum. The
-% different optimization methods implemented use slightly different search
+% different Optimisation methods implemented use slightly different search
 % directions, and switching methods may help getting out of a local minimum as
 % seen by one particular method. (When using synthetic data this is hardly ever
 % an issue).
@@ -856,7 +859,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient
 % calculation using adjoint
 %
-% Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the
+% Ua has some inbuilt Optimisation methods and these are used by default. However, if the matlab Optimisation toolbox is installed, the
 % matlab routines can be used instead.
 %
 % Note #1: Some parameter combinations can be inconsistent. For example inverting
@@ -896,53 +899,51 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % The Hessian of the regularization term is exact, but the Hessian of the misfit term is approximated (see details in the Ua
 % Compendium)
 %
-% The optimization step in the inversion can then be done using either the Matlab optimization toolbox, or an some Ua optimization
+% The Optimisation step in the inversion can then be done using either the Matlab Optimisation toolbox, or an some Ua Optimisation
 % routines.
 % 
-% Default is to use Hessian based optimization, which uses both the gradient and the Hessian approximation, or gradient-based
+% Default is to use Hessian based Optimisation, which uses both the gradient and the Hessian approximation, or gradient-based
 % minimization, which only uses the gradient and builds up an approximation of the Hessian from the gradient.
 %
-% The default option is Hessian-based optimization using the matlab optimization toolbox.
+% The default option is Hessian-based Optimisation using the matlab Optimisation toolbox.
 %
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, MATLAB toolbox
-%                                  ="MatlabOptimization-GradientBased";     % gradient-based, MATLAB toolbox
-%                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
-%                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
-%
-%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-HessianFiniteDifferences-BandWidth5-";
-%   CtrlVar.Inverse.Hessian="FiniteDifferences";
-%
-% If a Hessian-based optimization is used, the the expressions for the Hessians can be selected as follows:
-CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
-% Here R stands for Regularization and I stands for Misfit.
-% E stands for 'exact' and 'FP' for 'fixed-point'
-%
-% So RHA=E implies that the Hessian (H) for the AGlen (A) regularization term (R) is based on the exact (E) expression for H. 
-% So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H. 
+CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-GradientBased-";      % gradient-based, MATLAB toolbox
+
+CtrlVar.Inverse.MinimisationMethodOptions=[...
+    "-MatlabOptimisation-GradientBased-"; ...        % gradient-based, MATLAB toolbox
+    "-MatlabOptimisation-HessianBased-"; ...         % Hessian-based, MATLAB toolbox
+    "-UaOptimisation-GradientBased-"; ...            % gradient-based, Ua Optimisation toolbox
+    "-UaOptimisation-HessianBased-"     ];       % Hessian-based, Ua Optimisation toolbox
+   
+% If a Hessian-based Optimisation is used, the the expressions for the Hessians can be selected as follows:
+
+CtrlVar.Inverse.Hessian="-DirectAdjoint-" ; % "-DirectAdjoint-","-Jpp-","-FiniteDifferences-" ; 
+
+CtrlVar.Inverse.HessianOptions=[...
+    "-DirectAdjoint-";...
+    "-FiniteDifferences-";...
+    "-Jpp-"];
 
 
-% If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass
-% matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
-% presumably to use 'I', and then to try out 'M' for comparison.
+% Should a Riesz-mapped gradient be used?
 %
-% Note: using the pre-multiplier results in the directional derivatives being multiplied by INVERSE of the pre-multiplier. So
-% if, for example, dJdC is the directional derivative of the cost function J with respect to C, specifying
-% CtrlVar.Inverse.AdjointGradientPreMultiplier="M" results in dJdC being recalculated as dJdC=M\dJdC ; 
+% This should be set to true when using a gradient based method such as conjugated gradients, or a BFGS update.
 %
-CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {"l2","L2","H1"}
-CtrlVar.Inverse.AdjointGradient.UseBCs.A=false;
-CtrlVar.Inverse.AdjointGradient.UseBCs.B=false;
-CtrlVar.Inverse.AdjointGradient.UseBCs.C=false;
+% Only if we are building the Hessian directly should we not use the Riesz-mapped gradient.
+%
+% 
+%
+if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
+    CtrlVar.Inverse.RieszMapGradient=true;
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+    CtrlVar.Inverse.RieszMapGradient=false;
+end
 
-% If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
-% If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,
-% and with respect to the l2 inner product when using the I pre-multiplier.
-%
 
 CtrlVar.Inverse.Iterations=1; % Maximum number of inverse iterations
-CtrlVar.Inverse.OptimalityTolerance=1e-10; % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
-CtrlVar.Inverse.FunctionTolerance=1e-6 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
-CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
+CtrlVar.Inverse.OptimalityTolerance=1e-10; % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab Optimisation toolbox
+CtrlVar.Inverse.FunctionTolerance=1e-6 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab Optimisation toolbox
+CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab Optimisation toolbox
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
 CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
@@ -990,7 +991,7 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or "-Matern-"
 
 
-CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
+CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 %% Parameters specific to Tikhonov regularization.
 % See the above definition of the regularization term R in the case of
@@ -1058,65 +1059,105 @@ CtrlVar.Inverse.Regularize.Multiplier=1;
 CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 %%
 % [----------  The following parameters are only relevant if using the
-% UaOptimization i.e. only if
-% CtrlVar.Inverse.MinimisationMethod='UaOptimization'; 
+% UaOptimisation i.e. only if
+% CtrlVar.Inverse.MinimisationMethod="UaOptimisation-GradientBased";         % gradient-based, Ua Optimisation toolbox
+%                                   ="UaOptimisation-HessianBased";          % Hessian-based, Ua Optimisation toolbox
 %
-% The Ua optimization is a simple non-linear conjugate-gradient method with
-% automated resets, combined with a (one-sided) line search. The reset is done
-% if the angle between subsequent steepest decent directions is to far from 90
-% degrees, or if the update parameter becomes negative (only relevant for
-% Polak-Ribiere and Hestens-Stiefel).
-CtrlVar.Inverse.GradientUpgradeMethod='ConjGrad' ; %{'SteepestDecent','ConjGrad'}
-CtrlVar.Inverse.InitialLineSearchStepSize=[];
-CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
-CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size
-CtrlVar.Inverse.MaximumNumberOfLineSearchSteps=50;
-CtrlVar.ConjugatedGradientsRestartThreshold=40 ; % degrees!
-CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
-                                        % FR ;Fletcher-Reeves
-                                        % PR :Polak-Ribi\`ere
-                                        % HR: Hestenes-Stiefel
-                                        % DY :Dai-Yan
-                   
-CtrlVar.ReflectiveTransformation=false ; %                      
-% end, UaOptimization parameters
+% As when using the MATLAB Optimisation toolbox, there are two basic options: 1) using the gradient  and 2) using the Hessian 
+%
+% When using the gradient, the Hessian information is provided through a conjugated gradient updates, and the Hessian itself is
+% not calculated.  This is conceptually similar to when using the MATLAB toolbox when the Hessian information is obtained using
+% the BFSG update, i.e. again the Hessian itself is never built. 
+%
+% When using a Hessian based inversion the Hessian is calculated or approximated. 
+%
+% If a Hessian-based Optimisation is used, the the expressions for the Hessian can be selected by setting the field
+%
+%   CtrlVar.Inverse.Hessian   (see above for options for this field)
+%
+%
+%
+
+CtrlVar.Inverse.UaConjugatedGradients.Armijo=1e-4;
+CtrlVar.Inverse.UaConjugatedGradients.WolfeCurvature=0.2;
+CtrlVar.Inverse.UaConjugatedGradients.MaxFuncEvaluationsInLineSearch=20;
+CtrlVar.Inverse.UaConjugatedGradients.InfoLevel=0;
+CtrlVar.Inverse.UaConjugatedGradients.DecrementTolerance=1e-10;
+CtrlVar.Inverse.UaConjugatedGradients.DecrementAbsTolerance=0;
+CtrlVar.Inverse.UaConjugatedGradients.DecrementRelativeTolerance=1e-10;
+CtrlVar.Inverse.UaConjugatedGradients.dJTolerance=1e-10; 
+CtrlVar.Inverse.UaConjugatedGradients.JTolerance=1e-10; 
+CtrlVar.Inverse.UaConjugatedGradients.UpdateMethod="-ConjGrad-" ; %{'SteepestDecent','ConjGrad'}
+CtrlVar.Inverse.UaConjugatedGradients.SufficientDescent=0.1; 
+CtrlVar.Inverse.UaConjugatedGradients.ActiveSetPositionTolerance=1e-8;
+CtrlVar.Inverse.UaConjugatedGradients.ActiveSetReleaseTolerance=0.3;
+
+
+CtrlVar.Inverse.BoxTransform=false; 
+CtrlVar.Inverse.BoxTransformType="softplus";      % or "logistic"
+CtrlVar.Inverse.BoxTransformWidthFraction=0.1;
+
+
+
+
+% cg updates. All update options appear to perform about the same, but in some test HR came out best. All cg updates are
+%             considerably better than steepest decent
+CtrlVar.Inverse.UaConjugatedGradients.Update="PR";
+                                        % {FR|PR|HS|DY}
+                                        % FR Fletcher-Reeves
+                                        % PR Polak-Ribi\`ere
+                                        % HS Hestenes-Stiefel
+                                        % DY Dai-Yan
+                                        
+
+CtrlVar.Inverse.DecrementTolerance=1e-10;
+
+
+CtrlVar.TrustRegion.nSigma=2; % Relevant if using the Ua TrustRegion algorithm. 
+                              %
+                              % Currently (Sept 2026) only used if CtrlVar.Inverse.MinimisationMethod="-Ua-DirectAdjointHessian-"
+                              % 
+                              % Sets DeltaMax. The largest trust-region step is one costing as much prior probability as a coherent shift of nSigma prior
+                              % standard deviations across the whole domain, in all inverted fields jointly. Dimensionless and shared across logA, B and
+                              % logC. Default 2; range 1-5.
+
+% end, UaOptimisation parameters
 % ------------]
 
 %%
 % [------  The following parameters are only relevant if using the MatlabOptimisation option 
-% i.e. only if CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'
+% i.e. only if CtrlVar.Inverse.MinimisationMethod='MatlabOptimisation'
 %
 % Refer to the matlab documentation for further information. 
 %
-% The optimization routines used are either the MATLAB routine fminunc or
+% The Optimisation routines used are either the MATLAB routine fminunc or
 % fmincon.
 %
-% You will need to have the MATLAB optimization toolbox to be able to do this.
+% You will need to have the MATLAB Optimisation toolbox to be able to do this.
 %  
-% The Matlab optimization toolbox has various algorithms to choose from, each of
+% The Matlab Optimisation toolbox has various algorithms to choose from, each of
 % which has large number of parameters.
 %
 % Define the algorithm and set the options defining:  
 %
-%   CtrlVar.Inverse.MatlabOptimisationParameters
 %
 % Below are three examples that you might want to start with.
 % The last one (which is the default one) uses fmincon with lbfgs update.
 %
 %
 
-if license('test','Optimization_Toolbox')
+if license('test','Optimization_Toolbox')   % note, US spelling
     
-    % A few examples of how to set parameters if using the Matlab Optimization
+    % A few examples of how to set parameters if using the Matlab Optimisation
     % toolbox when performing an inversion, i.e if
-    % CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'
+    % CtrlVar.Inverse.MinimisationMethod='MatlabOptimisation'
     %
     %  You can copy some of these examples into your own DefineInitialUserInput.m
     %  file and modify as needed. See Matlab documentation for further information.
     %
     
 
-    % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
+    % These are the default parameters using gradient based inversion with the MATLAB Optimisation toolbox
 
 
     % 2022-05-21: tried to fix the error with R2022a when using the gradient-based option by redefining and simplifying the
@@ -1129,7 +1170,7 @@ if license('test','Optimization_Toolbox')
     % options.SpecifyConstraintGradient=true;
     % CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;
 
-    % These are the default parameters using gradient based inversion with the MATLAB optimization toolbox
+    % These are the default parameters using gradient based inversion with the MATLAB Optimisation toolbox
     CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions('fmincon',...
         'Algorithm','interior-point',...
         'ConstraintTolerance',1e-10,...
@@ -1157,7 +1198,7 @@ if license('test','Optimization_Toolbox')
     
 
 
-    % These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox
+    % These are the default parameters using Hessian based inversion with the MATLAB Optimisation toolbox
     Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estimation.
     CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions('fmincon',...
         'Algorithm','interior-point',...
@@ -1191,7 +1232,7 @@ if license('test','Optimization_Toolbox')
     % To use this include the part below within %[  and %] in your DefineInitialInputs.m
 
     %[ 
-    % CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-HessianFiniteDifferences-BandWidth5-";  
+    % CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-HessianFiniteDifferences-BandWidth5-";  
     % % You can change the
     % % BandWidth to some other value, but make sure it is not too large. 
     % % If the BandWidth is k, then 2k calls to the gradient calculation are required each time the Hessian is approximated  
@@ -1226,8 +1267,6 @@ if license('test','Optimization_Toolbox')
     %]
  
   
-else
-    CtrlVar.Inverse.MatlabOptimisationParameters=[];
 end
 
 % end, MatlabOptimisation parameters.
@@ -1249,7 +1288,8 @@ CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse ste
 %
 % The derivatives obtained with the adjoint method can be compared with those obtained from brute force finite difference
 % calculations.
-CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation
+CtrlVar.Inverse.TestAdjoint.isTrue=0;        % If true then perform a brute force calculation
+CtrlVar.Inverse.TestDirectAdjoint.isTrue=0;  % Flag to test the direct-adjoint for selected columns against finite differences
 % of the directional derivative of the objective function.
 %
 % The brute-force gradient can be calculated using first-order forward differences, second-order central differences, or
@@ -1288,7 +1328,6 @@ CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which br
 % 
 % Note: When testing adjoint gradients, the perturbation is done with respect of nodal values and one must set
 %
-%   CtrlVar.Inverse.AdjointGradientPreMultiplier="I";
 % 
 
 
@@ -1512,6 +1551,10 @@ CtrlVar.Mesh2d.part=[];
 % conducting synthetic experiments using simple square-shaped geometries. All elements are of equal sizes, (unless some additional mesh
 % refinements are used at a later stage).
 % 
+% You activate this option by setting:
+%
+% CtrlVar.MeshGenerator="mesh2d"
+%
 % The parameters used are:
 %
 CtrlVar.UaSquareMesh.xmin=nan ; 
@@ -1519,8 +1562,13 @@ CtrlVar.UaSquareMesh.xmax=nan;
 CtrlVar.UaSquareMesh.ymin=nan;
 CtrlVar.UaSquareMesh.ymax=nan;
 
-CtrlVar.UaSquareMesh.nx=nan;
-CtrlVar.UaSquareMesh.ny=nan; 
+CtrlVar.UaSquareMesh.nx=nan;  % subdivisions in x-direction
+CtrlVar.UaSquareMesh.ny=nan;  % subdivisions in y-direction, 
+                              % you can set either nx or ny to nan, (but not both), and then the nx or ny 
+                              % will be calculated automatically to approximately match
+                              % the resolution in both directions. 
+
+CtrlVar.UaSquareMesh.Refine=true; % ensures that the mesh as 90 degree symmetry, otherwise it only has 180 degree symmetry. 
 
 % The mesh generated is a square extending from x=xmin to x=xmax, and y=ymin to y=ymax, subdivided nx times in the
 % x-direction, and ny times in the y-direction.
@@ -1529,7 +1577,21 @@ CtrlVar.UaSquareMesh.ny=nan;
 % 
 % The size of the elements will be (xmax-xmin)*(ymax-ymin)/(nx*ny), when measured as the leg of an isosceles right triangle.
 %
-
+% Note that while the extent of the mesh generated by UaSquareMesh does not require MeshBoundaryCoordinates, if you do
+% prescribe MeshBoundaryCoordinates (a good idea), all elements outside of MeshBoundaryCoordinates will then be deleted. This will result
+% in a mesh that internally regular, but external boundaries being determined by MeshBoundaryCoordinates.
+%
+% Furthermore, if 
+% 
+%  CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true  ; % (default option)
+% 
+% then all detached element islands and regions of the mesh connected by one node only are deleted. 
+%
+% All mesh refinements, element deactivation, mesh coarsening, etc are possible and can be combined with the use of the UaSquareMesh.
+%
+% UaSquareMesh only creates the initial mesh, and internally the rest of the code then simply treats the mesh as any valid FE mesh.  
+%
+%%
 
 %% Controlling element sizes
 % 
@@ -1553,9 +1615,10 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
 CtrlVar.MUA.DecomposeMassMatrix=true;
-CtrlVar.MUA.CholeskyMassMatrix=false;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
+CtrlVar.MUA.AssemblyPattern.uv=true;
+CtrlVar.MUA.AssemblyPattern.uvh=true; 
 %% Pos. thickness constraints,          (-active set-)
 % A minimum ice thickness can be enforced in different ways using the following methods:
 %  1) `reset method' : simply resetting the thickness to min thickness at node where thickness is less than a prescribed value.
@@ -2725,7 +2788,7 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 % functions
 %
 
-CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant","ShapeAndScattered"}
+
 CtrlVar.MapOldToNew.method="ShapeAndScattered"    ; % This is the new default option as of 2 April 2023.
                                                     % The old method was based on the MATLAB scatteredinterpolant, and it was discovered that this MATLAB function sometimes
                                                     % produced bizarre results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and

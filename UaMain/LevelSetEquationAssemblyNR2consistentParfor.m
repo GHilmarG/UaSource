@@ -84,22 +84,22 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
     
     
     
-    Pv=sparseUA(neq,1);
-    Lv=sparseUA(neq,1);
-    Tv=sparseUA(neq,1);
-    Qx=sparseUA(neq,1);
-    Qy=sparseUA(neq,1);
-    Rv=sparseUA(neq,1);
-    RSUPGv=sparseUA(neq,1);
+    Pv=sparse(neq,1);
+    Lv=sparse(neq,1);
+    Tv=sparse(neq,1);
+    Qx=sparse(neq,1);
+    Qy=sparse(neq,1);
+    Rv=sparse(neq,1);
+    RSUPGv=sparse(neq,1);
     
     for Inod=1:MUA.nod
-        Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),PG(:,Inod),neq,1);
-        Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),LG(:,Inod),neq,1);
-        Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TG(:,Inod),neq,1);
-        Rv=Rv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),neq,1);
-        RSUPGv=RSUPGv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RSUPG(:,Inod),neq,1);
-        Qx=Qx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
-        Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
+        Pv=Pv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),PG(:,Inod),neq,1);
+        Lv=Lv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),LG(:,Inod),neq,1);
+        Tv=Tv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TG(:,Inod),neq,1);
+        Rv=Rv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),neq,1);
+        RSUPGv=RSUPGv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RSUPG(:,Inod),neq,1);
+        Qx=Qx+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
+        Qy=Qy+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
     end
     
     rh=isL*Lv+isP*Pv+isT*Tv+RSUPGv; 
@@ -117,7 +117,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
             end
         end
         
-        kv=sparseUA(Iind,Jind,Xval,neq,neq);
+        kv=sparse(Iind,Jind,Xval,neq,neq);
     end
     
 end

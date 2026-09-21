@@ -326,10 +326,10 @@ for Iint=1:MUA.nip  %Integration points
 end
 %% assemble right-hand side
 
-f0=sparseUA(neq,1);
+f0=sparse(neq,1);
 
 for Inod=1:MUA.nod
-    f0=f0+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Rh(:,Inod),neq,1);
+    f0=f0+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Rh(:,Inod),neq,1);
 end
 %%
 
@@ -352,7 +352,7 @@ if nargout>2
         end
     end
 
-    K=sparseUA(Iind,Jind,Kval,neq,neq);
+    K=sparse(Iind,Jind,Kval,neq,neq);
 
     if nargin>3
         dFdtVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
@@ -363,7 +363,7 @@ if nargout>2
                 istak=istak+MUA.Nele;
             end
         end
-        dFdt=sparseUA(Iind,Jind,dFdtVal,neq,neq);
+        dFdt=sparse(Iind,Jind,dFdtVal,neq,neq);
     end
 
 end

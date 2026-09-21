@@ -2,7 +2,7 @@
 
 
 
-function Q=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,ga,gs,Methodology)
+function [Q,alphaMatern,kappaMatern,tauMatern]=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,ga,gs,Methodology)
 
 narginchk(7,7)
 nargoutchk(1,1)
@@ -70,15 +70,14 @@ nargoutchk(1,1)
 % Matern hyper-parameters and the $$\kappa$$ and $$\tau$$ parameters.
 %%
 
-Area=MUA.Area;
+
 M=MUA.M;
 D=MUA.Dxx+MUA.Dyy;
 
-% I discovered that it can happen that the smallest eigenvalue of D is slightly
-% negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
-% two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
-% would be to add eps to the diagonal of Dxx and Dyy. This should not really be an issue, unless there is next-to-no
-% M contribution being added.
+% I discovered that it can happen that the smallest eigenvalue of D is slightly negative!!! This must be due to numerical
+% rounding errors when assembling Dxx and Dyy. I for example found a case where the two smallest eigenvalues of Dyy were
+% -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this would be to add eps to the diagonal of
+% Dxx and Dyy. This should not really be an issue, unless there is next-to-no M contribution being added.
 
 Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
 D=D+Ieps ;
@@ -87,12 +86,10 @@ D=D+Ieps ;
 % [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 
 
-if Methodology=="-Tikhonov-"
-
-    [alphaMatern,tauMatern,kappaMatern]=Tikhonov2MaternParameters(ga,gs,Area);
-
+if kappaMatern ==0
+    fprintf("PrecisionMatrixMatern: Based on user input, the kappa in the Matern precision matrix definition is zero. \n")
+    fprintf("PrecisionMatrixMatern: This will give a singular matrix.  I continue, but mucho problemos likely ahead... \n")
 end
-
 
 A = kappaMatern^2*M + D;
 
@@ -101,10 +98,16 @@ if alphaMatern==1
     % Q1
     Q = tauMatern^2 * A ;
 
+    % link with Tikhonov:
+    %
+    %   2*MUA.Area* [tauMatern^2/gs^2 (kappaMatern^2*tauMatern^2)/ga^2]
+    %
+    %
+
 elseif alphaMatern==2
 
     row_sums = sum(M,2);
-    
+
     n=MUA.Nnodes;
     iM=sparse(1:n,1:n,1./row_sums,n,n);
 
@@ -115,19 +118,19 @@ elseif alphaMatern==3
 
     row_sums = sum(M,2);
 
-     n=MUA.Nnodes;
+    n=MUA.Nnodes;
     iM=sparse(1:n,1:n,1./row_sums,n,n);
 
     % Q3
-    Q = tauMatern^2 * A * iM * A * iM * A ; 
+    Q = tauMatern^2 * A * iM * A * iM * A ;
 
 else
 
-    error("alpha must be either equal to 1, 2 or 3.\n")
+    error("PrecisionMatrixMatern:InvalidInput","alpha must be either equal to 1, 2 or 3.\n")
 
 end
 
-
+Q=0.5*(Q+Q');
 
 
 end

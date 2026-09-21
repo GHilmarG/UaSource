@@ -1,7 +1,10 @@
 function Meas=TestMeas(CtrlVar,MUA,Meas)
 
 
-if contains(CtrlVar.Inverse.Measurements,"-uv-")
+[is_uv_meas,is_dhdt_meas]=is_uv_dhdt_Meas(CtrlVar);
+
+
+if is_uv_meas
     if isempty(Meas.us)
         fprintf(">>>>>>>>>>>>>>  Meas.us is empty!\n")
         fprintf(" CtrlVar.Inverse.Measurements=%s \n",CtrlVar.Inverse.Measurements)
@@ -29,7 +32,7 @@ if contains(CtrlVar.Inverse.Measurements,"-uv-")
 end
 
 
-if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+if is_dhdt_meas
     
     if isempty(Meas.dhdt)
         fprintf(">>>>>>>>>>>>>>  Meas.dhdt is empty!\n")

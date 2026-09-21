@@ -271,7 +271,7 @@ dFdhlambda=zeros(MUA.Nnodes,1);
 
 
 for Inod=1:MUA.nod
-    dFdhlambda=dFdhlambda+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dFdhlambda=dFdhlambda+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
 dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dFdhlambda);

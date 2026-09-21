@@ -116,6 +116,7 @@ end
 
 
 CtrlVar.TestKApeSolve=false;
+frhs=full(frhs);  % the right-hand side is quite dense, so this is a faster approach
 sol=solveKApe(KdFdq,LBCs,frhs,grhs,[],[],CtrlVar);
 
 

@@ -2,8 +2,15 @@
 
 function [rhoMatern,sigmaMatern,nuMatern]=Matern_alpha_kappa_tau(alphaMatern,kappaMatern,tauMatern)
 
-%% Calculates the Matern parameters rho, sigma, nu from alpha, kappa, and tau 
-
+%% Calculates the Matern parameter triplet:
+% 
+% rho, sigma, nu 
+% 
+% from 
+% 
+% alpha, kappa, and tau 
+%
+%%
 
 
 d = 2;                                  % physical dimension

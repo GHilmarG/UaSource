@@ -70,13 +70,13 @@ end
 
 Sensitivities="-dudC-dvdC-";
 
-if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-    Sensitivities=Sensitivities+"-dhdotdC-" ;
-    Sensitivities=replace(Sensitivities,"--","-");
-end
+% if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+%     Sensitivities=Sensitivities+"-dhdotdC-" ;
+%     Sensitivities=replace(Sensitivities,"--","-");
+% end
+% 
 
-
-KdFuvdC=-dFuvdC(CtrlVar,MUA,F) ; % there is actually a different sign convention inside of this...
+KdFuvdC=dFuvdC(CtrlVar,MUA,F) ;
 
 
 if numel(BCs.ubFixedValue) > 0
@@ -114,6 +114,7 @@ else
 end
 
 CtrlVar.TestKApeSolve=false;
+frhs=full(frhs);  % the right-hand side is quite dense, so this is a faster approach
 sol=solveKApe(KdFdq,LBCs,frhs,grhs,[],[],CtrlVar);
 
 

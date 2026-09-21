@@ -158,9 +158,9 @@ for Inod=1:MUA.nod
 end
 
 
-dFh1du=sparseUA(Iind,Jind,dFhdotduXval,nNodes,nNodes);
-dFh1dv=sparseUA(Iind,Jind,dFhdotdvXval,nNodes,nNodes);
-dFh1h1=sparseUA(Iind,Jind,dFhdotdhdotXval,nNodes,nNodes);
+dFh1du=sparse(Iind,Jind,dFhdotduXval,nNodes,nNodes);
+dFh1dv=sparse(Iind,Jind,dFhdotdvXval,nNodes,nNodes);
+dFh1h1=sparse(Iind,Jind,dFhdotdhdotXval,nNodes,nNodes);
 
 
 

@@ -48,6 +48,10 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 %% Optional RowSubsetSelection
 
+if ~isfield(CtrlVar,"BCsRowSubsetSelection")
+    CtrlVar.BCsRowSubsetSelection=false;
+end
+
 if CtrlVar.BCsRowSubsetSelection
 
     if nInfo==0

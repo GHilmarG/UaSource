@@ -3,7 +3,7 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %%
 % Calculates dh/dt from flux divergence as
 %
-% $$ \rho \, \dot{h}  = \rho \, a -  \nabla \cdot \mathbf{q} $$
+% $$ \rho \, \dot{h}  = \rho \, a -  \partial_x (\rho u h ) - \partial_y (\rho v h ) $$
 %
 % or
 %
@@ -146,9 +146,9 @@ for Iint=1:MUA.nip
 
     % assemble right-hand side
 
-    rh=sparseUA(neq,1);
+    rh=sparse(neq,1);
     for Inod=1:MUA.nod
-        rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
+        rh=rh+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
     end
 
     if ~isfield(MUA,'M')
