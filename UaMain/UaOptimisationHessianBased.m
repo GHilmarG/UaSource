@@ -31,7 +31,7 @@ narginchk(8,8)
 %%
 % good summary at
 %
-% https://uk.mathworks.com/help/releases/R2025b/optim/ug/constrained-nonlinear-optimization-algorithms.html#briahj8
+% https://uk.mathworks.com/help/releases/R2025b/optim/ug/constrained-nonlinear-Optimisation-algorithms.html#briahj8
 %
 % https://ecommons.cornell.edu/server/api/core/bitstreams/e68cc955-5b7c-4128-8707-522eb31ad378/content
 %
@@ -52,7 +52,7 @@ narginchk(8,8)
 % file:///C:/Users/Hilmar/Downloads/1984_Dembo_Tulowitzki_BQP_Yale_CS_tr302.pdf
 %
 %
-% https://ccsp.hms.harvard.edu/wp-content/uploads/2022/10/Froehlich-Sorger-2022-Fides-Reliable-trust-region-optimization-for-parameter-estimation-of-ordinary-differential-equation-models.pdf
+% https://ccsp.hms.harvard.edu/wp-content/uploads/2022/10/Froehlich-Sorger-2022-Fides-Reliable-trust-region-Optimisation-for-parameter-estimation-of-ordinary-differential-equation-models.pdf
 %
 %%
 

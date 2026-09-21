@@ -16,7 +16,7 @@ narginchk(11,11)
 %
 % $$F(q(p),p)=0$$
 %
-% To use a gradient-based optimization method, we need to be able to calculate the derivatives of J with respect to p.
+% To use a gradient-based Optimisation method, we need to be able to calculate the derivatives of J with respect to p.
 %
 % Using the Lagrange method, we form the extended functional
 %
@@ -127,7 +127,7 @@ end
 % If:
 %
 %
-%   CtrlVar.Inverse.MinimisationMethod="-UaOptimization-GradientBased-"
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-GradientBased-"
 %
 % then the metric matrix, G, does the mapping as
 %
@@ -135,7 +135,7 @@ end
 %
 % For
 %
-%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-GradientBased-"
+%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-GradientBased-"
 %
 % the Riez-based gradient is introduced through a change of variables and the minimisation is on
 %
@@ -189,15 +189,15 @@ end
 
 
 if CtrlVar.Inverse.RieszMapGradient
-    fprintf(" The optimisation will use a Riesz-mapped gradient.\n")
+    fprintf(" The Optimisation will use a Riesz-mapped gradient.\n")
 else
-    fprintf(" The optimisation will not use a Riesz-mapped gradient.\n")
+    fprintf(" The Optimisation will not use a Riesz-mapped gradient.\n")
 end
 
 if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
-    fprintf(" The optimisation will use a Cholesky mapping of cost function and gradient.\n")
+    fprintf(" The Optimisation will use a Cholesky mapping of cost function and gradient.\n")
 else
-    fprintf(" The optimisation will not use a Cholesky mapping of cost function and gradient.\n")
+    fprintf(" The Optimisation will not use a Cholesky mapping of cost function and gradient.\n")
 end
 
 if CtrlVar.Inverse.BoxTransform
@@ -266,7 +266,7 @@ F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 %% Box transformation: freeze the box before any mapping is done
 %
 % If CtrlVar.Inverse.BoxTransform is true, the box constraints are eliminated by the logistic change of variables in
-% BoxTransform.m, and the optimisation is then unconstrained.
+% BoxTransform.m, and the Optimisation is then unconstrained.
 %
 % The bounds have to be stored, and stored ONCE. They are needed in three places: F2p (forward map), p2F (inverse map)
 % and JGH (gradient chain rule), and they must be the same bounds in all three and throughout the run. Recomputing them
@@ -342,7 +342,7 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian. This
-% is then passed to the optimization libraries.
+% is then passed to the Optimisation libraries.
 
 % It is not easy to pass updated information to the cost function after it has been defined. The only updated variable in
 % each call is p itself.  I need to decide at this stage if the Hessian will ever be needed.
@@ -365,7 +365,7 @@ func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns
 % The Hessian output is used with the UaOptimisation toolbox, and when using the trust-region-reflective algorithm
 
 
-% Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimization toolbox wants the Hessian returned in
+% Somewhat annoyingly when using the interior-point algorithm, the MATLAB Optimisation toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same
 % Hessian as JGH.
 %
@@ -405,7 +405,7 @@ else
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
 
         clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
+        [p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
 
     else
         error("CaseNotFound")
@@ -414,8 +414,8 @@ else
     % Here the final values from inversion, which are in the vector p, are copied across to the corresponding fields of F
     F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
-    % And a final additional call is made to get the cost function, J, and the gradient, dJdp, at the end of the optimization. In
-    % principle, I guess it should be possible to get this information from the (external) optimization subroutine, but I don't
+    % And a final additional call is made to get the cost function, J, and the gradient, dJdp, at the end of the Optimisation. In
+    % principle, I guess it should be possible to get this information from the (external) Optimisation subroutine, but I don't
     % know how...
     CtrlVar.JGH.CalcHessian=false;  % Make sure that I don't calculate the Hessian again here as well.
     [J,dJdp,~,JGHouts,F]=JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
@@ -476,7 +476,7 @@ end
 %%
 function [J,dJdp,dJdpTest] = TestCorrectnessOfAdjointGradient(func,p0,MUA,CtrlVar,plb,pub)
 % Get the gradient using the adjoint method
-
+%%
 [isA,isB,isC] = isABC(CtrlVar); 
 
 [J,dJdp]=func(p0);
@@ -504,8 +504,32 @@ switch nBlocks
         iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
 end
 
+% select a reasonable step size. This could definitely be improved, but the key thing is to use a constant for log and
+% different step size of B compared to a and C.  Here is is also good to try different step sizes for convergence. 
+deltaA=0.0001;
+deltaB=1;
+deltaC=0.001; 
+if isA
+    deltaStepA=deltaA+zeros(MUA.Nnodes,1);
+else
+    deltaStepA=[];
+end
+if isB
+    deltaStepB=deltaB+zeros(MUA.Nnodes,1) ;
+else
+    deltaStepB=[];
+end
+if isC
+    deltaStepC=deltaC+zeros(MUA.Nnodes,1);
+else
+    deltaStepC=[];
+end
+
+deltaStep=[deltaStepA;deltaStepB;deltaStepC];
+
+
 % Gradient calculated using a brute-force finite difference approach
-dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange);
+dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange,deltaStep);
 
 Diff=norm(dJdp(iRange)-dJdpTest(iRange))/norm(dJdp(iRange));
 fprintf("Test Adjoint gradients: Normalized differences between adjoint gradient and FD: %g \n ",Diff)
@@ -517,10 +541,13 @@ plot([min(dJdp(iRange)) max(dJdp(iRange))],[min(dJdp(iRange)) max(dJdp(iRange))]
 ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
 xlabel("Adjoint $\partial J/\partial p$ ",Interpreter="latex")  ;
 ylabel("Finite difference $\partial J/\partial p$",Interpreter="latex")
-title("$\partial J/\partial p$",Interpreter="latex")
+title("$\partial J/\partial p$ :  "+CtrlVar.Inverse.InvertFor,Interpreter="latex")
 subtitle(sprintf("Normalized diff %g",Diff),Interpreter="latex")
 
 
 drawnow
+
+%%
+
 end
 %%

@@ -10,6 +10,14 @@ narginchk(2,2)
 %
 % This is therefore a very easy term to calculate.
 %
+% Note: This does not yet have the B misfit term related to direct observations of B 
+%
+% This is already done in 
+%
+%   [G,QA,QB,QC,HBobs]=BuildMetricMatrix(CtrlVar,MUA,Meas)
+%
+% so should be easy to add, and should already be a field of MUA
+%
 %%%
 
 
@@ -18,7 +26,6 @@ QA=MUA.QA;
 QB=MUA.QB;
 QC=MUA.QC;
 
-QB=QB+HBobs;
 
 KJpp=blkdiag(QA,QB,QC) ;
 

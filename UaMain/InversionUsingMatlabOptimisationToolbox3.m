@@ -3,7 +3,7 @@
 
 
 
-function   [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq)
+function   [p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq)
 
 
 
@@ -17,6 +17,7 @@ CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inver
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance);
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance);
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'StepTolerance',CtrlVar.Inverse.StepTolerance);
+CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);
 
 if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-reflective"
 
@@ -104,7 +105,7 @@ else
         else
 
             fprintf("The variable CtrlVar.Inverse.MinimisationMethod has an invalid value. ")
-            error("InversionUsingMatlabOptimizationToolbox3:InvalidParameters","CtrlVar.Inverse.MinimisationMethod invalid.")
+            error("InversionUsingMatlabOptimisationToolbox3:InvalidParameters","CtrlVar.Inverse.MinimisationMethod invalid.")
 
         end
 
@@ -114,7 +115,7 @@ else
 
     else
 
-        fprintf('Matlab Optimization selected, but Matlab optimization routine not recognized.\n')
+        fprintf('Matlab Optimisation selected, but Matlab Optimisation routine not recognized.\n')
         fprintf(' Either select fminunc or fmincon. \n')
         error(' invalid input parameters ')
 

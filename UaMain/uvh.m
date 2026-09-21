@@ -10,6 +10,10 @@ narginchk(9,9)
 Solver="Root-Finding Newton";
 %Solver="Least-Squares Gauss-Newton";
 
+if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
+    CtrlVar=SetSmoothFloorWidths(CtrlVar,F);
+end
+
 switch Solver
 
     case "Root-Finding Newton"

@@ -15,15 +15,15 @@ narginchk(10,10)
 %
 %
 % $$
-% H_{lm}  = \delta^2_{qq} J[\xi_{,l},\xi_{,m}] 
-% + \delta^2_{qp}J[\xi_{,l},\phi_m] 
-% + \delta^2_{pq}J[\phi_l,\xi_{,m}] 
-% + \delta^2_{pp}J[\phi_l,\phi_m]  
+% H_{lm}  = \delta^2_{qq} J[\xi_{,l},\xi_{,m}]
+% + \delta^2_{qp}J[\xi_{,l},\phi_m]
+% + \delta^2_{pq}J[\phi_l,\xi_{,m}]
+% + \delta^2_{pp}J[\phi_l,\phi_m]
 %  + \langle \Psi ,
-% \delta^2_{qq}\mathcal{F}[\xi_{,l},\xi_{,m}] 
-%     + \delta^2_{qp}\mathcal{F}[\xi_{,l},\phi_m] 
-%     + \delta^2_{pq}\mathcal{F}[\phi_l,\xi_{,m}] 
-%     + \delta^2_{pp}\mathcal{F}[\phi_l,\phi_m] 
+% \delta^2_{qq}\mathcal{F}[\xi_{,l},\xi_{,m}]
+%     + \delta^2_{qp}\mathcal{F}[\xi_{,l},\phi_m]
+%     + \delta^2_{pq}\mathcal{F}[\phi_l,\xi_{,m}]
+%     + \delta^2_{pp}\mathcal{F}[\phi_l,\phi_m]
 %     \rangle
 % $$
 %
@@ -98,27 +98,31 @@ if CtrlVar.Inverse.BoxTransform
 end
 %% I label individual Hessian terms and have the option of only calculating a subset of those for testing purposes.
 
-HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;
+% HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;
+
+HessianTerms=CtrlVar.Inverse.Hessian;
 
 %% Do I need to calculate the sensitivity matrices?
 
 
-H=0 ;
+H=[] ;
 
 
 if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
-    GetSensitivites=true;
+    Sensitivites=true;
 else
-    GetSensitivites=false;
+    Sensitivites=false;
 end
 
 
 
 %% sensitivity matrix, \xi = \partial q / \partial p   % tested
-if GetSensitivites
+if Sensitivites
 
     [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs);
     xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ;
+else
+    xi=[];
 
 end
 
@@ -129,28 +133,26 @@ end
 
 KJqq=0; KFqq=0;
 
-if contains(HessianTerms,"-xi Jqq xi-")
-    KJqq=Jqq(CtrlVar,MUA,F,BCs,Meas);
+if Sensitivites
+
+    if contains(HessianTerms,"-xi Jqq xi-")
+        KJqq=Jqq(CtrlVar,MUA,F,BCs,Meas);
+    end
+
+    if contains(HessianTerms,"-xi Fqq xi-")
+        KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+    end
+    KJqqFqq=KJqq+KFqq;
+
+    xiNumericalSparsity=nnz(xi)/numel(xi);
+    if xiNumericalSparsity>0.5
+        xi=full(xi);
+    end
+
+    
+    H=xi'*(KJqqFqq*xi) ;
+
 end
-
-
-if contains(HessianTerms,"-xi Fqq xi-")
-    KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
-end
-KJqqFqq=KJqq+KFqq;
-
-
-xiNumericalSparsity=nnz(xi)/numel(xi);
-if xiNumericalSparsity>0.5
-    xi=full(xi);
-end
-
-
-tMult=tic;
-H=xi'*(KJqqFqq*xi)+H ;
-
-
-tMult=toc(tMult);
 %  fprintf(" Multiplication calculated in %f sec\n",tMult)
 
 
@@ -161,17 +163,27 @@ tMult=toc(tMult);
 % F^pp contribution
 if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
-    KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
-    H=H+KFpp; % Here missing is the Jpp contribution, but this is added in the Regularisation.m function
 
+
+    KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
+    if isempty(H)
+        H=KFpp;
+    else
+        H=H+KFpp;
+    end
 end
 
 % Jpp
 if contains(HessianTerms,"-Jpp-")  % explicit dependency of J on p=(logA,B,logC)
 
-   
     KJpp=Jpp(CtrlVar,MUA);
-    H=H+KJpp; 
+
+    if isempty(H)
+        H=KJpp;
+    else
+        H=H+KJpp;
+    end
+  
 
 end
 
@@ -180,41 +192,28 @@ end
 % $$H^{pq}+H^{qp}=\big(J^{pq}+\mathcal{F}^{pq}\big)\xi \;+\; \Big[\big(J^{pq}+\mathcal{F}^{pq}\big)\xi\Big]^T$$
 %
 % The J^{pq} contribution is not missing as each term in the cost function is only an explicit
-% function of either p or q, not both. 
-% 
+% function of either p or q, not both.
+%
 % Even the $$J_{\dot{h}}$$ terms only involves $u$ and $v$ and not any of $A$, $B$ or
 % $C$, so here $$J_{\dot{h}}^{pq} =0 $$ as well
 %
-if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
+if Sensitivites
+    if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
-    [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC);
-   
-    H=H+KHess_qp ;
+        [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC);
+        H=H+KHess_qp ;
 
+    end
 end
-
 
 H=0.5*(H+H');
 
 
-% %% J^{pp} : I still have the J^pp to add, but this is done in the Regularisation part and added later in the code. But I
-% should consider changing this and make sure all contributions are included here. The missing contribution is ddRdpp as
-% returned by: 
-% 
-%  [R,dRdp,ddRdpp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint) ; 
-% 
-% 
-% %%
-
-
 
 if CtrlVar.Inverse.TestDirectAdjoint.isTrue
-
     FiniteDifferenceTestAndPlots(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,H)
-
 end
-
 
 
 end
@@ -224,17 +223,17 @@ function   FiniteDifferenceTestAndPlots(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoi
 
 
 % First map all A and C fields to p. This takes care of the log conversion
-[p,plb,pub]=F2p(CtrlVar,MUA,F); 
+[p,plb,pub]=F2p(CtrlVar,MUA,F);
 
 % the do the perturbation with respect to p
 
 iColumn=randi(numel(p));
-%iColumn=1209; 
+%iColumn=1209;
 
 % Perform perturbation on the selected column
 perturbation = 1e-3; % Define a small perturbation value. Be careful that this is in log space for A and C. Might need to try out several different amplitudes
 
-pPerturbed_pos = p; 
+pPerturbed_pos = p;
 pPerturbed_pos(iColumn) = pPerturbed_pos(iColumn) + perturbation;
 
 
@@ -242,19 +241,19 @@ pPerturbed_pos(iColumn) = pPerturbed_pos(iColumn) + perturbation;
 % at all is because F contains various other fields that are not dependent on p, but I still need those as input fields for
 % the forward model.
 
-% F=p2F(CtrlVar,MUA,pPerturbed_pos,F,Meas,Priors); 
+% F=p2F(CtrlVar,MUA,pPerturbed_pos,F,Meas,Priors);
 
 % JGH calculates the cost function (J), the gradient (G) and the Hessian (H). Here I only need the gradient.
-% 
+%
 % Note: If I were to include a third output argument, which is the Hessian, the JGH function would call
 % CalcDirectAdjointHessian.m, resulting in an endless recursion.
 
 [J_pos,dJdp_pos]=JGH(pPerturbed_pos,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
 
-pPerturbed_neg = p; 
+pPerturbed_neg = p;
 pPerturbed_neg(iColumn) = pPerturbed_neg(iColumn) - perturbation;
 
-% F=p2F(CtrlVar,MUA,pPerturbed_neg,F,Meas,Priors); 
+% F=p2F(CtrlVar,MUA,pPerturbed_neg,F,Meas,Priors);
 
 [J_neg,dJdp_neg]=JGH(pPerturbed_neg,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
 

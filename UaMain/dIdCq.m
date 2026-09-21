@@ -270,13 +270,21 @@ for Iint=1:MUA.nip
     
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     detJ=MUA.DetJ(:,Iint);
-    
-    
+
+
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-    Cint=Cnod*fun; 
-    Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+
+    % For higher-order elements, Cint can become negative even if Cnod is positive at all nodes.
+    % Cint=Cnod*fun;
+    % Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
+
+    [Cint,dCeffdC]=SmoothFloor(Cnod*fun,CtrlVar.Cmin,CtrlVar.CminWidth);% smooth clipping, implemented on 19 Sept 2026
+
+
+
+
     mint=mnod*fun;
     qint=qnod*fun;
     mukint=muknod*fun;
@@ -302,8 +310,12 @@ for Iint=1:MUA.nip
     CtrlVar.Inverse.dFuvdClambda=true;
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
+
+    Ctemp = Ctemp.*dCeffdC ;   % chain rule to nodal C, this is related to the smooth clipping of C towards Cmin
+
     CtrlVar.Inverse.dFuvdClambda=false;
-    
+
+
 
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod

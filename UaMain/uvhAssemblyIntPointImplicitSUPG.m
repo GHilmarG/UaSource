@@ -82,8 +82,12 @@ if CtrlVar.IncludeMelangeModelPhysics
 end
 
 
-Cint=Cnod*fun;
-% Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+% For higher-order elements, Cint can become negative even if Cnod is positive at all nodes.
+% Cint=Cnod*fun;
+% Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
+Cint=SmoothFloor(Cnod*fun,CtrlVar.Cmin,CtrlVar.CminWidth);  % smooth clipping, implemented on 19 Sept 2026
+
+
 mint=mnod*fun;
 
 if ~isempty(qnod)
@@ -114,8 +118,9 @@ if CtrlVar.IncludeMelangeModelPhysics
     maint=manod*fun;
 end
 
-AGlenint=AGlennod*fun;
-% AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+% For higher-order elements AGlen can become negative at integration points, even if AGlen is positive at all nodes.
+AGlenint=SmoothFloor(AGlennod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth); % new smooth clipping implemented on 19 Sept, 2026
+
 nint=nnod*fun;
 
 

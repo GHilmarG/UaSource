@@ -4,7 +4,7 @@ function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInf
 % This is basically a non-linear conjugated-gradient minimizer.
 %
 % It does a reasonably good job. Importantly it does allow for an arbitrary metric, which here is defined by the metric
-% matrix G.  This is something that most optimization packages appear not to allow for.
+% matrix G.  This is something that most Optimisation packages appear not to allow for.
 %
 % The line search is done using LineSearchWolfe, which returns a minimum satisfying both Wolfe conditions, i.e. both the
 % Armijo rule and the curvature condition.

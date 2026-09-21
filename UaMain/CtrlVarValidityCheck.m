@@ -262,20 +262,20 @@ if CtrlVar.InverseRun
     CtrlVar.Inverse.InvertForField=string(sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),"log","") ,"-",""),"AGlen","A")))) ;
 
 
-    if contains(CtrlVar.Inverse.MinimisationMethod,"MatlabOptimization")
+    if contains(CtrlVar.Inverse.MinimisationMethod,"MatlabOptimisation")
 
-        if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization"
+        if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimisation"
             fprintf("Inversion is HessianBased, ie provides a Hessian approximation. \n")
-            CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";
+            CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-HessianBased";
         end
 
     end
 
-    if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization-HessianBased" && CtrlVar.TriNodes>3
+    if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimisation-HessianBased" && CtrlVar.TriNodes>3
 
 
         fprintf("Using CtrlVar.Inverse.MinimisationMethod=%s for other then linear elements (ie for CtrlVar.TriNodes>3) is not recommended. \n",CtrlVar.Inverse.MinimisationMethod)
-        fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased" or using linear elements. \n')
+        fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased" or using linear elements. \n')
         warning("UaInputs:ParameterCombinationNotRecommended","ParameterCombinationNotRecommented")
 
     end
@@ -399,41 +399,41 @@ if CtrlVar.InverseRun
 
     end
 
+    CtrlVar.Inverse.MinimisationMethod="-"+ CtrlVar.Inverse.MinimisationMethod+"-"; 
+    CtrlVar.Inverse.MinimisationMethod=replace(CtrlVar.Inverse.MinimisationMethod,"--","-");
 
-
-
-
+  
     if ~ismember(CtrlVar.Inverse.MinimisationMethod,CtrlVar.Inverse.MinimisationMethodOptions)
 
         fprintf("CtrlVar.Inverse.MinimisationMethod=%s\n",CtrlVar.Inverse.MinimisationMethod)
-        fprintf("But must be one of these options:")
+        fprintf("But must be one of these options:\n")
         fprintf(" \t %s\n",CtrlVar.Inverse.MinimisationMethodOptions)
         error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.MinimisationMethod does not have a valid value. \n")
 
     end
 
-    if ~ismember(CtrlVar.Inverse.Hessian,CtrlVar.Inverse.HessianOptions)
-
-        fprintf("CtrlVar.Inverse.Hessian=%s\n",CtrlVar.Inverse.Hessian)
-        fprintf("But must be one of these options:")
-        fprintf(" \t %s\n",CtrlVar.Inverse.HessianOptions)
-        error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.Hessian does not have a valid value. \n")
-
-    end
+    % if ~ismember(CtrlVar.Inverse.Hessian,CtrlVar.Inverse.HessianOptions)
+    % 
+    %     fprintf("CtrlVar.Inverse.Hessian=%s\n",CtrlVar.Inverse.Hessian)
+    %     fprintf("But must be one of these options:")
+    %     fprintf(" \t %s\n",CtrlVar.Inverse.HessianOptions)
+    %     error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.Hessian does not have a valid value. \n")
+    % 
+    % end
 
     switch CtrlVar.Inverse.MinimisationMethod
 
-        case "-UaOptimization-GradientBased-"
+        case "-UaOptimisation-GradientBased-"
             % Use Riesz-mapped gradient. The Ua conjugate gradient optimizer if provided with the metric-matrix G as an input, and it
             % uses this information to calculate the true directional derivative and all inner products are done with respect to G.
             CtrlVar.Inverse.RieszMapGradient=true;
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
-        case "-MatlabOptimization-GradientBased-"
+        case "-MatlabOptimisation-GradientBased-"
             CtrlVar.Inverse.RieszMapGradient=false;
             % User the Riesz-mapped gradient. But we can NOT feed this gradient directly as described above. The key difference is that
-            % the MATLAB optimization toolbox does not allow for the metric matrix G to be provided as an input.
+            % the MATLAB Optimisation toolbox does not allow for the metric matrix G to be provided as an input.
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=true;
-        case {"-UaOptimization-HessianBased-", "-MatlabOptimization-HessianBased-"}
+        case {"-UaOptimisation-HessianBased-", "-MatlabOptimisation-HessianBased-"}
             % Do NOT use the Riesz-mapped gradient. The Newton system is "metric-free"
             CtrlVar.Inverse.RieszMapGradient=false;
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;

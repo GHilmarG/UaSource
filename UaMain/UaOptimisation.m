@@ -19,13 +19,13 @@ nargoutchk(3,3)
 
 switch CtrlVar.Inverse.MinimisationMethod
 
-    case  "-UaOptimization-HessianBased-"
+    case  "-UaOptimisation-HessianBased-"
 
 
         [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub);
 
 
-    case  "-UaOptimization-GradientBased-"
+    case  "-UaOptimisation-GradientBased-"
 
         if  isempty(plb)  && isempty(pub)
 

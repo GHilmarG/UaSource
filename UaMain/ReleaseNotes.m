@@ -1,6 +1,10 @@
 
 
 %%
+% 
+% *Release Notes* _September 2026_
+%
+% *  UK spelling used for `Optimisation' 
 %
 % *Release Notes* _August 2026_
 %
@@ -188,15 +192,15 @@
 %
 % * SuiteSparse folder deleted, as it is now part of core MATLAB functionality (since R2024a)
 %
-% * MATLAB seems to have been busy working on their optimization functions, and the performance of using
+% * MATLAB seems to have been busy working on their Optimisation functions, and the performance of using
 %
-%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";  
 %
 % now appears improved. This option actually stop working in Matlab 2021b and 2022a, and this may have been due to
 % a bug in the optimisation toolbox. From at least 2024a onward this now works again, and based on some numerical tests,
 % appears much improved. This is currently not the default option, but users might consider setting
 %
-%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";  
 % 
 % in their DefineInitialInputs.m files, to benefit from these improvements. (The old default setting using a Hessian guestimate still works as before.) 
 %

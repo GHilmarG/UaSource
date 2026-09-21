@@ -208,8 +208,9 @@ for Iint=1:MUA.nip
 
     hint=hnod*fun;
     nint=nnod*fun;
-    AGlenInt=AGlennod*fun;
-    AGlenInt(AGlenInt<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    %AGlenInt=AGlennod*fun;
+    %AGlenInt(AGlenInt<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    [AGlenInt,dAeffdA]=SmoothFloor(AGlennod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);
 
 
     exx=zeros(MUA.Nele,1); exy=zeros(MUA.Nele,1);  eyy=zeros(MUA.Nele,1);
@@ -234,6 +235,9 @@ for Iint=1:MUA.nip
 
     CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
     [~,~,~,detadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
+    detadA = detadA.*dAeffdA ;
+
+
     %dEtadA=dEtadA.*hint;
 
 
@@ -309,7 +313,7 @@ dIdA_FD = (b_plus - b_minus)/(2*deltaA);   % length 2*Nnodes: top half -> column
 
 
 %[dIdA_FD dIdA(iNode)]
-Diff=norm(dIdA(iNode) - dIdA_FD)/(dIdA(iNode)+eps);
+Diff=norm(dIdA(iNode) - dIdA_FD)/(abs(dIdA(iNode))+eps);
 fprintf("dIdAq: normalized norm of difference between Direct-Adjoint and FD for node %i is %g \n",iNode,Diff)
 
 

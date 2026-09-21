@@ -6,7 +6,7 @@ function Hessian = BuildInversionHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjo
 % up using a BFSG update.
 %
 % However, for some smaller sized problems the Hessian, or some approximations thereof, can be calculated and returned.
-% 
+%
 % There are currently three options
 %
 % 1) Calculate the Hessian using the direct-adjoint method. This gives a full Hessian and a very exact estimate. This is as
@@ -31,7 +31,7 @@ switch CtrlVar.Inverse.Hessian
 
     case "-Jpp-"
 
-        Hessian=Jpp(CtrlVar,MUA,Meas);
+        Hessian=Jpp(CtrlVar,MUA);
 
     case "-FiniteDifferences-"
 
@@ -45,9 +45,7 @@ switch CtrlVar.Inverse.Hessian
 
     otherwise
 
-        warning("BuildInversionHessian:CaseNotFound","While building inverse Hessian, case was not found. Returning empty matrix")
+        Hessian = CalcDirectAdjointHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y) ;
 
-        Hessian=[];
-end
 
 end

@@ -11,7 +11,7 @@ function stop = optimplotlogfval(~,optimValues,state,varargin)
 %   function
 %     options = optimset('PlotFcns',@optimplotfval);
 %
-%   Pass the options into an optimization problem to view the plot
+%   Pass the options into an Optimisation problem to view the plot
 %     fminbnd(@sin,3,10,options)
 
 %   Copyright 2006-2010 The MathWorks, Inc.

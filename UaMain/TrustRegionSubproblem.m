@@ -38,7 +38,7 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 %
 % The most relevant paper appears to be:  https://digital.library.unt.edu/ark:/67531/metadc283525/m2/1/high_res_d/metadc283525.pdf
 %
-% But the method is also described in section 4.5 of Numerical Optimizations by Jorge Nocedal and Stephen J, Wright
+% But the method is also described in section 4.5 of Numerical Optimisations by Jorge Nocedal and Stephen J, Wright
 %
 % https://www.ccom.ucsd.edu/~peg/papers/trust.pdf
 %

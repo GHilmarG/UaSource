@@ -247,7 +247,7 @@ CtrlVar.RunInfoMessage=RunInfo.Message;
 
 
 F.h=F.s-F.b;
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow); 
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 % pointers to the elements of Boundary.Edges where u and v are fixed
 % Boundary.uFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,ufixednode)')));
@@ -256,7 +256,9 @@ F.h=F.s-F.b;
 % Xint, Yint :  vectors of unique coordinates of integration points
 % [DTxy,TRIxy,DTint,TRIint,Xint,Yint,xint,yint,Iint]=TriangulationNodesIntegrationPoints(MUA);
 
-
+%%
+CtrlVar=SetSmoothFloorWidths(CtrlVar,F); 
+%%
 F0=F;
 
 %% CPU and wall-time RunInfo variables
