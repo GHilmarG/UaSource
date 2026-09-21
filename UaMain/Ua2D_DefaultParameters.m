@@ -482,8 +482,8 @@ CtrlVar.AGlenmax=1e20;
 
 % New fields to make the clipping to min AGlen and min C smooth
 
-CtrlVar.CminWidthRelative     = 1e-4 ;
-CtrlVar.AGlenminWidthRelative = 1e-4 ;
+CtrlVar.CminWidthRelative     = 1e-10 ;
+CtrlVar.AGlenminWidthRelative = 1e-10 ;
 %% Non-linear iteration-loop parameters
 % The non-linear system is considered solved once the residuals are smaller than 
 %
