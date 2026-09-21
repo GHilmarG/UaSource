@@ -4,6 +4,13 @@
 % 
 % *Release Notes* _September 2026_
 %
+% * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.
+% Gradients used in optimisation are Sobolov gradients with respect to a metric defined by the explicit Hessians of the
+% regularization part. Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and
+% simplified. This may possibly require some changes in input files. Box constraints in inversion can be implemented using
+% two-sided variable transform. UaHessinan inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.
+%
+%
 % *  UK spelling used for `Optimisation' 
 %
 % *Release Notes* _August 2026_
