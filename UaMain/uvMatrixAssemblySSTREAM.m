@@ -7,12 +7,12 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 
 
 narginchk(4,4)
+nargoutchk(1,4)
 
-if nargin<5 ; Cache=[] ; end
+
 
 if ~isfield(CtrlVar.uvAssembly,"SkipSymmetrisation") ; CtrlVar.uvAssembly.SkipSymmetrisation=false ; end
 
-nargoutchk(1,4)
 
 
 %%
@@ -493,6 +493,9 @@ if ~isfield(MUA,"uvAssemblyPattern") || isempty(MUA.uvAssemblyPattern)
     CtrlVar.MUA.AssemblyPattern.uv=true;
     CtrlVar.MUA.AssemblyPattern.uvh=false;
     MUA.uvAssemblyPattern=AssemblyPatternCache(CtrlVar,MUA);
+    fprintf("uvMatrixAssemblySSTREAM: A local copy of MUA being created for the assembly pattern.\n") 
+    fprintf("                         This should not fire. Check why this was not done ahead of call. \n")
+    warning("uvMatrixAssemblySSTREAM:UnexpectedCase","Had to locally create assembly pattern in MUA. Check for coding mismatch. ")
 end
 
 Cache= MUA.uvAssemblyPattern;

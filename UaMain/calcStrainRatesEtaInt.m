@@ -77,8 +77,10 @@ for Iint=1:MUA.nip
                 AGlenint(:,Iint)=AGlen;
                 nGlenint(:,Iint)=n;
             else
-                temp=AGlennod*fun;
-                temp(temp<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+                % For higher-order elements AGlen can become negative at integration points, even if AGlen is positive at all nodes.
+                % temp=AGlennod*fun;
+                % temp(temp<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+                temp=SmoothFloor(AGlennod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);  % smooth clipping, must match the forward assembly
                 AGlenint(:,Iint)=temp;
                 nGlenint(:,Iint)=nGlennod*fun;
             end

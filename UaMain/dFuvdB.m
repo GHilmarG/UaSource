@@ -228,8 +228,11 @@ for Iint=1:MUA.nip   % integration points
 
 
 
-    Aint=Anod*fun;
-    Aint(Aint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    % For higher-order elements AGlen can become negative at integration points, even if AGlen is positive at all nodes.
+    % Aint=Anod*fun;
+    % Aint(Aint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    Aint=SmoothFloor(Anod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);  % smooth clipping
+                                                                        % no chain-rule factor needed: A is a coefficient here, B is the differentiation variable
     nint=nnod*fun;
 
     dsdx=zeros(MUA.Nele,1); dhdx=zeros(MUA.Nele,1);

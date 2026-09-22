@@ -133,8 +133,12 @@ for Iint=1:MUA.nip
 
 
 
-    C=Cnod*fun;
-    C(C<C0)=C0;
+    % For higher-order elements, C at integration points can become negative even if C is positive at all nodes.
+    % Note: this used to clip at C0=CtrlVar.Czero, which is the additive regularisation in (C+C0),
+    % not a floor on C.  With the default Czero=0 that clip produced (C+C0)^(-1/m-1)=Inf.
+    % C=Cnod*fun;
+    % C(C<C0)=C0;
+    [C,dCeffdC]=SmoothFloor(Cnod*fun,CtrlVar.Cmin,CtrlVar.CminWidth);  % smooth clipping
 
     m=mnod*fun;
 
@@ -156,8 +160,10 @@ for Iint=1:MUA.nip
     dvcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + u0^2).^((1-m)./(2.*m)-1) .*v.*v + (u.^2+v.^2 + u0^2).^((1-m)./(2.*m))  ) ;
 
 
-    l_d2FdudC=Psix.*ducFx+Psiy.*ducFy;  
-    l_d2FdvdC=Psix.*dvcFx+Psiy.*dvcFy;
+    % one factor of dCeff/dC: these are mixed second derivatives, with exactly one
+    % derivative taken with respect to C and one with respect to u or v
+    l_d2FdudC=(Psix.*ducFx+Psiy.*ducFy).*dCeffdC;
+    l_d2FdvdC=(Psix.*dvcFx+Psiy.*dvcFy).*dCeffdC;
 
     %% Testing
     % u_e=sqrt(u.*u + v.*v+u0^2) ;

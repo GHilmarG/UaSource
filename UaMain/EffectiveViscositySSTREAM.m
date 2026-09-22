@@ -7,7 +7,7 @@ nargoutchk(1,5)
 
 
 if nargout==1
-    % if the number of output arguments is only 2, then clearly there is not need to calculate any derivatives
+    % if the number of output arguments is only 1, then clearly there is not need to calculate any derivatives
 
     CtrlVar.EffectiveViscosity.CalculateDerivatives=false;
 

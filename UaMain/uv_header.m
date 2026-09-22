@@ -42,7 +42,7 @@
 %
 % Additionally we have the vertically integrated equation of the conservation of mass which we write as 
 %
-% $$ \rho \partial_t h + \partial_x ( \rho h u) + \partial_y (\rho h v) = \rho a $$
+% $$ \mathcal{F}^h = \rho \partial_t h + \partial_x ( \rho h u) + \partial_y (\rho h v) - \rho a =0 $$
 %
 % Generally the forward problem is non-linear with respect to the variables $u$ and  $v$. This is because 
 % $\eta$ (the effective viscosity), $\beta^2$ (the basal traction coefficient), and $\mathcal{G}$ (the flotation mask) can be functions of $u$, $v$
@@ -57,10 +57,41 @@
 % $$\mathcal{G}=\mathcal{G}(h) $$
 %
 %
-% The $uv$ forward problem is solving the equations above for $u$ and $v$. 
+% The $uv$ forward problem is solving the equations 
+% 
+% $$ \mathcal{F}^x = 0 $$
+% 
+% $$\mathcal{F}^y  = 0 $$ 
 %
-% The inverse problem is selecting one or more of $A$, $B$ and $C$ given measurements of $u$ and $v$, while respecting any
+% for $u$ and $v$, given $h$, $S$, $B$ and $\rho$, $\rho_o$, $g$, $\alpha$ as well as any material parameters entering
+% the expression for the effective viscosity, and the basal sliding law parameters entering the expression for $\beta^2$.
+%
+% The $uvh$ forward problem is solving the equations for 
+%
+% $$ \mathcal{F}^x = 0 $$
+% 
+% $$\mathcal{F}^y  = 0 $$ 
+%
+% $$\mathcal{F}^h =0 $$
+%
+% for $u$, $v$ and $h$, given $S$, $B$ and $\rho$, $\rho_o$, $g$, $\alpha$ as well as any material parameters entering
+% the expression for the effective viscosity, and the basal sliding law parameters entering the expression for $\beta^2$.
+%
+%
+% The inverse problem is selecting one or more of $A$, $B$ and $C$ given measurements of $u$ and $v$, and $\partial_t h$ while respecting any
 % other direct/prior information about $A$, $B$ and $C$. 
+%
+% For the inversion problem, the forward problem are the two momentum equations, i.e. 
+%
+% 
+% $$ \mathcal{F}^x = 0 $$
+% 
+% $$\mathcal{F}^y  = 0 $$ 
+%
+%
+% Even when we have measurements of $\partial_t h$, we do NOT include the mass-conservation equation  $$\mathcal{F}^h =0 $$
+% as part of the forward model. Rather, we include this misfit term directly in the cost function, $J$, that we minimize. 
+%
 %
 % Solving the inverse problem can be expressed as a minimization problem were we minimize a scalar function $J$ with respect
 % to the model parameters $p$ where $p$ can be one or more of $A$, $B$ and $C$. 
@@ -86,6 +117,18 @@
 % 
 % $$\mathcal{L} = J(p(q),p) + \langle \Psi_x \vert \mathcal{F}^x \rangle + \langle \Psi_y \vert \mathcal{F}^y \rangle $$
 %
+%
+%% Floating relationships
+%
+% Where the ice is afloat:
+%
+% $$\rho g \, (s-b)  = \rho_o g \, (S-b), $$
+%
+% $$b=\frac{1}{1-(1-\mathcal{G}) \rho/\rho_o} \left ( \mathcal{G} B + (1-\mathcal{G}) ( S - \rho s/\rho_o ) \right ) $$
+%
+% $$h= s-\frac{1}{1-(1-\mathcal{G}) \rho/\rho_o} \left ( \mathcal{G} B + (1-\mathcal{G}) ( S - \rho s/\rho_o ) \right ) $$
+%
+% However, the expression of $h$ is NOT explicit, because $\mathcal{G}$ depends on $h$.
 %
 %% Definitions:
 %

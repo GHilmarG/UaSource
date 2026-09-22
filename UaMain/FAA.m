@@ -10,7 +10,7 @@ narginchk(7,7)
 %                          + \langle \Psi_y \mid \delta^2_{\hat{A}\hat{A}} \mathcal{F}_y[\phi_l,\phi_m] \rangle
 % $$
 %
-% See FAA.m for the full documentation of the method and the log10
+% See also FCC.m for the full documentation of the method and the log10
 % conversion.
 %
 % The element contribution is
@@ -43,6 +43,8 @@ Psi_y_node=reshape(Psi_y(MUA.connectivity,1),Nele,nod);
 W=zeros(Nele,nip);          % integration-point weights
 P=zeros(nip,nod*nod);       % outer products of the shape functions
 
+CtrlVar.EffectiveViscosity.CalculateDerivatives=false;
+
 for Iint=1:nip
 
     fun=shape_fun(Iint,ndim,nod,MUA.points) ;
@@ -57,8 +59,9 @@ for Iint=1:nip
     h=h_node*fun;
 
     n=n_node*fun;
-    A=A_node*fun;
-    A(A<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    % A=A_node*fun;
+    %A(A<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    [A,dAeffdA,d2AeffdAdA]=SmoothFloor(A_node*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);
 
     dudx=sum(Dx.*u_node,2);
     dudy=sum(Dy.*u_node,2);
@@ -74,7 +77,9 @@ for Iint=1:nip
     eyy=dvdy;
     exy=0.5*(dudy+dvdx);
 
-    [~,~,~,~,d2etadAdA]=EffectiveViscositySSTREAM(CtrlVar,A,n,exx,eyy,exy);
+  %  [~,~,~,~,d2etadAdA]=EffectiveViscositySSTREAM(CtrlVar,A,n,exx,eyy,exy);
+    [~,~,~,detadA,d2etadAdA]=EffectiveViscositySSTREAM(CtrlVar,A,n,exx,eyy,exy);
+    d2etadAdA = d2etadAdA.*dAeffdA.^2 + detadA.*d2AeffdAdA ;
 
     Temp=h.*( (4*exx+2*eyy).*dPsi_x_dx + 2*exy.*dPsi_x_dy + (4*eyy+2*exx).*dPsi_y_dy + 2*exy.*dPsi_y_dx);
 
