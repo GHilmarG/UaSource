@@ -73,12 +73,16 @@ for Iint=1:MUA.nip
     Psi_y_int=Psi_ynod*fun;
 
     n=nnod*fun;
-    A=AGlennod*fun;
-    A(A<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    % For higher-order elements AGlen can become negative at integration points, even if AGlen is positive at all nodes.
+    % A=AGlennod*fun;
+    % A(A<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    A=SmoothFloor(AGlennod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);  % smooth clipping, no chain rule: q is the differentiation variable here
 
     m=mnod*fun;
-    C=Cnod*fun;
-    C(C<CtrlVar.Cmin)=CtrlVar.Cmin;
+    % For higher-order elements, Cint can become negative even if Cnod is positive at all nodes.
+    % C=Cnod*fun;
+    % C(C<CtrlVar.Cmin)=CtrlVar.Cmin;
+    C=SmoothFloor(Cnod*fun,CtrlVar.Cmin,CtrlVar.CminWidth);  % smooth clipping, no chain rule: q is the differentiation variable here
 
     rho=rhonod*fun;
 

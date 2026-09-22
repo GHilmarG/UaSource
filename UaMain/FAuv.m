@@ -27,13 +27,6 @@ if ~contains(CtrlVar.Inverse.InvertFor,"logAGlen",IgnoreCase=true)
     return
 end
 
-
-if CtrlVar.SlidingLaw~="Weertman"
-
-    error("FAuv:NotImplemented","only implemented for Weertman sliding law.")
-
-end
-
 ndim=2;
 nNodes=MUA.Nnodes ;
 
@@ -53,8 +46,8 @@ Psi_ynod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Hu=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Hv=zeros(MUA.Nele,MUA.nod,MUA.nod);
 
-Eps0=CtrlVar.EpsZero; 
-eta0=CtrlVar.etaZero ; 
+CtrlVar.EffectiveViscosity.CalculateDerivatives=true;   % both E and detadA are needed inside the loop below 
+% eta0 no longer needed here, eta itself is not used 
 
 for Iint=1:MUA.nip
 
@@ -64,8 +57,10 @@ for Iint=1:MUA.nip
 
     h=hnod*fun;
     n=nnod*fun;
-    A=AGlennod*fun;
-    A(A<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    % For higher-order elements AGlen can become negative at integration points, even if AGlen is positive at all nodes.
+    % A=AGlennod*fun;
+    % A(A<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    [A,dAeffdA]=SmoothFloor(AGlennod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);  % smooth clipping
 
     dudx=zeros(MUA.Nele,1);
     dudy=zeros(MUA.Nele,1);
@@ -98,9 +93,11 @@ for Iint=1:MUA.nip
   
     %eEff=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
    
-    eEff = sqrt((dudx).^2+(dvdy).^2+dudx .* dvdy+0.25.*(dvdx+dudy).^2+Eps0.^2);
+    exx=dudx ; eyy=dvdy ; exy=0.5*(dudy+dvdx) ;
+    [~,E,~,detadA]=EffectiveViscositySSTREAM(CtrlVar,A,n,exx,eyy,exy);
+    % eEff = sqrt((dudx).^2+(dvdy).^2+dudx .* dvdy+0.25.*(dvdx+dudy).^2+Eps0.^2);
     
-    eta=real(0.5*A.^(-1./n).*eEff.^((1-n)./n))+eta0 ; 
+    % eta=real(0.5*A.^(-1./n).*eEff.^((1-n)./n))+eta0 ; 
 
 
     E1_uv = 4.*dudx+2.*dvdy;
@@ -111,9 +108,13 @@ for Iint=1:MUA.nip
     E2_PsixPsiy = dPsixdy+dPsiydx;
     F1_PsixPsiy = 4.*dPsiydy+2.*dPsixdx;
 
-    % RAW (A-space, no log/A-scaling) building blocks -- Stilde is exactly EffectiveViscositySSTREAM's detadA
-    Stilde = -A.^(-1./n-1) .* eEff.^((1-n)./n) ./ (2*n);
-    Rtilde = -(1-n) ./ (8*n.^2) .* A.^(-1./n-1) .* eEff.^((1-3*n)./n);
+    % RAW (A-space, no log/A-scaling) building blocks.
+    % Stilde is exactly EffectiveViscositySSTREAM's detadA, and Rtilde = -E./(2*n.*A) exactly.
+    % Both carry exactly one derivative with respect to A, hence one factor of dAeffdA each.
+    % Stilde = -A.^(-1./n-1) .* eEff.^((1-n)./n) ./ (2*n);
+    % Rtilde = -(1-n) ./ (8*n.^2) .* A.^(-1./n-1) .* eEff.^((1-3*n)./n);
+    Stilde = detadA.*dAeffdA ;
+    Rtilde = -E./(2*n.*A).*dAeffdA ;
 
     Theta = E1_uv.*dPsixdx + E2_uv.*dPsixdy + F1_uv.*dPsiydy + E2_uv.*dPsiydx;
 

@@ -57,7 +57,9 @@ for Iint=1:nip
     v=v_node*fun;     % v velocity at integration point
     u_e=sqrt(u.*u + v.*v+u0^2) ;
 
-    C=C_node*fun;
+    % For higher-order elements, C at integration points can become negative even if C is positive at all nodes.
+    % C=C_node*fun;
+    [C,dCeffdC,d2CeffdCdC]=SmoothFloor(C_node*fun,CtrlVar.Cmin,CtrlVar.CminWidth);  % smooth clipping
     m=m_node*fun;
 
     Psix=Psi_x_node*fun;
@@ -70,7 +72,16 @@ for Iint=1:nip
     CC=C+C0;
     tBeta=(u_e./CC).^(1./m);
 
-    d2fdxdx=G.*((1+m)./m.^2).*tBeta./(CC.^2.*u_e).*(Psix.*u+Psiy.*v);
+    % first and second derivatives of (G beta^2) with respect to Ceff
+    dGbeta2dC   = -G.*(1./m).*tBeta./(CC.*u_e);
+    d2Gbeta2dCC =  G.*((1+m)./m.^2).*tBeta./(CC.^2.*u_e);
+
+    % chain rule for the smooth floor: Ceff=Ceff(C), so the second derivative with
+    % respect to the nodal C picks up both (dCeff/dC)^2 and d2Ceff/dC2 terms
+    Kernel = d2Gbeta2dCC.*dCeffdC.^2 + dGbeta2dC.*d2CeffdCdC ;
+
+    % d2fdxdx=G.*((1+m)./m.^2).*tBeta./(CC.^2.*u_e).*(Psix.*u+Psiy.*v);
+    d2fdxdx=Kernel.*(Psix.*u+Psiy.*v);
 
     detJw=detJ*MUA.weights(Iint);
 

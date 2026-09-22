@@ -274,8 +274,6 @@ if CtrlVar.Inverse.CalcGradI
 
 
                 dBFuvLambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dhdp,dbdp,dBdp);
-                %   dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
-                %dBFuvLambda=dBFuvLambda2;
 
 
                 dBI=dhdp.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.

@@ -19,7 +19,7 @@ narginchk(7,7)
 %
 % $$ \langle  \partial_C F^x \phi_i | \phi_j \rangle \, \Psi_{x,j} + \langle  \partial_{C} F^y \phi_i| \phi_j \rangle \, \Psi_{y,h}  $$
 %
-% We do not calculated the matrices 
+% We do not calculate the matrices 
 %
 % $$ \langle  \partial_C F^x \phi_i | \phi_j \rangle  $$
 % 
@@ -385,7 +385,7 @@ F.C=C0;
 dIdC_FD = (b_plus - b_minus)/(2*deltaC);   % length 2*Nnodes: top half -> column of F^{qq}_{uu}, bottom half -> column of F^{qq}_{vu}
 
 %% there is a sign mistake which I have started to carry through the code (must correct this properly one day)
-%dIdC_FD=-dIdC_FD ; % need to correct for wrong sign...
+%  This has now been corrected and verified! (21/09/2026)
 
 
 %[dIdC_FD dIdC(iNode)]

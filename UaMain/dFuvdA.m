@@ -57,6 +57,10 @@ function K=dFuvdA(CtrlVar,MUA,F)
 %%
 
 
+if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
+    CtrlVar=SetSmoothFloorWidths(CtrlVar,F);
+end
+
 ndim=2; 
 nNodes=MUA.Nnodes ;
 
@@ -74,6 +78,7 @@ if isempty(MUA.Deriv)
     [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
 end
 
+CtrlVar.EffectiveViscosity.CalculateDerivatives=false;  
 
 for Iint=1:MUA.nip
 
@@ -83,8 +88,10 @@ for Iint=1:MUA.nip
 
     hint=hnod*fun;
 
-    Aint=Anod*fun;
-    Aint(Aint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    %Aint=Anod*fun;
+    %Aint(Aint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    [Aint,dAeffdA]=SmoothFloor(Anod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);
+
     nint=nnod*fun;
  
     exx=zeros(MUA.Nele,1);
@@ -98,10 +105,9 @@ for Iint=1:MUA.nip
         exy=exy+0.5*(Deriv(:,1,Inod).*vbnod(:,Inod) + Deriv(:,2,Inod).*ubnod(:,Inod));
 
     end
-
-
+  
     [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,Aint,nint,exx,eyy,exy) ;
-
+    dEtadA=dEtadA.*dAeffdA ;
 
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod

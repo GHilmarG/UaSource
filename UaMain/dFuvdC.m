@@ -4,8 +4,6 @@ function KdFuvdC=dFuvdC(CtrlVar,MUA,F)
 
 %%
 %
-% Note: 
-% There is a sign issue here, actually this has the incorrect sign, but this is dealt with later in the solve... (sign issue)
 %
 %
 % assembles the matrix K which is the FE form of
@@ -102,7 +100,9 @@ for Iint=1:MUA.nip
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-    Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    % For higher-order elements, Cint can become negative even if Cnod is positive at all nodes.
+    % Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    [Cint,dCeffdC]=SmoothFloor(Cnod*fun,CtrlVar.Cmin,CtrlVar.CminWidth);  % smooth clipping
     mint=mnod*fun;
     qint=qnod*fun;
     mukint=muknod*fun;
@@ -120,6 +120,8 @@ for Iint=1:MUA.nip
     dtaudC= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
+
+    dtaudC = dtaudC.*dCeffdC ;   % chain rule from the smooth floor: dCeff/dC, taking dtaudC from Ceff to nodal C
 
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
