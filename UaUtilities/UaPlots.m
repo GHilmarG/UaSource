@@ -146,6 +146,14 @@ else
 end
 %%
 
+if isempty(CtrlVar)
+    CtrlVar=struct;
+    CtrlVar.VelColorMap=jet(100) ;
+end
+
+
+%%
+
 lg=[]; % this will be a handle to the legend (if created).
 %%
 
