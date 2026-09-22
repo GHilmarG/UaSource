@@ -8,7 +8,10 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 
 %%  Provides cost function and derivatives with respect to $u$, $v$, and $h$, of the cost function term involving $\dot{h}$
 %
-% $$J_{\dot{h}} = \| \dot{h} - \hat{\dot{h}} \| $$
+% 
+%
+% $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left  ( \frac{\dot{h} - \hat{\dot{h}}}{\dot{h}_{err}}  \right )^2 \; dx \, dy $$ 
+%
 %
 % where
 %
@@ -24,9 +27,9 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 %
 % and
 %
-% $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left  ( \frac{\dot{h} - \hat{\dot{h}}}{h_{err}}  \right )^2 \; dx \, dy $$ 
+% $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left  ( \frac{\dot{h} - \hat{\dot{h}}}{\dot{h}_{err}}  \right )^2 \; dx \, dy $$ 
 %
-% $$ \delta_u J_{\dot{h}} = \frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{h_{err}^2}  \, \delta_u \dot{h} \; dx \, dy $$ 
+% $$ \delta_u J_{\dot{h}} = \frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{\dot{h}_{err}^2}  \, \delta_u \dot{h} \; dx \, dy $$ 
 %
 % For
 %
@@ -43,34 +46,34 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 %
 % $$ \delta_u \dot{h} = -\frac{1}{\rho} \partial_x ( \rho \, h \, \delta u )  $$
 %
-% $$ \delta_v \dot{h} = -\frac{1}{\rho} \partial_x ( \rho \, h \, \delta v )  $$
+% $$ \delta_v \dot{h} = -\frac{1}{\rho} \partial_y ( \rho \, h \, \delta v )  $$
 %
-% $$ \delta_h \dot{h} = -\frac{1}{\rho} \partial_x ( \rho \, u \delta h + \rho \, v \, \delta h)  $$
+% $$ \delta_h \dot{h} = -\frac{1}{\rho} (\partial_x ( \rho \, u \delta h ) + \partial_y ( \rho \, v \, \delta h) ) $$
 %
 % And therefore
 %
-% $$ \delta_u J_{\dot{h}} = -\frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{h_{err}^2}  \, \frac{1}{\rho} \partial_x ( \rho \, h \, \delta u )  \; dx \, dy $$ 
+% $$ \delta_u J_{\dot{h}} = -\frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{\dot{h}_{err}^2}  \, \frac{1}{\rho} \partial_x ( \rho \, h \, \delta u )  \; dx \, dy $$ 
 %
 %
 %
-%
-% $$
-% r = \dot h_{obs} - a 
-% + \left(\partial_x h+\frac{h}{\rho}\partial_x\rho\right)u + h\,\partial_x u 
-% + \left(\partial_y h+\frac{h}{\rho}\partial_y\rho\right)v + h\,\partial_y v 
-% $$
+% $$ R = \frac{\dot{h} - \dot{h}_{obs}}{\dot{h}_{err}} $$ 
 %
 % $$
 % \delta_uJ_{\dot h}[\phi_i] = 
-% \frac{1}{\mathcal A}\int r\,\epsilon_{\dot h}^{-2}\left[\left(\partial_xh+\frac{h}{\rho}\partial_x\rho\right)\phi_i +
+% -\frac{1}{\mathcal A}\int R\,\dot{h}_{err}^{-1}\left[\left(\partial_xh+\frac{h}{\rho}\partial_x\rho\right)\phi_i +
 % h\,\partial_x\phi_i\right] dx\,dy 
 % $$
 %
 %
 % $$ \delta_vJ_{\dot h}[\phi_i] = 
-% \frac{1}{\mathcal A}\int r\,\epsilon_{\dot h}^{-2}\left[\left(\partial_yh+\frac{h}{\rho}\partial_y\rho\right)\phi_i + h\,\partial_y\phi_i\right]dx\,dy$$
+% -\frac{1}{\mathcal A}\int R\,\dot{h}_{err}^{-1}\left[\left(\partial_yh+\frac{h}{\rho}\partial_y\rho\right)\phi_i + h\,\partial_y\phi_i\right]dx\,dy$$
 %
 % see also: dhdtExplicit.m
+%
+% Assumptions: It is here assumed that $a=a_b+a_s$ are independent of $u$, $v$, and $h$. For if, for example, the basal
+% melt-rate were to be described as a function of draft, that case would not be correctly treated..
+%
+%
 %
 %%
 
@@ -83,7 +86,7 @@ unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
+%[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
 
 
 
@@ -154,7 +157,7 @@ for Iint=1:MUA.nip
     detJw=detJ*MUA.weights(Iint);
     
   
-    JhdotIntSum=JhdotIntSum+((hdot-hdotMeasint)./hdotErrInt).^2 .*detJw/2/Area; 
+    JhdotIntSum=JhdotIntSum+R.^2 .*detJw/2/Area; 
     
     for Inod=1:MUA.nod
         

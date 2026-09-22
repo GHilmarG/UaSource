@@ -399,6 +399,7 @@ if CtrlVar.InverseRun
 
     end
 
+    CtrlVar.Inverse.MinimisationMethod=replace(CtrlVar.Inverse.MinimisationMethod,"Optimization","Optimisation") ; % US -> UK spelling!
     CtrlVar.Inverse.MinimisationMethod="-"+ CtrlVar.Inverse.MinimisationMethod+"-"; 
     CtrlVar.Inverse.MinimisationMethod=replace(CtrlVar.Inverse.MinimisationMethod,"--","-");
 

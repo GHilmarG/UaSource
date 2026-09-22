@@ -193,18 +193,18 @@ if CtrlVar.Inverse.CalcGradI
             MLC_Adjoint=BCs2MLC(CtrlVar,MUA,BCsAdjoint);
             LAdjoint=MLC_Adjoint.ubvbL;
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
-            lAdjoint=zeros(numel(LAdjointrhs),1) ;
+            lPsi=zeros(numel(LAdjointrhs),1) ;
 
-            %duvJ=duvIduv;     % Because this is the only J term that depends on (u,v).
+      
             RHS_Adjoint=-duvIduv;
             % If the regularization term also depended on the measurements q, ie R=R(u,v) then this would not be correct.
 
             % Now solve the linear adjoint problem for lambda
-            [lambda,lAdjoint]=solveKApeSymmetric(dFduv,LAdjoint,RHS_Adjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
+            [Psi,lPsi]=solveKApeSymmetric(dFduv,LAdjoint,RHS_Adjoint,LAdjointrhs,[],lPsi,CtrlVar);
 
 
-            Psi_x=real(lambda(1:MUA.Nnodes)) ;
-            Psi_y=real(lambda(MUA.Nnodes+1:2*MUA.Nnodes));
+            Psi_x=real(Psi(1:MUA.Nnodes)) ;
+            Psi_y=real(Psi(MUA.Nnodes+1:2*MUA.Nnodes));
 
          
 
@@ -222,14 +222,14 @@ if CtrlVar.Inverse.CalcGradI
             if isC
 
                 % $$ \langle  \delta_{C_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{C_i} F^y \phi_i| \Psi_y \rangle $$
-                dCFuvLambda=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+                dIdC_implicit=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
-                dCI=0 ;      % This is the explicit derivative of the misfit term, I, with respect to C. There is no such dependency here
+                dIdC_explicit=0 ;      % This is the explicit derivative of the misfit term, I, with respect to C. There is no such dependency here
                 % as the misfit term I is not an explicit function of C, so this equals to zero.
                 % Note, that there is an explicit dependency on C in the regularization term, but this is added elsewhere (in the
                 % Regularisation.m function)
 
-                DCI=dCFuvLambda+dCI;  % this is the part of the dI/dC derivative which is due to the implicit dependency
+                DCI=dIdC_implicit+dIdC_explicit;  % this is the part of the dI/dC derivative which is due to the implicit dependency
                 % of I on C because the velocities depend on C,
 
             end
@@ -237,62 +237,26 @@ if CtrlVar.Inverse.CalcGradI
             if isA
 
 
-                dAFuvLambda=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
+                dIdA_implicit=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
-                dAI=0 ; % No explicit dependency of the misfit term I on A.
+                dIdA_explicit=0 ; % No explicit dependency of the misfit term I on A.
 
-                DAI=dAFuvLambda+dAI;
+                DAI=dIdA_implicit+dIdA_explicit;
             end
 
 
             if isB
 
-                OnlyGrounded=true;
+            
+                %dIdB_old=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dhdp,dbdp,dBdp);
+                dIdB_implicit=dIdBqGeneral(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ; 
 
+                [~,dhdB]=dGeometrydB(CtrlVar,F.s,F.S,F.B,F.b,F.rho,F.rhow);
+             
+                dIdB_explicit=dhdB.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.
 
-                if OnlyGrounded
-                    %  p= B ;
-
-                    dBdp=  1+zeros(MUA.Nnodes,1);
-                    dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
-                    dhdp= -F.GF.node ;
-
-                else
-
-                    %  p= B ;
-                    dBdp=  F.GF.node ; %
-                    dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
-                    dhdp= -F.GF.node ;
-
-
-
-                end
-
-                % dIdB= dhF^* \lambda + dhJ
-                % if only -dhdt- meas and no regularization
-                % then dJdB=dh/db*dhJhdot
-
-
-                dBFuvLambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dhdp,dbdp,dBdp);
-
-
-                dBI=dhdp.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.
-
-               % dBI=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dBI); 
-               % added 7 Jan 2025, 
-               % removed 9 Sept 2026, as now done for the whole gradient below
-
-                DBI=dBFuvLambda+dBI;
-                %
-                % if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
-                %     F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
-                %     DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
-                % end
-                %
-
-                % UaPlots(CtrlVar,MUA,F,dBFuvLambda,FigureTitle="dBFuvLambda")
-                % UaPlots(CtrlVar,MUA,F,dBI,FigureTitle="dBI") ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
-
+                DBI=dIdB_implicit+dIdB_explicit;
+            
             end
 
 

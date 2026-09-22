@@ -122,7 +122,7 @@ end
 % The cost function, J), is split into a misfit (I) and a regularization term (R). These usually consist of further
 % terms.
 %
-% Get the I and R terms, and the gradients if required.
+% Get the I and R terms, and the gradients if required. The Hessian is calculated later.
 
 
 [R,dRdp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
@@ -207,7 +207,7 @@ end
 J=full(R+I);
 
 if J < 0
-    fprintf("J less that zero!! \n")
+    fprintf("J less than zero!! \n")
 end
 
 
