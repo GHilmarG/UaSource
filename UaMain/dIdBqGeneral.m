@@ -304,8 +304,10 @@ end
 
 function FiniteDifferenceTestAndPlots(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dIdB)  %#ok<INUSD>
 
-nTests=1; 
+nTests=150; 
 iNodeVector=randi(MUA.Nnodes,1,nTests);
+dIdB_vector=nan(nTests,1);
+dIdB_FD_vector=nan(nTests,1);
 
 B0=F.B;
 
@@ -338,8 +340,33 @@ for iTest=1:numel(iNodeVector)
 
     dIdB_FD = (b_plus - b_minus)/(2*dB);
 
-    Diff=norm(dIdB(iNode) - dIdB_FD)/(abs(dIdB(iNode))+eps);
+    dIdB_FD_vector(iTest)= dIdB_FD;
+    dIdB_vector(iTest)=dIdB(iNode);
 
-    fprintf("dIdBqGeneral: normalized norm of difference between Direct-Adjoint and FD for node %i is %g \n",iNode,Diff)
+    Diff=norm(dIdB(iNode) - dIdB_FD)/(abs(dIdB(iNode))+eps);
+    if nTests<2
+        fprintf("dIdBqGeneral: normalized norm of difference between Direct-Adjoint and FD for node %i is %g \n",iNode,Diff)
+    end
 end
+
+if nTests>2
+
+    figdIDB=FindOrCreateFigure("Test:dIdB") ; clf(figdIDB)
+
+
+    fig_dIdBTest=FindOrCreateFigure("Test dIdB") ; clf(fig_dIdBTest)
+    plot(dIdB_FD_vector,dIdB_vector,"or") 
+    axis equal
+    hold on ;
+    plot([min(dIdB_vector) max(dIdB_vector)],[min(dIdB_vector) max(dIdB_vector)],"--k")
+    ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
+    xlabel("$\langle  \delta_{B_i} F^x \phi_i | \Psi_x \rangle  $",Interpreter="latex")  ;
+    ylabel("Finite differences",Interpreter="latex")
+    title("$ \langle  \delta_{B_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{B_i} F^y \phi_i| \Psi_y \rangle $",Interpreter="latex")
+    subtitle(sprintf("Normalized diff %g",Diff),Interpreter="latex")
+
+    
+
+end
+
 end

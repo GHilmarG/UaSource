@@ -232,6 +232,22 @@ if isB
 
     end
 
+
+
+    Ind=(Meas.s-F.S) < CtrlVar.ThickMin;
+
+    if any(Ind)
+
+        fprintf("\n Measurements of s, Meas.s,  were in places below the or too close to the ocean surface, S: (Meas.s-F.S) < CtrlVar.ThickMin) \n")
+        fprintf(" Measurements of s are shifted to make sure they are above the ocean surface elevation. \n")
+        Meas.s(Ind)=F.S(Ind)-1.1*CtrlVar.ThickMin;
+
+    end
+
+
+
+
+
     if ~isempty(Meas.Bobs)
 
         [Meas.BO,Meas.BInside,Meas.BEleID]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By) ;

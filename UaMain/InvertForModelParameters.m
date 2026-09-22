@@ -285,7 +285,7 @@ if CtrlVar.Inverse.BoxTransform
     CtrlVarBox.Inverse.BoxTransform=false ;
     CtrlVarBox.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;
 
-    [pPhysical,BoxLower,BoxUpper]=F2p(CtrlVarBox,MUA,F) ;
+    [pPhysical,BoxLower,BoxUpper]=F2p(CtrlVarBox,MUA,F,Meas) ;
 
     if isempty(BoxLower) || isempty(BoxUpper)
         error('InvertForModelParameters:NoBox',...
@@ -323,7 +323,7 @@ if CtrlVar.Inverse.BoxTransform
 
 end
 
-[p0,plb,pub]=F2p(CtrlVar,MUA,F);
+[p0,plb,pub]=F2p(CtrlVar,MUA,F,Meas);
 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;

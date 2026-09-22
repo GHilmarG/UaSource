@@ -135,7 +135,24 @@ if isB
     % therefore calculate F.b over the floating areas from F.s using the floating relationship.
 
     % Possibly better to just do this within the assembly loop
+    %%
+    CtrlVar.MapOldToNew.Test=false;
     [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow); %
+    % 
+    % G=F.GF.node;  Res=F.b - G.*F.B - (1-G).*(F.rho.*F.s-F.rhow.*F.S)./(F.rho-F.rhow) ;
+    % UaPlots(CtrlVar,MUA,F,Res,FigureTitle="Res")
+    % title("$b-\mathcal{G} B - (1-\mathcal{G}) ( \rho s -\rho_w S)/(\rho-\rho_w)$",Interpreter="latex")
+    % subtitle("")
+    % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    % 
+    % UaPlots(CtrlVar,MUA,F,F.h,FigureTitle="-h-") ;
+    % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    % title("Thickness distribution ($h$)",Interpreter="latex") ; subtitle("")
+
+    if any(F.h<0)
+        error("h less than zero")
+    end
+    %%
 
     % This should not really be needed because I define this right at the start of the inversion and this never changes
     F.as=Meas.as ;
