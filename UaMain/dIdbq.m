@@ -4,6 +4,9 @@
 function dFdhlambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dhdp,dbdp,dBdp)
         
 
+
+error("do not use, use dIdBqGeneral instead")
+
 %% Calculates the vector quantity:
 %
 %

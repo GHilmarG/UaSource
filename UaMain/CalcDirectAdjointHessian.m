@@ -119,7 +119,7 @@ end
 %% sensitivity matrix, \xi = \partial q / \partial p   % tested
 if Sensitivites
 
-    [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs);
+    [KdudA,KdvdA,KddothdA,KdudB,KdvdB,KddothdB,KdudC,KdvdC,KdothdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs);
     xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ;
 else
     xi=[];
