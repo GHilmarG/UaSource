@@ -162,9 +162,6 @@ function K=dFuvdB(CtrlVar,MUA,F)
 
 %%
 
-if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
-    CtrlVar=SetSmoothFloorWidths(CtrlVar,F);
-end
 
 ndim=2;
 nNodes=MUA.Nnodes ;

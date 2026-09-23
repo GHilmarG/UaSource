@@ -227,7 +227,6 @@ g=F.g;
 
 %Nnodes=max(connectivity(:)); [Nele,nod]=size(connectivity);
 ndim=2; dof=2; neq=dof*MUA.Nnodes;
-neqx=MUA.Nnodes ;
 
 %[b,s]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar);
 
@@ -375,17 +374,9 @@ for Iint=1:MUA.nip
     Sint=Snod*fun;
     Hint=Sint-Bint;
 
-    if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
+    hint=hnod*fun;
+    bint=sint-hint; %#ok<NASGU>
 
-        bint=Bint ;     %#ok<NASGU> % ~OK, except when grounded
-        hint=sint-Bint; % OK
-
-    else    % CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
-
-        hint=hnod*fun;
-        bint=sint-hint; %#ok<NASGU>
-
-    end
 
     rhoint=rhonod*fun;
 
@@ -405,25 +396,21 @@ for Iint=1:MUA.nip
 
     dsdx=sum(Dx.*snod,2);   dsdy=sum(Dy.*snod,2);
     dhdx=sum(Dx.*hnod,2);   dhdy=sum(Dy.*hnod,2);
-    dBdx=sum(Dx.*Bnod,2);   dBdy=sum(Dy.*Bnod,2);
 
     exx=sum(Dx.*ubnod,2);
     eyy=sum(Dy.*vbnod,2);
     exy=0.5*(sum(Dx.*vbnod,2)+sum(Dy.*ubnod,2));
-  
+
     [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = ...
         BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
-    
-    
+
+
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
-    if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
-        dbdx=dBdx;  % only OK if grounded
-        dbdy=dBdy;
-    else
-        dbdx=dsdx-dhdx;
-        dbdy=dsdy-dhdy;
-    end
+
+    dbdx=dsdx-dhdx;
+    dbdy=dsdy-dhdy;
+
 
     detJw=detJ*MUA.weights(Iint);
 

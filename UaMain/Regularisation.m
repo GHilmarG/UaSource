@@ -283,12 +283,12 @@ if isB
 
     if ~isempty(Meas.Bobs)
         %% B misfit with respect to direct observations of B
-        [JBobs,dJdBobs] = BobsMisfit(Meas,F);
+        [JBobs,dJBobsdB] = BobsMisfit(CtrlVar,Meas,F);
 
 
 
         RB=RB+JBobs;
-        dRdB=dRdB+dJdBobs;
+        dRdB=dRdB+dJBobsdB;
 
     end
 
@@ -322,7 +322,9 @@ end
 
 end
 
-function [JBobs,dJdBobs] = BobsMisfit(Meas,F)
+function [JBobs,dJBobsdB] = BobsMisfit(CtrlVar,Meas,F)
+
+narginchk(3,3)
 
 Inside=Meas.BInside;
 O=Meas.BO(Inside,:);
@@ -338,7 +340,32 @@ iSigma=sparse(1:nMeas,1:nMeas,1./BErr.^2,nMeas,nMeas);
 JBobs = BRes' * iSigma * BRes/ 2;
 
 if nargout ==2
-    dJdBobs = O' * iSigma * BRes;
+    dJBobsdB = O' * iSigma * BRes;
 end
 
+%% Finite difference test
+if CtrlVar.Inverse.TestDirectAdjoint.isTrue
+
+    %%
+    % It is difficult to see how this could be wrong because the const function is an explicit function of the variable and
+    % has a simple expression that can be differentiated easily, but anyhow, for good measure I do a FE test here
+    iNode=randi(numel(F.B),1);
+
+    B0=F.B ;
+
+    dB=1;
+
+    F.B=B0 ; F.B(iNode)=B0(iNode)-dB ;
+    BRes = O*F.B - Bobs ; JBobs_minus = BRes' * iSigma * BRes/ 2;
+
+    F.B=B0 ; F.B(iNode)=B0(iNode)+dB ;
+    BRes = O*F.B - Bobs ; JBobs_plus = BRes' * iSigma * BRes/ 2;
+
+    dBobsdB_FD=(JBobs_plus-JBobs_minus)/(2*dB);
+
+    Diff=norm(dJBobsdB(iNode) - dBobsdB_FD)/(abs(dJBobsdB(iNode))+eps);
+    fprintf("dJBobsdB: normalized norm of difference between dJBobsdB and FD for node %i is %g \n",iNode,Diff)
+    %%
+end
+%%
 end

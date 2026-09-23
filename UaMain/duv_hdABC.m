@@ -115,7 +115,7 @@ end
 %% B
 if contains(CtrlVar.Inverse.InvertFor,"-B-")
     %% du/dB
-    F=Funperturbed;
+   
 
     CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
 

@@ -351,18 +351,18 @@ end
 
 if nTests>2
 
-    figdIDB=FindOrCreateFigure("Test:dIdB") ; clf(figdIDB)
+  
 
 
-    fig_dIdBTest=FindOrCreateFigure("Test dIdB") ; clf(fig_dIdBTest)
+    fig_dIdBTest=FindOrCreateFigure("Test: dIdB") ; clf(fig_dIdBTest)
     plot(dIdB_FD_vector,dIdB_vector,"or") 
     axis equal
     hold on ;
     plot([min(dIdB_vector) max(dIdB_vector)],[min(dIdB_vector) max(dIdB_vector)],"--k")
     ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
-    xlabel("$\langle  \delta_{B_i} F^x \phi_i | \Psi_x \rangle  $",Interpreter="latex")  ;
+    xlabel("$ \langle  \delta_{B_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{B_i} F^y \phi_i| \Psi_y \rangle $",Interpreter="latex")  ;
     ylabel("Finite differences",Interpreter="latex")
-    title("$ \langle  \delta_{B_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{B_i} F^y \phi_i| \Psi_y \rangle $",Interpreter="latex")
+    title("Finite difference test of $ \langle  \delta_{B_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{B_i} F^y \phi_i| \Psi_y \rangle $",Interpreter="latex")
     subtitle(sprintf("Normalized diff %g",Diff),Interpreter="latex")
 
     
