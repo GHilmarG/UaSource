@@ -68,7 +68,7 @@ end
 
 
 if isB
-    if CtrlVar.Inverse.Matern.logB.alpha==1
+    if CtrlVar.Inverse.Matern.B.alpha==1
         error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
     end
 end

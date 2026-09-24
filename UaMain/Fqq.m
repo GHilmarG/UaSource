@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
 %%
@@ -11,7 +17,7 @@ narginchk(7,7)
 
 [isA,isB,isC] = isABC(CtrlVar);
 
-if isB
+if isB  % why is this here?! Is this not a mistake? It think Fqq has nothing to do the A, B or C
     fprintf("Fqq: not implemented for B inversion.\n")
     error("OptionNotImplemented")
 end

@@ -9,7 +9,9 @@ function [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA
 
 narginchk(13,13)
 
-
+if contains(CtrlVar.Inverse.InvertFor,"-B-")
+    error("Hess_qp:BnotImplemented","Hess_qp not yet implemented for B")
+end
 
 [KFCu,KFCv]=FCuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
 

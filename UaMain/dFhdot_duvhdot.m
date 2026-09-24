@@ -35,17 +35,23 @@ nargoutchk(1,1)
 %
 % or
 %
-% $$ \partial_u \dot{h} = - \partial_x  \,  \partial_u (\rho , u h ) = -\partial_x (\rho \, \delta u \, h) = -\rho \,  h \, \partial_x \delta u - \rho \, \delta u \, \partial_x h $$
+% $$ \partial_u \dot{h} = - \partial_x  \,  \partial_u (\rho \, u h ) = -\partial_x (\rho \, \delta u \, h) = -\rho \,  h \, \partial_x \delta u - \rho \, \delta u \, \partial_x h - h \, \delta u \, \partial_x \rho $$
+%
+% Note the last term, which arises from any horizontal variation in the ice density. It is zero only if rho is spatially
+% uniform.
+%
+% Note also that the derivatives of $F^{\dot{h}}$ below are NOT the derivatives of $\dot{h}$ itself, and therefore do
+% not carry the minus sign appearing above.
 %
 %
 % Therefore:
 %
 % $$
-% \langle \partial_u F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = -\langle \rho \, h \, \partial_x \phi_i +  \rho \, \partial_x h \; \phi_i | \phi_k \rangle
+% \langle \partial_u F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle \rho \, h \, \partial_x \phi_i +  \rho \, \partial_x h \; \phi_i + h \, \partial_x \rho \; \phi_i | \phi_k \rangle
 % $$
 %
 % $$
-% \langle \partial_v F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = -\langle  \rho \, h \, \partial_y \phi_i + \rho \, \partial_y h \; \phi_i | \phi_k \rangle
+% \langle \partial_v F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle  \rho \, h \, \partial_y \phi_i + \rho \, \partial_y h \; \phi_i + h \, \partial_y \rho \; \phi_i | \phi_k \rangle
 % $$
 %
 % $$
@@ -86,6 +92,8 @@ for Iint=1:MUA.nip
     dvdy=zeros(MUA.Nele,1);
     dhdx=zeros(MUA.Nele,1);
     dhdy=zeros(MUA.Nele,1);
+    drhodx=zeros(MUA.Nele,1);
+    drhody=zeros(MUA.Nele,1);
 
     for Inod=1:MUA.nod
 
@@ -95,6 +103,9 @@ for Iint=1:MUA.nip
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
 
+        drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
+        drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
+
 
     end
 
@@ -102,8 +113,9 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) + (rho.*h.* Deriv(:,1,Jnod) + fun(Jnod).*rho.*dhdx).*fun(Inod).*detJw;
-            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) + (rho.*h.* Deriv(:,2,Jnod) + fun(Jnod).*rho.*dhdy).*fun(Inod) .*detJw;
+            % d/du_Jnod of < d_x(rho h u) | phi_Inod > , including the horizontal density-gradient term
+            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) + (rho.*h.* Deriv(:,1,Jnod) + fun(Jnod).*rho.*dhdx + fun(Jnod).*h.*drhodx).*fun(Inod).*detJw;
+            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) + (rho.*h.* Deriv(:,2,Jnod) + fun(Jnod).*rho.*dhdy + fun(Jnod).*h.*drhody).*fun(Inod) .*detJw;
             dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + rho.*fun(Jnod).*fun(Inod) .*detJw;  % 
 
         end

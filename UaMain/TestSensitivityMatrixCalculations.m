@@ -7,6 +7,8 @@
 function TestSensitivityMatrixCalculations(CtrlVar,MUA,F,BCs,l,Node)
 
 
+error("do not use: use TestduvdBGeneral and similar instead")
+
 %% Calculates sensitivity matrices and tests them against brute-force finite-differences calculations at selected nodes
 %
 %
@@ -29,9 +31,9 @@ if contains(Testing,"-B-")
     CtrlVar.Calculate.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
     %CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; 
     %Node=100;
-    UserVar=[]; RunInfo=[];
+ 
 
-    [UserVar,RunInfo,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
+    [~,~,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
     [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,BCs);
 
 
