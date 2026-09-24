@@ -58,7 +58,11 @@ end
 
 % HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;
 
-HessianTerms=CtrlVar.Inverse.Hessian;
+HessianTerms=CtrlVar.Inverse.HessianTerms;
+
+if contains(lower(HessianTerms),"-all-")
+    HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;
+end
 
 %% Do I need to calculate the sensitivity matrices?
 

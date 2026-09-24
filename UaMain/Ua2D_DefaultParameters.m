@@ -917,12 +917,13 @@ CtrlVar.Inverse.MinimisationMethodOptions=[...
    
 % If a Hessian-based Optimisation is used, the the expressions for the Hessians can be selected as follows:
 
-CtrlVar.Inverse.Hessian="-DirectAdjoint-" ; % "-DirectAdjoint-","-Jpp-","-FiniteDifferences-" ; 
 
-CtrlVar.Inverse.HessianOptions=[...
+CtrlVar.Inverse.HessianCalculation="-DirectAdjoint-"; % "-FiniteDifferences-" 
+CtrlVar.Inverse.HessianTerms="-all-";  % only applies for the  HessianCalculation="-DirectAdjoint-" 
+
+CtrlVar.Inverse.HessianCalculationOptions=[...
     "-DirectAdjoint-";...
-    "-FiniteDifferences-";...
-    "-Jpp-"];
+    "-FiniteDifferences-"] ; 
 
 
 % Should a Riesz-mapped gradient be used?

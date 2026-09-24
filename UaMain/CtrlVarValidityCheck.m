@@ -413,14 +413,14 @@ if CtrlVar.InverseRun
 
     end
 
-    % if ~ismember(CtrlVar.Inverse.Hessian,CtrlVar.Inverse.HessianOptions)
-    % 
-    %     fprintf("CtrlVar.Inverse.Hessian=%s\n",CtrlVar.Inverse.Hessian)
-    %     fprintf("But must be one of these options:")
-    %     fprintf(" \t %s\n",CtrlVar.Inverse.HessianOptions)
-    %     error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.Hessian does not have a valid value. \n")
-    % 
-    % end
+    if ~ismember(CtrlVar.Inverse.HessianCalculation,CtrlVar.Inverse.HessianCalculationOptions)
+
+        fprintf("CtrlVar.Inverse.HessianCalculation=%s\n",CtrlVar.Inverse.HessianCalculation)
+        fprintf("But must be one of these options:\n")
+        fprintf(" \t %s\n",CtrlVar.Inverse.HessianCalculationOptions)
+        error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.HessianCalculation does not have a valid value. \n")
+
+    end
 
     switch CtrlVar.Inverse.MinimisationMethod
 
