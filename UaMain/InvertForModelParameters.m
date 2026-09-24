@@ -201,7 +201,9 @@ else
 end
 
 if CtrlVar.Inverse.BoxTransform
-    fprintf("Box contraints are implemented through variable transform. \n ")
+    fprintf("  Box contraints are implemented through variable transform. \n ")
+else
+    fprintf("  Box contraints are not used. \n ")
 end
 %% What inversions are being performed?
 %  And make sure the Matern parameters are all correctly defined
@@ -281,6 +283,8 @@ F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 
 if CtrlVar.Inverse.BoxTransform
 
+    % The mapping must be done in original physical space, so to set up the mapping box transform and Cholesky mapping must be
+    % (temporarily) disabled. 
     CtrlVarBox=CtrlVar ;
     CtrlVarBox.Inverse.BoxTransform=false ;
     CtrlVarBox.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;

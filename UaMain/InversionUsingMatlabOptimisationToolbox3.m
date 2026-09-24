@@ -6,6 +6,12 @@
 function   [p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq)
 
 
+if CtrlVar.Inverse.RieszMapGradient 
+    error("InversionUsingMatlabOptimisationToolbox3:NoRieszMappingAllowedWithMATLABfmincon","Do not compbine Riesz mapping and fmincon. But you can combine Cholesky mapping with fmincon.")
+end
+
+
+
 
 CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
 CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance);
@@ -21,8 +27,7 @@ CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inver
 
 if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-reflective"
 
-    % I don't think this is needed when using the trust-region-reflective, because this algorithm uses the third
-    % argument of @func which here is JGH
+
 
     switch  CtrlVar.Inverse.HessianOptions
 
@@ -32,23 +37,21 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
             CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn','objective');
             CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
 
-        case "-HessianVectorProduct-"
+            Aeq = [];
+            beq = [];
+            nonlcon = [];
 
-            %% Hessian-vector product
 
-            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
-            CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn', @(Hinfo,v) HessianVectorProduct(Hinfo,v,func));
+            [p,J,exitflag,output,lambda,grad,hessian] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
+
+
 
         case "-FiniteDifferences-"
 
             CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
             CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
 
-            %HessPattern=speye(numel(p0),numel(p0));    % diagonal
-            % HessPattern=spdiags([1 1 1],-1:1,numel(p0),numel(p0));  % tri-diagonal
 
-            % As expected, the convergence does improve as the Hessian sparsity is decreased (higher n), however, not significantly so
-            % and the convergence was always linear.
 
 
             if contains(CtrlVar.Inverse.MinimisationMethod,"-BandWidth")
@@ -121,18 +124,22 @@ else
 
     end
 
-    [stop,Outs] = fminuncOutfun();
+
+end
 
 
+% get info about the iteration, for some reason this call is correct/OJ for both fmincon and fminunc
+[stop,Outs] = fminuncOutfun();
 
-    RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+Outs.iteration];
-    RunInfo.Inverse.J=[RunInfo.Inverse.J;Outs.fval];
-    RunInfo.Inverse.StepSize=[RunInfo.Inverse.J;Outs.StepSize];
-    RunInfo.Inverse.R=[RunInfo.Inverse.R;Outs.fval+NaN];
-    RunInfo.Inverse.I=[RunInfo.Inverse.I;Outs.fval+NaN];
-    RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Outs.GradNorm];
-    RunInfo.Inverse.p=Outs.p;
-    % If I need some further info and want to update F
+
+RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+Outs.iteration];
+RunInfo.Inverse.J=[RunInfo.Inverse.J;Outs.fval];
+RunInfo.Inverse.StepSize=[RunInfo.Inverse.J;Outs.StepSize];
+RunInfo.Inverse.R=[RunInfo.Inverse.R;Outs.fval+NaN];
+RunInfo.Inverse.I=[RunInfo.Inverse.I;Outs.fval+NaN];
+RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Outs.GradNorm];
+RunInfo.Inverse.p=Outs.p;
+% If I need some further info and want to update F
 
 
 

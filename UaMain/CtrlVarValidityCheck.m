@@ -429,15 +429,24 @@ if CtrlVar.InverseRun
             % uses this information to calculate the true directional derivative and all inner products are done with respect to G.
             CtrlVar.Inverse.RieszMapGradient=true;
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+            CtrlVar.Inverse.BoxTransform=true;
         case "-MatlabOptimisation-GradientBased-"
             CtrlVar.Inverse.RieszMapGradient=false;
             % User the Riesz-mapped gradient. But we can NOT feed this gradient directly as described above. The key difference is that
             % the MATLAB Optimisation toolbox does not allow for the metric matrix G to be provided as an input.
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=true;
-        case {"-UaOptimisation-HessianBased-", "-MatlabOptimisation-HessianBased-"}
-            % Do NOT use the Riesz-mapped gradient. The Newton system is "metric-free"
-            CtrlVar.Inverse.RieszMapGradient=false;
-            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+        case "-UaOptimisation-HessianBased-"
+
+            CtrlVar.Inverse.RieszMapGradient=false;                             % Newton system is metric free
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;     % Ua HessianBased approach knows about the metric
+            CtrlVar.Inverse.BoxTransform=false;                                 % no box transform with Hessian, in fact the Ua Hessian solver can't really deal with box constraints at all... :-( 
+
+        case "-MatlabOptimisation-HessianBased-"
+           
+            CtrlVar.Inverse.RieszMapGradient=false;                          % It would be wrong to combine Riesz and Cholesky mappings. It would be doing the metric-transform twice
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;   % MATLAB fmincon does NOT use/know the metric, but this can only be done if there are no box constraints!
+            CtrlVar.Inverse.BoxTransform=false;                              % MATLAB fmincon deals with box constraints. 
+
         otherwise
             error("case not found")
     end
