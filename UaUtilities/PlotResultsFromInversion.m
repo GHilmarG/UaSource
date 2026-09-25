@@ -308,7 +308,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
 
         %% and just to make sure everything looks OK, interpolate direct measurements onto FE mesh and plot
-        figBmeas=FindOrCreateFigure("Direct measurements of B") ; clf(figBmeas)
+        figBmeas=FindOrCreateFigure("Bobs: Direct") ; clf(figBmeas)
 
         T=tiledlayout("flow");
         % 
@@ -331,8 +331,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
         Bmodelled = OInside*F.B ;
         BResiduals = Bmodelled - BobsInside ;
-        scale=eps./max(abs(BResiduals));
-        scale=1e-4;
+    
         iPosResiduals=BResiduals>=0 ;
 
 
@@ -341,14 +340,14 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
         bubblechart(Bx(~iPosResiduals)/CtrlVar.PlotXYscale,By(~iPosResiduals)/CtrlVar.PlotXYscale,-BResiduals(~iPosResiduals),color="b")
         maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
         bubblesize([maxBubbleSize/100 maxBubbleSize]);    
-        blg=bubblelegend("Bobs Misfit",Location="northeast");
+        blg=bubblelegend("$B_{\mathrm{obs}}$ Misfit",Location="northeast",Interpreter="latex");
         lg=legend("Positive","Negative",Location="northwest") ;
         xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
         axis equal tight
         T.Padding="tight";   T.TileSpacing="tight";
 
         %%
-        fHist=FindOrCreateFigure("Bobs Hist") ; clf(fHist)
+        fHist=FindOrCreateFigure("Bobs: Hist") ; clf(fHist)
         hist=histogram(BResiduals);
         title("$B$ residuals ",Interpreter="latex",FontWeight="bold",FontSize=14)
         subtitle(sprintf("%i measurements",numel(BResiduals)),Interpreter="latex")

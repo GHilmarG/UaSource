@@ -5,7 +5,7 @@
 
 
 
-function [dbdB,dhdB,dGdB,dFdb]=dGeometrydB(CtrlVar,s,S,B,b,rho,rhow)
+function [dbdB,dhdB,dGdB,dFdb,d2bdB2,d2hdB2]=dGeometrydB(CtrlVar,s,S,B,b,rho,rhow)
 
 %% Derivatives of the ice geometry with respect to the bedrock, B.
 %
@@ -61,6 +61,31 @@ function [dbdB,dhdB,dGdB,dFdb]=dGeometrydB(CtrlVar,s,S,B,b,rho,rhow)
 %
 % $$ \frac{\partial \mathcal{G}}{\partial B} = \delta \left ( \frac{\rho_o}{\rho} - \frac{\partial b}{\partial B} \right ) $$
 %
+%% Second derivative
+%
+% Differentiating the expression for db/dB once more with respect to B, and writing
+%
+% $$ \kappa = \rho_o/\rho , \qquad W = B-b_s , \qquad \Lambda = \delta W , \qquad \mu = \kappa - b' = \frac{d \Delta h}{dB} $$
+%
+% and using
+%
+% $$ \frac{d \mathcal{G}}{dB} = \delta \mu , \qquad \frac{d \Lambda}{dB} = \delta' \mu W + \delta , \qquad \mathcal{G}+\kappa \Lambda = b' (1+\Lambda) $$
+%
+% the algebra collapses to
+%
+% $$ b'' = \frac{ 2 \delta \mu + \delta' \, W \, \mu^2 }{1+\Lambda} , \qquad h'' = -b'' $$
+%
+% where $\delta'$ is the derivative of the smoothed delta with respect to its argument. For the tanh form used here
+%
+% $$ \delta = 2 k \, \mathcal{G} (1-\mathcal{G}) \qquad \Rightarrow \qquad \delta' = 2 k \, \delta \, (1-2\mathcal{G}) $$
+%
+% so no further special function is required.
+%
+% The second derivative is negligible away from the grounding line but is of order unity within the transition zone,
+% where it is comparable in magnitude to db/dB itself. It is needed for the Hessian, where it multiplies the first
+% derivative of the cost function with respect to h, and it contributes a diagonal term because the closure is applied
+% independently at each node.
+%
 %% Important
 %
 % db/dB is NOT equal to the floating mask. Away from the grounding line it reduces to it (1 where grounded, 0 where
@@ -89,7 +114,7 @@ function [dbdB,dhdB,dGdB,dFdb]=dGeometrydB(CtrlVar,s,S,B,b,rho,rhow)
 %%
 
 narginchk(7,7)
-nargoutchk(1,4)
+nargoutchk(1,6)
 
 bs = (rho.*s-rhow.*S)./(rho-rhow) ;    % base of freely floating ice
 hf = rhow.*(S-B)./rho ;                % flotation thickness
@@ -114,6 +139,19 @@ end
 
 if nargout>2
     dGdB = Delta.*(rhow./rho-dbdB) ;
+end
+
+if nargout>4
+
+    mu     = rhow./rho - dbdB ;                          % d(Dh)/dB
+    dDelta = 2*CtrlVar.kH.*Delta.*(1-2*G) ;              % derivative of the smoothed delta
+
+    d2bdB2 = ( 2*Delta.*mu + dDelta.*(B-bs).*mu.^2 )./dFdb ;
+
+end
+
+if nargout>5
+    d2hdB2 = -d2bdB2 ;
 end
 
 %% Optional finite-difference test

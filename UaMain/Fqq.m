@@ -1,19 +1,38 @@
+
+
+
+
+
+
 function KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
 %%
 %
 % $$\langle \Psi_x \mid \delta^2_{qq}\mathcal{F}_x[\xi_{,l},\xi_{,m}] \rangle + \langle \Psi_y \mid \delta^2_{qq}\mathcal{F}_y[\xi_{,l},\xi_{,m}] \rangle $$
 %
+% This term involves second-order derivatives with respect to the velocities, q=(u,v), only. It is therefore
+% independent of which of the fields A, B and C is being inverted for: the thickness h and the grounding mask G
+% enter as coefficients (see the contraction weights Weta and Wbeta below) and are unaffected by a perturbation in
+% the velocities. The same holds for A and C themselves.
+%
+% Note that the thickness is taken from the nodal h field, and the grounding mask is formed from h-h_f, so no
+% assumption is made about the ice being grounded.
+%
+%  see also: Jqq.m, Fpp.m, Hess_qp.m, CalcDirectAdjointHessian.m
+%
 %%
 
 narginchk(7,7)
+nargoutchk(1,1)
 
+%% Limitation: Weertman only
+%
+% The sliding-family kernels b1 and b2 below are the second derivatives of the Weertman basal traction, and are
+% hard-coded as such. For the effective-pressure dependent laws they do not apply.
 
-[isA,isB,isC] = isABC(CtrlVar);
-
-if isB
-    fprintf("Fqq: not implemented for B inversion.\n")
-    error("OptionNotImplemented")
+if ~ismember(string(CtrlVar.SlidingLaw),["W","Weertman"])
+    error("Fqq:SlidingLawNotImplemented",...
+        "Fqq is implemented for the Weertman sliding law only, but CtrlVar.SlidingLaw=""%s"".",CtrlVar.SlidingLaw)
 end
 
 

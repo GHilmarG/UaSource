@@ -24,6 +24,12 @@ persistent ubP vbP JGH1 JGH2 JGH3
 
 narginchk(11,11)
 
+%%
+
+
+if CtrlVar.Inverse.RieszMapGradient && CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+    error("JGH:DoNotCombineRieszAndCholeskyMapping","Do not combine both Riesz and Cholesky mapping of cost function and gradient.")
+end
 
 %% some counters for how often JGH is called and with what number of arguments
 if isempty(JGH1)
@@ -132,18 +138,7 @@ if  CtrlVar.Inverse.CalcGrad  % gradient needed
     dJdp=dRdp+dIdp;
     JGH2=JGH2+1;
 
-    %% Box transformation: chain rule
-    %
-    % dJ/du = (dp/du) * dJ/dp , with dp/du = (ub-lb)*r*(1-r) , see BoxTransform.m .
-    %
-    % This is a relation between l2 gradients, so it MUST be applied here, to dRdp+dIdp, and before the Riesz map below.
-    % Applied after the Riesz map it would read G\(D.*(G*dJdp)) instead of D.*dJdp, costing an extra matrix-vector
-    % product and an extra solve with G on every cost-function evaluation.
-    %
-    % The Jacobian is evaluated at u. The vector p arriving here is the variable the optimiser holds, which is u if only
-    % the box transformation is used, and the Cholesky-mapped u if that mapping is used as well. In the latter case u has
-    % to be recovered first, by the same inverse mapping p2F applies.
-
+   
     if CtrlVar.Inverse.BoxTransform
 
         if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
@@ -159,7 +154,7 @@ if  CtrlVar.Inverse.CalcGrad  % gradient needed
     if CtrlVar.Inverse.RieszMapGradient
 
         if ~isfield(MUA,"dG") && isempty(MUA.dG)
-            dJdp=MUA.G\dJdp; 
+            dJdp=MUA.G\dJdp;
         else
             dJdp=MUA.dG\dJdp;
         end
@@ -168,13 +163,10 @@ if  CtrlVar.Inverse.CalcGrad  % gradient needed
 
     end
 
-    if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
-       
-        %fprintf("Cholesky-mapped gradient.\n")
-     
-        %dJdp=MUA.RG*dJdp; 
-        dJdp=MUA.RG*(MUA.PRG'*dJdp);
 
+
+    if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+        dJdp = MUA.RG'\(MUA.PRG'*dJdp) ;     % exact chain rule:  R^{-T} P' g
     end
 
 end
@@ -184,6 +176,12 @@ if CtrlVar.Inverse.CalcHess  % Hessian needed
 
     Hessian = BuildInversionHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y);
     assert(numel(dJdp)==size(Hessian,1),"Regularisation:DimentionalMismatch","sizes of gradient and Hessian not compatible.")
+
+    if CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient
+        Hessian = MUA.RG'\(MUA.PRG'*Hessian*MUA.PRG)/MUA.RG ;
+    end
+
+
     JGH3=JGH3+1;
 end
 

@@ -10,6 +10,11 @@ function [dudField,dvdField,dhdotdField]=FiniteDifferenceSensitivities(CtrlVar,M
 
 narginchk(8,9)
 
+%%
+% Note: This works fine for all perturbations. However, if the idea is to test (du/dB,dv/dB) a better bespoke test is
+% implemented in TestduvdBGeneral.m
+%
+%%
 
 if nargin< 9
     DeltaAbs=nan;
@@ -32,6 +37,9 @@ end
 
 
 F.(Field)(Node)=F.(Field)(Node)+DeltaField ;
+
+ [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow); 
+
 [~,~,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
 [~,dhdt]=dhdtExplicit([],CtrlVar,MUA,F,BCs);
 up=F.ub; vp=F.vb; dhdtp=dhdt;
@@ -43,7 +51,7 @@ F.(Field)=Field0;
 %Negative perturbation 
 
 F.(Field)(Node)=F.(Field)(Node)-DeltaField ;
-
+[F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow); 
 
 
 [~,~,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);

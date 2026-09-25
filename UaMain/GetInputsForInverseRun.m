@@ -251,6 +251,22 @@ if isB
     if ~isempty(Meas.Bobs)
 
         [Meas.BO,Meas.BInside,Meas.BEleID]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By) ;
+
+        In=Meas.BInside ;
+        v=Meas.Bobs(In)-(Meas.BO(In,:)*F.s-CtrlVar.ThickMin) ;
+        nBad=sum(v>0) ;
+        if nBad>0
+            fprintf("GetInputsForInverseRun: %i of %i bed observations (%.1f%%) lie above the\n", ...
+                nBad,numel(v),100*nBad/numel(v)) ;
+            fprintf("   surface (Bobs > s-ThickMin). Median overshoot %.1f m, max %.1f m.\n", ...
+                median(v(v>0)),max(v)) ;
+            fprintf("   These cannot be matched: B is bounded above by s-ThickMin.\n") ;
+            if nBad > 0.5*numel(v)
+                warning("GetInputsForInverseRun:BobsAboveSurface", ...
+                    "More than half the bed observations are above the surface. Check that Bobs and s share a datum.") ;
+            end
+        end
+
     end
 
 

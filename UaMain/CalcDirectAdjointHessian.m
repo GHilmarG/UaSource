@@ -38,49 +38,7 @@ narginchk(10,10)
 % $$
 %
 %
-% If the forward model is
-%
-% $$ \mathcal{F}(q(p),p) = 0 $$
-%
-% where $q$ are output variables and $p$ model parameters, then
-%
-% $$ \partial F/\partial q \; \partial q / \partial p + \partial F / \partial p = 0 $$
-%
-% or
-%
-% $$ \frac{\partial F}{\partial q} \; \frac{\partial q }{ \partial p} = - \frac{\partial F }{ \partial p}  $$
-%
-% which can be solved for the sensitives
-%
-% $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$
-%
-%
-% $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi_i \right \rangle
-%     +\langle   h \eta (\partial_y u + \partial_x v)  | \partial_y \phi_i \rangle
-%    + \langle t_x | \phi_i \rangle
-%    - \left \langle \frac{1}{2} g \cos(\alpha) \,  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle
-%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  - \langle \rho g \sin(\alpha) \, h  | \phi_i \rangle   =0
-% $$
-%
-% $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi_i \rangle
-%     +\langle   h \eta (\partial_x v + \partial_y u)  | \partial_x \phi_i \rangle
-%    + \langle t_y | \phi_i \rangle
-%    - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
-%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0
-% $$
-%
-% Here we use
-%
-% $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$
-%
-% For Weertman:
-%
-% $$t_x=\mathcal{G} \beta^2  u$$
-%
-% $$t_y=\mathcal{G} \beta^2  v$$
-%
-% $$ \beta^2 = (C+C_0)^{-1/m} \; (u^2+v^2+v_0^2)^{(1/m-1)/2} $$
-%
+% Limitations: Currently the Hessian calculations have been implemented for logA and logC, but not for B
 %
 %
 %%
@@ -92,7 +50,7 @@ narginchk(10,10)
 
 
 if CtrlVar.Inverse.BoxTransform
-    fprtinf("CtrlVar.Inverse.BoxTransform=true, but this is not yet implemented for the Direct-Adjoint Hessian approach.\n")
+    fprintf("CtrlVar.Inverse.BoxTransform=true, but this is not yet implemented for the Direct-Adjoint Hessian approach.\n")
     fprintf("CalcDirectAdjointHessian:Not implemented for box transform.\n")
     error("NotImplemented")
 end
@@ -100,14 +58,18 @@ end
 
 % HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;
 
-HessianTerms=CtrlVar.Inverse.Hessian;
+HessianTerms=CtrlVar.Inverse.HessianTerms;
+
+if contains(lower(HessianTerms),"-all-")
+    HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-Jpp-" ;
+end
 
 %% Do I need to calculate the sensitivity matrices?
 
 
 H=[] ;
 
-
+% Do I need to calculate the sensitivities, i.e. the Jacobian dq/dp, for the Hessian terms requested? 
 if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     Sensitivites=true;
 else
@@ -118,8 +80,8 @@ end
 
 %% sensitivity matrix, \xi = \partial q / \partial p   % tested
 if Sensitivites
-
-    [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs);
+    % Note: these have been calculated for logA, B, and logC. So this can be considered done. 
+    [KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC]=duv_hdABC(CtrlVar,MUA,F,l,BCs);
     xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ;
 else
     xi=[];
@@ -136,10 +98,22 @@ KJqq=0; KFqq=0;
 if Sensitivites
 
     if contains(HessianTerms,"-xi Jqq xi-")
+        % Note: These are done for all measurement types, u,v and dot{h}. So this is done, although the expressions are not quite
+        % correct for spatially variable measurement errors. 
+        %
+        % These are explicit second-order derivatives of the cost function, J, with respect to the q=(u,v)
+        %
+        % There is a term related to dot(h) but this is really due to that term being an explicit function of q=(u,v)
+        %
         KJqq=Jqq(CtrlVar,MUA,F,BCs,Meas);
     end
 
     if contains(HessianTerms,"-xi Fqq xi-")
+        %
+        % Note: These are explicit second-order derivatives of the forward model with respect to q=(u,v)
+        %
+        % 
+        %
         KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
     end
     KJqqFqq=KJqq+KFqq;
@@ -149,7 +123,7 @@ if Sensitivites
         xi=full(xi);
     end
 
-    
+
     H=xi'*(KJqqFqq*xi) ;
 
 end
@@ -164,7 +138,8 @@ end
 if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
 
-
+    % Note: These are second-order derivatives of the forward model with respect to p=(logA,B,logC). 
+    % This has not been implemented for B
     KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
     if isempty(H)
         H=KFpp;
@@ -176,6 +151,8 @@ end
 % Jpp
 if contains(HessianTerms,"-Jpp-")  % explicit dependency of J on p=(logA,B,logC)
 
+    % Note: these are second-order derivatives of the cost function with respect to p=(logA,B,logC)
+    % This has been implemented for all three p fields
     KJpp=Jpp(CtrlVar,MUA);
 
     if isempty(H)
@@ -183,7 +160,7 @@ if contains(HessianTerms,"-Jpp-")  % explicit dependency of J on p=(logA,B,logC)
     else
         H=H+KJpp;
     end
-  
+
 
 end
 
@@ -201,6 +178,9 @@ end
 if Sensitivites
     if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
+        % These are second-order mixed derivatives of the forward model with respect to q,p
+        %
+        % This has not been implemented for derivatives involving B
         [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC);
         H=H+KHess_qp ;
 
