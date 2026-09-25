@@ -11,7 +11,7 @@ Solver="Root-Finding Newton";
 %Solver="Least-Squares Gauss-Newton";
 
 if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
-    CtrlVar=SetSmoothFloorWidths(CtrlVar,F);
+    CtrlVar=SetSmoothFloorWidths(CtrlVar,F0);
 end
 
 switch Solver
