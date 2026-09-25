@@ -424,6 +424,20 @@ if CtrlVar.InverseRun
 
     switch CtrlVar.Inverse.MinimisationMethod
 
+        %
+        %         Ua        Metric aware               Riesz mapping          Cholesky mapping            Box transform      explicit box constraints                                               
+        %   Hessian  :           yes                       No                        no                       no               no
+        %   Gradient :           yes                       yes                       no                       yes              yes 
+        %   
+        %   
+        %
+        %     MATLAB        Metric aware               Riesz mapping          Cholesky mapping            Box transform      box constraints                                               
+        %   Hessian  :           no                       No                        No                       No                yes
+        %   Gradient :           no                       no                        yes                      yes               yes
+        %   
+        % Note: When using Cholesky mapping, explicit box constraints are removed. Therefore, to honor box constraints, these should
+        % be imposed through the box-transform. 
+
         case "-UaOptimisation-GradientBased-"
             % Use Riesz-mapped gradient. The Ua conjugate gradient optimizer if provided with the metric-matrix G as an input, and it
             % uses this information to calculate the true directional derivative and all inner products are done with respect to G.
@@ -435,17 +449,18 @@ if CtrlVar.InverseRun
             % User the Riesz-mapped gradient. But we can NOT feed this gradient directly as described above. The key difference is that
             % the MATLAB Optimisation toolbox does not allow for the metric matrix G to be provided as an input.
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=true;
+            CtrlVar.Inverse.BoxTransform=true;
         case "-UaOptimisation-HessianBased-"
 
             CtrlVar.Inverse.RieszMapGradient=false;                             % Newton system is metric free
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;     % Ua HessianBased approach knows about the metric
-            CtrlVar.Inverse.BoxTransform=false;                                 % no box transform with Hessian, in fact the Ua Hessian solver can't really deal with box constraints at all... :-( 
+            CtrlVar.Inverse.BoxTransform=false;                                 % no box transform with Hessian, in fact the Ua Hessian solver can't really deal with box constraints at all... :-(
 
         case "-MatlabOptimisation-HessianBased-"
-           
+
             CtrlVar.Inverse.RieszMapGradient=false;                          % It would be wrong to combine Riesz and Cholesky mappings. It would be doing the metric-transform twice
-            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;   % MATLAB fmincon does NOT use/know the metric, but this can only be done if there are no box constraints!
-            CtrlVar.Inverse.BoxTransform=false;                              % MATLAB fmincon deals with box constraints. 
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;  % MATLAB fmincon does NOT use/know the metric, but this can only be done if there are no box constraints!
+            CtrlVar.Inverse.BoxTransform=false;                              % MATLAB fmincon deals with box constraints.
 
         otherwise
             error("case not found")
