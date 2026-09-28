@@ -146,7 +146,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     title("$A$ at end of inversion",Interpreter="latex"); subtitle("")
     cbar=colorbar;
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    CM=cmocean('-ice',15) ; colormap(CM);
+    CM=cmocean('-ice',15) ; colormap(T1,CM);
     clim(ColorbarLimits)
 
     T2=nexttile ;
@@ -155,7 +155,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     title("$A$ at start of current inversion run",Interpreter="latex") ; subtitle("")
     cbar=colorbar;
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    CM=cmocean('-ice',15) ; colormap(CM);
+    CM=cmocean('-ice',15) ; colormap(T2,CM);
     clim(ColorbarLimits)
 
 
@@ -164,10 +164,19 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     cbar=UaPlots(CtrlVar,MUA,F,dC,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
     title("Change in $A$ during current inversion run",Interpreter="latex") ;
-    subtitle("$\log(A_{\mathrm{End}})-\log(A_{\mathrm{Start}})$",Interpreter="latex")
+    subtitle("$\log_{10}(A_{\mathrm{End}})-\log_{10}(A_{\mathrm{Start}})$",Interpreter="latex")
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     set(figCeI,CurrentAxes=T3) ;
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+
+    T4=nexttile ;
+    UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false,logColorbar=true);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
+    title("Prior $A$",Interpreter="latex") ; subtitle("")
+    cbar=colorbar;
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    CM=cmocean('-ice',15) ; colormap(T4,CM);
+    %clim(ColorbarLimits)
 
 
     T.Padding="tight";   T.TileSpacing="tight";
@@ -196,7 +205,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     title("$C$ at end of inversion",Interpreter="latex"); subtitle("")
     cbar=colorbar;
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    CM=cmocean('-ice',15) ; colormap(CM);
+    CM=cmocean('-ice',15) ; colormap(T1,CM);
     clim(ColorbarLimits)
 
     T2=nexttile ;
@@ -205,7 +214,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     title("$C$ at start of current inversion run",Interpreter="latex") ; subtitle("")
     cbar=colorbar;
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    CM=cmocean('-ice',15) ; colormap(CM);
+    CM=cmocean('-ice',15) ; colormap(T2,CM);
     clim(ColorbarLimits)
 
 
@@ -214,41 +223,25 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     cbar=UaPlots(CtrlVar,MUA,F,dC,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
     title("Change in $C$ during current inversion run",Interpreter="latex") ;
-    subtitle("$\log(C_{\mathrm{End}})-\log(C_{\mathrm{Start}})$",Interpreter="latex")
+    subtitle("$\log_{10}(C_{\mathrm{End}})-\log_{10}(C_{\mathrm{Start}})$",Interpreter="latex")
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-
     set(figCeI,CurrentAxes=T3) ;
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
+    T4=nexttile ;
+  
+    cbar=UaPlots(CtrlVar,MUA,F,Priors.C,CreateNewFigure=false,logColorbar=true);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
+    title("Prior $C$",Interpreter="latex") ;
+    cbar=colorbar;
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    CM=cmocean('-ice',15) ; colormap(T3,CM);
+    %clim(ColorbarLimits)
+    subtitle("",Interpreter="latex")
+  
+
     T.Padding="tight";   T.TileSpacing="tight";
 
-end
-
-if contains(CtrlVar.Inverse.InvertFor,'b')
-
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b);
-    title('InvFinalValues.b') ; cbar=colorbar; title(cbar, '(m)');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-
-
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.b);
-    title('bstart') ; cbar=colorbar; title(cbar, '(m)');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-
-
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b-InvStartValues.b);
-    title('InvFinalValues.b-bstart') ; cbar=colorbar; title(cbar, '(m)');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-
-    %[TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle,sCol,bCol,BCol);
-    AspectRatio=1;
-    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B,[],[],AspectRatio) ; title('F.s, F.b and F.B')
 end
 
 
@@ -284,9 +277,19 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
+    T4=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
+    title("Prior $B$",Interpreter="latex")
+    subtitle("")
+    title(cbar, '(m)')
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    colormap(T4,othercolor("Mdarkterrain",32))
+
+
     set(figB,CurrentAxes=T3) ; CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
     set(figB,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
     set(figB,CurrentAxes=T2) ;  colormap(T2,othercolor("Mdarkterrain",32))
+    set(figB,CurrentAxes=T4) ;  colormap(T4,othercolor("Mdarkterrain",32))
 
     T.Padding="tight";   T.TileSpacing="tight";
 
@@ -574,118 +577,118 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     %%
 
-    figflux=FindOrCreateFigure("flux divergence etc") ; clf(figflux)
-
-    T=tiledlayout("flow");
-
-    flux1=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.ab,CreateNewFigure=false);
-    title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
-    title("$\rho\,a_b$",interpreter="latex")
-    subtitle("")
-    hold on ;
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    T1clim=clim;
-    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
-
-
-
-    flux2=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.as,CreateNewFigure=false);
-    title("$\rho \,\dot{a}_s$",Interpreter="latex") ;
-    title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
-    subtitle("")
-    hold on ;
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    T2clim=clim;
-    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux2,CM);
-    CLmeas=clim;
-
-    qx=F.rho.*F.ub.*F.h ; qy=F.rho.*F.vb.*F.h;
-    [dqxdx,dqxdy]=calcFEderivativesMUA(qx,MUA,CtrlVar);
-    [dqydx,dqydy]=calcFEderivativesMUA(qy,MUA,CtrlVar);
-    qdiv=dqxdx+dqydy;
-    qdiv=ProjectFintOntoNodes(CtrlVar,MUA,qdiv) ;
-
-    flux3=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,qdiv,CreateNewFigure=false);
-    title("$\nabla q  \; (\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",Interpreter="latex") ;
-    title(cbar,"")
-    subtitle("")
-    hold on ;
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    T3clim=clim;
-    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
-
-    [dudx,dudy]=calcFEderivativesMUA(F.ub,MUA,CtrlVar);
-    [dvdx,dvdy]=calcFEderivativesMUA(F.vb,MUA,CtrlVar);
-    vdiv=dudx+dvdy;
-    vdiv=ProjectFintOntoNodes(CtrlVar,MUA,vdiv) ;
-
-    flux4=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,vdiv,CreateNewFigure=false);
-    title("$\nabla \cdot v  \; (\mathrm{a^{-1}})$",Interpreter="latex") ;
-    title(cbar,"")
-    subtitle("")
-    hold on ;
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    T4clim=clim;
-    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
-
-    dhdtEst=(F.rho.*(F.as+F.ab)-qdiv)./F.rho ;
-
-    flux5=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,dhdtEst,CreateNewFigure=false);
-    title("$a - (\nabla \cdot q )/\rho  \; (\mathrm{m}\;\mathrm{a^{-1}})$",Interpreter="latex") ;
-    title(cbar,"")
-    subtitle("")
-    hold on ;
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    T5clim=clim;
-    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
-
-
-    [dbdx,dbdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
-    [dbdx,dbdy]=ProjectFintOntoNodes(CtrlVar,MUA,dbdx,dbdy) ;
-    db=sqrt(dbdx.*dbdx+dbdy.*dbdy);
-    flux6=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,db,CreateNewFigure=false,logColorbar=true);
-    title("Norm of lower ice surface gradients $\| \nabla b \|$",Interpreter="latex") ;
-    title(cbar,"")
-    subtitle("")
-    hold on ;
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-
-
-    [dsdx,dsdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
-    [dsdx,dsdy]=ProjectFintOntoNodes(CtrlVar,MUA,dsdx,dsdy) ;
-    ds=sqrt(dsdx.*dsdx+dsdy.*dsdy);
-    flux7=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,ds,CreateNewFigure=false,logColorbar=true);
-    title("Norm of upper ice surface gradients $\| \nabla s \|$",Interpreter="latex") ;
-    title(cbar,"")
-    subtitle("")
-    hold on ;
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-
-
-
-    axis(flux1); clim(T1clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
-    axis(flux2); clim(T2clim) ; CM=cmocean('-ice',25) ; colormap(flux2,CM);
-    axis(flux3); clim(T3clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
-    axis(flux4); clim(T4clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
-    axis(flux5); clim(T5clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
-
-    T.Padding="tight";   T.TileSpacing="tight";
-
-    %%
+    % figflux=FindOrCreateFigure("flux divergence etc") ; clf(figflux)
+    % 
+    % T=tiledlayout("flow");
+    % 
+    % flux1=nexttile;
+    % cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.ab,CreateNewFigure=false);
+    % title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
+    % title("$\rho\,a_b$",interpreter="latex")
+    % subtitle("")
+    % hold on ;
+    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    % T1clim=clim;
+    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
+    % 
+    % 
+    % 
+    % flux2=nexttile;
+    % cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.as,CreateNewFigure=false);
+    % title("$\rho \,\dot{a}_s$",Interpreter="latex") ;
+    % title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
+    % subtitle("")
+    % hold on ;
+    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    % T2clim=clim;
+    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux2,CM);
+    % CLmeas=clim;
+    % 
+    % qx=F.rho.*F.ub.*F.h ; qy=F.rho.*F.vb.*F.h;
+    % [dqxdx,dqxdy]=calcFEderivativesMUA(qx,MUA,CtrlVar);
+    % [dqydx,dqydy]=calcFEderivativesMUA(qy,MUA,CtrlVar);
+    % qdiv=dqxdx+dqydy;
+    % qdiv=ProjectFintOntoNodes(CtrlVar,MUA,qdiv) ;
+    % 
+    % flux3=nexttile;
+    % cbar=UaPlots(CtrlVar,MUA,F,qdiv,CreateNewFigure=false);
+    % title("$\nabla q  \; (\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",Interpreter="latex") ;
+    % title(cbar,"")
+    % subtitle("")
+    % hold on ;
+    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    % T3clim=clim;
+    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
+    % 
+    % [dudx,dudy]=calcFEderivativesMUA(F.ub,MUA,CtrlVar);
+    % [dvdx,dvdy]=calcFEderivativesMUA(F.vb,MUA,CtrlVar);
+    % vdiv=dudx+dvdy;
+    % vdiv=ProjectFintOntoNodes(CtrlVar,MUA,vdiv) ;
+    % 
+    % flux4=nexttile;
+    % cbar=UaPlots(CtrlVar,MUA,F,vdiv,CreateNewFigure=false);
+    % title("$\nabla \cdot v  \; (\mathrm{a^{-1}})$",Interpreter="latex") ;
+    % title(cbar,"")
+    % subtitle("")
+    % hold on ;
+    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    % T4clim=clim;
+    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
+    % 
+    % dhdtEst=(F.rho.*(F.as+F.ab)-qdiv)./F.rho ;
+    % 
+    % flux5=nexttile;
+    % cbar=UaPlots(CtrlVar,MUA,F,dhdtEst,CreateNewFigure=false);
+    % title("$a - (\nabla \cdot q )/\rho  \; (\mathrm{m}\;\mathrm{a^{-1}})$",Interpreter="latex") ;
+    % title(cbar,"")
+    % subtitle("")
+    % hold on ;
+    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    % T5clim=clim;
+    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
+    % 
+    % 
+    % [dbdx,dbdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
+    % [dbdx,dbdy]=ProjectFintOntoNodes(CtrlVar,MUA,dbdx,dbdy) ;
+    % db=sqrt(dbdx.*dbdx+dbdy.*dbdy);
+    % flux6=nexttile;
+    % cbar=UaPlots(CtrlVar,MUA,F,db,CreateNewFigure=false,logColorbar=true);
+    % title("Norm of lower ice surface gradients $\| \nabla b \|$",Interpreter="latex") ;
+    % title(cbar,"")
+    % subtitle("")
+    % hold on ;
+    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    % 
+    % 
+    % [dsdx,dsdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
+    % [dsdx,dsdy]=ProjectFintOntoNodes(CtrlVar,MUA,dsdx,dsdy) ;
+    % ds=sqrt(dsdx.*dsdx+dsdy.*dsdy);
+    % flux7=nexttile;
+    % cbar=UaPlots(CtrlVar,MUA,F,ds,CreateNewFigure=false,logColorbar=true);
+    % title("Norm of upper ice surface gradients $\| \nabla s \|$",Interpreter="latex") ;
+    % title(cbar,"")
+    % subtitle("")
+    % hold on ;
+    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    % 
+    % 
+    % 
+    % axis(flux1); clim(T1clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
+    % axis(flux2); clim(T2clim) ; CM=cmocean('-ice',25) ; colormap(flux2,CM);
+    % axis(flux3); clim(T3clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
+    % axis(flux4); clim(T4clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
+    % axis(flux5); clim(T5clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
+    % 
+    % T.Padding="tight";   T.TileSpacing="tight";
+    % 
+    % %%
 
 
 end
