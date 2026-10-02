@@ -13,27 +13,36 @@ nargoutchk(4,5)
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Transient implicit with respect to u, v, and h  \n ') ; end
 
 
-%%
+%% Solves for velocities and ice thickness using the SSA approximation. Monolithic approach. 
 %
+% Momentum balance in $x$ and $y$ directions:
 %
-% $$ \mathbf{F}_x = \langle \mathcal{F}_x | \phi_i \rangle = \mathbf{0} $$
+% $$ \mathbf{F}^x = \langle \mathcal{F}^x | \phi_i \rangle = \mathbf{0} $$
 %
-% $$ \mathbf{F}_y  = \langle \mathcal{F}_y | \phi_i \rangle= \mathbf{0} $$
+% $$ \mathbf{F}^y  = \langle \mathcal{F}^y | \phi_i \rangle= \mathbf{0} $$
 %
-% $$ \mathbf{M}  = \langle \mathcal{M} | \phi_i + \tau \mathbf{v} \cdot \nabla \phi \rangle= \mathbf{0} $$
+% Mass conservation:
+%
+% $$ \mathbf{F}^h  = \langle \mathcal{F}^h | \phi_i + \tau \mathbf{v} \cdot \nabla \phi \rangle= \mathbf{0} $$
 %
 % where
 %
-% $$ \mathcal{M}(u,v,h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
+% $$ \mathcal{F}^h(u,v,h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
 %
+%
+% Ice thickness must be positive so we enforce
+%
+% $$h_i > h_{min}$$
+%
+% at all nodes. These inequities are enforced using the active-set method. 
 %
 % The Newton-Raphson system is: 
 % 
 % $$
 % \left [ \begin{array}{ccc}
-% \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{h}\\
-% \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{h}\\
-% \mathrm{d}\mathbf{M}  /\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{M}/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{M}/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{F}^x/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}^x/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}^x/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{F}^y/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}^y/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}^y/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{F}^h  /\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}^h/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}^h/\mathrm{d}\mathbf{h}\\
 % \end{array} \right ]
 % \left [ \begin{array}{c}
 % \Delta \mathbf{u} \\
@@ -41,79 +50,78 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % \Delta \mathbf{h} \\
 % \end{array} \right ]
 % =\left [ \begin{array}{c}
-% -\mathbf{F}_x(\mathbf{u},\mathbf{v},\mathbf{h})  \\
-% -\mathbf{F}_y(\mathbf{u},\mathbf{v},\mathbf{h})  \\
-% -\mathbf{M}(\mathbf{u},  \mathbf{v},\mathbf{h})  \\
+% -\mathbf{F}^x(\mathbf{u},\mathbf{v},\mathbf{h})  \\
+% -\mathbf{F}^y(\mathbf{u},\mathbf{v},\mathbf{h})  \\
+% -\mathbf{F}^h(\mathbf{u},  \mathbf{v},\mathbf{h})  \\
 % \end{array} \right ]
 % $$
 %
+% We can also write this system as
+%
+% $$\mathbf{K} \, \Delta \mathbf{x} = - \mathbf{F} $$
+%
+% where 
+% 
+% $$\Delta \mathbf{x}=(\Delta \mathbf{u},\Delta \mathbf{v},\Delta \mathbf{h}) $$ 
 %
 %
-%
-%
-%
-%
-%%
-
-
-
-
-
-
-
-%%
-% Fully implicit Newton-Raphson with regard to both u, v and h
-% advances the solution by dt
+% The transient problem defined by above equations of momentum and mass are solved using a Newton-Raphson with regard to both u, v and h
+% and the solution is advanced by dt
 %
 % h0, u0, and v0 are values at the start of the time step,
 % on input h1,u1,v1 are estimates for h, u, and v at the end of the time step
 % on exit  h1, u1, and v1 are calculated values for u,v and h at the end of the time step
 %
+% Boundary conditions on $u$, $v$ and $h$ 
+% 
+% $$ \mathbf{A}_{eq} \mathbf{x} = \mathbf{b} $$
+% 
+% are implemented using Lagrange multipliers. This gives us the KKT system
+%
+% $$
+% \left [ \begin{array}{cc}
+% \mathbf{K}      & \mathbf{A}_{eq}^T \\
+% \mathbf{A}_{eq} & 0
+% \end{array} \right ]
+% \left [ \begin{array}{c}
+% \Delta x \\
+% \Delta \mathbf{\lambda} 
+% \end{array} \right ]
+%  =
+% -\left [ \begin{array}{c}
+% \mathbf{F}(\mathbf{x}) + \mathbf{A}_{eq} \lambda \\
+% \mathbf{A}_{eq} \mathbf{x}-\mathbf{b}
+% \end{array} \right ]
+% $$
+%
+% The positive thickness constraints
+%
+% $$h_i > h_{min}$$
+%
+% are solved using the active set method. After having solved the NR system to full convergence, new active constraints are
+% added to the constraint matrix $\mathbf{A}_{eq}$ and new inactive constraints taken out. The active-set method therefore
+% requires an outer loop around the NR system/. This can add considerably to the run time. 
 %
 %
-%%
-% I need to solve
+%% The problem is not self-adjoint
 %
-% [Kxu Kxv Kxh Luv'  0  ] [du]        =  [ -Ru ] - Luv' luv
-% [Kyu Kyv Kyh          ] [dv]           [ -Rv ]
-% [Khu Khv Khh  0   Lh' ] [dh]           [ -Rh- Lh' lh ]
-% [  Luv        0    0  ] [duv]          [ cuv-Luv [u ;v ]
-% [ 0    Lh  0  0    0  ] [dlh]          [ ch-Lh h]
+% As the problem is not self-adjoint, it is not equivalent to solving a local quadratic problem
 %
-% All matrices are Nnodes x Nnodes, apart from:
-% Luv is #uv constraints x 2 Nnodes, i.e. Luv [u;v]= cuv
-% Lh  is # h constraints x Nnodes, i.e.    Lh h= ch
-%  or
+% $$ \min_{x} J = f(x) + \nabla f^T \, \cdot  \Delta x + \frac{1}{2} \Delta x^T \, \cdot \, K \, \Delta x $$
 %
-% [K L'] [ duvh ]      =  [ -R- L' l ]
-% [L 0 ] [  dl  ]         [ cuvh-L [u;v;h]  ]
-%
-% where
-%
-% K= [Kxu Kxv Kxh]
-%    [Kyu Kyv Kyh]
-%    [Khu Khv Khh]
-%
-% and
-% L=[Luv 0]
-%   [0  Lh]
-% and uvh=[u;v;h], duvh=[du;dv; dh]  and l=[luv ; lh]
-% where L [u;v;h]=cuvh
-%
-%
-%
-%%
-%  Newton system:
+% with the  Newton system:
 %
 % $$ K \Delta x = -g $$
 %
 % $$ g= \nabla f  $$
 %
-% This is equivalent to a minimization of the (unconstrained) local quadratic problem:
+% There is no such scalar function $f$
 %
-% $$ \min_{x} J = f(x) + \nabla f^T \, \cdot  \Delta x + \frac{1}{2} \Delta x^T \, \cdot \, K \, \Delta x $$
+% This would be the case if $K$ where symmetric and positive definite. But here $K$ is not!  So there is no natural
+% merit/cost function. The function that I use as a merit function is the normalized square of the right-hand-side of the
+% system.
 %
-%
+%%
 
 if nargin < 9 || isempty(FigNames)
     FigNames="";
@@ -421,7 +429,10 @@ while true
     r0=func(0,dub,dvb,dh,dl) ;
     r1=func(1,dub,dvb,dh,dl) ;
 
-    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
+    %[gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ; 
+    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] =rLineminUa2(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M); 
+
+
     %%
 
     % slope0=-2*r0 ;
@@ -549,21 +560,11 @@ while true
 
     if CtrlVar.InfoLevelNonLinIt>=1
 
-        if RunInfo.BackTrack.Direction=="N "
-            Step="N " ;
-        elseif RunInfo.BackTrack.Direction=="MD"
-            Step="M " ;
-        elseif RunInfo.BackTrack.Direction=="SD"
-            Step="D ";
-        elseif RunInfo.BackTrack.Direction=="CN"
-            Step="CN" ;
-        else
-            Step="";
-        end
+    
 
         fprintf(...
-            'NR-SSTREAM(uvh):%3u/%-2u g%s=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g,  ru=%-14.7g \t rv=%-14.7g, \t rh=%-14.7g \t rBCs=%g \n ',...
-            iteration,RunInfo.BackTrack.iarm,Step,gamma,r/r0,r0,r,rForce,rWork,BCsError,rBlocks);
+            'NR-SSTREAM(uvh):%3u/%-2u g%2s=%-14.7g  r/r0=%-14.7g   r0=%-14.7g  r=%-14.7g  rForce=%-14.7g  rWork=%-14.7g  ru=%-14.7g \t rv=%-14.7g, \t rh=%-14.7g \t rBCs=%g \n ',...
+            iteration,RunInfo.BackTrack.iarm, RunInfo.BackTrack.Direction,gamma,r/r0,r0,r,rForce,rWork,rBlocks);
 
     end
 

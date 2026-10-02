@@ -333,7 +333,8 @@ CtrlVar.PlotOceanLakeNodes=0;        % Shows which nodes are considered a part o
 CtrlVar.PlotMeltNodes=0;
 
                            % (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)
-CtrlVar.PlotsXaxisLabel='x' ; CtrlVar.PlotsYaxisLabel='y' ; %
+CtrlVar.PlotsXaxisLabel="x" ; 
+CtrlVar.PlotsYaxisLabel="y" ; %
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smaller speed are scaled so that their speed its
                                             % equal to this value  (setting this to a large value makes all arrows
                                             % equally long)
@@ -510,7 +511,12 @@ CtrlVar.AGlenminWidthRelative = 1e-10 ;
 %
 
 
-%% uvh Convergence criteria
+%% uvh Solver and Convergence criteria
+
+
+CtrlVar.uvhSolver="Root-Finding Newton";
+
+
 % The non-linear uvh/uv loops are considered to have converged if:
 %
 %  1) Work and Force tolerances are both less than: 
@@ -1685,15 +1691,15 @@ CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This impli
 
 
 % thickness penalty, option 3
-CtrlVar.ThicknessPenalty=0;                                         % set to true for using penalty term, 
-                                                                    % (can be done in combination with the active set method.)
+CtrlVar.ThicknessPenalty=true;                                      % set to true for using penalty term, (Note: this was changed to true as the default option on 1-Oct-2026
+                                                                    % (can be used in combination with the active set method)
 
                                                                     
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";      %The functional form of the penalty term
                                                                     % The options are: "SoftPlus", "exponential", "polynomial" 
 CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponential","polynomial"]; 
 
-%% Thickness penalty term based on the SoftPlus function  
+%% Thickness penalty term based on the SoftPlus function  (recommended option)
 % For
 %
 %    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";   
@@ -1717,7 +1723,7 @@ CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponent
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin/10;
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000/CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;  % This is assuming 1000 is large compared to typical mass balance values
 
-%% Thickness penalty term based on the exponential function  
+%% Thickness penalty term based on the exponential function (not recommended, use softplus instead)
 %
 % For
 %
@@ -1738,7 +1744,7 @@ CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000/CtrlVar.ThicknessPena
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K=10;
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l=CtrlVar.ThickMin/10;
 
-%% Thickness penalty term based on polynomials  
+%% Thickness penalty term based on polynomials   (not recommended, use softplus instead)
 %
 %    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="polynomial";   
 % 

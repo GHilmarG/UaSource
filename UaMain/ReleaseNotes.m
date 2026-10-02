@@ -2,6 +2,21 @@
 
 %%
 % 
+% *Release Notes* _October 2026_
+%
+% Using the thickness penalty together with the active set is now the default option. 
+% Previously, the default option was: active set on, and penalty off.
+%
+% Therefore, now the default option is:
+%
+%   CtrlVar.ThicknessConstraints=true;     
+%   CtrlVar.ThicknessPenalty=true;                                      
+%
+% To get the old behavior set
+%
+%   CtrlVar.ThicknessConstraints=true;     
+%   CtrlVar.ThicknessPenalty=false;                                      
+%
 % *Release Notes* _September 2026_
 %
 % * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.
@@ -18,8 +33,8 @@
 %
 % * For the -uvh- solve, two normalization of the residuals are now available, selected by
 %
-%    CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
-%                                     = "blockwise"
+%    CtrlVar.uvhResidualNormalisation = "pooled"    (older approach)
+%                                     = "blockwise" (new default approach)
 %
 % The new blockwise normalization option is selected by setting 
 %

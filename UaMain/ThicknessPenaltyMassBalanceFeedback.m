@@ -5,7 +5,7 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 % Calculates additional mass-balance term based on if ice thickness is below min ice thickness. This can be thought of as a
 % penalty term. It is only applied if the ice thickness is below:
 %
-%   hmin=CtrlVar.ThickMin ;
+%   hmin=2*CtrlVar.ThickMin ;
 %
 % This option is used in the -uvh- and the -h- solvers, and can be activated by setting:
 %
@@ -73,7 +73,7 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 
 switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 
-    case "polynomical"
+    case "polynomial"
 
         %% Polynomial barrier
         hmin=2*CtrlVar.ThickMin ;
@@ -87,7 +87,7 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         %PenaltyMask1=hint<hmin ;
         k=10000/hmin;
         PenaltyMask1 = HeavisideApprox(k,hmin,hint) ;
-        dPenaltyMask1dh = DiracDelta(k,hmin,hint) ;
+        dPenaltyMask1dh = -DiracDelta(k,hmin,hint) ;
 
         % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
 
@@ -100,10 +100,9 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         %% exponential barrier
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l;
-        hmin=CtrlVar.ThickMin ;
-        %K=10; l=hmin/10 ;
+        hmin=2*CtrlVar.ThickMin ;
         aPenalty1=K*exp(-(hint-hmin)/l);
-        daPenaltydh1=-K*exp(-(hint-hmin))/l;
+        daPenaltydh1=-K*exp(-(hint-hmin)/l)/l;
 
 
     case "softplus"
@@ -114,28 +113,14 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         % it does its job even if dt goes down.  Otherwise, exactly when we have convergence issue due to small/negative ice
         % thickness, and the time step therefore goes down (due to automated selection of dt within the time stepping) the penalty
         % term goes to zero and does not help at all.
+
+        hmin=2*CtrlVar.ThickMin ;
+
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K/(CtrlVar.dt+eps(CtrlVar.dt)) ;
-        
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
-        hmin=CtrlVar.ThickMin ;
+
         k=1/(2*l);
 
-
-        % E=exp(-(hint-hmin)/l);
-        % SoftMinus=K*log(1+E);
-        % dSoftMinusdh=(-K/l)./ (1./E+1);
-        %
-
-        % E=exp(-2*k*(hint-hmin));
-        % SoftMinus=(K/(2*k)) * log(1+E);
-        % dSoftMinusdh=-K./(1+1./E );
-        %
-        %
-        % aPenalty1=SoftMinus;
-        % daPenaltydh1=dSoftMinusdh;
-
-        %
-        % k=1/l ;
         [aPlus,daPlusdh] = SoftPlus(k,-hint,-hmin);
         aPenalty1=K*aPlus;
         daPenaltydh1=-K*daPlusdh ; % don't forget the outer derivative, because the input to SoftPlus is -hint and not +hint

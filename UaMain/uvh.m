@@ -7,16 +7,14 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
 
 narginchk(9,9)
 
-Solver="Root-Finding Newton";
-%Solver="Least-Squares Gauss-Newton";
 
 if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
     CtrlVar=SetSmoothFloorWidths(CtrlVar,F0);
 end
 
-switch Solver
+switch CtrlVar.uvhSolver
 
-    case "Root-Finding Newton"
+    case {"Root-Finding Newton","uvh_GaussNewton_fsolve"}
 
 
         [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhRootFinding(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
@@ -26,6 +24,13 @@ switch Solver
 
         [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhLSQ(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
         RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=1;
+
+
+
+    otherwise
+
+        error("CaseFellThrough")
+
 end
 
 

@@ -165,17 +165,16 @@ if contains(FieldsToBeDefined,'s')|| contains(FieldsToBeDefined,'b')
     F.h=F.s-F.b;
 end
 
+if contains(FieldsToBeDefined,"-S-") && contains(FieldsToBeDefined,"-s-")
+    if any((F.s-F.S)<CtrlVar.ThickMin)
 
-if any(F.s-F.S<CtrlVar.ThickMin)
+        warning("Calc_bh_From_sBS:s_less_than_S","Based on user input, there are locations were (s - S) < CtrlVar.ThickMin \n")
+        fprintf("Here it s>S will be enforced. However, a better approach is to make sure that the input fields  do not violate this condition to begin with. \n")
+        fprintf("Consider modifying the inputs accordingly. \n")
+        ind=(F.s-F.S)< CtrlVar.ThickMin;
+        F.s(ind)=F.S(ind)+CtrlVar.ThickMin;
 
-    warning("Calc_bh_From_sBS:s_less_than_S","Based on user input, there are locations were (s - S) < CtrlVar.ThickMin \n")
-    fprintf("Here it s>S will be enforced. However, a better approach is to make sure that the input fields  do not violate this condition to begin with. \n")
-    fprintf("Consider modifying the inputs accordingly. \n")
-    ind=(F.s-F.S)< CtrlVar.ThickMin;
-    F.s(ind)=F.S(ind)+CtrlVar.ThickMin;
-
-
-
+    end
 end
 
 
