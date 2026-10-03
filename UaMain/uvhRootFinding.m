@@ -7,7 +7,14 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhRootFinding(UserVar,RunInfo,CtrlVar,
 
 narginchk(9,9)
 
-dt=CtrlVar.dt;
+% F1.dt is the time step. CtrlVar.dt is only a copy of F1.dt, kept for compatibility with older code.
+if isempty(F1.dt) || ~isfinite(F1.dt) || F1.dt<=0
+    F1.dt=CtrlVar.dt ;
+elseif F1.dt~=CtrlVar.dt
+    fprintf("uvhRootFinding: F1.dt=%g and CtrlVar.dt=%g differ on input. F1.dt is used. \n",F1.dt,CtrlVar.dt)
+end
+CtrlVar.dt=F1.dt ;
+dt=F1.dt ;
 
 
 RunInfo.Forward.ActiveSetConverged=1;
@@ -45,6 +52,10 @@ if ~CtrlVar.ThicknessConstraints
     if ~RunInfo.Forward.uvhConverged
 
         [UserVar,RunInfo,F1,F0,~,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1) ;
+
+        % The time step has been reduced. Continue with the reduced time step, both in the remaining solves in this function
+        % and on return. F1.dt is the master and CtrlVar.dt only a copy.
+        F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
 
     end
    
@@ -97,8 +108,27 @@ else   %  Thickness constraints used
 
         [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
+        StalledPass=false ;
         if ~RunInfo.Forward.uvhConverged
-            [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+
+            % Did the iteration stall with a small residual? If so, reducing the time step is unlikely to help. The active set is
+            % then updated instead (see below), and the iteration started again from the current iterate with the same time step.
+            % Only if the residual is large, or if the active set can not be changed, is the time step reduced.
+            uvhStalledTol=1e-6 ;
+            if isfield(CtrlVar,"uvhStalledForceTolerance") ; uvhStalledTol=CtrlVar.uvhStalledForceTolerance ; end
+            StalledPass = isfield(RunInfo.Forward,"uvhStalled") && RunInfo.Forward.uvhStalled ...
+                && isfield(RunInfo.Forward,"uvhrForce") && RunInfo.Forward.uvhrForce < uvhStalledTol ;
+
+            if StalledPass
+                fprintf(" uvhRootFinding: The uvh iteration stalled with rForce=%g, which is below %g. The time step is not reduced. The active set is updated and the iteration continued from the current iterate with dt=%g. \n",RunInfo.Forward.uvhrForce,uvhStalledTol,F1.dt)
+            else
+                [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+
+                % The time step has been reduced. Continue with the reduced time step, both in the remaining solves in this function
+                % and on return. F1.dt is the master and CtrlVar.dt only a copy.
+                F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
+            end
+
         end
 
         if any(F1.h(BCs1.hPosNode) < CtrlVar.ThickMin)
@@ -139,11 +169,26 @@ else   %  Thickness constraints used
         % Note: If this active-set iteration does not converge,
         %       the uvh solution and the active set are not consistence,
         %       i.e. the uvh solution was not obtained for the BCs in the active set.
-        [UserVar,RunInfo,BCs1,~,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVar,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
+        CtrlVarAS=CtrlVar ;
+        if StalledPass ; CtrlVarAS.ActiveSet.ReleaseAlpha=inf ; end    % a stalled solve has not converged and its multipliers are less reliable: no releases, only activations
+        [UserVar,RunInfo,BCs1,~,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVarAS,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
 
         LastReleased=Released;
         LastActivated=Activated;
         iActiveSetIteration=iActiveSetIteration+1;
+
+        if StalledPass && (~isActiveSetModified || isActiveSetCyclical)
+
+            % The solve stalled, but the active set can not be used to resolve this. Now reduce the time step.
+            fprintf(" uvhRootFinding: The stalled uvh iteration can not be resolved by changing the active set. \n")
+            dtBeforeReduction=F1.dt ;
+            [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+            F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
+            if F1.dt < dtBeforeReduction
+                continue      % solve again, now with the reduced time step
+            end
+
+        end
 
         if ~isActiveSetModified
             fprintf(' Leaving active-set loop because active set unchanged in last active-set iteration. \n')

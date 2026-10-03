@@ -177,6 +177,7 @@ if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
         % on h in the Hessian, so may need to dampen these changes
         F1.as=(1-rdamp)*F1.as+rdamp*as1Old;
         F1.ab=(1-rdamp)*F1.ab+rdamp*ab1Old;
+        dadh=(1-rdamp)*dadh ;   % a_used=(1-rdamp)*a(h)+rdamp*a_old, and therefore d a_used/dh=(1-rdamp)*da/dh
     end
 else
     dadh=zeros(MUA.Nnodes,1);

@@ -37,7 +37,7 @@ function KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 % The blocks corresponding to inactive fields are dropped at the end, so any combination of the three fields is
 % handled by the same code.
 %
-%  see also: FAA.m, FBB.m, FCC.m, Jpp.m, CalcDirectAdjointHessian.m
+%  see also: FAA.m, FBB.m, FCC.m, FAB.m, FBC.m, Jpp.m, CalcDirectAdjointHessian.m
 %
 %%
 
@@ -52,16 +52,10 @@ if ~any(Active)
     error("Fpp:NoActiveFields","None of the inversion fields A, B or C is active.")
 end
 
-%% The cross blocks involving B are not yet implemented
+%% The cross blocks involving B
 %
-% The structure below is already in place for them: when FAB.m and FBC.m are written, the two commented lines further
-% down are all that need to be added.
-
-if isB && (isA || isC)
-    error("Fpp:CrossTermsNotImplemented",...
-        ["Inverting for B together with A and/or C requires the cross blocks F^{AB} and/or F^{BC}.\n" ...
-         "These are not yet implemented. Invert for B on its own, or for A and C without B."])
-end
+% The A-B and B-C blocks are calculated by FAB.m and FBC.m, respectively, see below. Both require CtrlVar.Hh0=0 and no melange model physics,
+% and FBC.m is only implemented for the Weertman sliding law (as FCuv.m and Fqq.m).
 
 %% assemble the blocks
 
@@ -87,13 +81,13 @@ end
 %
 % Note: K{1,3} and K{3,1}, i.e. the A-C blocks, are identically zero and are therefore left at their default value.
 
-% if isA && isB
-%     K{1,2}=FAB(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;  K{2,1}=K{1,2}.' ;
-% end
-%
-% if isB && isC
-%     K{2,3}=FBC(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;  K{3,2}=K{2,3}.' ;
-% end
+if isA && isB
+    K{1,2}=FAB(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;  K{2,1}=K{1,2}.' ;
+end
+
+if isB && isC
+    K{2,3}=FBC(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;  K{3,2}=K{2,3}.' ;
+end
 
 %% keep only the active fields
 

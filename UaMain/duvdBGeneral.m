@@ -78,9 +78,9 @@ end
 
 %%  dF/dp
 
-KdFuvdB=dFuvdBGeneral(CtrlVar,MUA,F);
+KdFuvdBGeneral=dFuvdBGeneral(CtrlVar,MUA,F);
 
-KdFuvdB=KdFuvdB(:,Nodes);    % only the requested columns are needed
+KdFuvdBGeneral=KdFuvdBGeneral(:,Nodes);    % only the requested columns are needed
 
 %% boundary conditions
 %
@@ -99,7 +99,7 @@ end
 
 %% solve
 
-frhs=-full(KdFuvdB);   % the right-hand side is quite dense, so this is a faster approach
+frhs=-full(KdFuvdBGeneral);   % the right-hand side is quite dense, so this is a faster approach
 
 if ~isempty(LBCs)
     grhs=repmat(cBCs,1,size(frhs,2));

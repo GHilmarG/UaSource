@@ -248,7 +248,7 @@ if CtrlVar.Inverse.CalcGradI
             if isB
 
             
-                %dIdB_old=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,dhdp,dbdp,dBdp);
+             
                 dIdB_implicit=dIdBqGeneral(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ; 
 
                 [~,dhdB]=dGeometrydB(CtrlVar,F.s,F.S,F.B,F.b,F.rho,F.rhow);
@@ -264,7 +264,7 @@ if CtrlVar.Inverse.CalcGradI
         otherwise
 
             fprintf(" CtrlVar.Inverse.DataMisfit.GradientCalculation has the value %s \n",CtrlVar.Inverse.DataMisfit.GradientCalculation)
-            fprintf(" but the only allowed values are ''fixpoint'' and ''adjoint'' \n")
+            fprintf(" but the only allowed value is ''adjoint'' \n")
             error(" which case? ")
 
     end

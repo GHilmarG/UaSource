@@ -4,7 +4,7 @@
 % 
 % *Release Notes* _October 2026_
 %
-% Using the thickness penalty together with the active set is now the default option. 
+% *Using the thickness penalty together with the active set is now the default option. 
 % Previously, the default option was: active set on, and penalty off.
 %
 % Therefore, now the default option is:
@@ -16,6 +16,10 @@
 %
 %   CtrlVar.ThicknessConstraints=true;     
 %   CtrlVar.ThicknessPenalty=false;                                      
+%
+% * An error in the calculation of the adjoint gradient for Budd law was spotted and corrected. In one line of the code, a term was
+% multiplied twice by the grounding/floating mask, instead of once. This will not have caused any errors in the forward
+% solution, but might have slowed done convergence in an inversion.
 %
 % *Release Notes* _September 2026_
 %

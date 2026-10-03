@@ -99,7 +99,7 @@ g=dIdBqGeneral(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y);
 
 gK=K.'*[Psi_x;Psi_y];
 
-fprintf("\n Test 1: (dFuvdB)'' Psi  against  dIdBqGeneral \n")
+fprintf("\n Test 1: (dFuvdBGeneral)'' Psi  against  dIdBqGeneral \n")
 fprintf("   normalized difference = %g    (expect round-off) \n",norm(gK-g)/norm(g))
 
 %% Test 2: finite differences of the forward solution

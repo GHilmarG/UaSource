@@ -230,6 +230,8 @@ end
 iteration=0 ;
 
 RunInfo.Forward.uvhConverged=0;
+RunInfo.Forward.uvhStalled=false ;    % true if the iteration exited without having converged because of stagnation, failed backtracking or too many iterations
+RunInfo.Forward.uvhrForce=NaN ;        % value of rForce on exit
 RunInfo.BackTrack.Converged=1 ;
 %r=inf;  rWork=inf ; rForce=inf; r0=inf;
 gamma=1 ;
@@ -284,6 +286,7 @@ while true
                 CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
         end
         RunInfo.Forward.uvhConverged=1;
+        RunInfo.Forward.uvhrForce=rForce ;
         break
 
     end
@@ -297,6 +300,8 @@ while true
         end
 
         RunInfo.Forward.uvhConverged=0;
+        RunInfo.Forward.uvhStalled=true ;
+        RunInfo.Forward.uvhrForce=rForce ;
         break
     end
 
@@ -308,6 +313,8 @@ while true
 
      
         RunInfo.Forward.uvhConverged=0;
+        RunInfo.Forward.uvhStalled=true ;
+        RunInfo.Forward.uvhrForce=rForce ;
         break
     end
 
@@ -322,13 +329,15 @@ while true
                 CtrlVar.time,CtrlVar.dt,r/r0,rRatioMin,r,iteration) ;
         end
 
-        if rWork < 1e-14
-            % OK, Im hard-wiring this condition here. The argument is that if the residual is below 1e-14 and the solver repeatedly
-            % returns very short steps, minimum has effectively been found.
-            
+        % The solution is judged to have converged only if rForce is below the desired force tolerance. Otherwise the iteration has
+        % stalled. Whether the residual is small enough for this to be dealt with by updating the active set, rather than by reducing
+        % the time step, is decided by the calling routine (uvhRootFinding), based on RunInfo.Forward.uvhrForce.
+        RunInfo.Forward.uvhrForce=rForce ;
+        if rForce < CtrlVar.uvhDesiredWorkAndForceTolerances(2)
             RunInfo.Forward.uvhConverged=true;
         else
             RunInfo.Forward.uvhConverged=false;
+            RunInfo.Forward.uvhStalled=true ;
         end
 
         break
@@ -563,7 +572,7 @@ while true
     
 
         fprintf(...
-            'NR-SSTREAM(uvh):%3u/%-2u g%2s=%-14.7g  r/r0=%-14.7g   r0=%-14.7g  r=%-14.7g  rForce=%-14.7g  rWork=%-14.7g  ru=%-14.7g \t rv=%-14.7g, \t rh=%-14.7g \t rBCs=%g \n ',...
+            'NR-SSTREAM(uvh):%3u/%-2u g%2s=%-14.7g  r/r0=%-14.7g   r0=%-14.7g  r=%-14.7g  rForce=%-14.7g  rWork=%-14.7g  ru=%-14.7g \t rv=%-14.7g \t rh=%-14.7g \t rBCs=%g \n ',...
             iteration,RunInfo.BackTrack.iarm, RunInfo.BackTrack.Direction,gamma,r/r0,r0,r,rForce,rWork,rBlocks);
 
     end

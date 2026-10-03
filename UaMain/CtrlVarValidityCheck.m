@@ -252,8 +252,8 @@ if CtrlVar.InverseRun
     CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"--","-");
     CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"--","-");
 
-    if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),["fixpoint","adjoint"])
-        fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain either ''fixpoint'' or ``adjoint` \n')
+    if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),"adjoint")
+        fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain ``adjoint` \n')
         error('Invalid inputs.')
     end
 

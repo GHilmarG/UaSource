@@ -9,14 +9,15 @@ function [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     h0barr,h1barr,...
     taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
     Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-    hint,h0int,a1int,a0int,dadhint,lambda_h,bpn)
+    hint,h0int,a1int,a0int,dadhint,lambda_h,bpn,dadhnod)
 
 %%
 %
 % Highly vectorized over both the integration points and the first nodal loop.
 %
 % Version 2. Compared with uvhNodalLoopSSTREAM there is one additional input, bpn, which is the nodal derivative of the lower ice
-% surface b with respect to the nodal thickness h (Nele x nod), or empty. If not empty, the derivative of the term
+% surface b with respect to the nodal thickness h (Nele x nod). It is only needed for the Jacobian and is empty if Ronly is true. Unless Ronly is true,
+% the derivative of the term
 %
 %      -ca g (rho h - rhow d) grad(b)
 %
@@ -88,15 +89,16 @@ if ~Ronly
     PxW=((etaint.*(4*exx+2*eyy)-t2coeff).*Dx + etaint.*2.*exy.*Dy + fx.*funR).*detJw;
     PyW=((etaint.*(4*eyy+2*exx)-t2coeff).*Dy + etaint.*2.*exy.*Dx + fy.*funR).*detJw;
 
-    AddDb=~isempty(bpn) ;
-    if AddDb ; cDb=ca*g*(rhoint.*hint-rhow*dint).*detJw ; end
+    cDb=ca*g*(rhoint.*hint-rhow*dint).*detJw ;      % coefficient of the term due to the dependence of grad(b) on h, see above
 
     % --- the three thickness rows, rank one: Kh* = SUPG_i Q*_j ----------
 
     QuW=((rhoint.*dhdx+drhodx.*hint).*funR + rhoint.*hint.*Dx)*theta.*detJw*dt;
     QvW=((rhoint.*dhdy+drhody.*hint).*funR + rhoint.*hint.*Dy)*theta.*detJw*dt;
 
-    QhW=( (rhoint - dt*theta*rhoint.*dadhint + dt*theta*rhoint.*h1barr/lambda_h ...
+    % dadhint (Nele x 1) is the derivative at the integration point of terms that are functions of the integration-point thickness (penalty etc).
+    % dadhnod (Nele x nod) are the nodal derivatives of the user-supplied mass balance; column j multiplies N_j, as d a_int/d h_j = N_j da_j/dh_j.
+    QhW=( (rhoint - dt*theta*rhoint.*dadhint - dt*theta*rhoint.*dadhnod + dt*theta*rhoint.*h1barr/lambda_h ...
            + dt*theta.*(rhoint.*exx+drhodx.*uint+rhoint.*eyy+drhody.*vint)).*funR ...
           + dt*theta.*rhoint.*uint.*Dx + dt*theta.*rhoint.*vint.*Dy ).*detJw;
 
@@ -115,10 +117,9 @@ if ~Ronly
         Kxh(:,:,Inod)=Kxh(:,:,Inod)+ PxW(:,Inod).*funR;
         Kyh(:,:,Inod)=Kyh(:,:,Inod)+ PyW(:,Inod).*funR;
 
-        if AddDb
-            Kxh(:,:,Inod)=Kxh(:,:,Inod)+ (cDb*fun(Inod)).*(Dx.*bpn) ;
-            Kyh(:,:,Inod)=Kyh(:,:,Inod)+ (cDb*fun(Inod)).*(Dy.*bpn) ;
-        end
+        % derivative of the term due to the dependence of grad(b) on the nodal thickness (see above)
+        Kxh(:,:,Inod)=Kxh(:,:,Inod)+ (cDb*fun(Inod)).*(Dx.*bpn) ;
+        Kyh(:,:,Inod)=Kyh(:,:,Inod)+ (cDb*fun(Inod)).*(Dy.*bpn) ;
 
         Khu(:,:,Inod)=Khu(:,:,Inod)+ supi.*QuW;
         Khv(:,:,Inod)=Khv(:,:,Inod)+ supi.*QvW;

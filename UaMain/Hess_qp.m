@@ -5,21 +5,22 @@
 
 
 
-function [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC)
+function [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC,Meas)
 
-narginchk(13,13)
+narginchk(13,14)
 nargoutchk(1,1)
 
 %% Builds the mixed Hessian term
 %
 % $$ H^{pq}+H^{qp} = \big( \mathcal{F}^{pq} \big) \xi + \Big[ \big( \mathcal{F}^{pq} \big) \xi \Big]^T $$
 %
-% The $J^{pq}$ contribution is absent because each term in the cost function is an explicit function of either p or
+% With velocity measurements only, the $J^{pq}$ contribution is absent because each term in the cost function is an explicit function of either p or
 % q, but not of both.
 %
-% Note: that statement relies on the measurements being velocities only. If dh/dt measurements are included then
-% $J_{\dot{h}}$ depends on the velocities AND on the thickness, and hence on B, so $J^{pq} \neq 0$ for B. That term
-% is not implemented.
+% If dh/dt measurements are included, $J_{\dot{h}}$ depends on the velocities AND on the thickness, and hence on B (through h=h(B)), so $J^{pq} \neq 0$
+% for B. This term is added to the B row of $\mathcal{F}^{pq}$ below, see JhdotBq.m, and Meas must then be provided as the (optional) last input.
+% For A and C inversions (ie where p=A or p=C) the corresponding contribution is identically equal to zero, because they do not affect h.
+% 
 %
 % The blocks are ordered (A,B,C), matching Fpp.m and the assembly of xi in CalcDirectAdjointHessian.m
 %
@@ -31,11 +32,11 @@ nargoutchk(1,1)
 %
 %%
 
+[isA,isB,isC] = isABC(CtrlVar);
 
-if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-
-    error("Hess_qp:CaseNotImplemented","Hessian mixed qp terms not fully implemented for use the dh/dt meas. ")
-
+[~,is_dhdt_meas]=is_uv_dhdt_Meas(CtrlVar) ;
+if isB && is_dhdt_meas && (nargin<14 || isempty(Meas))
+    error("Hess_qp:MeasNeeded","Hess_qp needs the input Meas when inverting for B with dh/dt measurements.")
 end
 
 
@@ -49,6 +50,13 @@ end
 KFpq=[KFAu KFAv ; ...
       KFBu KFBv ; ...
       KFCu KFCv ] ;
+
+% explicit mixed derivative of the dh/dt misfit term, which depends on B through the thickness h=h(B). It adds to the B row of F^{pq}.
+if isB && is_dhdt_meas
+    nA=0 ; if isA ; nA=size(KFAu,1) ; end
+    iB=nA+(1:size(KFBu,1)) ;
+    KFpq(iB,:)=KFpq(iB,:)+JhdotBq(CtrlVar,MUA,F,Meas) ;
+end
 
 xi=[KdudA KdudB KdudC ;...
     KdvdA KdvdB KdvdC] ;

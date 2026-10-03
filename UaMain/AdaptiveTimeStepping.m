@@ -8,6 +8,12 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
 %% dtOut=AdaptiveTimeStepping(time,dtIn,nlInfo,CtrlVar)
 %  modifies time step size
 %
+%   [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F)
+%
+% The time step on input is F.dt, and dtOut is the new time step. It is up to the calling program to set F.dt=dtOut. 
+% (CtrlVar.dt is only a copy of F.dt, kept for compatibility with the rest of the code, and is not used on input.)
+%
+%
 % Decision about increasing the time step size is based on the number of non-linear iterations over the last few time steps.
 %
 % The main idea is to limit the number of non-linear iteration so that the NR is within the quadratic regime
@@ -48,7 +54,12 @@ persistent dtNotUserAdjusted dtOutLast dtModifiedOutside
 RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0 ;
 
 time=CtrlVar.time;
-dtIn=CtrlVar.dt ;
+% F.dt is the time step (the master variable). CtrlVar.dt is only a copy of F.dt, kept for compatibility with older code, and is not used here.
+if isempty(F.dt) || ~isfinite(F.dt) || F.dt<=0
+    dtIn=CtrlVar.dt ;      % F.dt has not been set, fall back on CtrlVar.dt
+else
+    dtIn=F.dt ;
+end
 
 
 
@@ -110,6 +121,15 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
 
         nStepBacks=max([CtrlVar.ATSintervalDown,CtrlVar.ATSintervalUp]);
         ItVector=RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-nStepBacks,1):CtrlVar.CurrentRunStepNumber-1);
+        
+        % I'm going to ignore the iteration count in the first run-step of current run, and set it to the target number of iteration.
+        % This is done because sometimes it is only the first iteration that struggles.
+        % This could, for example, be the case when the active set is being initialized from empty. 
+        if max(CtrlVar.CurrentRunStepNumber-nStepBacks,1) == 1
+            ItVector(1)=CtrlVar.ATSTargetIterations ; 
+        end
+
+
         nItVector=numel(ItVector) ;
 
 
@@ -142,7 +162,9 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
             % fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
 
 
-        elseif RunInfo.Forward.AdaptiveTimeSteppingResetCounter > 2 && RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)>25
+        elseif RunInfo.Forward.AdaptiveTimeSteppingResetCounter > 2 ...
+                && RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1) > 25 ...
+                && CtrlVar.CurrentRunStepNumber~=1    % again I'm ignoring whatever happens in the first runstep
 
             % This is also a special case to cover the possibility that there is a sudden
             % increase in the number of non-linear iterations, or if the initial time step

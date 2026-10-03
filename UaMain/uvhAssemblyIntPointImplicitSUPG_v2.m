@@ -17,7 +17,7 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
 
 %%
 %
-% Version 2 of uvhAssemblyIntPointImplicitSUPG. It differs from the original in one respect only:
+% Version 2 of uvhAssemblyIntPointImplicitSUPG. It differs from the original in two respects. (1)
 %
 % In the momentum equations the lower ice surface b enters through the term
 %
@@ -36,8 +36,10 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
 % The nodal derivative db/dh is calculated here and handed on to uvhNodalLoopSSTREAM_v2, which adds the term to Kxh and Kyh.
 % It is only needed for the Jacobian, and bpn is therefore empty if Ronly is true.
 %
-% The extra term can be switched off by setting CtrlVar.uvh.AddDbDhTerm=false (default is true), in which case the results are
-% identical to those of uvhAssemblyIntPointImplicitSUPG.
+% The extra term is always included.
+%
+% (2) The derivative da/dh of the user-supplied mass balance (CtrlVar.MassBalanceGeometryFeedback=3) is used as a nodal quantity, see dadhint below.
+% Previously it was interpolated to the integration points, which is only exact if da/dh is constant over an element.
 %
 %%
 
@@ -161,7 +163,11 @@ as1int=as1nod*fun;
 ab1int=ab1nod*fun;
 a1int=as1int+ab1int;
 a0int=as0int+ab0int;
-dadhint=dadhnod*fun;
+% The user-supplied da/dh is NOT interpolated to the integration point. The mass balance at an integration point is interpolated from the nodal
+% values, a_int=sum_k N_k a_k(h_k), so that d a_int / d h_j = N_j da_j/dh_j. The nodal derivatives (dadhnod) are therefore passed on to the nodal loop
+% and multiplied there with the shape function of node j. Mass-balance terms that are functions of the integration-point thickness (penalty, level set
+% and barrier terms) are added to dadhint below, because for those d a / d h_j = (da/dh)(h_int) N_j.
+dadhint=zeros(MUA.Nele,1) ;
 
 
 
@@ -249,7 +255,10 @@ Sint=Snod*fun;
 rhoint=rhonod*fun;
 Hint=Sint-Bint;
 
-hfint=rhow*Hint./rhoint;  % this is linear, so fine to evaluate at int in this manner
+% The flotation thickness is evaluated at the integration point, from S, B and rho interpolated to the integration point.
+% It is linear in S and B, but not in rho, so this is not the same as interpolating a nodal hf if rho varies horizontally.
+% Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
+hfint=rhow*Hint./rhoint;
 
 
 
@@ -427,11 +436,8 @@ nod=MUA.nod ;
 
 
 %% nodal derivative of b with respect to h, needed for the exact Jacobian (see above)
-AddDbDhTerm=true ;
-if isfield(CtrlVar,"uvh") && isfield(CtrlVar.uvh,"AddDbDhTerm") ; AddDbDhTerm=CtrlVar.uvh.AddDbDhTerm ; end
-
 bpn=[] ;
-if ~Ronly && AddDbDhTerm
+if ~Ronly
 
     hrn=hnod ;                                                      % nodal thickness as used in Calc_bs_From_hBS
     if CtrlVar.ResetThicknessToMinThickness ; hrn(hnod<CtrlVar.ThickMin)=CtrlVar.ThickMin ; end
@@ -459,7 +465,7 @@ end
     h0barr,h1barr,...
     taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
     Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-    hint,h0int,a1int,a0int,dadhint,lambda_h,bpn) ;
+    hint,h0int,a1int,a0int,dadhint,lambda_h,bpn,dadhnod) ;
 
 
 

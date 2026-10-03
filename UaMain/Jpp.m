@@ -1,6 +1,6 @@
-function KJpp=Jpp(CtrlVar,MUA)
+function KJpp=Jpp(CtrlVar,MUA,F,Meas)
 
-narginchk(2,2)
+narginchk(2,4)
 
 %% Builds the Hessian term, Jpp, which is
 %
@@ -16,6 +16,8 @@ narginchk(2,2)
 %
 % # the regularisation terms, whose Hessians are the precision matrices QA, QB and QC
 % # the misfit with respect to direct observations of B, if any
+% # the dh/dt misfit, when inverting for B. The model dh/dt depends on the thickness, and h=h(B), so J_hdot depends explicitly on B,
+%   see JhdotBB.m. This needs F and Meas, which are therefore additional (optional) inputs.
 %
 % Both are built in
 %
@@ -57,6 +59,22 @@ end
 
 
 KJpp=blkdiag(QA,QB,QC) ;
+
+% add the explicit dependence of the dh/dt misfit term on B, through the thickness h=h(B). It only affects the B block.
+[isA,isB,~]=isABC(CtrlVar) ;
+[~,is_dhdt_meas]=is_uv_dhdt_Meas(CtrlVar) ;
+
+if isB && is_dhdt_meas
+
+    if nargin<4 || isempty(F) || isempty(Meas)
+        error("Jpp:FandMeasNeeded","Jpp needs the inputs F and Meas when inverting for B with dh/dt measurements.")
+    end
+
+    nA=0 ; if isA ; nA=size(QA,1) ; end
+    iB=nA+(1:size(QB,1)) ;
+    KJpp(iB,iB)=KJpp(iB,iB)+JhdotBB(CtrlVar,MUA,F,Meas) ;
+
+end
 
 
 end

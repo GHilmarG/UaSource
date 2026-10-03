@@ -531,6 +531,12 @@ CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  % both of those must be fulfilled
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one of those
 
+% 3) If the uvh iteration has stalled (stagnation, failed backtracking or too many iterations) with rForce above the desired force
+% tolerance, but below this value, then the time step is not reduced. If thickness constraints are used, the active set is
+% updated and the iteration is continued from the current iterate with the same time step. The time step is reduced only if
+% the residual is above this value, or if the active set can not be changed.
+CtrlVar.uvhStalledForceTolerance=1e-6;
+
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
 CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
@@ -855,16 +861,6 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % an issue).
 %
 %
-% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit
-% initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method
-% is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the
-% adjoint gradients.
-%
-% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good
-% estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right
-% at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient
-% calculation using adjoint
-%
 % Ua has some inbuilt Optimisation methods and these are used by default. However, if the matlab Optimisation toolbox is installed, the
 % matlab routines can be used instead.
 %
@@ -874,11 +870,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.InvertFor='-logA-' ;
 %   CtrlVar.Inverse.Regularize.Field='-logA-logC-'
 %
-% is considered inconsistent (although in principle possible.) Also using the
-% `FixPoint' gradient calculation, which only works for C inversion, and
-% inverting for both A and C, i.e. 
-%
-%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
+%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint'}
 %   CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-AGlen-','-logA-','-logA-logC-'}
 %
 % is inconsistent. Ua tries to spot these input parameter mistakes and correct
@@ -982,9 +974,8 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 
 %%
 % The gradient of the objective function is calculated using the adjoint method.
-% When inverting for C only, one can also use a gradient based on a `FixPoint'
-% iteration, which is often a very good initial approach. 
-CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
+
+CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint'}
 
 %% Inverse methodology: Select either Tikhonov or Matern 
 %

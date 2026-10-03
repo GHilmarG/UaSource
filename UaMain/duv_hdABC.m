@@ -62,11 +62,9 @@ if isA
 end
 
 if isB
-    %tB=tic;
-    % [dudB,dvdB,dhdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
+  
     [KdudB,KdvdB]=duvdBGeneral(CtrlVar,MUA,F,l,BCs,KdFuvduv) ; % this is the general case, not assuming the ice to be grounded everywhere
-    %tB=toc(tB);
-    % fprintf("B sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
+  
 end
 
 if isC

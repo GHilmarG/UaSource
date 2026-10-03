@@ -382,7 +382,10 @@ for Iint=1:MUA.nip
 
     %% evaluating dint, hfint, Heint and deltaint at integration points
 
-    hfint=F.rhow*Hint./rhoint;                                   % this is linear, so fine to evaluate at int in this manner
+    % The flotation thickness is evaluated at the integration point, from S, B and rho interpolated to the integration point.
+    % It is linear in S and B, but not in rho, so this is not the same as interpolating a nodal hf if rho varies horizontally.
+    % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
+    hfint=F.rhow*Hint./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
     HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 

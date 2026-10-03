@@ -31,7 +31,7 @@ switch CtrlVar.Inverse.HessianCalculation
 
     case "-Jpp-"
 
-        Hessian=Jpp(CtrlVar,MUA);
+        Hessian=Jpp(CtrlVar,MUA,F,Meas);
 
     case "-FiniteDifferences-"
 

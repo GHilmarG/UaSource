@@ -38,7 +38,10 @@ narginchk(10,10)
 % $$
 %
 %
-% Limitations: Currently the Hessian calculations have been implemented for logA and logC, but not for B
+% Limitations: The Hessian calculations have been implemented for logA, B, and logC, including all cross terms (A-B, B-C and A-C; the
+% A-C block of the forward-model term is identically zero). The terms involving the sliding law are implemented for the Weertman law only:
+% FCuv.m, FBC.m and Fqq.m raise an error for other laws, and FCC.m assumes it. For B, CtrlVar.Hh0 must be zero and melange model physics
+% is not supported.
 %
 %
 %%
@@ -139,7 +142,7 @@ if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
 
     % Note: These are second-order derivatives of the forward model with respect to p=(logA,B,logC). 
-    % This has not been implemented for B
+    % Implemented for A, B and C, including the cross blocks A-B and B-C (FAB.m and FBC.m)
     KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
     if isempty(H)
         H=KFpp;
@@ -153,7 +156,8 @@ if contains(HessianTerms,"-Jpp-")  % explicit dependency of J on p=(logA,B,logC)
 
     % Note: these are second-order derivatives of the cost function with respect to p=(logA,B,logC)
     % This has been implemented for all three p fields
-    KJpp=Jpp(CtrlVar,MUA);
+    % For B inversions with dh/dt measurements this includes the explicit dependence of J_hdot on B through h(B), see JhdotBB.m
+    KJpp=Jpp(CtrlVar,MUA,F,Meas);
 
     if isempty(H)
         H=KJpp;
@@ -168,11 +172,11 @@ end
 %
 % $$H^{pq}+H^{qp}=\big(J^{pq}+\mathcal{F}^{pq}\big)\xi \;+\; \Big[\big(J^{pq}+\mathcal{F}^{pq}\big)\xi\Big]^T$$
 %
-% The J^{pq} contribution is not missing as each term in the cost function is only an explicit
+% For velocity measurements the J^{pq} contribution is absent, as each term in the cost function is only an explicit
 % function of either p or q, not both.
 %
-% Even the $$J_{\dot{h}}$$ terms only involves $u$ and $v$ and not any of $A$, $B$ or
-% $C$, so here $$J_{\dot{h}}^{pq} =0 $$ as well
+% The $$J_{\dot{h}}$$ term, however, depends on u and v and also on the thickness h, and h=h(B) when inverting for B. Hence
+% $$J_{\dot{h}}^{pq} \neq 0 $$ for p=B, and that term is included in Hess_qp.m (see JhdotBq.m). For A and C it is zero.
 %
 
 if Sensitivites
@@ -180,8 +184,9 @@ if Sensitivites
 
         % These are second-order mixed derivatives of the forward model with respect to q,p
         %
-        % This has not been implemented for derivatives involving B
-        [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC);
+        % Implemented for A, B and C. The cross blocks (A-B, B-C and A-C) arise through xi. For B inversions with dh/dt measurements the
+        % explicit J^{pq} term is included as well, see JhdotBq.m.
+        [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC,Meas);
         H=H+KHess_qp ;
 
     end

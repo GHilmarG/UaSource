@@ -445,8 +445,8 @@ while 1
     F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
     %% -adapt time step   automated time stepping adaptive time stepping 
     if CtrlVar.TimeDependentRun && ~CtrlVar.NeverChangePrescribedTimeStep 
-        [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
-        F.dt=CtrlVar.dt; 
+        [RunInfo,F.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);   % F.dt is the master time step
+        CtrlVar.dt=F.dt ;    % CtrlVar.dt is only a copy of F.dt, kept for compatibility with the rest of the code
     end
  
     
@@ -736,6 +736,7 @@ while 1
             MUA=UpdateMUA(CtrlVar,MUA);
 
        
+            dtBeforeUvhSolve=F.dt ;
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
             %[norm(F.ub(BCs.ubFixedNode)-BCs.ubFixedValue) norm(F.vb(BCs.vbFixedNode)-BCs.vbFixedValue) norm(F.h(BCs.hFixedNode)-BCs.hFixedValue)]
 
@@ -743,8 +744,12 @@ while 1
                 CompareCalculationsOfRatesOfThicknessChanges(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l)
             end
 
-            CtrlVar.dt=dt;  % I might have changed dt within uvh
-            F.dt=dt;
+            F.dt=dt ;                 % I might have changed dt within uvh. F.dt is the time step
+            CtrlVar.dt=F.dt ;         % CtrlVar.dt is only a copy of F.dt, kept for compatibility with the rest of the code
+            if F.dt~=dtBeforeUvhSolve
+                fprintf(" The uvh solve did not converge with the original time step. The time step was reduced from dt=%g to dt=%g. \n",dtBeforeUvhSolve,F.dt) ;
+            end
+            RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=F.dt ;    % record the time step that was actually used
           
 
             if ~RunInfo.Forward.uvhConverged
