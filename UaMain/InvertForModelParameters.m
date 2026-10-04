@@ -187,6 +187,23 @@ end
 %%
 
 
+[isA,isB,isC] = isABC(CtrlVar);
+
+
+if isB
+
+
+    if     CtrlVar.Inverse.MinimisationMethod=="-UaOptimisation-HessianBased-"
+
+        fprintf("\t    B inversion can not be performed for CtrlVar.Inverse.MinimisationMethod=='-UaOptimisation-HessianBased-' \n")
+        fprintf("\t For Hessian-based inversion use insted: CtrlVar.Inverse.MinimisationMethod='-MatlbaOptimisation-HessianBased-' \n")
+        fprintf("\t Gradient-based inversion can be done using both Ua and Matlab optimisation.\n")
+        error("InvertForModelParameters:InvalidParameters")
+
+    end
+
+end
+
 
 if CtrlVar.Inverse.RieszMapGradient
     fprintf(" The Optimisation will use a Riesz-mapped gradient.\n")
@@ -210,7 +227,7 @@ end
 [CtrlVar] = TikhonovToMaternMapping(CtrlVar,MUA);
 
 %%
-[isA,isB,isC] = isABC(CtrlVar);
+
 
 if isB
     if ~isempty(Meas.Bobs)
