@@ -21,46 +21,82 @@ if isstruct(G0)
 end
 
 
-%% 
+%% Geometrical closure: calculates b and h from s, B, S, rho and rhow
 %
-% *Calculates b and h from s, B, S and rho and rhow.*
+%   [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+%   [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,G0)
 %
-% $$b=b(s,S,B,\rho,\rho_o)$$
+% The upper ice surface, $s$, the ocean surface, $S$, the bedrock, $B$, and the densities, $\rho$ and $\rho_o$ (rhow), are given, and are held fixed.
+% The lower ice surface, $b$, and the ice thickness, $h$, are calculated. This is the geometrical closure used when $s$, $B$ and $S$ are the
+% independent geometrical variables, as in a $B$ inversion (CtrlVar.Calculate.Geometry="bh-FROM-sBS"). It is the counterpart of
+% Calc_bs_From_hBS.m, where $h$, $B$ and $S$ are the independent variables.
 %
+%% The closure
 %
-% Sets 
+% Define the flotation thickness
 %
-% $b=B$
+% $$ h_f = \frac{\rho_o}{\rho} \, (S-B) , $$
 %
-% over grounded areas, and 
+% and the base of freely floating ice with upper surface $s$
 %
-% $$b=\frac{\rho s-\rho_w S}{\rho-\rho_w}$$  
+% $$ b_s = \frac{\rho s - \rho_o S}{\rho-\rho_o} . $$
 %
-% over floating areas, and then  
-% 
-% $$h=s-b$$.
+% The solution of the closure, $b_c$ and $h_c$, is then
 %
-% $b$ and $h$ are calculated as:
+% $$ b_c = \mathcal{G} \, B + (1-\mathcal{G}) \, b_s , \qquad h_c = s - b_c , \qquad \mathcal{G} = \mathcal{H}(h_c - h_f) , $$
 %
-% $$ b=\frac{\mathcal{G} B + (1-\mathcal{G}) ( S - \rho s/\rho_o ) }{1-(1-\mathcal{G}) \rho/\rho_o} $$ 
+% where $\mathcal{H}$ is the smoothed Heaviside function (HeavisideApprox.m). Hence $b_c=B$ where grounded ($\mathcal{G}=1$), and $b_c=b_s$ where
+% floating ($\mathcal{G}=0$). Equivalently
 %
-% $$h=s-b$$
+% $$ h_c = \mathcal{G} \, (s-B) + (1-\mathcal{G}) \, (s-b_s) . $$
 %
-% where
+% Because the floating mask depends on $h_c$, and hence on $b_c$, this is a non-linear equation for $b_c$. It is solved using the Newton-Raphson
+% method applied to
 %
-% $$\mathcal{G}= \mathcal{H}(h-h_f) $$
+% $$ F_0(b) = b - \mathcal{G} \, B - (1-\mathcal{G}) \, b_s , \qquad \frac{\partial F_0}{\partial b} = 1 + \delta \, (B-b_s) , $$
 %
-% and where
+% where $\delta = \mathcal{H}^{\prime}(h-h_f)$ is the derivative of the smoothed Heaviside function. Usually only one single iteration is required.
 %
-% $$ h_f=\frac{\rho_o}{\rho}  (S-B) $$
+% Note: This does not conserve thickness.
 %
-% Note: This will not conserve thickness.
+%% Minimum thickness
 %
-% Because the floating mask depends on b through h, this is a non-linear
-% problem.
+% With $h_{\min}$=CtrlVar.ThickMin the thickness returned is not $h_c$, but
 %
-% Solved using the NR method. Usually only one single NR iteration is
-% required.
+% $$ h = \Phi(h_c) = h_{\min} + w \, \ln \left( 1 + \exp \left( \frac{h_c-h_{\min}}{w} \right) \right) , \qquad b = s - h , \qquad \mathcal{G}_{\mathrm{out}} = \mathcal{H}(h-h_f) $$
+%
+% where the width, $w$, is CtrlVar.ThickMinWidthRelative times $h_{\min}$ (default 0.05). This is a smooth floor: $h>h_{\min}$ everywhere, and
+% $h=h_c$ to machine precision where $h_c>h_{\min}+40 w$. At $h_c=h_{\min}$ the thickness is increased by $w \ln 2$ (0.035 m by default). The
+% floor is defined, and its inverse and derivatives are calculated, in ThicknessFloor.m.
+%
+% The upper surface $s$ is held fixed, so $b+h=s$ also where the floor is active. At those nodes $b$ is therefore no longer the solution of the closure
+% above. Because $h>h_{\min}$, geometry calculated here never triggers the reset of thicknesses below ThickMin in uv.m, which otherwise rebuilds $b$ and $s$
+% at ALL nodes (using Calc_bs_From_hBS.m), a rebuild that is not consistent with the closure within the grounding-line transition zone.
+%
+% The derivatives of $b$ and $h$ with respect to $B$ are those of the closure, scaled by $\Phi^{\prime}$ (see dGeometrydB.m)
+%
+% $$ \frac{dh}{dB} = \Phi^{\prime}(h_c) \, \frac{dh_c}{dB} , \qquad \frac{db}{dB} = - \frac{dh}{dB} , \qquad \frac{d^2 h}{dB^2} = \Phi^{\prime\prime}(h_c) \left ( \frac{dh_c}{dB} \right )^2 + \Phi^{\prime}(h_c) \, \frac{d^2 h_c}{dB^2} $$
+%
+% The floor is switched off by setting CtrlVar.ThickMinWidthRelative=0, in which case the closure above is returned unchanged.
+%
+%% Relation to Calc_bs_From_hBS.m
+%
+% In a forward run the thickness, $h$, is the prognostic variable, $B$ is fixed, and $s$ evolves. The geometry is then calculated from $h$ and $B$ by
+% Calc_bs_From_hBS.m, in which the floating base is calculated from the thickness,
+%
+% $$ b = \mathcal{G} \, B + (1-\mathcal{G}) \, ( S - \rho h/\rho_o ) , \qquad s = b + h , \qquad \mathcal{G} = \mathcal{H}(h-h_f) $$
+%
+% This leaves $h$ unchanged, and therefore conserves thickness.
+%
+% In a $B$ inversion, $s$ is data and $B$ is the parameter. A change in $B$ must then change $b$ and $h$ at fixed $s$, so there is no thickness to conserve, and the
+% closure above, in which the floating base, $b_s$, is calculated from $s$, is the appropriate one.
+%
+% The two closures agree where $\mathcal{G}=0$ and $\mathcal{G}=1$, but they differ within the grounding-line transition zone, $0<\mathcal{G}<1$ (by about 1 m in
+% thickness for CtrlVar.kH=1 when the geometry from one is passed through the other). This function is therefore not the exact inverse of Calc_bs_From_hBS.m within the
+% transition zone. When geometry from a $B$ inversion is used in a forward run, $b$ and $s$ are recalculated from $h$ and $B$ using Calc_bs_From_hBS.m, and differ
+% slightly, at the nodes within the transition zone, from those used in the inversion.
+%
+%% Inputs
 %
 % G0 can be either an initial guess for the nodal grounded/floating mask itself, e.g. GF.node or F.GF.node. But it can also be GF where GF.node is
 % the grounded/floating mask.
@@ -73,6 +109,7 @@ end
 %
 %       b=Calc_bh_From_sBS(CtrlVar,[],s,B,S,rho,rhow)
 %
+%  see also: ThicknessFloor.m, dGeometrydB.m, Calc_bs_From_hBS.m, p2F.m
 %
 %%
 
@@ -143,6 +180,13 @@ while I < ItMax && J > tol
 end
 
 
+% smooth floor on the thickness, h>=ThickMin, with s fixed (see the header)
+[hFloor,~,~,~,FloorIsActive]=ThicknessFloor(CtrlVar,h,"forward") ;
+if FloorIsActive
+    h=hFloor ;
+    b=s-h ;
+end
+
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
 if CtrlVar.MapOldToNew.Test
@@ -176,6 +220,11 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     func=@(b) bFunc(b,CtrlVar,s,B,S,rho,rhow) ;
     b  = fminunc(func,b0,options) ;
     h=s-b;
+    [hFloor,~,~,~,FloorIsActive]=ThicknessFloor(CtrlVar,h,"forward") ;
+    if FloorIsActive
+        h=hFloor ;
+        b=s-h ;
+    end
     GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 end
 %%

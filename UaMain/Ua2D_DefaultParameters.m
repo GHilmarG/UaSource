@@ -1644,6 +1644,11 @@ CtrlVar.ResetThicknessToMinThickness=0;  % set to 1 to reset thickness values le
 CtrlVar.ResetThicknessInNonLinLoop=0;    % if true, thickness in the non-linear iteration of the uvh implicit approach
                                          % is set to zero, provided CtrlVar.ResetThicknessToMinThickness is also true (usually not a good idea)
 
+% smooth floor on the thickness in the geometrical closure, used when b and h are calculated from s, B and S (CtrlVar.Calculate.Geometry="bh-FROM-sBS", as in
+% B inversions), see Calc_bh_From_sBS.m and ThicknessFloor.m. The thickness returned is then always larger than ThickMin, which means that the thickness
+% reset in uv.m (Option 1) is not triggered by the geometry calculated there.
+CtrlVar.ThickMinWidthRelative=0.05;     % width of the smooth floor in units of CtrlVar.ThickMin (the floor adds about 0.7 times this width at ThickMin). Set to 0 to switch the floor off.
+
 
 % active-set method, option 2
 CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).

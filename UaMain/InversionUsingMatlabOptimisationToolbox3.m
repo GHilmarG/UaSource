@@ -29,7 +29,7 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
 
 
 
-    switch  CtrlVar.Inverse.HessianOptions
+    switch  CtrlVar.Inverse.HessianCalculation
 
         case "-DirectAdjoint-"
             %% Hessian provided

@@ -104,10 +104,31 @@ function [dbdB,dhdB,dGdB,dFdb,d2bdB2,d2hdB2]=dGeometrydB(CtrlVar,s,S,B,b,rho,rho
 % be interpolated onto the integration points. (They can be evaluated on any array, but if they are to be used as
 % derivatives with respect to the nodal values of B, the inputs must be nodal.)
 %
+%% Minimum thickness
+%
+% Calc_bh_From_sBS.m applies a smooth floor, see ThicknessFloor.m, to the thickness solving the closure, $h_c$. The thickness and base returned are
+%
+% $$ h = \Phi(h_c) , \qquad b = s - h , \qquad \Phi(x) = h_{\min} + w \ln \left( 1+\exp \left( \frac{x-h_{\min}}{w} \right) \right) $$
+%
+% Since $s$ is held fixed, $db=-dh$ also where the floor is active. Let $b_c=s-h_c$ be the solution of the closure above. Then
+%
+% $$ \frac{db}{dB} = \Phi^{\prime}(h_c) \, \frac{d b_c}{dB} , \qquad \frac{dh}{dB} = - \frac{db}{dB} $$
+%
+% $$ \frac{d^2 b}{dB^2} = \Phi^{\prime}(h_c) \, \frac{d^2 b_c}{dB^2} - \Phi^{\prime\prime}(h_c) \left ( \frac{d b_c}{dB} \right )^2 , \qquad \frac{d^2 h}{dB^2} = - \frac{d^2 b}{dB^2} $$
+%
+% and the derivative of the mask returned by Calc_bh_From_sBS.m, which is calculated from the floored thickness, is
+%
+% $$ \frac{d\mathcal{G}}{dB} = \delta(h-h_f) \left ( \frac{\rho_o}{\rho} - \frac{db}{dB} \right ) . $$
+%
+% The input b is the floored base, $b=s-h$. The unfloored thickness, $h_c$, is recovered from it by inverting $\Phi$, which is possible because $\Phi$ is
+% invertible (this is why a smooth floor is used), so no additional inputs are needed. All the expressions of the preceding sections are evaluated at
+% $b_c$. The output dFdb is the Newton Jacobian of the unfloored closure. If the floor is switched off, CtrlVar.ThickMinWidthRelative=0, then
+% $\Phi^{\prime}=1$, $\Phi^{\prime\prime}=0$, and the closure derivatives are returned unchanged.
+%
 %% Inputs
 %
-% b must be the converged solution of the closure for the given B, i.e. the b returned by Calc_bh_From_sBS.m. The
-% expressions above are exact only where F_0=0.
+% b must be the b returned by Calc_bh_From_sBS.m for the given B, including the floor on the thickness. The expressions above are
+% exact only where the unfloored closure is converged, F_0=0.
 %
 %  see also: Calc_bh_From_sBS.m, dIdBq.m
 %
@@ -115,6 +136,13 @@ function [dbdB,dhdB,dGdB,dFdb,d2bdB2,d2hdB2]=dGeometrydB(CtrlVar,s,S,B,b,rho,rho
 
 narginchk(7,7)
 nargoutchk(1,6)
+
+% Thickness floor, see the section on the minimum thickness: the b passed in is b=s-h with the floored thickness h. Recover the unfloored closure solution.
+bFloored=b ;
+[~,dPhi,d2Phi,hc,FloorIsActive]=ThicknessFloor(CtrlVar,s-b,"inverse") ;
+if FloorIsActive
+    b=s-hc ;          % b_c, the solution of the closure, at which the expressions below hold
+end
 
 bs = (rho.*s-rhow.*S)./(rho-rhow) ;    % base of freely floating ice
 hf = rhow.*(S-B)./rho ;                % flotation thickness
@@ -131,22 +159,25 @@ if any(dFdb<=0)
         "The geometrical closure b=b(B) is singular, or close to being so. min(dF0/db)=%g \n",min(dFdb))
 end
 
-dbdB = (G+(rhow./rho).*Lambda)./dFdb ;
+dbdBc = (G+(rhow./rho).*Lambda)./dFdb ;     % derivative of the unfloored closure
+dbdB  = dPhi.*dbdBc ;
 
 if nargout>1
     dhdB = -dbdB ;
 end
 
 if nargout>2
-    dGdB = Delta.*(rhow./rho-dbdB) ;
+    DeltaOut = DiracDelta(CtrlVar.kH,(s-bFloored)-hf,CtrlVar.Hh0) ;     % delta at the floored thickness, which is what the mask is calculated from
+    dGdB = DeltaOut.*(rhow./rho-dbdB) ;
 end
 
 if nargout>4
 
-    mu     = rhow./rho - dbdB ;                          % d(Dh)/dB
+    mu     = rhow./rho - dbdBc ;                          % d(Dh)/dB
     dDelta = 2*CtrlVar.kH.*Delta.*(1-2*G) ;              % derivative of the smoothed delta
 
-    d2bdB2 = ( 2*Delta.*mu + dDelta.*(B-bs).*mu.^2 )./dFdb ;
+    d2bdBc = ( 2*Delta.*mu + dDelta.*(B-bs).*mu.^2 )./dFdb ;     % second derivative of the unfloored closure
+    d2bdB2 = dPhi.*d2bdBc - d2Phi.*dbdBc.^2 ;
 
 end
 

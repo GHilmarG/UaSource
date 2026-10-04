@@ -150,6 +150,42 @@ end
 %% special test for B inversion
 if isB
 
+    if isempty(CtrlVar.Inverse.Matern.B.alpha)
+
+        fprintf("CtrlVar.Inverse.Matern.B.alpha can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.alphaIsNotDefined')
+
+    end
+
+    if isempty(CtrlVar.Inverse.Matern.B.kappa)
+
+        fprintf("CtrlVar.Inverse.Matern.B.kappa can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.kappaIsNotDefined')
+
+    end
+
+    if isempty(CtrlVar.Inverse.Matern.B.tau)
+
+        fprintf("CtrlVar.Inverse.Matern.B.tau can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.tauIsNotDefined')
+
+    end
+
+
+
+    if isempty(Meas.s)
+
+        fprintf('Meas.s can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.sIsNotDefined')
+
+    end
+
+    if isempty(Meas.dhdt)
+
+        fprintf('Meas.dhdt can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.dhdtIsNotDefined')
+
+    end
 
     if isempty(Meas.as)
 

@@ -86,7 +86,7 @@ unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-%[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
+%[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ;
 
 
 
@@ -100,6 +100,7 @@ dhJhdotIntSum=zeros(MUA.Nele,MUA.nod);
 
 Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
 dhdtErr=sqrt(spdiags(Meas.dhdtCov));
+
 dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 

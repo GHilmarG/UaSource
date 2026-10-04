@@ -208,8 +208,7 @@ function   FiniteDifferenceTestAndPlots(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoi
 
 
 % First map all A and C fields to p. This takes care of the log conversion
-[p,plb,pub]=F2p(CtrlVar,MUA,F);
-
+[p,plb,pub]=F2p(CtrlVar,MUA,F,Meas);
 % the do the perturbation with respect to p
 
 iColumn=randi(numel(p));

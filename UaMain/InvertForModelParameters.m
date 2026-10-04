@@ -243,7 +243,12 @@ MUA.dG=decomposition(MUA.G);
 % F should always be populated with the fields used at each stage of the inversion, and all the calculations are done using
 % F. Start by populating F with the starting values
 F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+% In a B inversion b, h and GF have just been calculated from s, B and S by InvStartValues2F, using the geometrical closure of Calc_bh_From_sBS.m. Recalculating
+% b and s from h and B with the h-based relation of Calc_bs_From_hBS.m would overwrite b and s within the grounding-line transition zone (so that s would no longer
+% equal Meas.s), and would not be consistent with the closure used at every later step of the inversion (p2F.m). It is therefore not done in a B inversion.
+if ~isB
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+end
 
 
 F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;

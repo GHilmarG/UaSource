@@ -143,7 +143,7 @@ while true
 
     iIteration=iIteration+1;
 
-    if CtrlVar.Inverse.HessianOptions=="-FiniteDifferences-"
+    if CtrlVar.Inverse.HessianCalculation=="-FiniteDifferences-"
   
          % In the future it might be easiest to just get this finite difference approximation from within JGH, although I have to be
          % careful when doing this because I will need to call JGH for the gradient as I do so...
