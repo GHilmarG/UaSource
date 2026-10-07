@@ -131,8 +131,15 @@ end
 
 hf=rhow*(S-B)./rho ;
 
+% b_f is b based on flotation condition. This is only a function of s and S and the densities, and as these do not change in
+% the course of the iteration, b_f remains the same.
+b_f=(rho.*s-rhow.*S)./(rho-rhow);  
 
-b0 =  max(B,(rho.*s-rhow.*S)./(rho-rhow)) ; % a rough initial estimate for b
+% a rough initial estimate for b.
+% For this initial iterate the Newton iteration will converge for \rho_o/\rho>1 
+b0 =  max(B,b_f) ; 
+
+
 
 b=b0;
 h=s-b;
@@ -153,15 +160,15 @@ while I < ItMax && J > tol
 
     end
 
-    F0=    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-    dFdb = 1 - dGdb.* (B -  (rho.*s-rhow.*S)./(rho-rhow)) ;
+    F0=    b - G.*B - (1-G).*b_f ;
+    dFdb = 1 - dGdb.* (B -  b_f) ;
     
     db= -F0./dFdb ;
     
-    b=b+db ;
-    h=s-b ;
+    b=b+db ; % b is updated,
+    h=s-b ;  % h is updated
     
-    F1 =    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
+    F1 =    b - G.*B - (1-G).*b_f ;
     
     JLast=J ;
 %    J=sum(F1.^2)/2 ;
@@ -208,6 +215,9 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     % Why not do so right away? Because the above options is based on
     % my experience always faster if it converges (fminunc is very reluctant to take
     % large steps, and apparently does not take a full NR step...?!)
+    %
+    % Also, the Newton iteration is guaranteed to converge from the first iterate above provided rho_o/rho > 1
+    %
     
     warning("Calc_bh_From_SBS:NoConvergence","Calc_bh_from_sBS did not converge! \n")
 

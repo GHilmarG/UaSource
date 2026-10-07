@@ -147,6 +147,21 @@ if CtrlVar.Inverse.Methodology=="-Tikhonov-"
     end
 end
 
+
+%%
+
+if isC
+
+    if any(Priors.C==0)
+
+        fprintf("One or more elements of Prior.C are zero. \n")
+        error('GetInputsForInverseRun:IncorrectInputs',"Prior.C can not be zero. ")
+
+    end
+
+
+end
+
 %% special test for B inversion
 if isB
 

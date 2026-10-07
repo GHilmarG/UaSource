@@ -220,7 +220,7 @@ end
 if CtrlVar.Inverse.BoxTransform
     fprintf("  Box contraints are implemented through variable transform. \n ")
 else
-    fprintf("  Box contraints are not used. \n ")
+    fprintf("  Box contraint transform not used. \n ")
 end
 %% What inversions are being performed?
 %  And make sure the Matern parameters are all correctly defined
