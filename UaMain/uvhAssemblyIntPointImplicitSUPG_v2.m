@@ -195,7 +195,8 @@ hBC=[];
 
 
 
-if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
+% Modification (8 Oct 2026): integration-point penalty not used if the nodal penalty is used (see uvhAssembly)
+if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty && ~(isfield(CtrlVar,"ThicknessPenaltyNodal") && CtrlVar.ThicknessPenaltyNodal)
 
     %%  New simpler implementation of a thickness penalty term.
     % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
@@ -204,13 +205,23 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
 
     hBC=hBCsMasknod*fun; % hBC is zero where there are no thickness constraints applied
     [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hint) ;
+    % Modification (8 Oct 2026): no penalty in elements containing an h-constrained node (fixed h BCs or
+    % active-set nodes). Otherwise the penalty acts against the constraint and inflates the free neighbours.
+    % The mask is element-wise (not a threshold on hBC) because for some integration rules the shape-function
+    % values at integration points can be below any fixed threshold. It is constant within a Newton solve, so
+    % residual and Jacobian remain consistent.
+    PenaltyElementMask=~any(hBCsMasknod>0,2) ;
+    aPenalty1=aPenalty1.*PenaltyElementMask ;
+    daPenaltydh1=daPenaltydh1.*PenaltyElementMask ;
     a1int=a1int+aPenalty1;
     dadhint=dadhint+daPenaltydh1 ;
 
+    if CtrlVar.InfoLevelThickMin >= 10
+        UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty",logColorbar=true)
+      
+    end
 
-    % UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty",logColorbar=true)
-    % FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty1,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin,"r") ; xline(2*CtrlVar.ThickMin,"r--")
-
+    %%
 
 end
 
@@ -225,7 +236,10 @@ if isfield(CtrlVar,"ThicknessBarrier")  &&  isfield(CtrlVar,"ThicknessBarrierMas
     % Barrier is only applied where thickness is above the thickness barrier (hBarrier)
     % and where no thickness boundary conditions are applied (hBC \approx 0) and where the level-set mass-balance feedback is not
     % applied.
-    BarrierMask= hint > hBarrier & hBC < 0.1 & LM <0.1 ;
+    % Modification (8 Oct 2026): element-level test for h-constrained nodes, as in the penalty branch,
+    % instead of the threshold hBC < 0.1 (with the 6-point rule, shape-function values at integration points
+    % can be as small as 0.0916, so the threshold misses some integration points in constrained elements).
+    BarrierMask= hint > hBarrier & ~any(hBCsMasknod>0,2) & LM <0.1 ;
     p=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog;
 
 

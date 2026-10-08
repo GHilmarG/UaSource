@@ -114,7 +114,11 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         % thickness, and the time step therefore goes down (due to automated selection of dt within the time stepping) the penalty
         % term goes to zero and does not help at all.
 
-        hmin=2*CtrlVar.ThickMin ;
+        % Modification (8 Oct 2026): penalty centred a distance delta above ThickMin,
+        % delta=max(ThickMin,deltaAbs). For ThickMin>=deltaAbs this is the previous hmin=2*ThickMin,
+        % but it does not collapse to hmin=0 for ThickMin=0.
+        if isfield(CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus,"deltaAbs") ; deltaAbs=CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs ; else ; deltaAbs=0.1 ; end
+        hmin=CtrlVar.ThickMin+max(CtrlVar.ThickMin,deltaAbs) ;
 
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K/(CtrlVar.dt+eps(CtrlVar.dt)) ;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
@@ -144,32 +148,39 @@ if CtrlVar.InfoLevelThickMin >= 10
         Fig=FindOrCreateFigure("a penalty versus ice thickness") ; clf(Fig)
 
         yyaxis left ;
-        plot(hint,aPenalty1,".b") ;
+        plot(hint,aPenalty1,".b",DisplayName="$a_{\mathrm{penalty}}$")
         ylabel("a Penalty")
         hold on ;
 
         yyaxis right ;
-        plot(hint,daPenaltydh1,".r") ; ylabel("da/dh")
+        plot(hint,daPenaltydh1,".r",DisplayName="$da_{\mathrm{penalty}}/dh$")
+        ylabel("da/dh")
 
-        xlim([min(0,min(hint)) 5*hmin]) ;
+        xrange=[min(0,min(hint)) 5*hmin];
+        if xrange(1)==xrange(2)
+            xrange(1)=hmin-1;
+            xrange(2)=hmin+1; 
+        end
+        xlim(xrange) ;
         xlabel("hint") ;
         title("a penalty") ;
-        xline(hmin,"--k","hmin") ;
+        xline(hmin,"--k","hmin",DisplayName="$h_{\mathrm{min}$")
         %ylim([-K/l 0])
 
 
         switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 
             case "softplus"
-                hExample=linspace(min(min(hint,-CtrlVar.ThickMin)),5*CtrlVar.ThickMin) ;
+                hExample=linspace(xrange(1),xrange(2)) ;
 
                 % k=1/l ;
                 [aPlusExample,daPlusdhExample] = SoftPlus(k,-hExample,-hmin);
                 aPlusExample=K*aPlusExample;
                 daPlusdhExample=-K*daPlusdhExample ; %
         end
-        hold on ; yyaxis left ; plot(hExample,aPlusExample,"--")
-        hold on ; yyaxis right ; plot(hExample,daPlusdhExample,"--")
+        hold on ; yyaxis left ; plot(hExample,aPlusExample,"--",DisplayName="$a_{\mathrm{penalty}}$ curve")
+        hold on ; yyaxis right ; plot(hExample,daPlusdhExample,"--",DisplayName="$da_{\mathrm{penalty}}/dh$ curve")
+        lg=legend(Interpreter="latex"); 
         %%
     end
 

@@ -97,6 +97,8 @@ if ZeroFields
 
 
     F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
+    % Modification (8 Oct 2026): the thickness penalty must not enter the normalising reference residual
+    CtrlVar.ThicknessPenalty=false;
     F1.as=abs(F1.ab)+1;  F1.ab=abs(F1.ab);  % I can use abs here because this is just for the normalization factor which is squared.
     F0.as=abs(F0.ab)+1;  F0.ab=abs(F0.ab);
 

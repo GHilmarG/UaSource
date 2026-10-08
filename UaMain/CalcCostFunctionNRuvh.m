@@ -120,6 +120,12 @@ if isfield(CtrlVar,"uvhResidualNormalisation") && CtrlVar.uvhResidualNormalisati
     % block scales, fixed for the whole Newton solve because fext0 and cuvh are
 
     suv=norm(fext0(1:2*N));      % same normalization for both u and v components
+    % Modification (8 Oct 2026): geometry-independent floor for the momentum scale, so that suv
+    % does not vanish for h=0 and/or zero surface slope. The floor is the l2 norm of the nodal load
+    % vector of a uniform stress density tauFloor (in units of stress, e.g. kPa), ie tauFloor*sqrt(2)*||M*1||.
+    if isfield(CtrlVar,"uvhResidualNormalisationTauFloor") ; tauFloor=CtrlVar.uvhResidualNormalisationTauFloor ; else ; tauFloor=0.01 ; end
+    if isfield(MUA,"M") && ~isempty(MUA.M) ; Mlump=MUA.M*ones(N,1) ; else ; Mlump=MassMatrix2D1dof(MUA)*ones(N,1) ; end
+    suv=max(suv,tauFloor*sqrt(2)*norm(Mlump)) ;
     sh=norm(fext0(2*N+1:3*N));   % and a separate one for the h block 
 
     % a block with no reference scale is measured absolutely rather than

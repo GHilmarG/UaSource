@@ -582,6 +582,10 @@ CtrlVar.LSFMinimisationQuantity="Force Residuals";
 
 
 CtrlVar.uvhResidualNormalisation="blockwise";   % the new blockwise uvh-residual calculation
+CtrlVar.uvhResidualNormalisationTauFloor=0.01;  % (8 Oct 2026) Floor, in units of stress (kPa), on the normalisation of the uv residuals
+                                                % when CtrlVar.uvhResidualNormalisation="blockwise". The uv reference scale is
+                                                % max(actual, tauFloor*sqrt(2)*||M*1||), where M is the mass matrix, so that it does not
+                                                % vanish for h=0 and/or zero surface slope. Should be small compared to typical stresses.
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
@@ -1718,6 +1722,16 @@ CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponent
 
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin/10;
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000/CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;  % This is assuming 1000 is large compared to typical mass balance values
+
+% (8 Oct 2026) The SoftPlus penalty is centred at hmin=ThickMin+delta, with delta=max(ThickMin,deltaAbs). For ThickMin>=deltaAbs this
+% is the previous hmin=2*ThickMin, but hmin does not collapse to zero for ThickMin=0. The penalty then starts to act above ThickMin
+% and does some of the work the active-set method would otherwise have to do.
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
+
+% (8 Oct 2026) If true, the penalty is applied as a lumped nodal term (see uvhAssembly.m) that depends only on the nodal thickness,
+% and nodes with thickness boundary conditions or active thickness constraints are excluded. If false, the penalty is evaluated at
+% integration points, and elements containing h-constrained nodes are excluded. The nodal option is only implemented for the uvh solver.
+CtrlVar.ThicknessPenaltyNodal=false;
 
 %% Thickness penalty term based on the exponential function (not recommended, use softplus instead)
 %
