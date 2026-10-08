@@ -183,7 +183,7 @@ end
 %%
 
 RunInfo=[];
-CtrlVar.MassBalanceGeometryFeedback=1;  % Here the implicit mass-balance feedback needs to be disabled, as otherwise there is a risk of recursive call to DefineMassBalance (thanks to Emily Hill for spotting this).
+CtrlVar.MassBalanceGeometryFeedback=0;  % Here the implicit mass-balance feedback needs to be disabled, as otherwise there is a risk of recursive call to DefineMassBalance (thanks to Emily Hill for spotting this).
 [~,~,~,~,tbxInt,tbyInt,etaInt,Heint]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
 
 tb=sqrt(tbxInt.^2+tbyInt.^2);

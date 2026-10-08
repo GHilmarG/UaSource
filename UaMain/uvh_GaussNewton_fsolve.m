@@ -35,8 +35,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=uvh_GaussNewton_fsolve(UserVar,RunInfo,Ctr
 %
 % Each time the residual is evaluated, F1.b and F1.s are first recalculated from F1.h (as is done within the Newton loop in
 % SSTREAM_TransientImplicit), and if CtrlVar.MassBalanceGeometryFeedback>0 the surface and basal mass balance (F1.as, F1.ab)
-% are updated as well. Damping of the mass-balance feedback (CtrlVar.MassBalanceGeometryFeedbackDamping) is not
-% implemented. The assembly needs these fields to be consistent with F1.h.
+% are updated as well. The assembly needs these fields to be consistent with F1.h.
 %
 % On return RunInfo.Forward.uvhConverged is set. This is used by uvhRootFinding (which calls uvh2NotConvergent, and thus
 % reduces the time step, if it is false), Ua2D and AdaptiveTimeStepping. The solution is considered to have converged if
@@ -81,17 +80,10 @@ function [UserVar,RunInfo,F1,l1,BCs1]=uvh_GaussNewton_fsolve(UserVar,RunInfo,Ctr
 
 narginchk(8,8)
 
-persistent WarnedAboutDamping
-
 n=MUA.Nnodes;
 
 if ~ismember(lower(string(CtrlVar.FlowApproximation)),["sstream","sstream-rho"])
     error("uvh_GaussNewton_fsolve:FlowApproximation","uvh_GaussNewton_fsolve is only implemented for the SSTREAM flow approximation.")
-end
-
-if CtrlVar.MassBalanceGeometryFeedback>0 && isfield(CtrlVar,"MassBalanceGeometryFeedbackDamping") && CtrlVar.MassBalanceGeometryFeedbackDamping~=0 && isempty(WarnedAboutDamping)
-    warning("uvh_GaussNewton_fsolve:Damping","CtrlVar.MassBalanceGeometryFeedbackDamping is not implemented in uvh_GaussNewton_fsolve and is ignored.")
-    WarnedAboutDamping=true;
 end
 
 %% Options

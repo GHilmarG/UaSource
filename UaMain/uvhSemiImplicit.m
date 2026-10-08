@@ -3,11 +3,11 @@
 
 
 
-function [UserVar,RunInfo,F1,F0,l1,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) 
+function [UserVar,RunInfo,F1,F0,l1,BCs1,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) 
                                                              %   uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l) ;
 
 
-nargoutchk(5,9)
+nargoutchk(5,10)   % BCs1 returned since 8 Oct 2026, so that the active set (BCs1.hPosNode) is carried over to the next time step
 narginchk(8,8)
 
 
@@ -173,6 +173,20 @@ else
     dh1NormVector=nan(CtrlVar.uv2h.MaxIterations,1) ;
 end
 
+%% Convergence of the outer uv-h iteration (8 Oct 2026)
+% The convergence of the outer uv-h iteration is judged using the same cost function (CalcCostFunctionNRuvh) and the same
+% convergence criteria (uvhResidualsCriteria) as for the implicit uvh solver (SSTREAM_TransientImplicit). The uv and the h solves
+% solve the momentum rows and the h rows of the uvh system, respectively, and the cost function is the normalised norm of the
+% right-hand side of the uvh system evaluated at the current iterate. The normalisation (reference residual Fext0) is calculated
+% in the same way as in SSTREAM_TransientImplicit.
+CtrlVarZero=CtrlVar; CtrlVarZero.uvhMatrixAssembly.ZeroFields=true; CtrlVarZero.uvhMatrixAssembly.Ronly=true;
+[UserVar,RunInfo,Fext0,~]=uvhAssembly(UserVar,RunInfo,CtrlVarZero,MUA,F0,F1,l1,BCs1);
+CtrlVarR=CtrlVar; CtrlVarR.uvhMatrixAssembly.ZeroFields=false; CtrlVarR.uvhMatrixAssembly.Ronly=true;
+InfoLevelNonLinItOnInput=CtrlVar.InfoLevelNonLinIt;
+ub1Previous=F1.ub ; vb1Previous=F1.vb ; h1Previous=F1.h ; luvhPrevious=[] ;
+rForceVector=nan(size(duv1NormVector)) ;
+RunInfo.Forward.uvhConverged=false ; RunInfo.Forward.uvhStalled=false ; RunInfo.Forward.uvhrForce=NaN ;
+
 uvItMax=0;
 hItMax=0; 
 iteration=0; 
@@ -266,12 +280,33 @@ while true
 
     end
 
-    if duv1Norm< CtrlVar.uv2h.uvTolerance
+    %% Convergence test (8 Oct 2026): same cost function and same criteria as the implicit uvh solver
+    [L,cuvh,luvh,l1]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);   % re-assembled here because the h solve may have changed the active set
+    dub=F1.ub-ub1Previous ; dvb=F1.vb-vb1Previous ; dh=F1.h-h1Previous ;     % changes over this outer iteration, used for rWork
+    if numel(luvhPrevious)==numel(luvh) ; dl=luvh-luvhPrevious ; else ; dl=zeros(numel(luvh),1) ; end
+    [~,UserVar,RunInfo,rForce,rWork]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVarR,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,0,Fext0);
+    rForceVector(iteration)=rForce ;
+    ub1Previous=F1.ub ; vb1Previous=F1.vb ; h1Previous=F1.h ; luvhPrevious=luvh ;
+
+    SubSolvesConverged=RunInfo.Forward.uvConverged && RunInfo.Forward.hConverged ;
+    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,false) && SubSolvesConverged ;
+    fprintf("\t uv-h: Outer iteration %i \t rForce=%-14g \t rWork=%-14g \n",iteration,rForce,rWork)
+
+    if ResidualsCriteria
+        RunInfo.Forward.uvhConverged=true ; RunInfo.Forward.uvhrForce=rForce ;
+        if InfoLevelNonLinItOnInput>=1
+            fprintf(" SSTREAM(uv-h) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i outer iterations \n",CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration)
+        end
         break
     end
 
-    if iteration>= CtrlVar.uv2h.MaxIterations  
-      break
+    if iteration>= CtrlVar.uv2h.MaxIterations
+        RunInfo.Forward.uvhConverged=false ; RunInfo.Forward.uvhStalled=true ; RunInfo.Forward.uvhrForce=rForce ;
+        if InfoLevelNonLinItOnInput>=1
+            fprintf(" SSTREAM(uv-h) (time|dt)=(%g|%g): Maximum number of outer uv-h iterations (%i) reached. uv-h iteration did not converge! rForce=%-g, rWork=%-g (uv solve converged: %i, h solve converged: %i) \n",...
+                CtrlVar.time,CtrlVar.dt,iteration,rForce,rWork,RunInfo.Forward.uvConverged,RunInfo.Forward.hConverged)
+        end
+        break
     end
 
  

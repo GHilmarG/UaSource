@@ -219,7 +219,12 @@ end
 % The uv-h time stepping is based on the number of outer uv-h iterations 
 if  CtrlVar.ForwardTimeIntegration=="-uv-h-"
 
-    if CtrlVar.AdaptiveTimeStepping
+    % (8 Oct 2026) As for the uvh solver: if the last uv-h step did not converge, the time step is reduced. The convergence of the
+    % uv-h step is judged by uvhSemiImplicit using the same criteria as for the uvh solver.
+    if ~RunInfo.Forward.uvhConverged
+        dtOut=dtIn/CtrlVar.ATStimeStepFactorDownNOuvhConvergence;
+        fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g due to lack of convergence in last uv-h step. \n ',dtIn,dtOut);
+    elseif CtrlVar.AdaptiveTimeStepping
 
         if CtrlVar.CurrentRunStepNumber>4
 

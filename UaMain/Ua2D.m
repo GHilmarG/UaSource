@@ -754,7 +754,7 @@ while 1
 
             if ~RunInfo.Forward.uvhConverged
             
-                [UserVar,RunInfo,F,F0,l]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l);
+                [UserVar,RunInfo,F,F0,l,BCs]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l);
 
             end
 
@@ -813,7 +813,7 @@ while 1
                 %
 
                 tCPUuv2h=tic;
-                [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+                [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
                 tCPUuv2h=toc(tCPUuv2h) ;
 
 
@@ -830,7 +830,7 @@ while 1
 
 
 
-            [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+            [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
 
             CtrlVar.InitialDiagnosticStep=0;
 

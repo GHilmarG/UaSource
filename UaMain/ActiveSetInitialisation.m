@@ -29,7 +29,7 @@ end
 %% Special case:  Check if all thicknesses are above min thick, in which case all thickness constraints should be deactivated
 if min(F1.h) > 1.1*CtrlVar.ThickMin
     if CtrlVar.ThicknessConstraintsInfoLevel>=10
-        fprintf(CtrlVar.fidlog,' Eliminating any possible previous thickness constraints as min(h1)=%-g>1.1*CtrlVar.ThickMin=%-g \n',min(F0.h),CtrlVar.ThickMin);
+        fprintf(CtrlVar.fidlog,' Eliminating any possible previous thickness constraints as min(h1)=%-g>1.1*CtrlVar.ThickMin=%-g \n',min(F1.h),CtrlVar.ThickMin);
     end
     BCs1.hPosNode=[] ; 
 end
@@ -41,9 +41,11 @@ end
 %!if isempty(Lhpos)
 
 if isempty(BCs1.hPosNode)
-    Active=find(F1.h<CtrlVar.ThickMin);     % Although I might only want to add nodes to the active set if thickness is somewhat less than MinThick, I might here
+    Active=find(F1.h<=CtrlVar.ThickMin);    % Although I might only want to add nodes to the active set if thickness is somewhat less than MinThick, I might here
                                              % have a situation where this is a restart run where the active set has been set to empty, or a run after re-meshing, and I
                                              % want the initial active sets to be similar to previous active set. 
+                                             % (8 Oct 2026) "<=" rather than "<": nodes held at the bound by the active set have h=ThickMin
+                                             % exactly, and with "<" those nodes, ie the previous active set, were not recovered.
                                              %
     Active=setdiff(Active,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
     % even if this means that thicknesses at those nodes are less then MinThick

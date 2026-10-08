@@ -195,7 +195,7 @@ hBC=[];
 
 
 
-% Modification (8 Oct 2026): integration-point penalty not used if the nodal penalty is used (see uvhAssembly)
+% Modification (8 Oct 2026): integration-point penalty not used if the nodal penalty is used (see uvhMatrixAssembly)
 if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty && ~(isfield(CtrlVar,"ThicknessPenaltyNodal") && CtrlVar.ThicknessPenaltyNodal)
 
     %%  New simpler implementation of a thickness penalty term.

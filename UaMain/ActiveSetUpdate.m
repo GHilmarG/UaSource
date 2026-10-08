@@ -78,11 +78,43 @@ lambdahpos=l1.h(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I alway
 if ~CtrlVar.LinFEbasis
     if numel(BCs1.hPosNode) >0
 
-        Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
-      
-        ah=-Reactions.h./(F1.rho.*F1.dt) ; % nodal array
-        ah=ah(BCs1.hPosNode)             ; % array equal in size to number of hPos constraints
-        lambdahpos=Reactions.h(BCs1.hPosNode);  % 
+        % Modification (8 Oct 2026): The decision to release a constrained node is based on the sign of the discrete reaction
+        % r=L_h'*lambda_h at that node, expressed as an equivalent mass flux using lumped (HRZ) nodal weights m_i:
+        %
+        %    ah_i = -r_i/(rho_i m_i dt)
+        %
+        % This is the KKT sign condition for the discretised problem. Previously the reactions were first mapped to a nodal field
+        % with the inverse of the consistent mass matrix, M\r (see CalculateReactions). That field has the right magnitude away from
+        % the edges of the active set, but the inverse of the consistent mass matrix introduces sign oscillations at individual nodes,
+        % so that nodes were released although their discrete reaction indicated that the constraint was needed. These nodes then
+        % immediately fell below ThickMin again in the next solve, and the active set cycled. The previous approach can still be
+        % selected by setting CtrlVar.ActiveSet.ReleaseCriterion="consistent-mass".
+        ReleaseCriterion="discrete";
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ReleaseCriterion")
+            ReleaseCriterion=CtrlVar.ActiveSet.ReleaseCriterion;
+        end
+
+        if ReleaseCriterion=="consistent-mass"
+            Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+            ah=-Reactions.h./(F1.rho.*F1.dt) ; % nodal array
+            ah=ah(BCs1.hPosNode)             ; % array equal in size to number of hPos constraints
+            lambdahpos=Reactions.h(BCs1.hPosNode);  %
+        else
+            MLC=BCs2MLC(CtrlVar,MUA,BCs1);
+            rh=full(MLC.hL'*l1.h) ;                          % discrete nodal reactions (non-zero only at constrained nodes)
+            MeDiag=zeros(MUA.Nele,MUA.nod) ; EleArea=zeros(MUA.Nele,1) ;
+            for Iint=1:MUA.nip                               % HRZ-lumped nodal weights (positive also for higher-order elements)
+                funI=shape_fun(Iint,2,MUA.nod,MUA.points) ;
+                detJwI=MUA.DetJ(:,Iint)*MUA.weights(Iint) ;
+                MeDiag=MeDiag+detJwI.*(funI.^2).' ;
+                EleArea=EleArea+detJwI ;
+            end
+            mEle=MeDiag.*(EleArea./sum(MeDiag,2)) ;
+            mLump=accumarray(MUA.connectivity(:),mEle(:),[MUA.Nnodes 1]) ;
+            ah=-rh./(F1.rho.*mLump.*F1.dt) ;                  % nodal array, units of mass balance (distance/time)
+            ah=ah(BCs1.hPosNode) ;
+            lambdahpos=rh(BCs1.hPosNode) ;
+        end
 
     else
         lambdahpos=[];
@@ -157,7 +189,13 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
         alpha=CtrlVar.ActiveSet.ReleaseAlpha;
     end
     
-    isNegavtiveMassFluxSmall=ah < -alpha*CtrlVar.ThickMin/F1.dt ;
+    % Modification (8 Oct 2026): the thickness scale of the release threshold is max(ThickMin,deltaAbs), so that alpha still has an
+    % effect if ThickMin=0 (deltaAbs is the thickness scale used for the penalty term, see Ua2D_DefaultParameters).
+    hScaleRelease=CtrlVar.ThickMin;
+    if isfield(CtrlVar,"ThicknessPenaltyMassBalanceFeedbackSoftPlus") && isfield(CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus,"deltaAbs")
+        hScaleRelease=max(hScaleRelease,CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs);
+    end
+    isNegavtiveMassFluxSmall=ah < -alpha*hScaleRelease/F1.dt ;
 
     NewInActiveConstraints=find(isNegavtiveMassFluxSmall); % the nodes are BCs1.hPosNode(NewInActiveConstraints)
     iNewInActiveConstraints=numel(NewInActiveConstraints);

@@ -262,20 +262,10 @@ while true
     end
 
 
-    if gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
-
-        ResidualsCriteria=(rWork<CtrlVar.uvhDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhDesiredWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.uvhDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhDesiredWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
-
-
-    else
-
-        ResidualsCriteria=(rWork<CtrlVar.uvhAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhAcceptableWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.uvhAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhAcceptableWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
-
-    end
+    % (8 Oct 2026) The convergence test is done in uvhResidualsCriteria, which is also used by the semi-implicit uv-h solver.
+    % The acceptable tolerances are used if the last backtracking step was short.
+    Acceptable=~(gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)) ;
+    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,Acceptable) ;
 
 
     if ResidualsCriteria
@@ -527,30 +517,6 @@ while true
         BCsError=0;
     end
 
-    % Variables have been updated, if I have MassBalanceGeometryFeedback>0 I must
-    % update the surface mass balance within this non-linear loop. Actually I here
-    % only need to consider option 1 because if options 2 or 3 are used the
-    % mass-balance is updated anyhow within the assembly loop.
-    if CtrlVar.MassBalanceGeometryFeedback>0
-
-        rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
-        if rdamp~=0
-            as1Old=F1.as ; ab1Old=F1.ab;
-        end
-        
-        CtrlVar.time=CtrlVar.time+CtrlVar.dt; F1.time=CtrlVar.time;
-        
-        [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
-
-        CtrlVar.time=CtrlVar.time-CtrlVar.dt; F1.time=CtrlVar.time;
-
-        if rdamp~=0
-            % If Hessian inaccurate, or too non-linear, then dampen these changes might be a
-            % good idea.
-            F1.as=(1-rdamp)*F1.as+rdamp*as1Old;
-            F1.ab=(1-rdamp)*F1.ab+rdamp*ab1Old;
-        end
-    end
 
 
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1

@@ -156,31 +156,13 @@ end
 
 CtrlVar.ResetThicknessToMinThickness=temp;
 
-if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
+if CtrlVar.MassBalanceGeometryFeedback==3  && ~ZeroFields
 
-    rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
-    if rdamp~=0
-        as1Old=F1.as ; ab1Old=F1.ab;
-    end
     CtrlVar.time=CtrlVar.time+CtrlVar.dt;
     [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
     CtrlVar.time=CtrlVar.time-CtrlVar.dt;
-    switch CtrlVar.MassBalanceGeometryFeedback
+    dadh=F1.dasdh+F1.dabdh;
 
-        case 2
-            dadh=zeros(MUA.Nnodes,1);
-        case 3
-            dadh=F1.dasdh+F1.dabdh;
-    end
-
-
-    if rdamp~=0
-        % I don't account for a potential dependency of as and ab
-        % on h in the Hessian, so may need to dampen these changes
-        F1.as=(1-rdamp)*F1.as+rdamp*as1Old;
-        F1.ab=(1-rdamp)*F1.ab+rdamp*ab1Old;
-        dadh=(1-rdamp)*dadh ;   % a_used=(1-rdamp)*a(h)+rdamp*a_old, and therefore d a_used/dh=(1-rdamp)*da/dh
-    end
 else
     dadh=zeros(MUA.Nnodes,1);
 end
@@ -466,6 +448,47 @@ if ~Ronly
 
 
 end
+
+
+%% Lumped nodal thickness penalty (8 Oct 2026)
+%
+% The penalty is added as a nodal term that depends only on the nodal thickness h_i, with lumped nodal weights m_i. Nodes with
+% thickness boundary conditions or active thickness constraints are excluded. Residual and Jacobian contributions are diagonal.
+% Activated by CtrlVar.ThicknessPenalty=true together with CtrlVar.ThicknessPenaltyNodal=true, in which case the integration-point
+% penalty in uvhAssemblyIntPointImplicitSUPG_v2 is not used. Not included in the ZeroFields (normalisation) reference residual.
+%
+% The nodal weights are calculated element by element using HRZ lumping (diagonal of the element mass matrix, scaled to preserve
+% the element area). For linear elements this gives A/3 per node, ie the row sums of the mass matrix, but unlike row-sum lumping the
+% weights remain positive for higher-order elements (for quadratic elements row-sum lumping gives zero weight at the corner nodes).
+% Because the weights are accumulated over the elements of the MUA passed to this routine, they add up correctly when the assembly
+% is split over element partitions (SPMD), and the term is then included exactly once after summation over workers.
+%
+if isfield(CtrlVar,"ThicknessPenalty") && CtrlVar.ThicknessPenalty ...
+        && isfield(CtrlVar,"ThicknessPenaltyNodal") && CtrlVar.ThicknessPenaltyNodal ...
+        && ~ZeroFields
+
+    Nn=MUA.Nnodes;
+    MeDiag=zeros(MUA.Nele,MUA.nod) ; EleArea=zeros(MUA.Nele,1) ;
+    for Iint=1:MUA.nip
+        funI=shape_fun(Iint,2,MUA.nod,MUA.points) ;    % nod x 1
+        detJwI=MUA.DetJ(:,Iint)*MUA.weights(Iint) ;     % Nele x 1
+        MeDiag=MeDiag+detJwI.*(funI.^2).' ;
+        EleArea=EleArea+detJwI ;
+    end
+    mEle=MeDiag.*(EleArea./sum(MeDiag,2)) ;             % HRZ: element weights sum to element area
+    mLump=accumarray(MUA.connectivity(:),mEle(:),[Nn 1]) ;
+
+    wPen=ones(Nn,1) ; wPen(BCs1.hFixedNode)=0 ; wPen(BCs1.hPosNode)=0 ;
+    [aPen,daPendh]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,F1.h) ;
+    cPen=dt*CtrlVar.theta*F1.rho(:).*mLump.*wPen ;
+    ih=(2*Nn+1:3*Nn)' ;
+    R(ih)=R(ih)-cPen.*aPen ;
+    if ~Ronly
+        KdFuvhduvh=KdFuvhduvh+sparse(ih,ih,-cPen.*daPendh,neq,neq) ;
+    end
+
+end
+
 
 
 

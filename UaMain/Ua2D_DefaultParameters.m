@@ -316,7 +316,7 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 
 %% Plotting
 %
-% Most plotting is typically done by the user using his own version of the m-file 
+% Most plotting is typically done by the user using his/her own version of the m-file 
 %
 %   DefineOutputs.m
 %
@@ -395,7 +395,6 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
-CtrlVar.hTheta=0.5;
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
 % It has not been fully tested but seems to work very well for fully implicit transient calculation.
 % This option that can be obtained by setting:
@@ -551,11 +550,10 @@ CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 CtrlVar.hSolverMaxIterations=50;
 
-CtrlVar.uv2h.uvTolerance=1e-5; % this is the tolerance in the change of the uv solution 
-                               % when solving the transient problem semi-implicitly, 
-                               % ie. when using CtrlVar.ForwardTimeIntegration="-uv-h-" 
-                               %
-                               % This is the norm of the changes in the velocity solve (actually the square of the norm).
+% (8 Oct 2026) The convergence of the outer iteration of the semi-implicit -uv-h- solver (CtrlVar.ForwardTimeIntegration="-uv-h-")
+% is judged using the same cost function and the same tolerances as for the implicit -uvh- solver, ie
+% CtrlVar.uvhDesiredWorkAndForceTolerances and CtrlVar.uvhDesiredWorkOrForceTolerances (see uvhResidualsCriteria.m).
+% The previous parameter CtrlVar.uv2h.uvTolerance is no longer used.
 
 CtrlVar.uv2h.MaxIterations=15; % The maximum number of (outer) iterations in the semi-implicit -uv-h- solver
                                % The  -uv-h- solver solves for uv and h repeatedly. The iterations required for the uv solve and the h solver are referred
@@ -586,6 +584,8 @@ CtrlVar.uvhResidualNormalisationTauFloor=0.01;  % (8 Oct 2026) Floor, in units o
                                                 % when CtrlVar.uvhResidualNormalisation="blockwise". The uv reference scale is
                                                 % max(actual, tauFloor*sqrt(2)*||M*1||), where M is the mass matrix, so that it does not
                                                 % vanish for h=0 and/or zero surface slope. Should be small compared to typical stresses.
+                                                % This number may need to be changed if one is using different physical units, however this only kicks in if thickness is
+                                                % very small, or zero, so it is unlikely that this number is otherwise of any importance. 
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
@@ -594,11 +594,9 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 CtrlVar.MustBe.uvhResidualNormalisation=["lumped","blockwise"]; 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
-CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
 CtrlVar.Tracer.SUPG.tau="taus";
 
 CtrlVar.uvh.SUPG.tauMultiplier=1 ; 
-CtrlVar.h.SUPG.tauMultiplier=1 ; 
 CtrlVar.Tracer.SUPG.tauMultiplier=1 ; 
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
@@ -1688,6 +1686,10 @@ CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=0;     % In any act
 CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This implies that the nodes of all boundary elements are not included in the active set.
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
                                                                     % thickness is usually prescribed directly.
+CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 2026) Criterion for releasing active thickness constraints:
+                                                                       %   "discrete" : sign of the discrete reaction L'*lambda at the node (recommended)
+                                                                       %   "consistent-mass" : sign of the reaction mapped to a nodal field with the
+                                                                       %      inverse of the consistent mass matrix (previous approach, prone to cycling).
 
 
 % thickness penalty, option 3
@@ -1721,14 +1723,14 @@ CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponent
 %
 
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin/10;
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000/CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;  % This is assuming 1000 is large compared to typical mass balance values
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100; 
 
 % (8 Oct 2026) The SoftPlus penalty is centred at hmin=ThickMin+delta, with delta=max(ThickMin,deltaAbs). For ThickMin>=deltaAbs this
 % is the previous hmin=2*ThickMin, but hmin does not collapse to zero for ThickMin=0. The penalty then starts to act above ThickMin
 % and does some of the work the active-set method would otherwise have to do.
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
 
-% (8 Oct 2026) If true, the penalty is applied as a lumped nodal term (see uvhAssembly.m) that depends only on the nodal thickness,
+% (8 Oct 2026) If true, the penalty is applied as a lumped nodal term (see uvhMatrixAssembly.m) that depends only on the nodal thickness,
 % and nodes with thickness boundary conditions or active thickness constraints are excluded. If false, the penalty is evaluated at
 % integration points, and elements containing h-constrained nodes are excluded. The nodal option is only implemented for the uvh solver.
 CtrlVar.ThicknessPenaltyNodal=false;
@@ -2604,10 +2606,7 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         %  
                                         %  0 : no mass-balance geometry feedback considered within non-lin iteration loop 
                                         %      (however, as always, mass balance is updated at each time step)
-                                        %  1 : mass-balance feedback included at the start of each non-lin iteration, 
-                                        %      but not within the backtracking step.
-                                        %  2 : Feedback included in non-lin loop, both at the beginning of each NR iteration, 
-                                        %      and within backtracking step.  
+                                        %
                                         %  3 : Consistent mass-balance feedback algorithm. As option 2, but with 
                                         %      the gradient of the mass-balance with respect to thickness added to the
                                         %      left-hand side of the NR system. Requires the user to supply this gradient through 
@@ -2622,15 +2621,7 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         %  CtrlVar.MassBalanceGeometryFeedback=0
                                         %  as doing so avoids calls to DefineMassBalance.m within the non-lin loop.
                                         %
-CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface mass balance.
-                                               % If not equal to zero, then the actual mass-balance value used at the end of the time step,
-                                               % becomes a weighted average of that at the beginning and the (correct) value at the 
-                                               % end of the time step.
-                                               % The value must be in the range [0,1]
-                                               % Only use this if encountering convergence problems.  
-                                               % Should always be equal to 0 if possible.
-                                               % If not equal to 0, the algorithm converges to a wrong solution (!),
-                                               % although the error might be very small if mass-balance geometry feedback is not that strong.
+CtrlVar.MustBe.MassBalanceGeometryFeedback = [0 3] ;
 CtrlVar.MassBalance.Evaluation="-node-";      
 
 %% Sea ice/melange                                               
