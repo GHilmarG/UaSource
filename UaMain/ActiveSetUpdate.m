@@ -381,7 +381,12 @@ isActiveSetCyclical=false ;
 
 
 
-ActivatedAndPreviouslyDeactivatedDifference=setxor(Activated,LastDeactivated); % if empty then the sets of activated and previously de-activated nodes are identical
+% (9 Oct 2026) Nodes that are re-activated because they were locked (released in the previous active-set iteration and then again
+% below ThickMin) are excluded from the cycle test: their re-activation is the intended consequence of the locking, and not a cycle.
+% Otherwise the loop is exited as "cyclical" before the final solve with these nodes constrained.
+if isfield(RunInfo.Forward,"ActiveSetLockedNodes") ; LockedNodes=RunInfo.Forward.ActiveSetLockedNodes(:) ; else ; LockedNodes=[] ; end
+ActivatedForCycleTest=setdiff(Activated,LockedNodes);
+ActivatedAndPreviouslyDeactivatedDifference=setxor(ActivatedForCycleTest,LastDeactivated); % if empty then the sets of activated and previously de-activated nodes are identical
 DeactivatedAndPreviouslyActivatedDifference=setxor(DeActivated,LastActivated); % if empty then the sets of de-activated and previously activated nodes are identical
 
 if CtrlVar.ThicknessConstraintsInfoLevel>=1
@@ -399,7 +404,7 @@ if CtrlVar.ThicknessConstraintsInfoLevel>=1
     end
 end
 
-if ~(isempty(Activated) && isempty(DeActivated))  
+if ~(isempty(ActivatedForCycleTest) && isempty(DeActivated))  
     if isempty(ActivatedAndPreviouslyDeactivatedDifference)  && isempty(DeactivatedAndPreviouslyActivatedDifference)
         isActiveSetCyclical=true ;
         fprintf(' Active-set is cyclical. \n')
