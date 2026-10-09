@@ -21,6 +21,28 @@
 % multiplied twice by the grounding/floating mask, instead of once. This will not have caused any errors in the forward
 % solution, but might have slowed done convergence in an inversion.
 %
+% * Thickness penalty (SoftPlus option), changes made 8-9 October 2026:
+%
+% (1) K is again a mass-balance rate (units 1/time). Between 31 August and 9 October 2026 K was internally divided by the time step,
+% making the penalty a per-time-step term. This was reverted because the penalty then changed the thickness by a dt-independent
+% amount in every time step, so that the solution had no limit for dt->0, the number of Newton iterations did not decrease for
+% small dt, and the automated time stepping could drive dt to very small values. With a rate, a node is held above ThickMin by the
+% penalty alone if theta*K*delta > |a|max, otherwise the active set takes over.
+%
+% (2) The penalty is centred at hmin=ThickMin+delta with delta=max(ThickMin,deltaAbs), default deltaAbs=0.1. This is the previous
+% hmin=2*ThickMin for ThickMin>=deltaAbs, but does not collapse to zero for ThickMin=0.
+%
+% (3) By default the smoothing distance l is calculated at runtime as l=lRel*delta (default lRel=0.1), ie from the value of ThickMin
+% in the input file. An explicitly set l is used as given.
+%
+% (4) The penalty can be applied as a lumped nodal term, CtrlVar.ThicknessPenaltyNodal=true (default false), which excludes nodes with
+% thickness boundary conditions or active thickness constraints.
+%
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;     % 1/time
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=NaN;     % l=lRel*delta
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel=0.1;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
+%
 % *Release Notes* _September 2026_
 %
 % * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.
@@ -65,6 +87,7 @@
 %   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
 %
 % (Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)
+% (No longer the case since 9 October 2026, K is again a rate. See the October 2026 release notes.)
 %
 % *Release Notes* _July 2026_
 %

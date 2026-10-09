@@ -195,7 +195,40 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
     if isfield(CtrlVar,"ThicknessPenaltyMassBalanceFeedbackSoftPlus") && isfield(CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus,"deltaAbs")
         hScaleRelease=max(hScaleRelease,CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs);
     end
+    % (9 Oct 2026) Locking: a node that was released in the previous active-set iteration, but is again below ThickMin after the
+    % subsequent solve, is kept constrained for the rest of this time step, ie it is not released again. The solve has then shown
+    % that the constraint is needed, even if the sign of the reaction indicates otherwise. (The sign of the nodal reaction is not
+    % always a reliable indicator, in particular for higher-order elements, where the vertex shape functions have zero (6-node) or
+    % small (10-node) integrals.) This prevents the active set from cycling. The locks are reset at the start of each time step by
+    % the calling routines (uvhRootFinding, MassContinuityEquationNewtonRaphsonThicknessContraints), so a locked node can be released
+    % in a later time step.
+    if isfield(RunInfo.Forward,"ActiveSetLockedNodes") ; Locked=RunInfo.Forward.ActiveSetLockedNodes(:) ; else ; Locked=[] ; end
+    NewlyLocked=[];
+    if ~isempty(LastDeactivated)
+        LastDeactivated=LastDeactivated(:);
+        NewlyLocked=LastDeactivated(F1.h(LastDeactivated)<CtrlVar.ThickMin);
+        NewlyLocked=setdiff(NewlyLocked,Locked);
+        Locked=[Locked;NewlyLocked(:)];
+    end
+    RunInfo.Forward.ActiveSetLockedNodes=Locked;
+    % If any released node is again below ThickMin, the reactions are evidently not a reliable guide in this time step. No further
+    % nodes are then released for the rest of this time step (only activations), which ensures that the active-set loop terminates.
+    % The flag is reset at the start of each time step by the calling routines.
+    if ~isempty(NewlyLocked)
+        RunInfo.Forward.ActiveSetNoFurtherReleases=true;
+    end
+    NoFurtherReleases=isfield(RunInfo.Forward,"ActiveSetNoFurtherReleases") && isequal(RunInfo.Forward.ActiveSetNoFurtherReleases,true);
+    if ~isempty(NewlyLocked) && CtrlVar.ThicknessConstraintsInfoLevel>=1
+        fprintf(CtrlVar.fidlog,' Active-set: %i nodes released in the previous iteration are again below ThickMin. They are kept constrained, and no further nodes are released for the rest of this time step. \n',numel(NewlyLocked));
+    end
+
     isNegavtiveMassFluxSmall=ah < -alpha*hScaleRelease/F1.dt ;
+    if ~isempty(Locked)
+        isNegavtiveMassFluxSmall=isNegavtiveMassFluxSmall & ~ismember(BCs1.hPosNode(:),Locked) ;   % locked nodes are not released
+    end
+    if NoFurtherReleases
+        isNegavtiveMassFluxSmall(:)=false ;
+    end
 
     NewInActiveConstraints=find(isNegavtiveMassFluxSmall); % the nodes are BCs1.hPosNode(NewInActiveConstraints)
     iNewInActiveConstraints=numel(NewInActiveConstraints);

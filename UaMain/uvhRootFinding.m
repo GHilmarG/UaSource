@@ -20,6 +20,8 @@ dt=F1.dt ;
 RunInfo.Forward.ActiveSetConverged=1;
 RunInfo.Forward.uvhIterationsTotal=0;
 iActiveSetIteration=0;
+RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained for the rest of this time step, see ActiveSetUpdate
+RunInfo.Forward.ActiveSetNoFurtherReleases=false;
 isActiveSetCyclical=NaN;
 nlIt=nan(CtrlVar.NRitmax,1);
 

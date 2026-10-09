@@ -173,6 +173,16 @@ else
     dh1NormVector=nan(CtrlVar.uv2h.MaxIterations,1) ;
 end
 
+
+% (9 Oct 2026) The Lagrange multipliers of the thickness constraints are (integrated) mass fluxes over the time step and scale with the
+% time step. If the multipliers used as the initial guess were calculated for a different time step (l1.dth), they are rescaled to
+% the current time step. Without this the initial residual is large after a change in dt (although this is linear and removed in
+% the first Newton iteration).
+if isprop(l1,"dth") && isfinite(l1.dth) && l1.dth>0 && l1.dth~=CtrlVar.dt && ~isempty(l1.h)
+    l1.h=l1.h*CtrlVar.dt/l1.dth;
+end
+if isprop(l1,"dth") ; l1.dth=CtrlVar.dt ; end
+
 %% Convergence of the outer uv-h iteration (8 Oct 2026)
 % The convergence of the outer uv-h iteration is judged using the same cost function (CalcCostFunctionNRuvh) and the same
 % convergence criteria (uvhResidualsCriteria) as for the implicit uvh solver (SSTREAM_TransientImplicit). The uv and the h solves
@@ -289,7 +299,8 @@ while true
     ub1Previous=F1.ub ; vb1Previous=F1.vb ; h1Previous=F1.h ; luvhPrevious=luvh ;
 
     SubSolvesConverged=RunInfo.Forward.uvConverged && RunInfo.Forward.hConverged ;
-    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,false) && SubSolvesConverged ;
+    rForceFloor=uvhResidualRoundOffFloor(CtrlVar,MUA,F1,Fext0) ;   % (8 Oct 2026) round-off floor of rForce, relevant for small time steps
+    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,false,rForceFloor) && SubSolvesConverged ;
     fprintf("\t uv-h: Outer iteration %i \t rForce=%-14g \t rWork=%-14g \n",iteration,rForce,rWork)
 
     if ResidualsCriteria

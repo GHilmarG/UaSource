@@ -580,6 +580,9 @@ CtrlVar.LSFMinimisationQuantity="Force Residuals";
 
 
 CtrlVar.uvhResidualNormalisation="blockwise";   % the new blockwise uvh-residual calculation
+CtrlVar.uvhResidualRoundOffFloorFactor=1;       % (8 Oct 2026) Factor c in the estimate of the round-off floor of rForce, see
+                                                % uvhResidualRoundOffFloor.m. The force tolerances are replaced by max(tolerance,floor),
+                                                % because for small time steps the floor (which grows as 1/dt^2) can exceed the tolerance.
 CtrlVar.uvhResidualNormalisationTauFloor=0.01;  % (8 Oct 2026) Floor, in units of stress (kPa), on the normalisation of the uv residuals
                                                 % when CtrlVar.uvhResidualNormalisation="blockwise". The uv reference scale is
                                                 % max(actual, tauFloor*sqrt(2)*||M*1||), where M is the mass matrix, so that it does not
@@ -1712,18 +1715,26 @@ CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponent
 % $$ y = \frac{K l}{2} \, \ln \left ( 1+e^{-2(h-hmin)/l} \right ) $$
 % 
 %
-% where K and l are parameters, and hmin=CtrlVar.ThickMin
+% where K and l are parameters, and hmin=CtrlVar.ThickMin+delta with delta=max(ThickMin,deltaAbs) (see below).
 %
-% Reasonable values for K and l are:
+% (9 Oct 2026) The penalty is a mass-balance RATE, ie K has units of 1/time (1/yr if time is in years). For hmin-h >> l the penalty
+% is approximately K*(hmin-h), so at h=ThickMin it supplies a mass-balance rate of about K*delta. A node is held above ThickMin by
+% the penalty alone if
 %
-%    l=CtrlVar.ThickMin/10
+%    theta*K*delta > |a|max          (theta=CtrlVar.theta)
 %
-% and K*l large compared to the (climatic) mass balance values, for example K=1000/l might be a reasonable selection if the mass
-% balance is on the order of 10
+% where |a|max is the magnitude of the most negative mass balance. Otherwise the active set (CtrlVar.ThicknessConstraints=1) takes
+% over. Between 31 Aug and 9 Oct 2026 K was scaled with 1/dt (a per-time-step penalty). This was reverted, see
+% ThicknessPenaltyMassBalanceFeedback.m.
+%
+% l should be small compared to delta. (9 Oct 2026) By default (l=NaN) l is calculated at runtime as l=lRel*delta, ie from the
+% value of ThickMin set in the input file. With lRel=0.1 the penalty is in its linear range at h=ThickMin. If l is set explicitly,
+% that value is used (a warning is given if l>delta/2).
 %
 
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin/10;
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100; 
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=NaN;      % NaN: l=lRel*delta, calculated at runtime
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel=0.1;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;     % rate, units 1/time
 
 % (8 Oct 2026) The SoftPlus penalty is centred at hmin=ThickMin+delta, with delta=max(ThickMin,deltaAbs). For ThickMin>=deltaAbs this
 % is the previous hmin=2*ThickMin, but hmin does not collapse to zero for ThickMin=0. The penalty then starts to act above ThickMin

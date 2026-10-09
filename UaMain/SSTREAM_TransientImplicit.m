@@ -8,6 +8,16 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 narginchk(8,9)
 nargoutchk(4,5)
 
+% (9 Oct 2026) The Lagrange multipliers of the thickness constraints are (integrated) mass fluxes over the time step and scale with the
+% time step. If the multipliers used as the initial guess were calculated for a different time step (l1.dth), they are rescaled to
+% the current time step. Without this the initial residual is large after a change in dt (although this is linear and removed in
+% the first Newton iteration).
+if isprop(l1,"dth") && isfinite(l1.dth) && l1.dth>0 && l1.dth~=CtrlVar.dt && ~isempty(l1.h)
+    l1.h=l1.h*CtrlVar.dt/l1.dth;
+end
+if isprop(l1,"dth") ; l1.dth=CtrlVar.dt ; end
+
+
 
 
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Transient implicit with respect to u, v, and h  \n ') ; end
@@ -265,7 +275,8 @@ while true
     % (8 Oct 2026) The convergence test is done in uvhResidualsCriteria, which is also used by the semi-implicit uv-h solver.
     % The acceptable tolerances are used if the last backtracking step was short.
     Acceptable=~(gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)) ;
-    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,Acceptable) ;
+    rForceFloor=uvhResidualRoundOffFloor(CtrlVar,MUA,F1,Fext0) ;   % (8 Oct 2026) round-off floor of rForce, relevant for small time steps
+    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,Acceptable,rForceFloor) ;
 
 
     if ResidualsCriteria
@@ -302,8 +313,15 @@ while true
         end
 
      
-        RunInfo.Forward.uvhConverged=0;
-        RunInfo.Forward.uvhStalled=true ;
+        if uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,true,rForceFloor)   % (8 Oct 2026) accepted if below the acceptable tolerances (incl. round-off floor)
+            RunInfo.Forward.uvhConverged=1;
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracking stagnated, but rForce=%-g is below the acceptable tolerances (round-off floor %-g). Solution accepted. \n',CtrlVar.time,CtrlVar.dt,rForce,rForceFloor)
+            end
+        else
+            RunInfo.Forward.uvhConverged=0;
+            RunInfo.Forward.uvhStalled=true ;
+        end
         RunInfo.Forward.uvhrForce=rForce ;
         break
     end
@@ -323,8 +341,11 @@ while true
         % stalled. Whether the residual is small enough for this to be dealt with by updating the active set, rather than by reducing
         % the time step, is decided by the calling routine (uvhRootFinding), based on RunInfo.Forward.uvhrForce.
         RunInfo.Forward.uvhrForce=rForce ;
-        if rForce < CtrlVar.uvhDesiredWorkAndForceTolerances(2)
+        if uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,true,rForceFloor)   % (8 Oct 2026) accepted if below the acceptable tolerances (incl. round-off floor)
             RunInfo.Forward.uvhConverged=true;
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Stagnated, but rForce=%-g is below the acceptable tolerances (round-off floor %-g). Solution accepted. \n',CtrlVar.time,CtrlVar.dt,rForce,rForceFloor)
+            end
         else
             RunInfo.Forward.uvhConverged=false;
             RunInfo.Forward.uvhStalled=true ;
