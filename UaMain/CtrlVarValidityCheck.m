@@ -689,4 +689,9 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
 end
 
 
+if isfield(CtrlVar,'MinNumberOfNewlyIntroducedActiveThicknessConstraints')
+    warning('Ua:CtrlVarValidityCheck:MinNumberOfNewlyIntroducedActiveThicknessConstraints',...
+        'The field CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints is no longer used (removed 9 Oct 2026). Small updates of the active set are no longer discarded.')
+end
+
 end

@@ -8,7 +8,6 @@ function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,DeActivated]=
 narginchk(8,8)
 
  
-BCs1Input=BCs1 ; 
 
 
 
@@ -120,19 +119,6 @@ nActivated=numel(Activated);
 %%
 
 
-if nDeactivated> 0 || nActivated>0
-    if nDeactivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
-        fprintf("ActiveSetInitialisation: Not introducing any new thickness constraints as:\n")
-        fprintf("\t #Deactivated=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nDeactivated,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
-
-        BCs1=BCs1Input;
-   
-        Activated=[];
-        DeActivated=[];
-        nDeactivated=0;
-        nActivated=0;
-    end
-end
 
 %%
 

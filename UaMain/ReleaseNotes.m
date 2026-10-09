@@ -43,6 +43,26 @@
 %   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel=0.1;
 %   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
 %
+% * Active-set method for the positive-thickness constraints, changes made 8-9 October 2026:
+%
+% (1) Constraints are released based on the sign of the discrete reaction at the node (CtrlVar.ActiveSet.ReleaseCriterion="discrete").
+% The previous approach, based on reactions mapped to a nodal field with the inverse of the consistent mass matrix, introduced sign
+% oscillations at individual nodes and caused the active set to cycle. It can still be selected with ReleaseCriterion="consistent-mass".
+%
+% (2) If a node released in an active-set iteration is again below ThickMin after the following solve, it is kept constrained, and no
+% further nodes are released for the rest of that time step. This prevents cycling. Re-activation of such nodes is not counted as a cycle.
+%
+% (3) If the active set is nevertheless found to be cyclical, one final uvh solve is done with the last active set, so that the returned
+% solution is consistent with the returned active set.
+%
+% (4) Initial active set: nodes with h<=ThickMin (rather than h<ThickMin) are included, so that a previous active set is recovered after
+% restarts and re-meshing.
+%
+% (5) CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints has been removed. It caused small updates of the active set to be
+% discarded, which could leave thickness violations in place over several time steps.
+%
+% (6) The active set is returned from the semi-implicit uv-h solver and carried over to the next time step.
+%
 % *Release Notes* _September 2026_
 %
 % * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.

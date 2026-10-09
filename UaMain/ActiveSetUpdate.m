@@ -8,11 +8,9 @@ function [UserVar,RunInfo,BCs1,lambdahpos,isActiveSetModified,isActiveSetCyclica
 narginchk(10,10)
 nargoutchk(8,8)
 
-RunInfo.Forward.ActiveSetConverged=1;
-RunInfo.Forward.uvhIterationsTotal=0;
+% (9 Oct 2026) RunInfo.Forward.ActiveSetConverged is no longer set here. It is initialised by the calling routines at the start
+% of the active-set loop, and set to 0 there if the loop is left because the maximum number of iterations has been reached.
 isActiveSetCyclical=NaN;
-
-BCs1Input=BCs1;
 
 if ~CtrlVar.ThicknessConstraints
     return
@@ -125,7 +123,7 @@ end
 
 
 if numel(lambdahpos) ~= numel(BCs1.hPosNode)
-    save TestSave ; error(' # of elements in lambdahpos must equal # of elements in BCs1.hPosNode')
+    error(' # of elements in lambdahpos must equal # of elements in BCs1.hPosNode')
 end
 
 
@@ -425,16 +423,6 @@ end
 BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
 %%
 
-if nDeactivated> 0 || nActivated>0
-    if nDeactivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
-        fprintf("ActiveSetInitialisation: Not introducing any new thickness constraints as:\n")
-        fprintf("\t #Deactivated=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nDeactivated,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
-        BCs1=BCs1Input;
-        Activated=[];
-        DeActivated=[];
-
-    end
-end
 
 
 
@@ -452,7 +440,6 @@ else
 end
 
 
-% setxor(BCs1.hPosNode,BCs1Input.hPosNode)
 
 
 RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;

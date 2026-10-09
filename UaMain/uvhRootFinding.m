@@ -18,7 +18,6 @@ dt=F1.dt ;
 
 
 RunInfo.Forward.ActiveSetConverged=1;
-RunInfo.Forward.uvhIterationsTotal=0;
 iActiveSetIteration=0;
 RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained for the rest of this time step, see ActiveSetUpdate
 RunInfo.Forward.ActiveSetNoFurtherReleases=false;
@@ -86,6 +85,7 @@ else   %  Thickness constraints used
     LastReleased=Released;  % Maybe here I should consider the possibility that the mesh has not changed and that I can use again the previous LastReleased and LastActivated list?
     LastActivated=Activated;
     iCounter=1;
+    FinalSolveAfterCycle=false;   % (9 Oct 2026) see below
 
     while true   % active-set loop
 
@@ -167,6 +167,14 @@ else   %  Thickness constraints used
                 RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
         end
 
+        % (9 Oct 2026) If the active set was found to be cyclical in the previous active-set iteration, this was a final solve with
+        % that last active set, and the loop is now exited without a further update. The returned solution is then consistent with
+        % the returned active set. (If this final solve stalled, the loop is continued as usual, see above.)
+        if FinalSolveAfterCycle && ~StalledPass
+            break
+        end
+        FinalSolveAfterCycle=false;
+
         % Update active set once uvh solution has been found.
         % Note: If this active-set iteration does not converge,
         %       the uvh solution and the active set are not consistence,
@@ -200,14 +208,12 @@ else   %  Thickness constraints used
 
         if isActiveSetCyclical
 
-            fprintf(" Leaving active-set pos. thickness loop because it has become cyclical\n");
+            fprintf(" Leaving active-set pos. thickness loop because it has become cyclical, after a final uvh solve with the last active set.\n");
 
-            % ToDo (1 Sept 2024):  Do I want to do one final uvh solve since the active set has changed?
-
-            % [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-
-
-            break
+            % (9 Oct 2026) One final uvh solve is done with the last active set (previously the loop was exited without this, and the
+            % returned uvh solution was then not consistent with the returned active set). The loop is exited after that solve.
+            FinalSolveAfterCycle=true;
+            continue
 
         end
 
@@ -221,9 +227,10 @@ else   %  Thickness constraints used
     end   % end of active set loop
 
 
-    % nodes where thickness still is too small
-    ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin),BCs1.hFixedNode) ;  % This should not really be needed as this must be equal to the "Activated" set, except that Active set is not updated if
-    % number of to-be-activated nodes less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
+    % nodes where thickness still is too small. (9 Oct 2026) This can only happen if the active-set loop was left because the maximum
+    % number of active-set iterations (CtrlVar.ThicknessConstraintsItMax) was reached. The last update of the active set is then
+    % carried forward to the next time step.
+    ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin),BCs1.hFixedNode) ;
 
 
     if numel(ToBeActivated)>0

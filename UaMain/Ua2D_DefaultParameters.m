@@ -1680,11 +1680,6 @@ CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickn
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of added new constraints at each active-set update. 
 
-CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=0;     % In any active-set iteration, this is the min number of additional new constraints.
-                                                                    % This can be used to suppress new active-set iteration if only a few new constraints are identified.
-                                                                    % The exact number here can be expected to be problem dependent, but it seems safe to assume that if only 
-                                                                    % a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has
-                                                                    % been defined as being "a few". 
                                                                  
 CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This implies that the nodes of all boundary elements are not included in the active set.
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then

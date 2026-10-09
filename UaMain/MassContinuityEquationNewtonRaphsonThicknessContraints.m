@@ -188,6 +188,7 @@ if CtrlVar.ThicknessConstraints
     iActiveSetIteration=0;
     RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained for the rest of this time step, see ActiveSetUpdate
 RunInfo.Forward.ActiveSetNoFurtherReleases=false;
+    RunInfo.Forward.ActiveSetConverged=1;      % (9 Oct 2026) set to 0 below if the maximum number of active-set iterations is reached
 
   
 
