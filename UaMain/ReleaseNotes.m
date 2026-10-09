@@ -4,18 +4,21 @@
 % 
 % *Release Notes* _October 2026_
 %
-% *Using the thickness penalty together with the active set is now the default option. 
-% Previously, the default option was: active set on, and penalty off.
+% * Default for the positive-thickness constraints: active set on, and thickness penalty off.
 %
-% Therefore, now the default option is:
+%   CtrlVar.ThicknessConstraints=true;
+%   CtrlVar.ThicknessPenalty=false;
 %
-%   CtrlVar.ThicknessConstraints=true;     
-%   CtrlVar.ThicknessPenalty=true;                                      
+% (On 1 October 2026 the penalty was made the default, in combination with the active set. This was reverted on 9 October 2026.
+% With the improvements to the active-set method described below, the active set alone converges reliably, and in tests
+% (Greenland nx50 and nx100 over 1 and 10 years, RadialIceCap) runs without the penalty were up to 40% faster. The penalty
+% increases the number of Newton iterations, and thereby, through the automated time stepping, reduces the time step. It also
+% created an artificial thin-ice layer, up to about 10 m thick, in areas that are otherwise held at ThickMin by the active set.)
 %
-% To get the old behavior set
+% To use the penalty in combination with the active set, set
 %
-%   CtrlVar.ThicknessConstraints=true;     
-%   CtrlVar.ThicknessPenalty=false;                                      
+%   CtrlVar.ThicknessConstraints=true;
+%   CtrlVar.ThicknessPenalty=true;
 %
 % * An error in the calculation of the adjoint gradient for Budd law was spotted and corrected. In one line of the code, a term was
 % multiplied twice by the grounding/floating mask, instead of once. This will not have caused any errors in the forward

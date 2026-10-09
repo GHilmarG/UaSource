@@ -1691,8 +1691,14 @@ CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 
 
 
 % thickness penalty, option 3
-CtrlVar.ThicknessPenalty=true;                                      % set to true for using penalty term, (Note: this was changed to true as the default option on 1-Oct-2026
-                                                                    % (can be used in combination with the active set method)
+CtrlVar.ThicknessPenalty=false;                                     % set to true for using penalty term (can be used in combination with the active set method).
+                                                                    % (Note: changed to true as the default option on 1-Oct-2026, and back to false on 9-Oct-2026.
+                                                                    % With the improved active-set method, ie the discrete release criterion, locking of released
+                                                                    % nodes that are again below ThickMin, and the cycle fix, the active set alone converges reliably.
+                                                                    % In tests (Greenland nx50 and nx100 over 1 and 10 years, RadialIceCap) runs without the penalty
+                                                                    % were up to 40% faster, as the penalty increases the number of Newton iterations and thereby
+                                                                    % reduces the time step, and the penalty created an artificial thin-ice layer (up to about 10 m)
+                                                                    % in areas that are otherwise held at ThickMin by the active set.)
 
                                                                     
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";      %The functional form of the penalty term
