@@ -3,8 +3,8 @@ function [RunInfo,dtAccuracy]=ATSTimeDiscretisationErrorLimit(CtrlVar,RunInfo)
 % [RunInfo,dtAccuracy]=ATSTimeDiscretisationErrorLimit(CtrlVar,RunInfo)
 %
 % Accuracy-based upper limit on the next time step, based on the estimated local time-discretisation error of the ice thickness in the
-% last time step (see TimeDiscretisationErrorEstimate.m). Called from AdaptiveTimeStepping.m, where the new time step is the minimum of
-% this limit and the time step proposed by the automated time stepping based on the number of non-linear iterations. (10 Oct 2026)
+% last time step (see TimeDiscretisationErrorEstimate.m). Called from AdaptiveTimeSteppingWithErrorEstimate.m, where it is combined with
+% the time step based on the number of non-linear iterations (see there). (10 Oct 2026)
 %
 % The error measure is the error per unit time (EPUS), scaled by the tolerances:
 %

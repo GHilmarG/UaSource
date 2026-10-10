@@ -2579,6 +2579,9 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % Adaptive time stepping
+CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";   % (10 Oct 2026) ["iteration-based","error-estimate"], see AdaptiveTimeStepping.m.
+                                                        % "iteration-based": time step based on the number of non-linear iterations (AdaptiveTimeSteppingIterationBased.m)
+                                                        % "error-estimate" : in addition based on an estimate of the time-discretisation error of h (AdaptiveTimeSteppingWithErrorEstimate.m)
 CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithm
 CtrlVar.ATSdtMin=1e-6           ;   % minimum time step size (ie dt) set by the automated-time-stepping algorithm
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
@@ -2600,11 +2603,16 @@ CtrlVar.ATSEnforceCFL=false  ;      % enforce Courant-Friedrichs-Lewy condition 
                                     % 
 CtrlVar.ATSEnforceCFLfactor=1 ;     % If enforcing CFL condition, maximum time step will be factor *v*dt/dx  
 
-% (10 Oct 2026) Accuracy-based limit on the time step, see ATSTimeDiscretisationErrorLimit.m. If used, the time step is in addition limited
-% such that the estimated local time-discretisation error of the ice thickness per unit time, scaled by atol+rtol*|h|, does not exceed one.
-% atol has units of thickness per unit time (eg m/yr), rtol units of 1/time. This requires the time-discretisation error estimate
-% (CtrlVar.TimeDiscretisationErrorEstimate.Use), which is switched on automatically, and is only available for theta=0.5.
-CtrlVar.ATSTimeDiscretisationError.Use=false;
+% (10 Oct 2026) Parameters of the automated time stepping based on the time-discretisation error, used if
+% CtrlVar.AdaptiveTimeSteppingMethod="error-estimate" (see AdaptiveTimeSteppingWithErrorEstimate.m and ATSTimeDiscretisationErrorLimit.m).
+% The time step is then also limited such that the estimated local time-discretisation error of the ice thickness per unit time, scaled by
+% atol+rtol*|h|, does not exceed one. atol has units of thickness per unit time (eg m/yr), rtol units of 1/time. This requires the
+% time-discretisation error estimate (CtrlVar.TimeDiscretisationErrorEstimate.Use), which is switched on automatically, and is only available
+% for theta=0.5.
+CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true;   % if true, the time step may be increased up to the accuracy-based time step when
+                                                         % the convergence of the non-linear iterations is acceptable (otherwise min(dtNewton,dtAccuracy))
+CtrlVar.ATSTimeDiscretisationError.ConvergenceCheckSteps=2;   % number of previous time steps over which the number of non-linear iterations
+                                                             % must not exceed CtrlVar.ATSTargetIterations for the convergence to be acceptable
 CtrlVar.ATSTimeDiscretisationError.atol=0.01;          % m/yr
 CtrlVar.ATSTimeDiscretisationError.rtol=0;             % 1/yr
 CtrlVar.ATSTimeDiscretisationError.Safety=0.85;

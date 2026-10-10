@@ -689,14 +689,25 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
 end
 
 
-if isfield(CtrlVar,'ATSTimeDiscretisationError') && isfield(CtrlVar.ATSTimeDiscretisationError,'Use') && CtrlVar.ATSTimeDiscretisationError.Use
-    % (10 Oct 2026) The accuracy-based time-step limit requires the time-discretisation error estimate
+% (10 Oct 2026) Automated time stepping based on the time-discretisation error
+if ~isfield(CtrlVar,'AdaptiveTimeSteppingMethod')
+    CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";
+end
+if isfield(CtrlVar,'ATSTimeDiscretisationError') && isfield(CtrlVar.ATSTimeDiscretisationError,'Use') && isequal(CtrlVar.ATSTimeDiscretisationError.Use,true) ...
+        && string(CtrlVar.AdaptiveTimeSteppingMethod)~="error-estimate"
+    CtrlVar.AdaptiveTimeSteppingMethod="error-estimate";
+    fprintf(' Note: CtrlVar.ATSTimeDiscretisationError.Use is no longer used. As it was set to true, CtrlVar.AdaptiveTimeSteppingMethod has been set to "error-estimate".\n')
+end
+if ~ismember(string(CtrlVar.AdaptiveTimeSteppingMethod),["iteration-based","error-estimate"])
+    error('CtrlVarValidityCheck:AdaptiveTimeSteppingMethod','Unknown value of CtrlVar.AdaptiveTimeSteppingMethod: %s. Use "iteration-based" or "error-estimate".',string(CtrlVar.AdaptiveTimeSteppingMethod))
+end
+if string(CtrlVar.AdaptiveTimeSteppingMethod)=="error-estimate"
     if ~(isfield(CtrlVar,'TimeDiscretisationErrorEstimate') && isfield(CtrlVar.TimeDiscretisationErrorEstimate,'Use') && CtrlVar.TimeDiscretisationErrorEstimate.Use)
         CtrlVar.TimeDiscretisationErrorEstimate.Use=true;
-        fprintf(' Note: CtrlVar.ATSTimeDiscretisationError.Use=true requires the time-discretisation error estimate, and CtrlVar.TimeDiscretisationErrorEstimate.Use has been set to true.\n')
+        fprintf(' Note: CtrlVar.AdaptiveTimeSteppingMethod="error-estimate" requires the time-discretisation error estimate, and CtrlVar.TimeDiscretisationErrorEstimate.Use has been set to true.\n')
     end
     if abs(CtrlVar.theta-0.5)>1e-10
-        fprintf(' Note: The accuracy-based time-step limit (CtrlVar.ATSTimeDiscretisationError.Use=true) is only available for theta=0.5, and is not active.\n')
+        fprintf(' Note: The time-discretisation error estimate is only available for theta=0.5. The time step is then based on the number of non-linear iterations only.\n')
     end
 end
 
