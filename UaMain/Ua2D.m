@@ -185,7 +185,7 @@ else
         
         RunInfo.Message="Getting inputs for a forward restart run";
         CtrlVar.RunInfoMessage=RunInfo.Message;
-        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo);
+        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo,Fm1]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo);
         
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
@@ -455,7 +455,13 @@ while 1
         
        
         %[UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        MUAbeforeAdaptMesh=MUA;
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh2025(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        % (9 Oct 2026) Fm1 holds the rates of the previous time step. If the mesh has changed, these are mapped onto the new mesh.
+        if HasMeshChanged(MUA,MUAbeforeAdaptMesh)
+            [RunInfo,Fm1]=MapFm1BetweenMeshes(CtrlVar,RunInfo,MUAbeforeAdaptMesh,MUA,Fm1);
+        end
+        clear MUAbeforeAdaptMesh
         CtrlVar.AdaptMeshInitial=0;  % make sure to set this to zero, as this only applies to the first run step, which can be either the beginning of a new run, or a restart run
         F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 
@@ -642,7 +648,7 @@ while 1
             % F0.dubdt=(F0.ub-Fm1.ub)/dt  (where dt is the time step between Fm1 and F0.)
             %
             
-            [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
+            [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l,F.dt);
 
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
@@ -893,7 +899,7 @@ while 1
     
     if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
         
-        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
+        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo,Fm1);
 
     end
 
@@ -947,7 +953,7 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1
-    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
+    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo,Fm1);
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end

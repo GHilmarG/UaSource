@@ -66,6 +66,26 @@
 %
 % (6) The active set is returned from the semi-implicit uv-h solver and carried over to the next time step.
 %
+% * Explicit estimate at the start of each time step (CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-"), corrected 9 October 2026:
+%
+% The rates used in the explicit estimate (F.dhdt, F.dubdt, F.dvbdt, F.duddt, F.dvddt) are backward differences over the previous time
+% step (see UpdateFtimeDerivatives.m), ie the time derivatives at the midpoint of that step. These were previously used in the
+% variable time step Adams-Bashforth formula (ExplicitEstimation.m), which requires the time derivatives at the start of the steps.
+% As a result the estimate was only first-order accurate (for a constant time step it reduced to X+dt*dX/dt). The estimate is now
+% calculated with ExplicitEstimationUsingBackwardDifferences.m, which is second-order accurate also for variable time steps, and exact
+% if the fields vary quadratically in time. The name "-Adams-Bashforth-" is kept for compatibility. The estimated thickness is not
+% allowed to be below ThickMin. Related changes:
+%
+%   - UaFields has a new property dtRates, the time step over which the rates were calculated.
+%   - Fm1 (the rates of the previous time step) is a UaFields object, is written to restart files, and is mapped onto a new mesh
+%     after remeshing (MapFm1BetweenMeshes.m). For older restart files Fm1 is created with all rates set to NaN, and the estimate then
+%     falls back to linear, or no, extrapolation in the first time step(s).
+%   - Which level of extrapolation (second order, linear, none) can be used is determined from the available data, node by node, and
+%     no longer from the run-step number.
+%   - The time step is taken from F.dt (and not from CtrlVar.dt) in UpdateFtimeDerivatives.m and ExplicitEstimationForUaFields.m.
+%     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
+%
+%
 % *Release Notes* _September 2026_
 %
 % * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.

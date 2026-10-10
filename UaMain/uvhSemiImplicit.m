@@ -141,8 +141,9 @@ if CtrlVar.StartSemiImplicitWithExtrapolation
 
     CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-";
 
+    dtNew=F1.dt;   % (9 Oct 2026) the new time step
     F1=F0;
-    [UserVar,RunInfo,F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
+    [UserVar,RunInfo,F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l,dtNew);
     % The explicit estimate for velocities is the one used for the velocities at the
     % end of the time step when h is calculated implicitly.
 

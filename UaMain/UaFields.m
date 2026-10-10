@@ -9,6 +9,7 @@ classdef UaFields
         y=[];
         time=[];
         dt=[] ;
+        dtRates=NaN ;  % (9 Oct 2026) the time step over which the rates (dhdt, dubdt, dvbdt, duddt, dvddt) were calculated as backward differences
 
         xint=[];
         yint=[];

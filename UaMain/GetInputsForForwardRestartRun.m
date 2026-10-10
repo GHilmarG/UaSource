@@ -1,7 +1,7 @@
-function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo)
+function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo,Fm1]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo)
 
 narginchk(3,3) 
-nargoutchk(7,7)       
+nargoutchk(7,8)       
 
 fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFiletoRead)
 
@@ -30,6 +30,23 @@ fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFileto
         fprintf(CtrlVar.fidlog,'%s \n',exception.message);
         error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
     end
+
+    % (9 Oct 2026) Fm1, the rates of the previous time step, is saved in restart files from 9 Oct 2026 onwards. For older restart
+    % files Fm1 is created with all rates set to NaN, and the explicit estimate then falls back to linear, or no, extrapolation in
+    % the first time step(s) after the restart (see ExplicitEstimationUsingBackwardDifferences.m).
+    WarningState=warning('off','MATLAB:load:variableNotFound');
+    Stmp=load(CtrlVar.NameOfRestartFiletoRead,'Fm1');
+    warning(WarningState);
+    if isfield(Stmp,'Fm1') && isa(Stmp.Fm1,'UaFields')
+        Fm1=Stmp.Fm1;
+    else
+        fprintf('\n Restart file does not contain Fm1 (an older restart file). Fm1 is created with all rates set to NaN.\n')
+        Fm1=UaFields;
+        Fm1.dhdt=NaN(MUAold.Nnodes,1); Fm1.dubdt=NaN(MUAold.Nnodes,1); Fm1.dvbdt=NaN(MUAold.Nnodes,1);
+        Fm1.duddt=NaN(MUAold.Nnodes,1); Fm1.dvddt=NaN(MUAold.Nnodes,1);
+        Fm1.dtRates=NaN;
+    end
+    clear Stmp
     
 % else
 % 
@@ -188,6 +205,7 @@ if isMeshChanged
     
     
     [UserVar,RunInfo,F,BCs,l]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,l);
+    [RunInfo,Fm1]=MapFm1BetweenMeshes(CtrlVar,RunInfo,MUAold,MUA,Fm1);   % (9 Oct 2026)
     %[UserVar,RunInfo,F,BCs,GF]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF);
     
     
