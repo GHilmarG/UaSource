@@ -431,6 +431,8 @@ CtrlVar.TimeDiscretisationErrorEstimate.Use=false;
 CtrlVar.TimeDiscretisationErrorEstimate.atol=1;        % m
 CtrlVar.TimeDiscretisationErrorEstimate.rtol=1e-3;
 CtrlVar.TimeDiscretisationErrorEstimate.InfoLevel=1;   % if >=1, one line with the estimate is printed in each time step
+CtrlVar.TimeDiscretisationErrorEstimate.MaskBand="switched";   % ["switched","active"]: the estimate is not used next to nodes whose constraint state
+                                                                % changed within the last three time steps ("switched"), or next to all active nodes ("active")
 CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=false;                  % if true, the estimate is also accumulated over time steps in F.hTimeDiscretisationErrorAccumulated
 CtrlVar.TimeDiscretisationErrorEstimate.ResetAccumulatedAtRestart=false;   % if true, the accumulated estimate is reset at a restart (otherwise it is continued)
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
@@ -2589,9 +2591,11 @@ CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreas
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           % number of iterations between considering increasing dt
 CtrlVar.ATSintervalDown=3 ;         % number of iterations between considering decreasing dt 
-CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
+CtrlVar.ATSTargetIterations=7;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
+                                    % (10 Oct 2026) default changed from 4 to 7. In tests, 7 gave about 40% shorter run times than 4,
+                                    % with only small differences in the solution.
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
 
                                     % The implicit time-stepping algorithms used in Ua by default are not limited by the CFL condition.

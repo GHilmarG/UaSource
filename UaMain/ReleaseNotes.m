@@ -86,6 +86,70 @@
 %     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
 %
 %
+% * The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter
+% will therefore generally use larger time steps than before. In tests (Greenland, nx100, 10 years), ATSTargetIterations=7 gave about 40%
+% shorter run times than 4, with differences in ice thickness of at most about 0.5 m (rms below 0.01 m). To obtain the previous behaviour, set
+% CtrlVar.ATSTargetIterations=4.
+%
+% * Restart runs, changes made 10 October 2026:
+%
+% (1) The active set of the thickness constraints (BCs.hPosNode) and the Lagrange multipliers are restored from the restart file (provided
+% the mesh has not changed, and the boundary conditions defined in DefineBoundaryConditions.m are the same as in the previous run). Previously
+% the active set had to be recovered in the first time step, and the first uvh solve started with zero multipliers. A restart run now
+% continues where the previous run ended, and restarted and uninterrupted runs agree to within round-off errors.
+% (2) The run-step number written to the final restart file is now the number of the last completed run step. Previously it was one too
+% large, and the restart run skipped one run-step number.
+%
+% * Estimate of the time-discretisation error of the ice thickness (10 October 2026):
+%
+% If CtrlVar.TimeDiscretisationErrorEstimate.Use=true, the local time-discretisation error of h is estimated in each time step
+% (TimeDiscretisationErrorEstimate.m). This is a predictor-corrector estimate, comparing the second-order explicit estimate of h with the
+% computed (implicit, theta=0.5) solution, and is only available for theta=0.5. The estimate is in units of h (ie m), and is the error
+% committed in that time step. It is stored as a nodal field in F.hTimeDiscretisationErrorEstimate, and norms of it are stored as time series
+% in RunInfo.Forward (hTimeDiscretisationErrorRMS, ..Max, ..Volume, ..ValidArea, etc.). Norms are calculated as sqrt(x'*M*x/A) with the
+% consistent mass matrix M, where A is the area over which the estimate is defined. The estimate is not defined (NaN) at nodes with thickness
+% boundary conditions, active thickness constraints, h<=ThickMin, and next to nodes whose constraint state changed within the last three time
+% steps, as the thickness then does not evolve smoothly in time. Optionally, the estimate can be accumulated over a run
+% (CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=true, see F.hTimeDiscretisationErrorAccumulated). The accumulated estimate is an
+% "error budget", ie the sum of the local errors, and not the global error, as errors are transported and may decay.
+%
+% Experience from tests: The estimate is useful as a diagnostic for where and when time-discretisation errors arise. Errors are typically
+% largest during initial adjustments of the model state, and at fast-flowing outlets, where the spatial resolution may also be insufficient.
+%
+% * Automated time stepping based on the time-discretisation error (10 October 2026):
+%
+% AdaptiveTimeStepping.m is now a driver that selects between two approaches, depending on CtrlVar.AdaptiveTimeSteppingMethod:
+%
+%   "iteration-based" : the time step is based on the number of non-linear iterations (AdaptiveTimeSteppingIterationBased.m). This is the
+%                       previous approach, unchanged, and is the default.
+%   "error-estimate"  : in addition based on the estimated time-discretisation error of h (AdaptiveTimeSteppingWithErrorEstimate.m).
+%
+% With "error-estimate", the time step is chosen such that the estimated local error of h per unit time, scaled by atol+rtol*|h|, is about
+% one, ie dt_new = Safety*dt*q^(-1/2), where q is the scaled error per unit time in the last time step (ATSTimeDiscretisationErrorLimit.m).
+% The time step may then also be increased up to this accuracy-based time step, provided the convergence of the non-linear iterations is
+% acceptable (number of iterations at most CtrlVar.ATSTargetIterations over the last few time steps); otherwise the minimum of the
+% accuracy-based time step and the time step based on the non-linear iterations is used. Integrated over a run of length T, the accumulated
+% local error is then approximately bounded by T*atol (for rtol=0), and the actual error at the end of a run decreases with atol
+% (approximately as atol^0.7 in tests). The time-discretisation error estimate is switched on automatically. Settings, with default values:
+%
+%   CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";      % or "error-estimate"
+%   CtrlVar.ATSTimeDiscretisationError.atol=0.01;               % m/yr; values of about 0.0005 to 0.003 have given good results in tests
+%   CtrlVar.ATSTimeDiscretisationError.rtol=0;                  % 1/yr
+%   CtrlVar.ATSTimeDiscretisationError.StartTime=-inf;          % the accuracy-based time step is only used from this time onwards
+%   CtrlVar.ATSTimeDiscretisationError.Safety=0.85; ...MaxIncrease=2; ...MaxDecrease=5; ...MinValidArea=0.1;
+%   CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true; ...ConvergenceCheckSteps=2;
+%
+% Recommendations: With "error-estimate", CtrlVar.ATSTargetIterations can be set to about 7 to 10, as the accuracy is then controlled
+% separately. Note that the time stepping during an initial adjustment period can have a lasting effect on the solution, so excluding this
+% period through StartTime does not remove its effect. In tests (Greenland, nx50, 10 years), "error-estimate" with atol=0.001 m/yr gave
+% errors at the end of the run comparable to, or slightly smaller than, "iteration-based" with ATSTargetIterations=4, at about 10% lower
+% computational cost. A test with a slightly different norm, corresponding to an atol of roughly 0.0006 to 0.0008 m/yr with the present
+% norm, gave errors 2 to 3 times smaller than with ATSTargetIterations=4 at about the same cost. The largest remaining errors were at
+% fast-flowing outlets, where local mesh refinement may also be needed.
+%
+% The previous parameter CtrlVar.ATSTimeDiscretisationError.Use (only used for a few days) is no longer used; if set to true,
+% CtrlVar.AdaptiveTimeSteppingMethod is set to "error-estimate".
+%
 % *Release Notes* _September 2026_
 %
 % * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.
