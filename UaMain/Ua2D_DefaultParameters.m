@@ -2599,6 +2599,20 @@ CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% o
 CtrlVar.ATSEnforceCFL=false  ;      % enforce Courant-Friedrichs-Lewy condition on time step (no need to do this in general as the forward time stepping for theta=1/2 is unconditionally stable). 
                                     % 
 CtrlVar.ATSEnforceCFLfactor=1 ;     % If enforcing CFL condition, maximum time step will be factor *v*dt/dx  
+
+% (10 Oct 2026) Accuracy-based limit on the time step, see ATSTimeDiscretisationErrorLimit.m. If used, the time step is in addition limited
+% such that the estimated local time-discretisation error of the ice thickness per unit time, scaled by atol+rtol*|h|, does not exceed one.
+% atol has units of thickness per unit time (eg m/yr), rtol units of 1/time. This requires the time-discretisation error estimate
+% (CtrlVar.TimeDiscretisationErrorEstimate.Use), which is switched on automatically, and is only available for theta=0.5.
+CtrlVar.ATSTimeDiscretisationError.Use=false;
+CtrlVar.ATSTimeDiscretisationError.atol=0.01;          % m/yr
+CtrlVar.ATSTimeDiscretisationError.rtol=0;             % 1/yr
+CtrlVar.ATSTimeDiscretisationError.Safety=0.85;
+CtrlVar.ATSTimeDiscretisationError.MaxIncrease=2;      % largest increase of the time step (factor) due to this criterion
+CtrlVar.ATSTimeDiscretisationError.MaxDecrease=5;      % largest decrease of the time step (factor) due to this criterion
+CtrlVar.ATSTimeDiscretisationError.StartTime=-inf;     % the limit is only applied from this time onwards (eg to exclude an initial adjustment period)
+CtrlVar.ATSTimeDiscretisationError.MinValidArea=0.1;   % the limit is only applied if the estimate is defined over at least this fraction of the area
+CtrlVar.ATSTimeDiscretisationError.InfoLevel=1;
                                     % Setting to 1 limits time step to CFL, and setting it to 2 allows times step twice as large.
 
 CtrlVar.NeverChangePrescribedTimeStep=false ; % Even if adaptive time stepping is not used, the code may still change the time step. 

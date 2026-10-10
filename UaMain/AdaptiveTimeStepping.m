@@ -245,6 +245,16 @@ if  CtrlVar.ForwardTimeIntegration=="-uv-h-"
     end
 end
 
+%% (10 Oct 2026) Accuracy-based limit on the time step, based on the estimated time-discretisation error of h in the last time step
+% (see ATSTimeDiscretisationErrorLimit.m). The new time step is the minimum of this limit and the time step proposed above.
+if CtrlVar.AdaptiveTimeStepping && isfield(CtrlVar,"ATSTimeDiscretisationError") && isfield(CtrlVar.ATSTimeDiscretisationError,"Use") && CtrlVar.ATSTimeDiscretisationError.Use
+    [RunInfo,dtAccuracy]=ATSTimeDiscretisationErrorLimit(CtrlVar,RunInfo);
+    if dtAccuracy<dtOut
+        fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step limited by the time-discretisation error to %-g (time step based on non-linear iterations: %-g) \n ',dtAccuracy,dtOut);
+        dtOut=max(dtAccuracy,CtrlVar.ATSdtMin);
+    end
+end
+
 if CtrlVar.AdaptiveTimeStepping
     if CtrlVar.ATSEnforceCFL
 

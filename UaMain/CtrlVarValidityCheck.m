@@ -689,6 +689,17 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
 end
 
 
+if isfield(CtrlVar,'ATSTimeDiscretisationError') && isfield(CtrlVar.ATSTimeDiscretisationError,'Use') && CtrlVar.ATSTimeDiscretisationError.Use
+    % (10 Oct 2026) The accuracy-based time-step limit requires the time-discretisation error estimate
+    if ~(isfield(CtrlVar,'TimeDiscretisationErrorEstimate') && isfield(CtrlVar.TimeDiscretisationErrorEstimate,'Use') && CtrlVar.TimeDiscretisationErrorEstimate.Use)
+        CtrlVar.TimeDiscretisationErrorEstimate.Use=true;
+        fprintf(' Note: CtrlVar.ATSTimeDiscretisationError.Use=true requires the time-discretisation error estimate, and CtrlVar.TimeDiscretisationErrorEstimate.Use has been set to true.\n')
+    end
+    if abs(CtrlVar.theta-0.5)>1e-10
+        fprintf(' Note: The accuracy-based time-step limit (CtrlVar.ATSTimeDiscretisationError.Use=true) is only available for theta=0.5, and is not active.\n')
+    end
+end
+
 if isfield(CtrlVar,'MinNumberOfNewlyIntroducedActiveThicknessConstraints')
     warning('Ua:CtrlVarValidityCheck:MinNumberOfNewlyIntroducedActiveThicknessConstraints',...
         'The field CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints is no longer used (removed 9 Oct 2026). Small updates of the active set are no longer discarded.')
