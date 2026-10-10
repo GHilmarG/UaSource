@@ -742,6 +742,7 @@ while 1
             MUA=UpdateMUA(CtrlVar,MUA);
 
        
+            hPosNodeStartOfStep=BCs.hPosNode;   % (10 Oct 2026) active set at the start of the time step, see TimeDiscretisationErrorEstimate.m
             dtBeforeUvhSolve=F.dt ;
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
             %[norm(F.ub(BCs.ubFixedNode)-BCs.ubFixedValue) norm(F.vb(BCs.vbFixedNode)-BCs.vbFixedValue) norm(F.h(BCs.hFixedNode)-BCs.hFixedValue)]
@@ -758,6 +759,7 @@ while 1
             RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=F.dt ;    % record the time step that was actually used
           
 
+            isConvergedWithoutWTSHTF=RunInfo.Forward.uvhConverged;   % (10 Oct 2026)
             if ~RunInfo.Forward.uvhConverged
             
                 [UserVar,RunInfo,F,F0,l,BCs]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l);
@@ -771,6 +773,11 @@ while 1
             % Recalculating geometry based on flotation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+            % (10 Oct 2026) Estimate of the time-discretisation error of h (if CtrlVar.TimeDiscretisationErrorEstimate.Use). This must be done
+            % before F0 and Fm1 are updated. Not done if the uvh solve only converged through WTSHTF.
+            if isConvergedWithoutWTSHTF
+                [RunInfo,F]=TimeDiscretisationErrorEstimate(CtrlVar,RunInfo,MUA,F0,F,Fm1,BCs,hPosNodeStartOfStep);
+            end
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l);
             F0=F; 
 
@@ -836,12 +843,16 @@ while 1
 
 
 
+            hPosNodeStartOfStep=BCs.hPosNode;   % (10 Oct 2026) active set at the start of the time step, see TimeDiscretisationErrorEstimate.m
             [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
 
             CtrlVar.InitialDiagnosticStep=0;
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; 
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            if RunInfo.Forward.uvhConverged   % (10 Oct 2026) estimate of the time-discretisation error of h, see above
+                [RunInfo,F]=TimeDiscretisationErrorEstimate(CtrlVar,RunInfo,MUA,F0,F,Fm1,BCs,hPosNodeStartOfStep);
+            end
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l);
         
             F0=F; 
@@ -953,7 +964,14 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1
-    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo,Fm1);
+    % (10 Oct 2026) All exits from the run-step loop occur after CtrlVar.CurrentRunStepNumber has been increased at the start of the loop,
+    % but before that run step has been done. The last completed run step is therefore CtrlVar.CurrentRunStepNumber-1, and this is the
+    % run-step number written to the final restart file. A restart run then continues with the next run step, as an uninterrupted run would,
+    % and there are no gaps in RunInfo.Forward. (The restart files written within the run-step loop are written after the run step has been
+    % done, and are not affected.)
+    CtrlVarFinalRestart=CtrlVar;
+    CtrlVarFinalRestart.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber-1;
+    WriteForwardRunRestartFile(UserVar,CtrlVarFinalRestart,MUA,BCs,F,F.GF,l,RunInfo,Fm1);
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end

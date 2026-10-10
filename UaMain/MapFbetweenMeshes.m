@@ -44,6 +44,13 @@ Fnew.solution="-none-" ;
 Fnew.time=Fold.time;
 Fnew.dt=Fold.dt; 
 Fnew.dtRates=Fold.dtRates;   % (9 Oct 2026) the time step over which the rates were calculated, see UpdateFtimeDerivatives.m
+% (10 Oct 2026) The accumulated time-discretisation error estimate (see TimeDiscretisationErrorEstimate.m). The nodal fields are interpolated
+% onto the new mesh, with zero at new nodes outside of the old mesh, and TotalTime is carried over.
+AccErr=Fold.hTimeDiscretisationErrorAccumulated;
+if isstruct(AccErr) && isfield(AccErr,"Signed") && numel(AccErr.Signed)==MUAold.Nnodes
+    [RunInfo,AccSigned,AccAbs,AccValidTime]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,[0 0 0],AccErr.Signed,AccErr.Abs,AccErr.ValidTime);
+    Fnew.hTimeDiscretisationErrorAccumulated=struct("Signed",AccSigned,"Abs",AccAbs,"ValidTime",AccValidTime,"TotalTime",AccErr.TotalTime);
+end
 Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
 % density and the new geometry has been interpolated onto the new mesh.
 

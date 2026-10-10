@@ -423,6 +423,16 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % ["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
+
+% (10 Oct 2026) Estimate of the local time-discretisation error of the ice thickness in each time step, see TimeDiscretisationErrorEstimate.m.
+% If used, F.hTimeDiscretisationErrorEstimate holds the estimate (a nodal field, in m), and norms are stored as time series in RunInfo.Forward.
+% atol and rtol are only used in the scaled norm (rms of e./(atol+rtol*|h|)). Only available for theta=0.5.
+CtrlVar.TimeDiscretisationErrorEstimate.Use=false;
+CtrlVar.TimeDiscretisationErrorEstimate.atol=1;        % m
+CtrlVar.TimeDiscretisationErrorEstimate.rtol=1e-3;
+CtrlVar.TimeDiscretisationErrorEstimate.InfoLevel=1;   % if >=1, one line with the estimate is printed in each time step
+CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=false;                  % if true, the estimate is also accumulated over time steps in F.hTimeDiscretisationErrorAccumulated
+CtrlVar.TimeDiscretisationErrorEstimate.ResetAccumulatedAtRestart=false;   % if true, the accumulated estimate is reset at a restart (otherwise it is continued)
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 

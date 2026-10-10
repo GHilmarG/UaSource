@@ -10,6 +10,8 @@ classdef UaFields
         time=[];
         dt=[] ;
         dtRates=NaN ;  % (9 Oct 2026) the time step over which the rates (dhdt, dubdt, dvbdt, duddt, dvddt) were calculated as backward differences
+        hTimeDiscretisationErrorEstimate=[] ;  % (10 Oct 2026) estimate of the local time-discretisation error of h in the last time step (m), see TimeDiscretisationErrorEstimate.m
+        hTimeDiscretisationErrorAccumulated=[] ;  % (10 Oct 2026) accumulated estimate (structure with fields Signed, Abs, ValidTime, TotalTime), see TimeDiscretisationErrorEstimate.m
 
         xint=[];
         yint=[];
