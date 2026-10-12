@@ -27,7 +27,7 @@ function varargout=ExplicitEstimationUsingBackwardDifferences(dt,dtm1,dtm2,varar
 % Note: ExplicitEstimation.m implements the variable time step two-step Adams-Bashforth method (AB2), which is correct if its inputs
 % are the time derivatives AT t(n) and t(n-1). If the backward differences D and Dm1 are used in AB2 instead, the estimate is only
 % first-order accurate; for a constant time step it then reduces to X+dt*dX/dt(t(n)). This function is therefore used for the
-% backward differences calculated in UpdateFtimeDerivatives.m. See also TestABExtrapolation.m.
+% backward differences calculated in UpdateFtimeDerivatives.m. 
 %
 % Fallback, node by node:
 %
