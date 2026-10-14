@@ -90,6 +90,41 @@
 %     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
 %
 %
+% * Active-set method: early exit from the uvh iteration if free nodes have non-positive thickness (14 October 2026):
+%
+% In transient runs with thickness constraints, the uvh iteration is now ended early if nodes that are not constrained have
+% non-positive ice thickness in two consecutive Newton-Raphson iterations. The active set is then updated (these nodes are activated),
+% and the iteration continued with the same time step. This typically happens after the active-set update has released a group of
+% neighbouring nodes, and the unconstrained solution then has thicknesses well below ThickMin at some of them. The momentum equations are
+% then locally ill-posed (the viscous stiffness is proportional to h, and the driving stress is not monotone in h), and the
+% Newton-Raphson iteration previously often stagnated, and the solution was then accepted at the (looser) acceptable tolerances, or the
+% time step reduced. The result of such a solve is discarded anyway, as these nodes are activated in the next active-set update. The
+% early exit is only done if a further active-set iteration is possible, so that the result of a time step is always a converged solve.
+% In tests (Thule example with a moving calving front and mesh refinement, 5 years), this removed all stagnation (previously about 28
+% events) and failures of the uvh solve, reduced the number of Newton-Raphson iterations by 4-32% for the same time steps, and the run
+% time by 14% with automated time stepping. With the same time steps the results are the same to within the convergence tolerance.
+%
+%   CtrlVar.ActiveSet.EarlyExitOnNegativeThickness=true;   % default, set to false for the previous behaviour
+%   CtrlVar.ActiveSet.EarlyExitThickness=0;                 % thickness threshold
+%
+% * Thickness constraints, level set, and related corrections (13-14 October 2026):
+%
+%   - Duplicate thickness constraints: Nodes with user-defined thickness boundary conditions (BCs.hFixedNode) could also be included in
+%     the active set, if they were downstream of a calving front (level-set constraints), resulting in duplicate rows in the constraint
+%     matrix. Such nodes are now removed from the active set (ActiveSetInitialisation.m, ActiveSetUpdate.m). In addition, BCs2MLC.m now
+%     stops with an error if a node appears more than once in the thickness constraints (BCs.hFixedNode and BCs.hPosNode), also if a
+%     node is included more than once in BCs.hFixedNode.
+%   - CalculateReactions.m: with the option hReactionsExcludeActiveSet, the wrong Lagrange multipliers were used if there were tied
+%     thickness constraints (not used by any current calls).
+%   - CtrlVar.LevelSetMinIceThickness has been removed. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin, which
+%     was already the value used in the active-set method. If CtrlVar.LevelSetMinIceThickness is still set, it is ignored, and a note is
+%     printed.
+%   - CtrlVar.LevelSetEvolution is now compared case-independently. Previously "-prescribed-" (the default) and "-Prescribed-" were
+%     treated differently in some places, so that, for example, a prescribed level set could be mapped instead of being redefined
+%     through DefineCalving.m after remeshing.
+%   - The information printed at the start of a run (eg "Time-dependent restart run") could be wrong if CtrlVar.TimeDependentRun was
+%     set through CtrlVar.ForwardTimeIntegration. This is now based on CtrlVar.TimeDependentRun (CtrlVarValidityCheck.m, PrintRunInfo.m).
+%
 % * Explicit estimate at the start of each time step: new option, and new default (12 October 2026):
 %
 % CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-thickness-only-" is a new option, and is now the default. Only the ice thickness is
