@@ -1718,6 +1718,10 @@ CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any act
 
                                                                  
 CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This implies that the nodes of all boundary elements are not included in the active set.
+CtrlVar.ActiveSet.EarlyExitOnNegativeThickness=true;   % (14 Oct 2026) If true, the uvh iteration is ended early if free (not constrained) nodes have
+                                                        % non-positive thickness in two consecutive iterations, and the active set is updated. The
+                                                        % momentum equations are then locally ill-posed and the iteration typically stagnates.
+CtrlVar.ActiveSet.EarlyExitThickness=0;                 % (14 Oct 2026) thickness threshold for this early exit
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
                                                                     % thickness is usually prescribed directly.
 CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 2026) Criterion for releasing active thickness constraints:

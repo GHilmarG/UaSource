@@ -242,6 +242,8 @@ iteration=0 ;
 RunInfo.Forward.uvhConverged=0;
 RunInfo.Forward.uvhStalled=false ;    % true if the iteration exited without having converged because of stagnation, failed backtracking or too many iterations
 RunInfo.Forward.uvhrForce=NaN ;        % value of rForce on exit
+RunInfo.Forward.uvhExitNegativeThickness=false ;  % (14 Oct 2026) true if the iteration was ended early because free nodes have non-positive thickness
+NegativeFreeNodesLastIteration=[] ;
 RunInfo.BackTrack.Converged=1 ;
 %r=inf;  rWork=inf ; rForce=inf; r0=inf;
 gamma=1 ;
@@ -518,6 +520,35 @@ while true
     luvh=luvh+Dl;
 
     l1.ubvb=luvh(1:nlubvb) ;  l1.h=luvh(nlubvb+1:end);
+
+    %% (14 Oct 2026) Early exit if free nodes have non-positive ice thickness
+    % If nodes that are not constrained (ie not in the active set) have non-positive ice thickness, the momentum equations are locally
+    % ill-posed (the viscous stiffness is proportional to h, and the driving stress is not monotone in h), and the Newton-Raphson
+    % iteration typically stagnates. This happens in particular after nodes have been released by the active-set update, but the
+    % unconstrained solution then has thicknesses well below ThickMin at these nodes. The solution of this solve will be discarded anyway,
+    % as these nodes are then activated in the next active-set update. The iteration is therefore ended here, if the same free nodes
+    % have non-positive thickness in two consecutive iterations. This is only done if allowed by the calling routine (uvhRootFinding),
+    % ie if a further active-set iteration is possible.
+    if isfield(CtrlVar,"uvhEarlyExitNegativeThicknessAllowed") && CtrlVar.uvhEarlyExitNegativeThicknessAllowed
+        hExit=0 ;
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"EarlyExitThickness") ; hExit=CtrlVar.ActiveSet.EarlyExitThickness ; end
+        NegativeFreeNodes=setdiff(find(F1.h<=hExit),[BCs1.hPosNode(:);BCs1.hFixedNode(:)]) ;
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ExcludeNodesOfBoundaryElements") && CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+            NegativeFreeNodes=setdiff(NegativeFreeNodes,unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:))) ;
+        end
+        if ~isempty(intersect(NegativeFreeNodes,NegativeFreeNodesLastIteration))
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): %i free node(s) with non-positive ice thickness (min %g) in two consecutive iterations. Iteration ended after %i iterations, active set to be updated. \n',...
+                    CtrlVar.time,CtrlVar.dt,numel(NegativeFreeNodes),min(F1.h(NegativeFreeNodes)),iteration) ;
+            end
+            RunInfo.Forward.uvhConverged=0;
+            RunInfo.Forward.uvhStalled=false ;
+            RunInfo.Forward.uvhExitNegativeThickness=true ;
+            RunInfo.Forward.uvhrForce=rForce ;
+            break
+        end
+        NegativeFreeNodesLastIteration=NegativeFreeNodes ;
+    end
 
 
 

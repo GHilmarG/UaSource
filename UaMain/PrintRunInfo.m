@@ -25,7 +25,7 @@ if CtrlVar.doInverseStep
 end
 
 
-if  CtrlVar.doDiagnostic
+if  ~CtrlVar.TimeDependentRun && ~CtrlVar.InverseRun   % (14 Oct 2026) based on TimeDependentRun, not on doDiagnostic
     if CtrlVar.Restart
         fprintf(CtrlVar.fidlog,'   Time-independent restart run.  \n ');
     else
@@ -34,7 +34,7 @@ if  CtrlVar.doDiagnostic
 end
 
 
-if  CtrlVar.doPrognostic
+if  CtrlVar.TimeDependentRun && ~CtrlVar.InverseRun    % (14 Oct 2026) based on TimeDependentRun, not on doPrognostic
     if CtrlVar.Restart
         fprintf(CtrlVar.fidlog,'   Time-dependent restart run.  \n ');
     else

@@ -94,6 +94,17 @@ else
 
 end
 
+% (14 Oct 2026) The flags doDiagnostic/doPrognostic are (again) derived from TimeDependentRun here, as TimeDependentRun may have been
+% modified above based on CtrlVar.ForwardTimeIntegration. Previously they were only set before that modification, and could then be
+% inconsistent with TimeDependentRun (only used for printing information about the run, see PrintRunInfo.m).
+if CtrlVar.TimeDependentRun
+    CtrlVar.doDiagnostic=0  ;
+    CtrlVar.doPrognostic=1 ;
+else
+    CtrlVar.doDiagnostic=1  ;
+    CtrlVar.doPrognostic=0 ;
+end
+
 % Again, if inverse run, the modify accordingly
 if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and diagnostic, if conflict
     CtrlVar.doDiagnostic=0  ;

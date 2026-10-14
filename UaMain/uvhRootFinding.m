@@ -108,10 +108,20 @@ else   %  Thickness constraints used
         % F1.ub(BCs1.hPosNode)=F0.ub(BCs1.hPosNode);  % might help with convergence
         % F1.vb(BCs1.hPosNode)=F0.vb(BCs1.hPosNode);
 
+        % (14 Oct 2026) The uvh iteration may be ended early if free nodes have non-positive thickness (see SSTREAM_TransientImplicit),
+        % but only if a further active-set iteration is possible, so that the result of that solve is never accepted.
+        EarlyExitOption=true ;
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"EarlyExitOnNegativeThickness") ; EarlyExitOption=CtrlVar.ActiveSet.EarlyExitOnNegativeThickness ; end
+        CtrlVar.uvhEarlyExitNegativeThicknessAllowed = EarlyExitOption && (iActiveSetIteration < CtrlVar.ThicknessConstraintsItMax) && ~FinalSolveAfterCycle ;
         [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
         StalledPass=false ;
+        EarlyExitPass=false ;   % (14 Oct 2026)
         if ~RunInfo.Forward.uvhConverged
+
+            % (14 Oct 2026) Was the iteration ended early because free nodes have non-positive thickness? The active set is then updated
+            % (these nodes are activated), and the iteration continued with the same time step, as for a stalled iteration.
+            EarlyExitPass = isfield(RunInfo.Forward,"uvhExitNegativeThickness") && RunInfo.Forward.uvhExitNegativeThickness ;
 
             % Did the iteration stall with a small residual? If so, reducing the time step is unlikely to help. The active set is
             % then updated instead (see below), and the iteration started again from the current iterate with the same time step.
@@ -121,7 +131,9 @@ else   %  Thickness constraints used
             StalledPass = isfield(RunInfo.Forward,"uvhStalled") && RunInfo.Forward.uvhStalled ...
                 && isfield(RunInfo.Forward,"uvhrForce") && RunInfo.Forward.uvhrForce < uvhStalledTol ;
 
-            if StalledPass
+            if EarlyExitPass
+                fprintf(" uvhRootFinding: The uvh iteration was ended because free nodes have non-positive ice thickness. The time step is not reduced. The active set is updated. \n")
+            elseif StalledPass
                 fprintf(" uvhRootFinding: The uvh iteration stalled with rForce=%g, which is below %g. The time step is not reduced. The active set is updated and the iteration continued from the current iterate with dt=%g. \n",RunInfo.Forward.uvhrForce,uvhStalledTol,F1.dt)
             else
                 [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
@@ -180,14 +192,14 @@ else   %  Thickness constraints used
         %       the uvh solution and the active set are not consistence,
         %       i.e. the uvh solution was not obtained for the BCs in the active set.
         CtrlVarAS=CtrlVar ;
-        if StalledPass ; CtrlVarAS.ActiveSet.ReleaseAlpha=inf ; end    % a stalled solve has not converged and its multipliers are less reliable: no releases, only activations
+        if StalledPass || EarlyExitPass ; CtrlVarAS.ActiveSet.ReleaseAlpha=inf ; end    % a stalled solve has not converged and its multipliers are less reliable: no releases, only activations
         [UserVar,RunInfo,BCs1,~,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVarAS,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
 
         LastReleased=Released;
         LastActivated=Activated;
         iActiveSetIteration=iActiveSetIteration+1;
 
-        if StalledPass && (~isActiveSetModified || isActiveSetCyclical)
+        if (StalledPass || EarlyExitPass) && (~isActiveSetModified || isActiveSetCyclical)
 
             % The solve stalled, but the active set can not be used to resolve this. Now reduce the time step.
             fprintf(" uvhRootFinding: The stalled uvh iteration can not be resolved by changing the active set. \n")
