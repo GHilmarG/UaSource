@@ -4,6 +4,10 @@
 % 
 % *Release Notes* _October 2026_
 %
+% * Grounding-line plots now based on h-h_{gl}, ie thickness minus grounding line thickness, rather than the flotation mask.
+% Thanks to Deborah Rhee for this suggestion. The grounding lines may now look a bit smoother. (Note that the grounding line
+% position itself is never used in the code when finding the solutions.)
+%
 % * Default for the positive-thickness constraints: active set on, and thickness penalty off.
 %
 %   CtrlVar.ThicknessConstraints=true;
