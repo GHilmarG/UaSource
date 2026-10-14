@@ -52,8 +52,7 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
 
             % (9 Oct 2026) The name "-Adams-Bashforth-" is kept for compatibility. The rates in F0 and Fm1 are backward differences
             % over the two previous time steps (see UpdateFtimeDerivatives.m), and the explicit estimate is calculated from these with
-            % ExplicitEstimationUsingBackwardDifferences.m, which is second-order accurate also for variable time steps. (Using the
-            % backward differences in the Adams-Bashforth formula, as was done previously, is only first-order accurate.) Whether a
+            % ExplicitEstimationUsingBackwardDifferences.m, which is second-order accurate also for variable time steps. (Whether a
             % second-order, linear or no extrapolation can be done is determined from the available data, node by node, within that
             % function. This no longer depends on CtrlVar.CurrentRunStepNumber, and CtrlVar.dtRatio is not used.
             [ub,vb,ud,vd,h]=...
