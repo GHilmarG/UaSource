@@ -13,12 +13,6 @@
 %   CtrlVar.ThicknessConstraints=true;
 %   CtrlVar.ThicknessPenalty=false;
 %
-% (On 1 October 2026 the penalty was made the default, in combination with the active set. This was reverted on 9 October 2026.
-% With the improvements to the active-set method described below, the active set alone converges reliably, and in tests
-% (Greenland nx50 and nx100 over 1 and 10 years, RadialIceCap) runs without the penalty were up to 40% faster. The penalty
-% increases the number of Newton iterations, and thereby, through the automated time stepping, reduces the time step. It also
-% created an artificial thin-ice layer, up to about 10 m thick, in areas that are otherwise held at ThickMin by the active set.)
-%
 % To use the penalty in combination with the active set, set
 %
 %   CtrlVar.ThicknessConstraints=true;
@@ -100,9 +94,6 @@
 % Newton-Raphson iteration previously often stagnated, and the solution was then accepted at the (looser) acceptable tolerances, or the
 % time step reduced. The result of such a solve is discarded anyway, as these nodes are activated in the next active-set update. The
 % early exit is only done if a further active-set iteration is possible, so that the result of a time step is always a converged solve.
-% In tests (Thule example with a moving calving front and mesh refinement, 5 years), this removed all stagnation (previously about 28
-% events) and failures of the uvh solve, reduced the number of Newton-Raphson iterations by 4-32% for the same time steps, and the run
-% time by 14% with automated time stepping. With the same time steps the results are the same to within the convergence tolerance.
 %
 %   CtrlVar.ActiveSet.EarlyExitOnNegativeThickness=true;   % default, set to false for the previous behaviour
 %   CtrlVar.ActiveSet.EarlyExitThickness=0;                 % thickness threshold
@@ -135,20 +126,8 @@
 % is that the extrapolated velocities are not consistent with the extrapolated thickness (they do not satisfy the momentum equations), and
 % velocities can change non-smoothly in time near grounding lines, at fast-flowing outlets, and where the active set of the thickness
 % constraints changes. The previous velocities, on the other hand, satisfy the momentum equations for the thickness at the start of the
-% time step, and the first Newton-Raphson step from this consistent state is very effective. Results (same time steps, Greenland, 6324 and
-% 25095 nodes): 12-18% fewer non-linear iterations than "-Adams-Bashforth-", and 4-18% fewer than "-no extrapolation-", with identical
-% results. For a synthetic, grounded ice cap with smooth evolution (RadialIceCap), where the velocities can be extrapolated accurately,
-% the new option retained almost all of the advantage of "-Adams-Bashforth-" (about 50% fewer iterations than without extrapolation).
+% time step, and the first Newton-Raphson step from this consistent state is very effective. 
 %
-% Effect on automated time stepping (Greenland, 10 years): With CtrlVar.AdaptiveTimeSteppingMethod="error-estimate" the time steps were
-% practically unchanged, and the number of non-linear iterations decreased by 23% (run time by 19%). With the default "iteration-based"
-% time stepping, the smaller number of non-linear iterations per time step leads to larger time steps: run time decreased by 35%, and the
-% rms difference from a high-accuracy reference solution increased by about 25%. To obtain the previous behaviour, set
-% CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-". Alternatively, the previous time steps can be approximately recovered by
-% reducing CtrlVar.ATSTargetIterations.
-%
-% Related tests showed that reducing the desired tolerance of the non-linear uvh solver (CtrlVar.uvhDesiredWorkAndForceTolerances, default
-% 1e-15) does not reduce run times: fewer Newton iterations per solve are offset by more active-set iterations. The default is unchanged.
 %
 % * The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter
 % will therefore generally use larger time steps than before. In tests (Greenland, nx100, 10 years), ATSTargetIterations=7 gave about 40%
@@ -220,7 +199,7 @@
 % Gradients used in optimisation are Sobolov gradients with respect to a metric defined by the explicit Hessians of the
 % regularization part. Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and
 % simplified. This may possibly require some changes in input files. Box constraints in inversion can be implemented using
-% two-sided variable transform. UaHessinan inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.
+% two-sided variable transform. UaHessian inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.
 %
 %
 % *  UK spelling used for `Optimisation' 
