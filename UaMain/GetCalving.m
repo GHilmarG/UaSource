@@ -64,7 +64,7 @@ if isscalar(F.c)
     F.c=F.c+zeros(MUA.Nnodes,1);
 end
 
-if CtrlVar.LevelSetEvolution=="-prescribed-"
+if strcmpi(CtrlVar.LevelSetEvolution,"-prescribed-")   % (13 Oct 2026) case-independent
     F.c=nan;
 end
 

@@ -312,7 +312,10 @@ end
 
 
 eRatio=EleSizeDesired./EleSizeCurrent;
-eRatio=Nodes2EleMean(MUA.connectivity,eRatio);
+%eRatio=Nodes2EleMean(MUA.connectivity,eRatio);
+%eRatio=mean(reshape(eRatio(MUA.connectivity),MUA.Nele,MUA.nod),2);  
+eRatio=min(reshape(eRatio(MUA.connectivity),MUA.Nele,MUA.nod),[],2);  
+
 
 % do not refine a greater number of elements than CtrlVar.MeshRefinementRatio*CurrentNumberOfElements
 % at any given refinement step

@@ -75,8 +75,8 @@ if CtrlVar.TimeDependentRun
             fprintf('        The level set is also now reset to empty, and then defined by a call to DefineCalving.\n')
             [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,[]);
 
-            fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.LevelSetMinIceThickness)
-            Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+            fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.ThickMin)
+            Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.ThickMin;   % (13 Oct 2026) ThickMin, LevelSetMinIceThickness is no longer used
             [Fnew.b,Fnew.s,Fnew.h,Fnew.GF]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
 
         end
@@ -130,7 +130,7 @@ if CtrlVar.TimeDependentRun
 
         if  CtrlVar.LevelSetMethod
 
-            if CtrlVar.LevelSetEvolution=="-Prescribed-"
+            if strcmpi(CtrlVar.LevelSetEvolution,"-prescribed-")   % (13 Oct 2026) case-independent
 
                 fprintf("MapFbetweenMeshes: LevelSetEvolution is prescribed, so when mapping onto a new mesh, the levelset is defined through a call to DefineCalving.m \n")
                 BCsNew=[] ; % BCs have yet to be defined
@@ -210,8 +210,8 @@ else
         fprintf('        The level set is also now reset to empty,and then defined by a call to DefineCalving.\n')
         [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,[]);
 
-        fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.LevelSetMinIceThickness)
-        Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+        fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.ThickMin)
+        Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.ThickMin;   % (13 Oct 2026) ThickMin, LevelSetMinIceThickness is no longer used
         [Fnew.b,Fnew.s,Fnew.h,Fnew.GF]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
 
     end

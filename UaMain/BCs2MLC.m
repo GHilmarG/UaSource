@@ -42,6 +42,16 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 % thickness
 % here add pos. thickness constraints
 
+% (13 Oct 2026) Safety check: each node may only appear once in the thickness constraints, ie not both in BCs.hFixedNode and
+% BCs.hPosNode, and not more than once in either. Duplicates result in identical rows in the constraint matrix, and hence in a
+% rank-deficient system.
+hConstrainedNodes=[BCs.hFixedNode(:);BCs.hPosNode(:)];
+if numel(unique(hConstrainedNodes)) < numel(hConstrainedNodes)
+    [uNodes,~,ic]=unique(hConstrainedNodes); DuplicateNodes=uNodes(accumarray(ic,1)>1);
+    error('BCs2MLC:DuplicateThicknessConstraints','Duplicate thickness constraints at %i node(s), eg node(s) %s. A node must not be included both in BCs.hFixedNode and BCs.hPosNode, or more than once in either.',...
+        numel(DuplicateNodes),mat2str(DuplicateNodes(1:min(10,end))'))
+end
+
 [hL,hRhs]=createLh(MUA.Nnodes,[BCs.hFixedNode;BCs.hPosNode],[BCs.hFixedValue;BCs.hPosValue],BCs.hTiedNodeA,BCs.hTiedNodeB);
 
 [LSFL,LSFRhs]=createLh(MUA.Nnodes,BCs.LSFFixedNode,BCs.LSFFixedValue,BCs.LSFTiedNodeA,BCs.LSFTiedNodeB);

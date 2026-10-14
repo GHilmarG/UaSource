@@ -689,6 +689,16 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
 end
 
 
+% (13 Oct 2026) CtrlVar.LevelSetEvolution is compared case-independently; any spelling of "-prescribed-" is normalised.
+if isfield(CtrlVar,'LevelSetEvolution') && strcmpi(CtrlVar.LevelSetEvolution,"-prescribed-")
+    CtrlVar.LevelSetEvolution="-prescribed-";
+end
+% (13 Oct 2026) CtrlVar.LevelSetMinIceThickness is no longer used. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin.
+if isfield(CtrlVar,'LevelSetMinIceThickness')
+    fprintf(' Note: CtrlVar.LevelSetMinIceThickness is no longer used, and is ignored. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin=%g.\n',CtrlVar.ThickMin)
+    CtrlVar=rmfield(CtrlVar,'LevelSetMinIceThickness');
+end
+
 % (10 Oct 2026) Automated time stepping based on the time-discretisation error
 if ~isfield(CtrlVar,'AdaptiveTimeSteppingMethod')
     CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";

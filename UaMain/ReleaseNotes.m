@@ -86,6 +86,31 @@
 %     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
 %
 %
+% * Explicit estimate at the start of each time step: new option, and new default (12 October 2026):
+%
+% CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-thickness-only-" is a new option, and is now the default. Only the ice thickness is
+% extrapolated (second order, as in "-Adams-Bashforth-"), while the velocities are set to their values at the start of the time step, ie to
+% the converged solution of the previous time step. Tests showed that with "-Adams-Bashforth-" the initial residual of the non-linear
+% iterations is much smaller than without extrapolation, but that this did not reduce the number of non-linear iterations in realistic
+% settings (Greenland): with the same time steps, "-Adams-Bashforth-" required 6-13% MORE iterations than "-no extrapolation-". The reason
+% is that the extrapolated velocities are not consistent with the extrapolated thickness (they do not satisfy the momentum equations), and
+% velocities can change non-smoothly in time near grounding lines, at fast-flowing outlets, and where the active set of the thickness
+% constraints changes. The previous velocities, on the other hand, satisfy the momentum equations for the thickness at the start of the
+% time step, and the first Newton-Raphson step from this consistent state is very effective. Results (same time steps, Greenland, 6324 and
+% 25095 nodes): 12-18% fewer non-linear iterations than "-Adams-Bashforth-", and 4-18% fewer than "-no extrapolation-", with identical
+% results. For a synthetic, grounded ice cap with smooth evolution (RadialIceCap), where the velocities can be extrapolated accurately,
+% the new option retained almost all of the advantage of "-Adams-Bashforth-" (about 50% fewer iterations than without extrapolation).
+%
+% Effect on automated time stepping (Greenland, 10 years): With CtrlVar.AdaptiveTimeSteppingMethod="error-estimate" the time steps were
+% practically unchanged, and the number of non-linear iterations decreased by 23% (run time by 19%). With the default "iteration-based"
+% time stepping, the smaller number of non-linear iterations per time step leads to larger time steps: run time decreased by 35%, and the
+% rms difference from a high-accuracy reference solution increased by about 25%. To obtain the previous behaviour, set
+% CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-". Alternatively, the previous time steps can be approximately recovered by
+% reducing CtrlVar.ATSTargetIterations.
+%
+% Related tests showed that reducing the desired tolerance of the non-linear uvh solver (CtrlVar.uvhDesiredWorkAndForceTolerances, default
+% 1e-15) does not reduce run times: fewer Newton iterations per solve are offset by more active-set iterations. The default is unchanged.
+%
 % * The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter
 % will therefore generally use larger time steps than before. In tests (Greenland, nx100, 10 years), ATSTargetIterations=7 gave about 40%
 % shorter run times than 4, with differences in ice thickness of at most about 0.5 m (rms below 0.01 m). To obtain the previous behaviour, set

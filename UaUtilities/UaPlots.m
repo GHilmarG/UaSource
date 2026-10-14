@@ -278,6 +278,13 @@ else
 
     switch options.Plot
 
+        case {"-mesh-","mesh"}
+
+            CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+            PlotMuaMesh(CtrlVar,MUA,nan,options.MeshColor) ;
+            hold on
+            lg=legend(Interpreter="latex");
+
         case {"B","-B-"}
 
 
@@ -495,15 +502,31 @@ end
 
 
 if options.PlotGroundingLines
-    if isfield(F,"GF")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
-    elseif isfield(F.GF,"node")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
-    end
+    CtrlVar.DisplayName="Grounding lines"; 
+
+    % if isfield(F,"GF")
+    %     [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+    % elseif isfield(F.GF,"node")
+    %     [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor);
+    % end
+
+    % New approach to plotting the grounding line (thanks to Deborah Rhee for this suggestion)
+    hgl=F.rhow*(F.S-F.B)./F.rho; 
+    gf=F.h-hgl ;
+    CtrlVar.DisplayName="Grounding lines"; 
+    PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="r");
+    CtrlVar.DisplayName=[];
+
 end
 
+
+
+
+
 if options.PlotCalvingFronts
+    CtrlVar.DisplayName="Calving Fronts"; 
     [xCF,yCF]=PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+    CtrlVar.DisplayName=[];
 end
 
 

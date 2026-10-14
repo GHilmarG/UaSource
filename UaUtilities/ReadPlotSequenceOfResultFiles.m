@@ -438,7 +438,7 @@ while iFile<=nFiles   % loop over files
                         Temp=fMeshLSF.CurrentAxes.Title.String;
                         fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Level-set zero line in white"}];
                         
-                        [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.LevelSetMinIceThickness+1);
+                        [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.ThickMin+1);
                         plot(xf/1000,yf/1000,'m','LineWidth',2);
                         
                         fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"White: LSF zero-line. Magneta:Ice cliff front"}];

@@ -13,7 +13,7 @@ function [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,
             
             
             Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-            F.h(Mask.NodesOut)=max(CtrlVar.LevelSetMinIceThickness,CtrlVar.ThickMin) ;
+            F.h(Mask.NodesOut)=CtrlVar.ThickMin ;   % (13 Oct 2026) LevelSetMinIceThickness is no longer used
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             
         end

@@ -21,7 +21,15 @@ switch CtrlVar.uvhSolver
 
 
     case "Least-Squares Gauss-Newton"
-
+        % This was a test case, it was an early Newton-Gauss approach, and was found to be much slower than the "Root-Finding Newton"
+        % approach. This was also not positioned inside the active-set loop. A valuable experience was gained, inasmuch it was
+        % established that the Newton approach is far better in terms of performance. 
+        %
+        % Note: There is another Gauss-Newton solver inside the active-set loop: "uvh_GaussNewton_fsolve"
+        %
+        % That Gauss-Newton solver works fine and produces identical results to the "Root-Finding Newton", but it is also slower
+        % than the "Root-Finding Newton".
+        %
         [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhLSQ(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
         RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=1;
 

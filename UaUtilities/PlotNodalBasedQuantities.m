@@ -63,7 +63,7 @@ end
 %tt=daspect ; daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)]);
 
 PatchObject=patch('faces',tri,'vertices',coordinates/CtrlVar.PlotXYscale,...
-    'FaceVertexCData',Value,'CDataMapping','scaled','EdgeColor','none','FaceColor','interp',varargin{:}) ;
+    'FaceVertexCData',Value,'CDataMapping','scaled','EdgeColor','none','FaceColor','interp','HandleVisibility','off',varargin{:}) ;
 
 axis equal
 ColorbarHandel=colorbar;

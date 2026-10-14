@@ -422,7 +422,10 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
-CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % ["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
+CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-thickness-only-" ; % ["-Adams-Bashforth-","-Adams-Bashforth-thickness-only-","-dhdt-","-no extrapolation-"] ;
+                                                                          % (12 Oct 2026) default changed from "-Adams-Bashforth-" to "-Adams-Bashforth-thickness-only-":
+                                                                          % the thickness is extrapolated, the velocities start from their values at the start of the time step.
+                                                                          % In tests this reduced the number of non-linear iterations by 12-23% at the same time steps.
 
 % (10 Oct 2026) Estimate of the local time-discretisation error of the ice thickness in each time step, see TimeDiscretisationErrorEstimate.m.
 % If used, F.hTimeDiscretisationErrorEstimate holds the estimate (a nodal field, in m), and norms are stored as time series in RunInfo.Forward.
@@ -435,7 +438,7 @@ CtrlVar.TimeDiscretisationErrorEstimate.MaskBand="switched";   % ["switched","ac
                                                                 % changed within the last three time steps ("switched"), or next to all active nodes ("active")
 CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=false;                  % if true, the estimate is also accumulated over time steps in F.hTimeDiscretisationErrorAccumulated
 CtrlVar.TimeDiscretisationErrorEstimate.ResetAccumulatedAtRestart=false;   % if true, the accumulated estimate is reset at a restart (otherwise it is continued)
-CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
+CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-Adams-Bashforth-thickness-only-","-dhdt-","-no extrapolation-"] ;
 
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
@@ -523,9 +526,22 @@ CtrlVar.AGlenminWidthRelative = 1e-10 ;
 
 
 %% uvh Solver and Convergence criteria
+% The default uvh solver approach is to use Newton iteration. As there is no natural cost function of the uvh problem, this
+% is not a minimization problem, but a root-finding problem. This option is selected by setting
+%
+%   CtrlVar.uvhSolver="Root-Finding Newton";  
+%
+% It is also possible to reformulate the problem as a Gauss-Newton problem, whereby the residuals are minimized in at
+% least-squares sense. This is a proper minimisation problem with a natural cost function. This second option can be selected
+% by setting
+%
+%   CtrlVar.uvhSolver="uvh_GaussNewton_fsolve";
+%
+% This minimisation problem is then solved using functions from the MATLAB minimisation toolbox. For some reason (We have
+% some ideas as to why this is) this approach is much slower, and therefore should not be used. 
+%
 
-
-CtrlVar.uvhSolver="Root-Finding Newton";
+CtrlVar.uvhSolver="Root-Finding Newton";  %  {"Root-Finding Newton","uvh_GaussNewton_fsolve"}
 
 
 % The non-linear uvh/uv loops are considered to have converged if:
@@ -614,6 +630,14 @@ CtrlVar.Tracer.SUPG.tau="taus";
 CtrlVar.uvh.SUPG.tauMultiplier=1 ; 
 CtrlVar.Tracer.SUPG.tauMultiplier=1 ; 
 
+% Options related to the Gauss-Newton formulation:
+CtrlVar.uvhFsolve.CheckGradients=false;
+CtrlVar.uvhFsolve.Display="iter";
+
+CtrlVar.uvhFsolve.MaxIterations=150;
+CtrlVar.uvhFsolve.StepTolerance=1e-12 ;
+CtrlVar.uvhFsolve.OptimalityTolerance=1e-20;          % fsolve's first-order optimality is absolute and depends on the scaling of J, so it is not used as the main stopping criterion
+CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhDesiredWorkAndForceTolerances(2). Convergence if norm(f)^2 is below this value
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
 % When solving the non-linear system (forward model) the recommended option is is
@@ -2231,7 +2255,7 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
 % a3 in the above equation for ab.
 
-CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
+% (13 Oct 2026) CtrlVar.LevelSetMinIceThickness has been removed. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin.
 
 % Optionally, AGlen can be set to some prescribed, usually small, value downstream of all calving fronts.
 CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is here set to nan, there AGlen will NOT be modified

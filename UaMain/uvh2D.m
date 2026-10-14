@@ -19,7 +19,9 @@ switch lower(CtrlVar.FlowApproximation)
 
 
             case "uvh_GaussNewton_fsolve"
-
+                % This is a Newton-Gauss approach, and was found to be much slower than the "Root-Finding Newton"
+                % approach. This is positioned INSIDE the active-set loop. A valuable experience was gained, inasmuch it was
+                % established that the Newton approach is far better in terms of performance.
                 [UserVar,RunInfo,F1,l1,BCs1]=uvh_GaussNewton_fsolve(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
             case "Root-Finding Newton"

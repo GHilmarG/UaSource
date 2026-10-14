@@ -17,7 +17,7 @@ a3= -abs(CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic);
 
 
 
-hmin=CtrlVar.LevelSetMinIceThickness;
+hmin=CtrlVar.ThickMin;   % (13 Oct 2026) ThickMin, LevelSetMinIceThickness is no longer used
 
 abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
 dabLSFdh=LM.*(a1+3*a3*(hint-hmin).^2) ;

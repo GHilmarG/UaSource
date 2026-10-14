@@ -67,6 +67,18 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
             % The estimated thickness is not allowed to be below ThickMin. (This is only done for the thickness, not for the velocities.)
             h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin ;
 
+        case "-Adams-Bashforth-thickness-only-"
+
+            % (12 Oct 2026) As "-Adams-Bashforth-", but only the thickness is extrapolated. The velocities are set to their values at the
+            % start of the time step, ie the converged solution of the previous time step. This starting point is consistent in the sense
+            % that the velocities satisfy the momentum equations for the thickness at the start of the time step, and the remaining error in
+            % the momentum equations is only due to the change in thickness. In tests (Greenland) the extrapolated velocities did not
+            % reduce the number of non-linear iterations, presumably because velocities change non-smoothly in time near grounding lines,
+            % fast-flowing outlets, and where the active set changes.
+            h=ExplicitEstimationUsingBackwardDifferences(dt,F0.dtRates,Fm1.dtRates,F0.h,F0.dhdt,Fm1.dhdt);
+            h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin ;
+            ub=F0.ub ; vb=F0.vb ; ud=F0.ud ; vd=F0.vd ;
+
     end
 
 

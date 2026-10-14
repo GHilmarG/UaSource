@@ -88,6 +88,13 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 % Plot grounding lines based on the Bedmachine mask
 %
 %   
+% Note: The input GF does not have to be the grounding/floating mask, ie. F.GF. It can be any nodal variable. The "grounding
+% line" is simply estimated as the zero-level of that field. Another option is:
+%
+%   hgl=F.rhow*(F.S-F.B)./F.rho; gf=F.h-hgl ;
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,gf) ;
+%
+% This, typically, results in a smoother grounding lines (Thanks to Deborah Rhee for making this suggestion). 
 %
 %
 % See also: PlotMuaBoundary, EleBasedGL
@@ -122,7 +129,7 @@ if ~isfield(CtrlVar,"PlotIndividualGLs")
     CtrlVar.PlotIndividualGLs=0;
 end
 
-if ~isfield(CtrlVar,"DisplayName")
+if ~isfield(CtrlVar,"DisplayName") || isempty(CtrlVar.DisplayName)
     CtrlVar.DisplayName="Grounding lines"; 
 end
 

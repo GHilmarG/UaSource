@@ -109,6 +109,11 @@ if isfield(CtrlVar,"ActiveSet")
     end
 end
 
+% (13 Oct 2026) Nodes with user-defined thickness boundary conditions (BCs1.hFixedNode) must not also be in the active set, as this
+% results in duplicate thickness constraints. This is also done at the start, but must be repeated here as nodes may have been added
+% above, in particular the level-set constraints (F1.LSFMask.NodesOut).
+BCs1.hPosNode=setdiff(BCs1.hPosNode,BCs1.hFixedNode) ;
+
 % I think the way LastActiveSet is initialized, both Deactivated  will always be empty by construction
 DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
