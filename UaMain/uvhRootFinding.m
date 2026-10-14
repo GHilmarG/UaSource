@@ -47,6 +47,8 @@ end
 
 if ~CtrlVar.ThicknessConstraints
 
+    % (14 Oct 2026) The explicit estimate of h1 is not clipped at ThickMin (see ExplicitEstimationForUaFields.m). The iterate is made feasible here.
+    F1.h=max(F1.h,CtrlVar.ThickMin) ;
 
     [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
@@ -82,6 +84,9 @@ if ~CtrlVar.ThicknessConstraints
 else   %  Thickness constraints used
 
     [UserVar,RunInfo,F1,l1,BCs1,~,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
+    % (14 Oct 2026) The explicit estimate of h1 is not clipped at ThickMin (see ExplicitEstimationForUaFields.m). The iterate is made feasible here. This is done after the active set has been initialised, as the
+    % (unclipped) estimate may be used there to predict the active set (CtrlVar.ActiveSet.PredictiveActivation).
+    F1.h=max(F1.h,CtrlVar.ThickMin) ;
     LastReleased=Released;  % Maybe here I should consider the possibility that the mesh has not changed and that I can use again the previous LastReleased and LastActivated list?
     LastActivated=Activated;
     iCounter=1;

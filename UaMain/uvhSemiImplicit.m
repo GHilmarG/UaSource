@@ -10,6 +10,10 @@ function [UserVar,RunInfo,F1,F0,l1,BCs1,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiIm
 nargoutchk(5,10)   % BCs1 returned since 8 Oct 2026, so that the active set (BCs1.hPosNode) is carried over to the next time step
 narginchk(8,8)
 
+% (14 Oct 2026) The explicit estimate of h1 is not clipped at ThickMin (see ExplicitEstimationForUaFields.m). The iterate is made feasible here.
+F1.h=max(F1.h,CtrlVar.ThickMin) ;
+
+
 
 %% A semi-implicit solver for velocities and thickness, where the thickness is solved implicitly using the theta method, and the velocity explicitly.
 %

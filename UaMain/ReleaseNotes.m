@@ -84,6 +84,36 @@
 %     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
 %
 %
+% * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):
+%
+% Two changes to the active-set method are now the default:
+%
+%   CtrlVar.ActiveSet.PredictiveActivation=true;   % (previously not available)
+%   CtrlVar.ActiveSet.ReleaseAlpha=1e-3;            % (previously 0)
+%
+% With predictive activation, nodes where the explicit estimate of the ice thickness at the end of the time step is at or below ThickMin
+% (while the thickness at the start of the time step is above ThickMin) are added to the active set at the start of the time step.
+% Previously, such nodes were only activated after the first uvh solve of the time step, which then always required a further solve. An
+% optional margin can be set through CtrlVar.ActiveSet.PredictiveActivationMargin (default 0).
+%
+% With ReleaseAlpha>0, a constrained node is only released if the ice there would, without the constraint, thicken by more than
+% ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0, nodes were released as soon as their multiplier had the wrong sign. In
+% some applications (eg Greenland) many of these releases are of nodes in ice-free areas whose multipliers are only negative at round-off
+% level (relative thickness gains of order 1e-8), and many of these nodes immediately fell below ThickMin again, requiring further
+% active-set iterations. The change in results is at most ReleaseAlpha*ThickMin (ie 1 mm for ThickMin=1 m) per time step at such nodes.
+%
+% Each of the two changes on its own did not reliably reduce run times, but together they reduce the number of uvh solves by about a
+% third, as the active set is then more often correct after the first solve. Tests (Greenland, 6324 and 25095 nodes, 10 years, automated
+% time stepping): 16-19% fewer Newton-Raphson iterations and 17-18% shorter run times, with no loss of accuracy compared with
+% high-accuracy reference solutions. For a synthetic ice cap (RadialIceCap) and for the Thule example with a moving calving front and
+% mesh refinement, the changes had practically no effect on run times or results. To obtain the previous behaviour, set
+% CtrlVar.ActiveSet.PredictiveActivation=false and CtrlVar.ActiveSet.ReleaseAlpha=0. Predictive activation should only be used together
+% with ReleaseAlpha>0; a note is printed otherwise.
+%
+% Related change: The explicit estimate of the thickness at the end of the time step (ExplicitEstimationForUaFields.m) is no longer
+% clipped at ThickMin. The (unclipped) estimate is used for predictive activation, and the thickness is made feasible (h>=ThickMin) at the
+% start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m). With predictive activation switched off, results are unchanged.
+%
 % * Active-set method: early exit from the uvh iteration if free nodes have non-positive thickness (14 October 2026):
 %
 % In transient runs with thickness constraints, the uvh iteration is now ended early if nodes that are not constrained have

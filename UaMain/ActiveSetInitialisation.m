@@ -67,6 +67,29 @@ if isempty(BCs1.hPosNode)
 end
 
 
+%% (14 Oct 2026) Predictive activation (optional, CtrlVar.ActiveSet.PredictiveActivation)
+% Nodes where the explicit estimate of the thickness at the end of the time step (F1.h, which on input is the explicit estimate, see
+% ExplicitEstimationForUaFields.m, and which is not clipped at ThickMin) is at or below ThickMin*(1-Margin), while the thickness at the start of
+% the time step is above ThickMin, are added to the active set at the start of the time step. Otherwise such nodes are only activated
+% after the first uvh solve of the time step, which then requires a further solve. Nodes that have been activated incorrectly are
+% released again by the active-set update after the first solve.
+if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"PredictiveActivation") && CtrlVar.ActiveSet.PredictiveActivation
+    % (14 Oct 2026) CtrlVar.ActiveSet.PredictiveActivationMargin (default 0): only nodes predicted to be at least Margin*ThickMin below
+    % ThickMin are activated. With Margin=0 all nodes predicted to be at or below ThickMin are activated.
+    Margin=0 ; if isfield(CtrlVar.ActiveSet,"PredictiveActivationMargin") ; Margin=CtrlVar.ActiveSet.PredictiveActivationMargin ; end
+    Predicted=find(F1.h<=CtrlVar.ThickMin*(1-Margin) & F0.h>CtrlVar.ThickMin) ;
+    Predicted=setdiff(Predicted,[BCs1.hPosNode(:);BCs1.hFixedNode(:)]) ;
+    if isfield(CtrlVar.ActiveSet,"ExcludeNodesOfBoundaryElements") && CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+        Predicted=setdiff(Predicted,unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:))) ;
+    end
+    if ~isempty(Predicted)
+        BCs1.hPosNode=[BCs1.hPosNode(:);Predicted(:)] ;
+        if CtrlVar.ThicknessConstraintsInfoLevel>=1
+            fprintf(CtrlVar.fidlog,' Predictive activation: %i nodes added to the active set based on the explicit estimate of h1 \n',numel(Predicted));
+        end
+    end
+end
+
 % II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
 % F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
                                                                            % this is now done as ahead of uvh solve as iterate is made feasible

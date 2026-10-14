@@ -1722,6 +1722,15 @@ CtrlVar.ActiveSet.EarlyExitOnNegativeThickness=true;   % (14 Oct 2026) If true, 
                                                         % non-positive thickness in two consecutive iterations, and the active set is updated. The
                                                         % momentum equations are then locally ill-posed and the iteration typically stagnates.
 CtrlVar.ActiveSet.EarlyExitThickness=0;                 % (14 Oct 2026) thickness threshold for this early exit
+CtrlVar.ActiveSet.PredictiveActivation=true;           % (14 Oct 2026, default true since 14 Oct 2026) If true, nodes where the explicit estimate of h at the end of the time step
+                                                        % is at or below ThickMin (and h at the start above ThickMin) are activated at the start of the time step
+CtrlVar.ActiveSet.PredictiveActivationMargin=0;         % (14 Oct 2026) only nodes predicted to be at least Margin*ThickMin below ThickMin are activated
+CtrlVar.ActiveSet.ReleaseAlpha=1e-3;                    % (14 Oct 2026) A constrained node is only released if, without the constraint, the ice there would
+                                                        % thicken by more than ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0 (the previous
+                                                        % default) nodes are released as soon as the multiplier has the wrong sign, which in some
+                                                        % applications (eg Greenland) leads to many releases of nodes whose multipliers are only
+                                                        % negative at round-off level, and that then immediately fall below ThickMin again.
+                                                        % PredictiveActivation should only be used together with ReleaseAlpha>0.
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
                                                                     % thickness is usually prescribed directly.
 CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 2026) Criterion for releasing active thickness constraints:

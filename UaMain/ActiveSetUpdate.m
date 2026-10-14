@@ -178,7 +178,7 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
     % thickness value over a time interval corresponding to one time unit.
 
     %isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ;
-    % alpha can be set through CtrlVar.ActiveSet.ReleaseAlpha. The default, 0, gives the behaviour above: release a node if ah<0.
+    % alpha can be set through CtrlVar.ActiveSet.ReleaseAlpha. alpha=0 gives the behaviour above: release a node if ah<0. (14 Oct 2026) The default is now 1e-3, see Ua2D_DefaultParameters.m.
     % A small positive value reduces chattering of the active set: a node is then only released if releasing it would raise the
     % thickness by more than alpha*ThickMin during one time step. Note that a large alpha keeps nodes at the minimum thickness
     % even though the multiplier indicates that they could rise, so that complementarity is only satisfied approximately.

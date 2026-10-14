@@ -35,7 +35,7 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
             [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F0,BCs0); % this now includes rho (2026-04)
             
             h=F0.h+dhdt.*dt ;
-            h(h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
+            % (14 Oct 2026) The estimate is no longer clipped at ThickMin here. It is made feasible (h>=ThickMin) where needed, ie at the start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m), after the active set has been initialised (see predictive activation in ActiveSetInitialisation.m). uv.m deals with h<ThickMin itself.
 
             % alternative approach: 
             % [UserVar,RunInfo,h]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l0,BCs0) ;
@@ -63,8 +63,7 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
                 F0.vd,F0.dvddt,Fm1.dvddt,...
                 F0.h,F0.dhdt,Fm1.dhdt);
 
-            % The estimated thickness is not allowed to be below ThickMin. (This is only done for the thickness, not for the velocities.)
-            h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin ;
+            % (14 Oct 2026) The estimate is no longer clipped at ThickMin here. It is made feasible (h>=ThickMin) where needed, ie at the start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m), after the active set has been initialised (see predictive activation in ActiveSetInitialisation.m). uv.m deals with h<ThickMin itself.
 
         case "-Adams-Bashforth-thickness-only-"
 
@@ -75,7 +74,7 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
             % reduce the number of non-linear iterations, presumably because velocities change non-smoothly in time near grounding lines,
             % fast-flowing outlets, and where the active set changes.
             h=ExplicitEstimationUsingBackwardDifferences(dt,F0.dtRates,Fm1.dtRates,F0.h,F0.dhdt,Fm1.dhdt);
-            h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin ;
+            % (14 Oct 2026) The estimate is no longer clipped at ThickMin here. It is made feasible (h>=ThickMin) where needed, ie at the start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m), after the active set has been initialised (see predictive activation in ActiveSetInitialisation.m). uv.m deals with h<ThickMin itself.
             ub=F0.ub ; vb=F0.vb ; ud=F0.ud ; vd=F0.vd ;
 
     end
