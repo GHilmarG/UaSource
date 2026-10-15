@@ -167,7 +167,10 @@ end
 Mask=Mask | hC<=hLimit+eps(hLimit) | X<=hLimit+eps(hLimit);
 
 if isprop(F1,"LSFMask") && ~isempty(F1.LSFMask) && isfield(F1.LSFMask,"NodesOut") && numel(F1.LSFMask.NodesOut)==N
-    Mask=Mask | F1.LSFMask.NodesOut(:);
+    % (15 Oct 2026) All nodes downstream of the calving front, and all nodes of elements cut by the front (NodesOn), are masked. Nodes of
+    % cut elements downstream of the front are not constrained by the level set, and their thickness, like that of the upstream nodes of
+    % these elements, depends on the position of the front within the element rather than evolving smoothly in time.
+    Mask=Mask | F1.LSFMask.NodesOut(:) | F1.LSFMask.NodesOn(:);
 end
 
 e(Mask)=NaN;

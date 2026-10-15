@@ -23,6 +23,7 @@ RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained
 RunInfo.Forward.ActiveSetNoFurtherReleases=false;
 isActiveSetCyclical=NaN;
 nlIt=nan(CtrlVar.NRitmax,1);
+BCsLastSolve=[] ; lLastSolve=[] ;   % (15 Oct 2026) boundary conditions and multipliers of the last uvh solve, used to calculate F1.ah
 
 
 
@@ -62,6 +63,7 @@ if ~CtrlVar.ThicknessConstraints
 
     end
    
+    BCsLastSolve=BCs1 ; lLastSolve=l1 ;   % (15 Oct 2026) see end of this function
     F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0,BCs1,l1) ;
    % F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0) ; % but currently F0 is not returned...
 
@@ -149,6 +151,10 @@ else   %  Thickness constraints used
             end
 
         end
+
+        % (15 Oct 2026) Keep the boundary conditions and multipliers of this solve, as the active set may be updated below without a
+        % further solve (if the maximum number of active-set iterations is reached).
+        BCsLastSolve=BCs1 ; lLastSolve=l1 ;
 
         if any(F1.h(BCs1.hPosNode) < CtrlVar.ThickMin)
 
@@ -282,6 +288,23 @@ else   %  Thickness constraints used
 end
 
 
+
+%% (15 Oct 2026) Reactions of the thickness constraints as an output
+% F1.ah is the equivalent local mass-balance rate of all thickness constraints (active set, level set, and user-defined thickness
+% boundary conditions), positive where ice is added and negative where ice is removed (see ThicknessConstraintReactions.m). The total
+% rates at which mass is added and removed by the constraints (eg removed by calving downstream of a calving front) are stored in
+% RunInfo.Forward. This is a diagnostic quantity only.
+if ~isempty(BCsLastSolve)
+    try
+        [F1.ah,rhAll]=ThicknessConstraintReactions(CtrlVar,MUA,F1,BCsLastSolve,lLastSolve) ;
+        MassRate=-rhAll/F1.dt ;                                      % mass per time added (positive) or removed (negative) at each node
+        RunInfo.Forward.ThicknessConstraintsMassAdded(CtrlVar.CurrentRunStepNumber)=sum(MassRate(MassRate>0)) ;
+        RunInfo.Forward.ThicknessConstraintsMassRemoved(CtrlVar.CurrentRunStepNumber)=sum(MassRate(MassRate<0)) ;
+    catch ME
+        warning('uvhRootFinding:ThicknessConstraintReactions','Reactions of thickness constraints could not be calculated: %s',ME.message) ;
+        F1.ah=[] ;
+    end
+end
 
 RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;
 RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=isActiveSetCyclical;

@@ -98,19 +98,10 @@ if ~CtrlVar.LinFEbasis
             ah=ah(BCs1.hPosNode)             ; % array equal in size to number of hPos constraints
             lambdahpos=Reactions.h(BCs1.hPosNode);  %
         else
-            MLC=BCs2MLC(CtrlVar,MUA,BCs1);
-            rh=full(MLC.hL'*l1.h) ;                          % discrete nodal reactions (non-zero only at constrained nodes)
-            MeDiag=zeros(MUA.Nele,MUA.nod) ; EleArea=zeros(MUA.Nele,1) ;
-            for Iint=1:MUA.nip                               % HRZ-lumped nodal weights (positive also for higher-order elements)
-                funI=shape_fun(Iint,2,MUA.nod,MUA.points) ;
-                detJwI=MUA.DetJ(:,Iint)*MUA.weights(Iint) ;
-                MeDiag=MeDiag+detJwI.*(funI.^2).' ;
-                EleArea=EleArea+detJwI ;
-            end
-            mEle=MeDiag.*(EleArea./sum(MeDiag,2)) ;
-            mLump=accumarray(MUA.connectivity(:),mEle(:),[MUA.Nnodes 1]) ;
-            ah=-rh./(F1.rho.*mLump.*F1.dt) ;                  % nodal array, units of mass balance (distance/time)
-            ah=ah(BCs1.hPosNode) ;
+            % (15 Oct 2026) The calculation of the reactions and the equivalent mass-balance rates has been moved to
+            % ThicknessConstraintReactions.m, so that it can also be used to provide the reactions as an output (F.ah).
+            [ahNodal,rh]=ThicknessConstraintReactions(CtrlVar,MUA,F1,BCs1,l1) ;
+            ah=ahNodal(BCs1.hPosNode) ;
             lambdahpos=rh(BCs1.hPosNode) ;
         end
 

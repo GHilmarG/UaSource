@@ -84,6 +84,27 @@
 %     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
 %
 %
+% * Reactions of the thickness constraints as an output (15 October 2026):
+%
+% The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per
+% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time
+% step from the discrete reactions of the constraints, and includes all thickness constraints: the active set (h>=ThickMin), the
+% level-set constraints downstream of calving fronts, and user-defined thickness boundary conditions. In addition, the total rates at
+% which mass is added and removed by the constraints (units of mass per time, eg kg/yr) are stored for each time step in
+% RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for
+% example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to
+% the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by
+% the constraints (tested to round-off in the Thule example). The constraints can make a substantial contribution to mass budgets: in a
+% model of the Greenland ice sheet they added about 100 Gt/yr at ice-free nodes along the margins, as the thickness equation of such a
+% node also contains a share of the mass balance and thinning of neighbouring ice-covered nodes (through the overlap of the shape
+% functions). The calculation is done in the new function ThicknessConstraintReactions.m, which is also used by ActiveSetUpdate.m.
+%
+% * Time-discretisation error estimate near calving fronts (15 October 2026):
+%
+% The time-discretisation error estimate (TimeDiscretisationErrorEstimate.m) is now also masked at all nodes of elements cut by the
+% calving front (F.LSFMask.NodesOn), and not only at the nodes downstream of the front (F.LSFMask.NodesOut). The thickness at the nodes
+% of cut elements depends on the position of the front within the element, and does not evolve smoothly in time.
+%
 % * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):
 %
 % Two changes to the active-set method are now the default:
