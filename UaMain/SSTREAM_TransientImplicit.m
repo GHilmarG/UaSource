@@ -245,6 +245,19 @@ RunInfo.Forward.uvhrForce=NaN ;        % value of rForce on exit
 RunInfo.Forward.uvhExitNegativeThickness=false ;  % (14 Oct 2026) true if the iteration was ended early because free nodes have non-positive thickness
 NegativeFreeNodesLastIteration=[] ;
 RunInfo.BackTrack.Converged=1 ;
+
+% (15 Oct 2026) Reuse of the Jacobian and its decomposition in the final Newton-Raphson iterations of a solve (modified Newton).
+% The Jacobian is only reused if the previous step was a full Newton step (gamma=1) that reduced r by at least the factor
+% CtrlVar.ModifiedNRuvhReductionCriterion, ie in the region of quadratic convergence, and at most CtrlVar.ModifiedNRuvhIntervalCriterion-1
+% times in a row. A step with the reused Jacobian is only accepted if it reduces r by at least the factor CtrlVar.ModifiedNRuvhAcceptCriterion,
+% or meets the convergence criteria. Otherwise it is discarded, and a full Newton step is done at the same point.
+ModNRmaxSteps=1 ; ModNRReduction=1e-2 ; ModNRAccept=0.1 ;
+if isfield(CtrlVar,"ModifiedNRuvhIntervalCriterion")  ; ModNRmaxSteps=CtrlVar.ModifiedNRuvhIntervalCriterion ; end
+if isfield(CtrlVar,"ModifiedNRuvhReductionCriterion") ; ModNRReduction=CtrlVar.ModifiedNRuvhReductionCriterion ; end
+if isfield(CtrlVar,"ModifiedNRuvhAcceptCriterion")    ; ModNRAccept=CtrlVar.ModifiedNRuvhAcceptCriterion ; end
+ModNROn = ModNRmaxSteps>1 ;
+dAstore=[] ; Kstore=[] ; nReuse=0 ; LastStepFull=false ; LastReduction=inf ; ForceFullNewton=false ; ReuseJacobian=false ;
+nFactorisations=0 ; nReuseAccepted=0 ; nReuseRejected=0 ;
 %r=inf;  rWork=inf ; rForce=inf; r0=inf;
 gamma=1 ;
 
@@ -287,6 +300,7 @@ while true
         if CtrlVar.InfoLevelNonLinIt>=1
             fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
                 CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
+            if ModNROn ; fprintf('  Modified Newton: %i factorisations, %i steps with reused Jacobian, %i discarded \n',nFactorisations,nReuseAccepted,nReuseRejected) ; end   % (15 Oct 2026)
         end
         RunInfo.Forward.uvhConverged=1;
         RunInfo.Forward.uvhrForce=rForce ;
@@ -367,8 +381,18 @@ while true
     % step ahead of the cost function
 
 
-    CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
-    [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+    % (15 Oct 2026) reuse of the Jacobian (modified Newton), see above
+    ReuseJacobian = ModNROn && ~ForceFullNewton && ~isempty(dAstore) && LastStepFull && LastReduction<=ModNRReduction && nReuse<ModNRmaxSteps-1 ;
+    ForceFullNewton=false ;
+    if ReuseJacobian
+        gammaPrev=gamma ; r0Prev=r0 ;   % restored if the step is discarded
+        CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=true;
+        [UserVar,RunInfo,Ruvh]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+        K=Kstore ;
+    else
+        CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
+        [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+    end
 
     if ~isempty(L)
         frhs=-Ruvh-L'*luvh;                    % Lagrangian of the total augmented cost function 
@@ -381,7 +405,16 @@ while true
     %
 
     tSolve=tic;
-    [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+    if ModNROn   % (15 Oct 2026) keep, or reuse, the decomposition
+        if ReuseJacobian
+            [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,dAstore);
+        else
+            [duvh,dl,dAstore]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+            Kstore=K ; nReuse=0 ; nFactorisations=nFactorisations+1 ;
+        end
+    else
+        [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+    end
     RunInfo.CPU.Solution.uvh=RunInfo.CPU.Solution.uvh+toc(tSolve);
 
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
@@ -430,7 +463,16 @@ while true
     if LineSearchMethod=="rLineminUa2"   % the previous implementation, including a further assembly of the residual at gamma=0 (for comparison only)
         gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma); rBlocks0=[nan nan nan nan] ;
     else
-    gamma=0 ; [rForce0,rWork0,D20,rBlocks0]=uvhResidualMeasures(CtrlVar,MUA,frhs,grhs,cuvh,Fext0,dub,dvb,dh,dl) ;
+        gamma=0 ; [rForce0,rWork0,D20,rBlocks0]=uvhResidualMeasures(CtrlVar,MUA,frhs,grhs,cuvh,Fext0,dub,dvb,dh,dl) ;
+    end
+
+    % (15 Oct 2026) Optionally, save the state of this iteration (for testing the Jacobian afterwards with TestuvhJacobian.m), or test
+    % the Jacobian now. See CtrlVar.uvhSaveNewtonSystem and CtrlVar.uvhTestJacobian in Ua2D_DefaultParameters.m.
+    if isfield(CtrlVar,"uvhSaveNewtonSystem") && CtrlVar.uvhSaveNewtonSystem.Save
+        SaveuvhNewtonState(UserVar,CtrlVar,MUA,F0,F1,l1,BCs1,[dub;dvb;dh],dl,iteration,rForce0) ;
+    end
+    if isfield(CtrlVar,"uvhTestJacobian") && uvhNewtonStateSelected(CtrlVar.uvhTestJacobian,CtrlVar,iteration)
+        TestuvhJacobian(UserVar,CtrlVar,MUA,F0,F1,l1,BCs1,struct("NewtonDirection",[dub;dvb;dh],"Info",struct("State",1,"RunStep",CtrlVar.CurrentRunStepNumber,"time",CtrlVar.time,"Solve",NaN,"Iteration",iteration,"r0",rForce0))) ;
     end
 
     if iteration==1  % save the first r value for plotting, etc
@@ -447,6 +489,24 @@ while true
     func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
 
 
+    if ReuseJacobian
+        % (15 Oct 2026) Step with the reused Jacobian: only the full step is tried. It is accepted if it reduces r by at least the
+        % factor ModNRAccept, or if it meets the convergence criteria. Otherwise it is discarded, and a full Newton step is done at the
+        % same point (the variables used at the start of the loop are restored).
+        [r1,OutLS]=uvhLineSearchMerit(func,1,dub,dvb,dh,dl) ;
+        AcceptStep = r1<=ModNRAccept*rForce0 || uvhResidualsCriteria(CtrlVar,OutLS.rForce,OutLS.rWork,iteration,true,uvhResidualRoundOffFloor(CtrlVar,MUA,F1,Fext0)) ;
+        if AcceptStep
+            r0=rForce0 ; gamma=1 ; r=r1 ;
+            rForce=OutLS.rForce ; rWork=OutLS.rWork ; D2=OutLS.D2 ; rBlocks=OutLS.rBlocks ;
+            Du=dub ; Dv=dvb ; Dh=dh ; Dl=dl ;
+            BackTrackInfo=struct("Converged",1,"iarm",0,"Direction","M ","nFuncEval",1,"Infovector",[0 rForce0 ; 1 r1]) ;
+            nReuse=nReuse+1 ; nReuseAccepted=nReuseAccepted+1 ;
+        else
+            nReuseRejected=nReuseRejected+1 ; ForceFullNewton=true ;
+            gamma=gammaPrev ; r0=r0Prev ; iteration=iteration-1 ;
+            continue
+        end
+    else
     % (15 Oct 2026) Line search along the Newton direction, selected by CtrlVar.NewtonLineSearch.Method:
     %   "rLineminUa3"      : the logic of rLineminUa2.m, without the unnecessary evaluations of the residual (default)
     %   "NewtonLineSearch" : backtracking with the Armijo condition (NewtonLineSearch.m)
@@ -473,6 +533,8 @@ while true
         otherwise
             error("SSTREAM_TransientImplicit:LineSearchMethod","Unknown CtrlVar.NewtonLineSearch.Method: %s",LineSearchMethod)
     end
+    end
+    LastStepFull=(gamma==1) ; LastReduction=r/r0 ;   % (15 Oct 2026) used to decide whether the Jacobian is reused in the next iteration
 
 
     %%

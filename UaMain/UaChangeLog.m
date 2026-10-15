@@ -4,6 +4,55 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Testing the Jacobian of the uvh system (15 October 2026):
+%
+% (1) New function TestuvhJacobian.m: a Taylor test of the uvh Jacobian. For a state x with residual R and Jacobian K (from uvhAssembly.m)
+% and a direction d, the remainder ||R(x+epsilon d)-R(x)-epsilon K d|| is calculated for epsilon=1e-1,...,1e-9, separately for the u, v
+% and h equations. For a consistent Jacobian it decreases as epsilon^2 (order 2), for a missing or wrong term as epsilon (order 1). Directions:
+% the Newton direction of the iteration, and smooth random perturbations of u, v, h, and of all three. Two measures are reported: the
+% observed order above the round-off level, and the smallest relative error over all epsilon (a missing term of relative size delta gives
+% at least delta). A block is flagged if the order is below 1.5 and the smallest relative error above 1e-4. Usage:
+%   Results=TestuvhJacobian(FileName)                                 % all states saved in a file (see (2))
+%   Results=TestuvhJacobian(FileName,Options)                         % eg Options.States, .Directions, .CtrlVar, .Plot
+%   Results=TestuvhJacobian(UserVar,CtrlVar,MUA,F0,F1,l1,BCs1,Options)  % a single state
+%
+% (2) New functions SaveuvhNewtonState.m and uvhNewtonStateSelected.m, and new options: CtrlVar.uvhSaveNewtonSystem.Save=true saves the
+% state of selected Newton-Raphson iterations of the uvh solver (CtrlVar.uvhSaveNewtonSystem.Iterations, .RunSteps, .MaxStates) to one
+% file (CtrlVar.uvhSaveNewtonSystem.FileName), each state as a variable State_0001, State_0002, ..., with the mesh saved only once (and
+% again after remeshing). CtrlVar.uvhTestJacobian.Test=true runs TestuvhJacobian.m directly during a run, in selected iterations. Both
+% are off by default (no change in behaviour). Called in SSTREAM_TransientImplicit.m after the Newton direction has been calculated.
+%
+% (3) Result: the Jacobian is consistent. RadialIceCap (3 states), Greenland with 6324 nodes (21 states, 3 time steps, Newton-Raphson
+% iterations 1-5) and Thule with a calving front and grounding lines (24 states): for all random directions and all blocks the observed
+% order was 1.98-2.03. For the Newton direction, the order was below 1.5 in some blocks in late iterations, but only where its
+% second-order remainder is smaller than the round-off noise of the residual (mainly the h equation for thick ice, where the terms are
+% large); the smallest relative errors there were 1e-6 to 1e-10. No block was flagged. The phase of slower-than-quadratic convergence
+% of the u and v residuals in the uvh solve (reductions by a factor of about 10 per iteration with full steps, after the h residual has
+% been removed in the first iteration) is therefore not caused by an inconsistent Jacobian, but presumably by the nonlinearity of the
+% flow and sliding laws (pre-asymptotic phase of the Newton-Raphson method).
+%
+% * Reuse of the Jacobian (modified Newton) in the uvh solver: implemented, tested, and found not to pay off (15 October 2026):
+%
+% (1) solveKApe.m can now return and reuse the matrix decomposition: [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar) returns the decomposition,
+% and [x,y]=solveKApe(...,CtrlVar,dA) uses it without a new factorisation. Supported for "Bempty" (no constraints; decomposition() instead
+% of backslash) and "EliminateBCsSolveSystemDirectly" (point constraints, via ABfgPreEliminate.m, which no longer builds the eliminated
+% matrix if the decomposition is given). Calls with two outputs and without dA are unchanged (backslash for "Bempty").
+%
+% (2) SSTREAM_TransientImplicit.m: optional reuse of the Jacobian and its decomposition within a uvh solve. The Jacobian is reused if the
+% previous step was a full Newton step that reduced the residual by at least the factor CtrlVar.ModifiedNRuvhReductionCriterion (now
+% default 1e-2), at most CtrlVar.ModifiedNRuvhIntervalCriterion-1 times in a row. A step with the reused Jacobian is only tried at full
+% length, and accepted if it reduces the residual by at least the factor CtrlVar.ModifiedNRuvhAcceptCriterion (new, default 0.1) or meets
+% the convergence criteria; otherwise it is discarded and a full Newton step is done at the same point. Default
+% CtrlVar.ModifiedNRuvhIntervalCriterion=1, ie off, which gives exactly the previous behaviour (tested: bit-identical Newton-Raphson paths
+% and results).
+%
+% (3) Result: reusing the Jacobian did not pay off (Greenland, 25095 nodes, 10 time steps). Reuse in the final iterations (reduction
+% criterion 1e-2): 73 instead of 61 Newton-Raphson iterations, 60 instead of 61 factorisations, run time +6% (interval 2) and +10%
+% (interval 3). Reuse after every full step (reduction criterion 1, acceptance criterion 0.5): 101 and 108 iterations, 55 and 75
+% factorisations, run time +8% and +34%. The steps with the reused Jacobian were accepted, but reduced the residual much less than full
+% Newton steps (typically by a factor of about 10, against full steps that reach the convergence tolerance directly), and so added
+% iterations rather than replacing full ones. This agrees with earlier experience with the classical modified Newton method.
+%
 % * Line search of the uv and uvh Newton-Raphson solvers (15 October 2026):
 %
 % (1) New line search rLineminUa3.m, now the default (CtrlVar.NewtonLineSearch.Method="rLineminUa3"). The logic is identical to that of

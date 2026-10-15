@@ -59,12 +59,16 @@ else
 
 
         Q=speye(nA,nA)-BtB ;
-        Atilde=Q*A+ BtB ;
+        if isempty(dAtilde)      % (15 Oct 2026) Atilde is only needed for the decomposition, which may be given
+            Atilde=Q*A+ BtB ;
+        else
+            Atilde=[] ;
+        end
         btilde=(Q*f+B'*g) ; % when solving for multiple right-hand sides, this will use automatic implicit expansion to expand B'*g to match Q*f
 
   
 
-        if CtrlVar.Parallel.isTest
+        if CtrlVar.Parallel.isTest && ~isempty(Atilde)
 
             % seq:
 
@@ -96,7 +100,7 @@ else
         % https://uk.mathworks.com/help/parallel-computing/benchmarking-a-b.html
 
         
-        if CtrlVar.Parallel.Distribute
+        if CtrlVar.Parallel.Distribute && ~isempty(Atilde)
             if ~isdistributed(Atilde)
                 Atilde=distributed(Atilde);
             end

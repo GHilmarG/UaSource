@@ -674,8 +674,27 @@ CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhD
 CtrlVar.NR=1;                             % 1 gives Newton-Raphson (use Newton-Raphson whenever possible)
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, always a positive integer number.
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; % fractional reduction forcing an update
-CtrlVar.ModifiedNRuvhIntervalCriterion=1;  
-CtrlVar.ModifiedNRuvhReductionCriterion=0.5;
+% (15 Oct 2026) Reuse of the Jacobian (modified Newton) in the uvh solver. Unlike the classical modified Newton method, the Jacobian and its
+% decomposition are only reused in the final iterations of a solve, once the previous step was a full Newton step that reduced the residual by
+% at least the factor ModifiedNRuvhReductionCriterion (ie in the region of quadratic convergence). A step with the reused Jacobian is only
+% accepted if it reduces the residual by at least the factor ModifiedNRuvhAcceptCriterion, or meets the convergence criteria; otherwise a full
+% Newton step is done instead. ModifiedNRuvhIntervalCriterion is the maximum number of Newton steps with the same Jacobian (1: always update,
+% ie off; 2: at most one step with the reused Jacobian after each update; etc).
+CtrlVar.ModifiedNRuvhIntervalCriterion=1;
+CtrlVar.ModifiedNRuvhReductionCriterion=1e-2;
+CtrlVar.ModifiedNRuvhAcceptCriterion=0.1;
+
+%% (15 Oct 2026) Saving the state of uvh Newton-Raphson iterations, and testing the Jacobian (see SaveuvhNewtonState.m and TestuvhJacobian.m)
+CtrlVar.uvhSaveNewtonSystem.Save=false;                  % if true, the state of selected Newton-Raphson iterations is saved to a file, so that the
+                                                         % Jacobian can be tested afterwards with TestuvhJacobian(FileName)
+CtrlVar.uvhSaveNewtonSystem.Iterations=[1 2 3];          % Newton-Raphson iterations (within each uvh solve) to be saved ([] for all)
+CtrlVar.uvhSaveNewtonSystem.RunSteps=[];                 % run steps in which states are saved ([] for all)
+CtrlVar.uvhSaveNewtonSystem.MaxStates=100;               % maximum number of states saved
+CtrlVar.uvhSaveNewtonSystem.FileName="uvhNewtonStates.mat";
+CtrlVar.uvhTestJacobian.Test=false;                      % if true, the Jacobian is tested (TestuvhJacobian.m) in selected Newton-Raphson iterations,
+                                                         % and a summary is printed
+CtrlVar.uvhTestJacobian.Iterations=[1 2 3];
+CtrlVar.uvhTestJacobian.RunSteps=[];
 % Setting for example:
 % CtrlVar.ModifiedNRuvIntervalCriterion=10;     
 % CtrlVar.ModifiedNRuvReductionCriterion=0.95;
