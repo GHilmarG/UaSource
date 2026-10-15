@@ -14,8 +14,10 @@
 % rLineminUa3.m keeps all outputs of each evaluation, and evaluates the cost function as func(1,gamma*s) rather than func(gamma,s), which
 % is arithmetically identical. The Newton-Raphson paths and results are bit-identical to those with rLineminUa2.m. Tests: 70-72% fewer
 % residual evaluations in the uvh solver (Greenland with 6324 and 25095 nodes, Thule), and 18% shorter run times (Greenland, 25095 nodes,
-% 10 time steps, about 0.6 s less per Newton-Raphson iteration). The uv solver (SSTREAM2dNR2.m) also uses rLineminUa3.m by default, with
-% results identical to those of the previous combination of a full-step test and rLineminUa.m.
+% 10 time steps, about 0.6 s less per Newton-Raphson iteration). In a 10-year run (Greenland, 25095 nodes, automated time stepping,
+% 97 time steps, 654 Newton-Raphson iterations), the run time was reduced by 25%, from 1851 s to 1390 s, with 810 instead of 2749 residual
+% evaluations (0.71 s less per Newton-Raphson iteration), and with bit-identical results. The uv solver (SSTREAM2dNR2.m) also uses
+% rLineminUa3.m by default, with results identical to those of the previous combination of a full-step test and rLineminUa.m.
 %
 % (2) CtrlVar.NewtonLineSearch.Method selects the line search of the uv and uvh solvers: "rLineminUa3" (default), "NewtonLineSearch"
 % (see (3)), or "rLineminUa2" (the previous implementation, including the unnecessary evaluations; for comparison only).
