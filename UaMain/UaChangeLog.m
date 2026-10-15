@@ -4,6 +4,29 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Parallel (spmd) uvh assembly: overheads reduced (16 October 2026):
+%
+% uvhMatrixAssemblySSTREAM_SPMD.m (used if CtrlVar.Parallel.uvhAssembly.spmd.isOn=true and a parallel pool is open) has been revised.
+% Measurements (Greenland, 25095 nodes, 8 workers) had shown that the largest costs of the previous version were not the assembly on the
+% workers (about 0.19 s), but sending the inputs to the workers in each call (about 0.21 s, mainly F0 and F1 complete, and CtrlVar, a
+% large nested structure of only 0.3 MB that alone took about 0.13 s), so that the parallel assembly was hardly faster than the serial
+% one (0.71 against 0.78 s), and residual-only assemblies were slower (0.36 against 0.23 s). Changes:
+%
+% (1) F0, F1, CtrlVar (except CtrlVar.uvhMatrixAssembly), UserVar and BCs1 are kept on the workers between calls. Only ub, vb, h, b and s,
+% which change within a uvh solve, and CtrlVar.uvhMatrixAssembly are sent in each call. Everything else is only sent again if it has
+% changed: F0 and F1 are compared with a fingerprint (weighted sums of all numerical fields except the changing ones, the mesh, the number
+% of workers and the pool), CtrlVar, UserVar and BCs1 with isequaln. Whatever changes, the worst case is an unnecessary resend.
+% (2) The assembly and the summation over the workers are done in one spmd block instead of two.
+% (3) BuildMuaWorkers.m now adds the sparsity pattern of each sub-domain to the worker data, so that the workers use the faster
+% pattern-based construction of the sparse matrix, as the serial assembly does.
+%
+% Results (25095 nodes, 8 workers, with another run using 6 cores in the background): full assembly 0.38 s (serial 0.78 s, previous
+% parallel version 0.71 s), residual-only assembly 0.19 s (serial 0.23 s, previous 0.36 s), complete resend about 0.27 s. In a run of 10
+% time steps the wall time was reduced by 18% compared with the serial assembly, with the same Newton-Raphson iterations and results
+% agreeing to 1e-12 (round-off, different summation order). Tested also with remeshing (Thule, 5 remeshings in 20 time steps): identical
+% meshes and results agreeing to round-off. For small meshes the parallel assembly does not pay off: Thule with about 12,000 elements and
+% 4 workers was 10% slower than with the serial assembly.
+%
 % * Testing the Jacobian of the uvh system (15 October 2026):
 %
 % (1) New function TestuvhJacobian.m: a Taylor test of the uvh Jacobian. For a state x with residual R and Jacobian K (from uvhAssembly.m)
