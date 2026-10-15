@@ -338,5 +338,5 @@ Cache(CacheKey(id,gamma))=struct("rForce",rForce,"rWork",rWork,"D2",D2,"rBlocks"
 end
 
 function key=CacheKey(id,gamma)
-key=sprintf('%d|%.17g',id,gamma) ;
+key=sprintf('%d|%.17g',full(id),full(gamma)) ;   % (15 Oct 2026) full(): gamma can be a sparse scalar (eg in the Cauchy step)
 end

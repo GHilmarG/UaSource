@@ -18,6 +18,9 @@
 % 97 time steps, 654 Newton-Raphson iterations), the run time was reduced by 25%, from 1851 s to 1390 s, with 810 instead of 2749 residual
 % evaluations (0.71 s less per Newton-Raphson iteration), and with bit-identical results. The uv solver (SSTREAM2dNR2.m) also uses
 % rLineminUa3.m by default, with results identical to those of the previous combination of a full-step test and rLineminUa.m.
+% Correction (15 October 2026, after the first version of rLineminUa3.m had been committed): in the Cauchy step of the fall-back, the
+% step length can be a sparse scalar, which caused an error in the look-up of stored evaluations (sprintf does not accept sparse
+% input). The step length is now converted with full() for the look-up only. Found in the Thule example, in the initial uv solve.
 %
 % (2) CtrlVar.NewtonLineSearch.Method selects the line search of the uv and uvh solvers: "rLineminUa3" (default), "NewtonLineSearch"
 % (see (3)), or "rLineminUa2" (the previous implementation, including the unnecessary evaluations; for comparison only).

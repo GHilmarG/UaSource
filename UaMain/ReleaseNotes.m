@@ -13,78 +13,21 @@
 %   CtrlVar.ThicknessConstraints=true;
 %   CtrlVar.ThicknessPenalty=false;
 %
-% To use the penalty in combination with the active set, set
 %
-%   CtrlVar.ThicknessConstraints=true;
-%   CtrlVar.ThicknessPenalty=true;
-%
-% * An error in the calculation of the adjoint gradient for Budd law was spotted and corrected. In one line of the code, a term was
-% multiplied twice by the grounding/floating mask, instead of once. This will not have caused any errors in the forward
-% solution, but might have slowed done convergence in an inversion.
-%
-% * Thickness penalty (SoftPlus option), changes made 8-9 October 2026:
-%
-% (1) K is again a mass-balance rate (units 1/time). Between 31 August and 9 October 2026 K was internally divided by the time step,
-% making the penalty a per-time-step term. This was reverted because the penalty then changed the thickness by a dt-independent
-% amount in every time step, so that the solution had no limit for dt->0, the number of Newton iterations did not decrease for
-% small dt, and the automated time stepping could drive dt to very small values. With a rate, a node is held above ThickMin by the
-% penalty alone if theta*K*delta > |a|max, otherwise the active set takes over.
-%
-% (2) The penalty is centred at hmin=ThickMin+delta with delta=max(ThickMin,deltaAbs), default deltaAbs=0.1. This is the previous
-% hmin=2*ThickMin for ThickMin>=deltaAbs, but does not collapse to zero for ThickMin=0.
-%
-% (3) By default the smoothing distance l is calculated at runtime as l=lRel*delta (default lRel=0.1), ie from the value of ThickMin
-% in the input file. An explicitly set l is used as given.
-%
-% (4) The penalty can be applied as a lumped nodal term, CtrlVar.ThicknessPenaltyNodal=true (default false), which excludes nodes with
-% thickness boundary conditions or active thickness constraints.
-%
-%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;     % 1/time
-%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=NaN;     % l=lRel*delta
-%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel=0.1;
-%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
-%
-% * Active-set method for the positive-thickness constraints, changes made 8-9 October 2026:
-%
-% (1) Constraints are released based on the sign of the discrete reaction at the node (CtrlVar.ActiveSet.ReleaseCriterion="discrete").
-% The previous approach, based on reactions mapped to a nodal field with the inverse of the consistent mass matrix, introduced sign
-% oscillations at individual nodes and caused the active set to cycle. It can still be selected with ReleaseCriterion="consistent-mass".
-%
-% (2) If a node released in an active-set iteration is again below ThickMin after the following solve, it is kept constrained, and no
-% further nodes are released for the rest of that time step. This prevents cycling. Re-activation of such nodes is not counted as a cycle.
-%
-% (3) If the active set is nevertheless found to be cyclical, one final uvh solve is done with the last active set, so that the returned
-% solution is consistent with the returned active set.
-%
-% (4) Initial active set: nodes with h<=ThickMin (rather than h<ThickMin) are included, so that a previous active set is recovered after
-% restarts and re-meshing.
-%
-% (5) CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints has been removed. It caused small updates of the active set to be
-% discarded, which could leave thickness violations in place over several time steps.
-%
-% (6) The active set is returned from the semi-implicit uv-h solver and carried over to the next time step.
-%
-% * Explicit estimate at the start of each time step (CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-"), corrected 9 October 2026:
-%
-% The rates used in the explicit estimate (F.dhdt, F.dubdt, F.dvbdt, F.duddt, F.dvddt) are backward differences over the previous time
-% step (see UpdateFtimeDerivatives.m), ie the time derivatives at the midpoint of that step. These were previously used in the
-% variable time step Adams-Bashforth formula (ExplicitEstimation.m), which requires the time derivatives at the start of the steps.
-% As a result the estimate was only first-order accurate (for a constant time step it reduced to X+dt*dX/dt). The estimate is now
-% calculated with ExplicitEstimationUsingBackwardDifferences.m, which is second-order accurate also for variable time steps, and exact
-% if the fields vary quadratically in time. The name "-Adams-Bashforth-" is kept for compatibility. The estimated thickness is not
-% allowed to be below ThickMin. Related changes:
-%
-%   - UaFields has a new property dtRates, the time step over which the rates were calculated.
-%   - Fm1 (the rates of the previous time step) is a UaFields object, is written to restart files, and is mapped onto a new mesh
-%     after remeshing (MapFm1BetweenMeshes.m). For older restart files Fm1 is created with all rates set to NaN, and the estimate then
-%     falls back to linear, or no, extrapolation in the first time step(s).
-%   - Which level of extrapolation (second order, linear, none) can be used is determined from the available data, node by node, and
-%     no longer from the run-step number.
-%   - The time step is taken from F.dt (and not from CtrlVar.dt) in UpdateFtimeDerivatives.m and ExplicitEstimationForUaFields.m.
-%     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
+% * Active-set method:
+% 
+% Various changes were made to the active-set iteration to make it less prone to cycling and unnecessary and temporary
+% release and activation of constraints. The active-set is not considerably more likely to converge in 1 to 3 iterations and
+% often no updates are required. 
 %
 %
-% * Reactions of the thickness constraints as an output (15 October 2026):
+% * Explicit estimate:
+%
+% Explicit estimate is now, by default, only done for h. Boundary behavior related to level-set and min ice thickness are
+% more robust. 
+%
+%
+% * Reactions of the thickness constraints as an output:
 %
 % The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per
 % time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time
@@ -94,16 +37,8 @@
 % RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for
 % example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to
 % the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by
-% the constraints (tested to round-off in the Thule example). The constraints can make a substantial contribution to mass budgets: in a
-% model of the Greenland ice sheet they added about 100 Gt/yr at ice-free nodes along the margins, as the thickness equation of such a
-% node also contains a share of the mass balance and thinning of neighbouring ice-covered nodes (through the overlap of the shape
-% functions). The calculation is done in the new function ThicknessConstraintReactions.m, which is also used by ActiveSetUpdate.m.
+% the constraints (tested to round-off in the Thule example). 
 %
-% * Time-discretisation error estimate near calving fronts (15 October 2026):
-%
-% The time-discretisation error estimate (TimeDiscretisationErrorEstimate.m) is now also masked at all nodes of elements cut by the
-% calving front (F.LSFMask.NodesOn), and not only at the nodes downstream of the front (F.LSFMask.NodesOut). The thickness at the nodes
-% of cut elements depends on the position of the front within the element, and does not evolve smoothly in time.
 %
 % * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):
 %
@@ -121,86 +56,13 @@
 % ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0, nodes were released as soon as their multiplier had the wrong sign. In
 % some applications (eg Greenland) many of these releases are of nodes in ice-free areas whose multipliers are only negative at round-off
 % level (relative thickness gains of order 1e-8), and many of these nodes immediately fell below ThickMin again, requiring further
-% active-set iterations. The change in results is at most ReleaseAlpha*ThickMin (ie 1 mm for ThickMin=1 m) per time step at such nodes.
-%
-% Each of the two changes on its own did not reliably reduce run times, but together they reduce the number of uvh solves by about a
-% third, as the active set is then more often correct after the first solve. Tests (Greenland, 6324 and 25095 nodes, 10 years, automated
-% time stepping): 16-19% fewer Newton-Raphson iterations and 17-18% shorter run times, with no loss of accuracy compared with
-% high-accuracy reference solutions. For a synthetic ice cap (RadialIceCap) and for the Thule example with a moving calving front and
-% mesh refinement, the changes had practically no effect on run times or results. To obtain the previous behaviour, set
-% CtrlVar.ActiveSet.PredictiveActivation=false and CtrlVar.ActiveSet.ReleaseAlpha=0. Predictive activation should only be used together
-% with ReleaseAlpha>0; a note is printed otherwise.
-%
-% A third, related option, CtrlVar.ActiveSet.ActivationTolerance (default 1e-3), is the counterpart of ReleaseAlpha for activations: a
-% free node is only activated if h<ThickMin*(1-ActivationTolerance), ie nodes slightly below ThickMin are accepted as they are (they are not
-% set to ThickMin, and mass is conserved). ReleaseAlpha is thus a tolerance on dual feasibility (the sign of the multipliers), and
-% ActivationTolerance a tolerance on primal feasibility (the constraint h>=ThickMin), both expressed as a fraction of ThickMin, and with the
-% same default value. In the Greenland tests this reduced the number of Newton-Raphson iterations by a further 1-5%, with no measurable
-% effect on the results, and no free nodes remained below ThickMin. To obtain the previous behaviour, also set
-% CtrlVar.ActiveSet.ActivationTolerance=0.
-%
-% Related change: The explicit estimate of the thickness at the end of the time step (ExplicitEstimationForUaFields.m) is no longer
-% clipped at ThickMin. The (unclipped) estimate is used for predictive activation, and the thickness is made feasible (h>=ThickMin) at the
-% start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m). With predictive activation switched off, results are unchanged.
-%
-% * Active-set method: early exit from the uvh iteration if free nodes have non-positive thickness (14 October 2026):
-%
-% In transient runs with thickness constraints, the uvh iteration is now ended early if nodes that are not constrained have
-% non-positive ice thickness in two consecutive Newton-Raphson iterations. The active set is then updated (these nodes are activated),
-% and the iteration continued with the same time step. This typically happens after the active-set update has released a group of
-% neighbouring nodes, and the unconstrained solution then has thicknesses well below ThickMin at some of them. The momentum equations are
-% then locally ill-posed (the viscous stiffness is proportional to h, and the driving stress is not monotone in h), and the
-% Newton-Raphson iteration previously often stagnated, and the solution was then accepted at the (looser) acceptable tolerances, or the
-% time step reduced. The result of such a solve is discarded anyway, as these nodes are activated in the next active-set update. The
-% early exit is only done if a further active-set iteration is possible, so that the result of a time step is always a converged solve.
-%
-%   CtrlVar.ActiveSet.EarlyExitOnNegativeThickness=true;   % default, set to false for the previous behaviour
-%   CtrlVar.ActiveSet.EarlyExitThickness=0;                 % thickness threshold
-%
-% * Thickness constraints, level set, and related corrections (13-14 October 2026):
-%
-%   - Duplicate thickness constraints: Nodes with user-defined thickness boundary conditions (BCs.hFixedNode) could also be included in
-%     the active set, if they were downstream of a calving front (level-set constraints), resulting in duplicate rows in the constraint
-%     matrix. Such nodes are now removed from the active set (ActiveSetInitialisation.m, ActiveSetUpdate.m). In addition, BCs2MLC.m now
-%     stops with an error if a node appears more than once in the thickness constraints (BCs.hFixedNode and BCs.hPosNode), also if a
-%     node is included more than once in BCs.hFixedNode.
-%   - CalculateReactions.m: with the option hReactionsExcludeActiveSet, the wrong Lagrange multipliers were used if there were tied
-%     thickness constraints (not used by any current calls).
-%   - CtrlVar.LevelSetMinIceThickness has been removed. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin, which
-%     was already the value used in the active-set method. If CtrlVar.LevelSetMinIceThickness is still set, it is ignored, and a note is
-%     printed.
-%   - CtrlVar.LevelSetEvolution is now compared case-independently. Previously "-prescribed-" (the default) and "-Prescribed-" were
-%     treated differently in some places, so that, for example, a prescribed level set could be mapped instead of being redefined
-%     through DefineCalving.m after remeshing.
-%   - The information printed at the start of a run (eg "Time-dependent restart run") could be wrong if CtrlVar.TimeDependentRun was
-%     set through CtrlVar.ForwardTimeIntegration. This is now based on CtrlVar.TimeDependentRun (CtrlVarValidityCheck.m, PrintRunInfo.m).
-%
-% * Explicit estimate at the start of each time step: new option, and new default (12 October 2026):
-%
-% CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-thickness-only-" is a new option, and is now the default. Only the ice thickness is
-% extrapolated (second order, as in "-Adams-Bashforth-"), while the velocities are set to their values at the start of the time step, ie to
-% the converged solution of the previous time step. Tests showed that with "-Adams-Bashforth-" the initial residual of the non-linear
-% iterations is much smaller than without extrapolation, but that this did not reduce the number of non-linear iterations in realistic
-% settings (Greenland): with the same time steps, "-Adams-Bashforth-" required 6-13% MORE iterations than "-no extrapolation-". The reason
-% is that the extrapolated velocities are not consistent with the extrapolated thickness (they do not satisfy the momentum equations), and
-% velocities can change non-smoothly in time near grounding lines, at fast-flowing outlets, and where the active set of the thickness
-% constraints changes. The previous velocities, on the other hand, satisfy the momentum equations for the thickness at the start of the
-% time step, and the first Newton-Raphson step from this consistent state is very effective. 
+% active-set iterations. 
 %
 %
 % * The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter
-% will therefore generally use larger time steps than before. In tests (Greenland, nx100, 10 years), ATSTargetIterations=7 gave about 40%
-% shorter run times than 4, with differences in ice thickness of at most about 0.5 m (rms below 0.01 m). To obtain the previous behaviour, set
+% will therefore generally use larger time steps than before. To obtain the previous behaviour, set
 % CtrlVar.ATSTargetIterations=4.
 %
-% * Restart runs, changes made 10 October 2026:
-%
-% (1) The active set of the thickness constraints (BCs.hPosNode) and the Lagrange multipliers are restored from the restart file (provided
-% the mesh has not changed, and the boundary conditions defined in DefineBoundaryConditions.m are the same as in the previous run). Previously
-% the active set had to be recovered in the first time step, and the first uvh solve started with zero multipliers. A restart run now
-% continues where the previous run ended, and restarted and uninterrupted runs agree to within round-off errors.
-% (2) The run-step number written to the final restart file is now the number of the last completed run step. Previously it was one too
-% large, and the restart run skipped one run-step number.
 %
 % * Estimate of the time-discretisation error of the ice thickness (10 October 2026):
 %
@@ -209,16 +71,10 @@
 % computed (implicit, theta=0.5) solution, and is only available for theta=0.5. The estimate is in units of h (ie m), and is the error
 % committed in that time step. It is stored as a nodal field in F.hTimeDiscretisationErrorEstimate, and norms of it are stored as time series
 % in RunInfo.Forward (hTimeDiscretisationErrorRMS, ..Max, ..Volume, ..ValidArea, etc.). Norms are calculated as sqrt(x'*M*x/A) with the
-% consistent mass matrix M, where A is the area over which the estimate is defined. The estimate is not defined (NaN) at nodes with thickness
-% boundary conditions, active thickness constraints, h<=ThickMin, and next to nodes whose constraint state changed within the last three time
-% steps, as the thickness then does not evolve smoothly in time. Optionally, the estimate can be accumulated over a run
+% consistent mass matrix M, where A is the area over which the estimate is defined.  Optionally, the estimate can be accumulated over a run
 % (CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=true, see F.hTimeDiscretisationErrorAccumulated). The accumulated estimate is an
 % "error budget", ie the sum of the local errors, and not the global error, as errors are transported and may decay.
 %
-% Experience from tests: The estimate is useful as a diagnostic for where and when time-discretisation errors arise. Errors are typically
-% largest during initial adjustments of the model state, and at fast-flowing outlets, where the spatial resolution may also be insufficient.
-%
-% * Automated time stepping based on the time-discretisation error (10 October 2026):
 %
 % AdaptiveTimeStepping.m is now a driver that selects between two approaches, depending on CtrlVar.AdaptiveTimeSteppingMethod:
 %
@@ -242,15 +98,8 @@
 %   CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true; ...ConvergenceCheckSteps=2;
 %
 % Recommendations: With "error-estimate", CtrlVar.ATSTargetIterations can be set to about 7 to 10, as the accuracy is then controlled
-% separately. Note that the time stepping during an initial adjustment period can have a lasting effect on the solution, so excluding this
-% period through StartTime does not remove its effect. In tests (Greenland, nx50, 10 years), "error-estimate" with atol=0.001 m/yr gave
-% errors at the end of the run comparable to, or slightly smaller than, "iteration-based" with ATSTargetIterations=4, at about 10% lower
-% computational cost. A test with a slightly different norm, corresponding to an atol of roughly 0.0006 to 0.0008 m/yr with the present
-% norm, gave errors 2 to 3 times smaller than with ATSTargetIterations=4 at about the same cost. The largest remaining errors were at
-% fast-flowing outlets, where local mesh refinement may also be needed.
+% separately.
 %
-% The previous parameter CtrlVar.ATSTimeDiscretisationError.Use (only used for a few days) is no longer used; if set to true,
-% CtrlVar.AdaptiveTimeSteppingMethod is set to "error-estimate".
 %
 % *Release Notes* _September 2026_
 %
