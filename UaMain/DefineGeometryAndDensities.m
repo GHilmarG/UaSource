@@ -43,18 +43,21 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %
 %%
 
+% Defines model geometry
 
-B=MismBed(F.x,F.y);
 
-S=B*0;
+
+gamma=0.01;
+S=F.x*0 ; 
+B0=-850;
+B=B0-gamma*F.x ;
 b=B;
-h0=300;
-s=b+h0;
+s=b+1000;
 
-rho=917+zeros(MUA.Nnodes,1) ;
-rhow=1030;
+
+rho=900+zeros(MUA.Nnodes,1) ; 
+rhow=1030; 
 g=9.81/1000;
-
 
 if contains(FieldsToBeDefined,"-S-") && contains(FieldsToBeDefined,"-s-")
 

@@ -708,6 +708,15 @@ end
 if isfield(CtrlVar,'ActiveSet') && isfield(CtrlVar.ActiveSet,'PredictiveActivation') && CtrlVar.ActiveSet.PredictiveActivation && isfield(CtrlVar.ActiveSet,'ReleaseAlpha') && CtrlVar.ActiveSet.ReleaseAlpha<=0
     fprintf(' Note: CtrlVar.ActiveSet.PredictiveActivation=true is best used together with CtrlVar.ActiveSet.ReleaseAlpha>0 (default 1e-3). With ReleaseAlpha=0 it may increase the number of non-linear iterations.\n')
 end
+% (15 Oct 2026) CtrlVar.uvhMinimisationQuantity and CtrlVar.uvMinimisationQuantity have been removed; the force residual is always used.
+for fld=["uvhMinimisationQuantity","uvMinimisationQuantity"]
+    if isfield(CtrlVar,fld)
+        if string(CtrlVar.(fld))~="Force Residuals"
+            fprintf(' Note: CtrlVar.%s is no longer used. The force residual is always used as the merit function in the line search.\n',fld)
+        end
+        CtrlVar=rmfield(CtrlVar,fld);
+    end
+end
 % (13 Oct 2026) CtrlVar.LevelSetMinIceThickness is no longer used. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin.
 if isfield(CtrlVar,'LevelSetMinIceThickness')
     fprintf(' Note: CtrlVar.LevelSetMinIceThickness is no longer used, and is ignored. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin=%g.\n',CtrlVar.ThickMin)

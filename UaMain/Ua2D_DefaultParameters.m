@@ -596,8 +596,21 @@ CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
 
 
 
-CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implicitly for u, v, and h
-CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implicitly for velocities.
+% (15 Oct 2026) CtrlVar.uvhMinimisationQuantity and CtrlVar.uvMinimisationQuantity have been removed. The uv and uvh solvers always use the force
+% residual as the merit function in the line search (NewtonLineSearch.m). The work residual is still calculated and used in the convergence criteria.
+%% Line search of the uv and uvh Newton-Raphson solvers (NewtonLineSearch.m, 15 Oct 2026)
+CtrlVar.NewtonLineSearch.Method="rLineminUa3";         % line search of the uv and uvh Newton-Raphson solvers: "rLineminUa3" (logic of the previous rLineminUa2.m,
+                                                    % without unnecessary evaluations of the residual), "NewtonLineSearch" (backtracking with the Armijo condition, see
+                                                    % NewtonLineSearch.m; the following parameters apply to this method only), or "rLineminUa2" (previous implementation).
+CtrlVar.NewtonLineSearch.ArmijoParameter=0.25;      % a step gamma is accepted if r(gamma) <= r(0)+ArmijoParameter*gamma*slope(0) (Armijo condition).
+                                                    % With slope(0)=-2 r(0), 0.25 requires the full step to halve r. (1e-4 resulted in more iterations.)
+CtrlVar.NewtonLineSearch.GammaMin=1e-3;             % smallest step length tried
+CtrlVar.NewtonLineSearch.MaxBacktrackingSteps=15;   % maximum number of backtracking steps
+CtrlVar.NewtonLineSearch.Extrapolation=false;       % if true, step lengths larger than one are tried if the full Newton step gives a large reduction
+CtrlVar.NewtonLineSearch.MaxExtrapolationSteps=3;   % maximum number of extrapolation steps
+CtrlVar.NewtonLineSearch.ExtrapolationFactor=2;     % factor by which the step length is increased in each extrapolation step
+CtrlVar.NewtonLineSearch.RefinementSteps=2;         % after backtracking, at most this number of refinement steps (minimum of a parabola) are done, 0 for none
+CtrlVar.NewtonLineSearch.RefinementRatio=0.5;       % a further refinement step is only done if the previous one reduced r at least by this factor
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implicitly for h
 CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
@@ -618,8 +631,6 @@ CtrlVar.uvhResidualNormalisationTauFloor=0.01;  % (8 Oct 2026) Floor, in units o
                                                 % This number may need to be changed if one is using different physical units, however this only kicks in if thickness is
                                                 % very small, or zero, so it is unlikely that this number is otherwise of any importance. 
 
-CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
-CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.hMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvhResidualNormalisation=["lumped","blockwise"]; 

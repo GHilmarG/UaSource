@@ -424,7 +424,14 @@ while true
     end
 
     Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
-    gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
+    % (15 Oct 2026) The residual measures at gamma=0 are calculated from the residual assembled above (frhs, grhs), without a further
+    % assembly. (Previously Func(0), ie a further assembly of the same residual.)
+    LineSearchMethod="rLineminUa3" ; if isfield(CtrlVar,"NewtonLineSearch") && isfield(CtrlVar.NewtonLineSearch,"Method") ; LineSearchMethod=string(CtrlVar.NewtonLineSearch.Method) ; end
+    if LineSearchMethod=="rLineminUa2"   % the previous implementation, including a further assembly of the residual at gamma=0 (for comparison only)
+        gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma); rBlocks0=[nan nan nan nan] ;
+    else
+    gamma=0 ; [rForce0,rWork0,D20,rBlocks0]=uvhResidualMeasures(CtrlVar,MUA,frhs,grhs,cuvh,Fext0,dub,dvb,dh,dl) ;
+    end
 
     if iteration==1  % save the first r value for plotting, etc
         rVector.gamma(1)=gamma;
@@ -435,24 +442,37 @@ while true
         rVector.Direction(1)="    ";
     end
 
-    %% calculate  residuals at full Newton step, i.e. at gamma=1
-
-
-    dJdu=frhs(1:MUA.Nnodes);
-    dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
-    dJdh=frhs(2*MUA.Nnodes+1:3*MUA.Nnodes);
-    dJdl=grhs ;
-
-    Normalisation=Fext0'*Fext0+1000*eps;
+    %% line search along the Newton direction
 
     func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
 
 
-    r0=func(0,dub,dvb,dh,dl) ;
-    r1=func(1,dub,dvb,dh,dl) ;
-
-    %[gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ; 
-    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] =rLineminUa2(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M); 
+    % (15 Oct 2026) Line search along the Newton direction, selected by CtrlVar.NewtonLineSearch.Method:
+    %   "rLineminUa3"      : the logic of rLineminUa2.m, without the unnecessary evaluations of the residual (default)
+    %   "NewtonLineSearch" : backtracking with the Armijo condition (NewtonLineSearch.m)
+    %   "rLineminUa2"      : the previous implementation, including the unnecessary evaluations (for comparison only)
+    switch LineSearchMethod
+        case "NewtonLineSearch"
+            r0=rForce0 ;
+            Out0=struct("rForce",rForce0,"rWork",rWork0,"D2",D20,"rBlocks",rBlocks0) ;
+            FuncLS=@(g) uvhLineSearchMerit(func,g,dub,dvb,dh,dl) ;
+            [gamma,r,OutLS,BackTrackInfo]=NewtonLineSearch(FuncLS,r0,Out0,-2*r0,CtrlVar) ;
+            rForce=OutLS.rForce ; rWork=OutLS.rWork ; D2=OutLS.D2 ; rBlocks=OutLS.rBlocks ;
+            Du=gamma*dub ; Dv=gamma*dvb ; Dh=gamma*dh ; Dl=gamma*dl ;
+        case {"rLineminUa3","rLineminUa2"}
+            dJdu=frhs(1:MUA.Nnodes); dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes); dJdh=frhs(2*MUA.Nnodes+1:3*MUA.Nnodes); dJdl=grhs ;
+            Normalisation=Fext0'*Fext0+1000*eps;
+            if LineSearchMethod=="rLineminUa2"
+                r0=func(0,dub,dvb,dh,dl) ;
+                r1=func(1,dub,dvb,dh,dl) ;
+                [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] =rLineminUa2(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M);
+            else
+                r0=rForce0 ;   % from the assembled residual; the residual at gamma=1 is evaluated in rLineminUa3
+                [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] =rLineminUa3(CtrlVar,UserVar,func,r0,NaN,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M);
+            end
+        otherwise
+            error("SSTREAM_TransientImplicit:LineSearchMethod","Unknown CtrlVar.NewtonLineSearch.Method: %s",LineSearchMethod)
+    end
 
 
     %%
@@ -497,7 +517,7 @@ while true
         SlopeForce=-2*rForce0;
         SlopeWork=-2*rWork0;
         SlopeD2=-D20;
-        CtrlVar.MinimisationQuantity=CtrlVar.uvhMinimisationQuantity;
+        CtrlVar.MinimisationQuantity="Force Residuals";   % (15 Oct 2026) the force residual is always the merit function
         PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r,iteration,"-uvh-",...
             gammaTestVector,rForceTestvector,rWorkTestvector,rD2Testvector,...
             SlopeForce,SlopeWork,SlopeD2,rForce,rWork,D2);
@@ -756,4 +776,12 @@ subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 title(cbar,"",interpreter="latex")
 
 drawnow
+end
+
+
+function [f,Out]=uvhLineSearchMerit(func,gamma,dub,dvb,dh,dl)
+% (15 Oct 2026) Merit function and further quantities for NewtonLineSearch.m. The step gamma*[dub;dvb;dh;dl] is passed as the
+% displacement at unit step length, so that D2 and rWork refer to the step actually taken (as previously in rLineminUa2.m).
+[f,~,~,rForce,rWork,D2,rBlocks]=func(1,gamma*dub,gamma*dvb,gamma*dh,gamma*dl) ;
+Out=struct("rForce",rForce,"rWork",rWork,"D2",D2,"rBlocks",rBlocks) ;
 end
