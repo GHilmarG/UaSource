@@ -40,7 +40,8 @@ end
 %!if isempty(Lhpos)
 
 if isempty(BCs1.hPosNode)
-    Active=find(F1.h<=CtrlVar.ThickMin);    % Although I might only want to add nodes to the active set if thickness is somewhat less than MinThick, I might here
+    ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+    Active=find(F1.h<=CtrlVar.ThickMin*(1-ActTol));    % Although I might only want to add nodes to the active set if thickness is somewhat less than MinThick, I might here
                                              % have a situation where this is a restart run where the active set has been set to empty, or a run after re-meshing, and I
                                              % want the initial active sets to be similar to previous active set. 
                                              % (8 Oct 2026) "<=" rather than "<": nodes held at the bound by the active set have h=ThickMin
@@ -77,7 +78,11 @@ if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"PredictiveActivati
     % (14 Oct 2026) CtrlVar.ActiveSet.PredictiveActivationMargin (default 0): only nodes predicted to be at least Margin*ThickMin below
     % ThickMin are activated. With Margin=0 all nodes predicted to be at or below ThickMin are activated.
     Margin=0 ; if isfield(CtrlVar.ActiveSet,"PredictiveActivationMargin") ; Margin=CtrlVar.ActiveSet.PredictiveActivationMargin ; end
-    Predicted=find(F1.h<=CtrlVar.ThickMin*(1-Margin) & F0.h>CtrlVar.ThickMin) ;
+    % (14 Oct 2026) Nodes accepted with a thickness slightly below ThickMin at the end of the previous time step (within
+    % CtrlVar.ActiveSet.ActivationTolerance) are also included, so that they are activated at the start of this time step if
+    % they are predicted to continue to thin.
+    ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+    Predicted=find(F1.h<=CtrlVar.ThickMin*(1-Margin) & F0.h>CtrlVar.ThickMin*(1-ActTol)) ;
     Predicted=setdiff(Predicted,[BCs1.hPosNode(:);BCs1.hFixedNode(:)]) ;
     if isfield(CtrlVar.ActiveSet,"ExcludeNodesOfBoundaryElements") && CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
         Predicted=setdiff(Predicted,unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:))) ;

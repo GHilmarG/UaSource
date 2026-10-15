@@ -247,7 +247,8 @@ else   %  Thickness constraints used
     % nodes where thickness still is too small. (9 Oct 2026) This can only happen if the active-set loop was left because the maximum
     % number of active-set iterations (CtrlVar.ThicknessConstraintsItMax) was reached. The last update of the active set is then
     % carried forward to the next time step.
-    ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin),BCs1.hFixedNode) ;
+    ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+    ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin*(1-ActTol)),BCs1.hFixedNode) ;   % (14 Oct 2026) nodes within the activation tolerance are accepted
 
 
     if numel(ToBeActivated)>0

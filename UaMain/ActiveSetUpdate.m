@@ -204,7 +204,8 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
     NewlyLocked=[];
     if ~isempty(LastDeactivated)
         LastDeactivated=LastDeactivated(:);
-        NewlyLocked=LastDeactivated(F1.h(LastDeactivated)<CtrlVar.ThickMin);
+        ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+        NewlyLocked=LastDeactivated(F1.h(LastDeactivated)<CtrlVar.ThickMin*(1-ActTol));   % (14 Oct 2026) same tolerance as for activation, see below
         NewlyLocked=setdiff(NewlyLocked,Locked);
         Locked=[Locked;NewlyLocked(:)];
     end
@@ -267,7 +268,12 @@ NodesDeactivated=LastActiveSet(NewInActiveConstraints);
 
 %% Do I need to ACTIVATE some new thickness constraints?
 %I=h1<=CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
-I=F1.h<CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
+% (14 Oct 2026) CtrlVar.ActiveSet.ActivationTolerance (default 0): nodes are only activated if their thickness is less than
+% ThickMin*(1-ActivationTolerance). Nodes with thickness slightly below ThickMin, ie within this tolerance, are accepted as they are (they
+% are not set to ThickMin, the solution satisfies the discretised equations, and mass is conserved). This is the counterpart, for
+% activations, of CtrlVar.ActiveSet.ReleaseAlpha for releases.
+ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+I=F1.h<CtrlVar.ThickMin*(1-ActTol); % if thickness is less than ThickMin then further new thickness constraints must be introduced
 
 NewActive=find(I);
 NewActive=setdiff(NewActive,BCs1.hFixedNode) ;  % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions,

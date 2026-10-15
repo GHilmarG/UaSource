@@ -1725,6 +1725,10 @@ CtrlVar.ActiveSet.EarlyExitThickness=0;                 % (14 Oct 2026) thicknes
 CtrlVar.ActiveSet.PredictiveActivation=true;           % (14 Oct 2026, default true since 14 Oct 2026) If true, nodes where the explicit estimate of h at the end of the time step
                                                         % is at or below ThickMin (and h at the start above ThickMin) are activated at the start of the time step
 CtrlVar.ActiveSet.PredictiveActivationMargin=0;         % (14 Oct 2026) only nodes predicted to be at least Margin*ThickMin below ThickMin are activated
+CtrlVar.ActiveSet.ActivationTolerance=1e-3;             % (14 Oct 2026) Free nodes are only activated if h<ThickMin*(1-ActivationTolerance). Nodes within
+                                                        % this tolerance are accepted as they are. This is the tolerance on primal feasibility (the constraint
+                                                        % h>=ThickMin), and the counterpart of ReleaseAlpha, which is the tolerance on dual feasibility (the sign of
+                                                        % the multipliers). Both are expressed as a fraction of ThickMin, and have the same default value.
 CtrlVar.ActiveSet.ReleaseAlpha=1e-3;                    % (14 Oct 2026) A constrained node is only released if, without the constraint, the ice there would
                                                         % thicken by more than ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0 (the previous
                                                         % default) nodes are released as soon as the multiplier has the wrong sign, which in some
