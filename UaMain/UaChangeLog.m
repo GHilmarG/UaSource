@@ -4,6 +4,62 @@
 % 
 % *Change Log* _October 2026_
 %
+% * PARDISO (Intel oneMKL) as an alternative linear solver (16 October 2026):
+%
+% New option CtrlVar.LinearSolver.Type="PARDISO" (default "MATLAB"): the linear systems solved in ABfgPreEliminate.m (uv and uvh
+% Newton-Raphson systems) are solved with the multithreaded sparse direct solver PARDISO of Intel oneMKL instead of decomposition/mldivide
+% (UMFPACK). In solveKApe.m this covers AsymmSolver="Bempty" (no constraints, solved in solveKApe.m itself) and
+% "EliminateBCsSolveSystemDirectly" (nodal constraints, B*B' diagonal, solved in ABfgPreEliminate.m), ie the cases selected with
+% AsymmSolver="auto"; with PARDISO, no decomposition is returned (dA=[]), and a given dA (modified Newton-Raphson) gives an error.
+% Bempty test (Greenland, 168,210 unknowns): 0.25 s instead of 2.6 s per solve.
+%
+% Symmetric systems (solveKApeSymmetric.m): with PARDISO, SymmSolver="Bempty" is solved as symmetric indefinite (PARDISO matrix type -2,
+% LDL'), and in "NullSpace" (KKT_null_space_decomposition_chol.m, new optional fifth input CtrlVar) the reduced Hessian Hr=Z'*H*Z is
+% factorised with a Cholesky factorisation (type 2); if that fails (Hr not positive definite) the system is solved as symmetric
+% indefinite instead, with a warning. For the symmetric types only tril(A) is passed. Tests with the uv system of the Greenland model
+% (112,140 unknowns): Bempty 0.12 s instead of 0.51 s; NullSpace with 2324 constraints 0.27 s instead of 0.61 s (the Cholesky
+% factorisation of Hr 0.04 s instead of 0.41 s; the QR factorisation of A' and Z'*H*Z then took most of the time).
+%
+% KKT_null_space_decomposition_chol.m: new direct route for nodal constraints (each row of A has one nonzero, d_k in column c_k, and
+% all columns are different). Then Z=I(:,f), with f the free unknowns, and x(c)=b./d, H(f,f) x(f) = g(f)-H(f,c) x(c),
+% lambda=(g(c)-H(c,:) x)./d. Identical to the general null-space solution, but without the QR factorisation of A', Z'*H*Z, and the
+% factorisation of A*A'. For all other constraints (eg ties between unknowns, even if A*A' is diagonal) the general route is used.
+% uv system (112,140 unknowns, 2324 nodal constraints): 0.49 s instead of 0.61 s with MATLAB, 0.16 s instead of 0.27 s with PARDISO;
+% results identical to the general route.
+%
+% UaPardisoSolve.m: new optional fifth input MatrixType ("nonsymmetric", "spd", "symmetric"); separate states for each size and type,
+% at most 6 (the least recently used one is released); systems with fewer than CtrlVar.LinearSolver.PARDISO.MinimumSize (default 20000)
+% unknowns are solved with mldivide, and diagonal systems directly (for these, the analysis by PARDISO would cost more than it saves).
+%
+% solveKApeSymmetric.m: corrected isfield(CtrlVar,"Symmsolver") to isfield(CtrlVar,"SymmSolver"). Previously CtrlVar.SymmSolver was
+% always set to "auto", so that a solver given in CtrlVar.SymmSolver was ignored.
+%
+% New folder UaSource/UaPardiso with:
+%   pardisoMex.c, BuildPardisoMex.m  MEX interface to PARDISO (compile with BuildPardisoMex, eg with MinGW64)
+%   UaPardisoSolve.m                 manages the PARDISO states, the fixed sparsity patterns, a residual check, and a fallback to decomposition
+% New settings: CtrlVar.LinearSolver.PARDISO.Library (path to mkl_rt, eg ...\Library\bin\mkl_rt.3.dll; if empty the environment variable
+% UA_MKL_RT is used), .ThreadingLayer ("TBB" or "SEQUENTIAL") and .ResidualTolerance (1e-10).
+%
+% Notes on the implementation:
+%  - The MKL runtime library is not part of MATLAB (the MKL in MATLAB does not contain PARDISO) and must be installed separately, eg
+%    pip install mkl. It is loaded at run time by pardisoMex, so no MKL headers or import libraries are needed to compile it.
+%  - MKL's OpenMP threading layer can not be used within MATLAB: it requires a newer OpenMP runtime than the one MATLAB has loaded, and
+%    MKL then aborts the MATLAB process. pardisoMex therefore sets the TBB threading layer (or the sequential one) itself, before the
+%    first computation, and rejects the OpenMP layer. With the TBB layer MKL uses all cores.
+%  - The matrix is passed without copying: the CSC arrays of a MATLAB sparse matrix A (64-bit indices) are the CSR arrays of A', which
+%    are passed to the 64-bit interface pardiso_64 with zero-based indexing, and PARDISO solves the transposed system (iparm(12)=2).
+%  - Fixed pattern: the analysis (reordering, symbolic factorisation) is much more expensive than the numerical factorisation, but the
+%    pattern of the Newton-Raphson matrices changes from one iteration to the next (exact zeros are not stored in MATLAB sparse matrices,
+%    and the rows of constrained nodes change with the active set). UaPardisoSolve therefore keeps, for each matrix size, a pattern that
+%    contains all patterns seen so far (initially the pattern of the full Jacobian and the diagonal); pardisoMex copies the values into
+%    this pattern, with explicit zeros, and the analysis is only repeated if the pattern has to be extended.
+%
+% Results (Greenland, 56,070 nodes, Atilde with 168,210 unknowns, 16 cores): factorisation 0.135-0.18 s with a stored analysis and
+% solve 0.09 s, against 2.5 s and 0.17 s with decomposition (UMFPACK, which does not benefit from more threads for these matrices);
+% analysis 1.2-1.4 s. solveKApe 0.40 s instead of 2.6 s. Model run of 5 time steps with the parallel assembly (4 thread workers): 93.0 s
+% instead of 159.5 s with decomposition, with the same Newton-Raphson iterations and results agreeing to 1e-12 (7 analyses for 31
+% factorisations); the uvh solves took 61 s instead of 128 s.
+%
 % * New function uvhAssemblyScalingTest.m: performance of the parallel uvh assembly on a given computer (16 October 2026):
 %
 % For a model state, read from a file saved with CtrlVar.uvhSaveNewtonSystem.Save=true or from a restart file, the function times the

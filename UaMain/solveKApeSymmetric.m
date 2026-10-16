@@ -73,7 +73,7 @@ if ny0~=nB
     save TestSave ; error('error in solveKApeSymmetric')
 end
 
-if ~isfield(CtrlVar,"Symmsolver")
+if ~isfield(CtrlVar,"SymmSolver")   % (16 Oct 2026) corrected: was "Symmsolver", so that CtrlVar.SymmSolver was always set to "auto"
     CtrlVar.SymmSolver="auto" ;
 end
 
@@ -100,10 +100,10 @@ if isequal(lower(CtrlVar.SymmSolver),"auto")
     if isempty(Aeq) || numel(Aeq)==0
         CtrlVar.SymmSolver="Bempty";
     elseif isdiag(Aeq*Aeq')
-        CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
+        %CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
         CtrlVar.SymmSolver="NullSpace";  % changed to NullSpace on 6 June 2026 from EliminateBCsSolveSystemDirectly
     else
-        CtrlVar.SymmSolver="AugmentedLagrangian";
+        %CtrlVar.SymmSolver="AugmentedLagrangian";
         CtrlVar.SymmSolver="NullSpace";   % changed to NullSpace on 6 June 2026 from AugmentedLagrangian
 
     end
@@ -114,7 +114,11 @@ tSolve=tic;
 
 switch CtrlVar.SymmSolver
     case "Bempty"
-        x=H\g;
+        if isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO"
+            x=UaPardisoSolve(CtrlVar,H,g,H,"symmetric") ;   % (16 Oct 2026) PARDISO, symmetric indefinite (LDL'), see UaPardisoSolve.m
+        else
+            x=H\g;
+        end
         y=[];
 
     case "AugmentedLagrangian"
@@ -141,7 +145,7 @@ switch CtrlVar.SymmSolver
 
         %[x, y] = KKT_null_space_chol(A, f, B, g);
         % [x, y] = KKT_null_space_decomposition(A, f, B, g);
-        [x, y] = KKT_null_space_decomposition_chol(H, g, Aeq, b);
+        [x, y] = KKT_null_space_decomposition_chol(H, g, Aeq, b, CtrlVar);   % (16 Oct 2026) CtrlVar passed for the PARDISO option
 
     case "RangeSpace"
 

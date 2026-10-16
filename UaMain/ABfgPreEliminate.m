@@ -7,6 +7,9 @@ if nargin< 6
     dAtilde=[];
 end
 
+% (16 Oct 2026) PARDISO (Intel oneMKL) instead of decomposition/mldivide, if CtrlVar.LinearSolver.Type="PARDISO" (see UaPardisoSolve.m)
+UsePardiso = isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO" ;
+
 [nA,mA]=size(A);
 [nB,mB]=size(B);
 [nf,mf]=size(f);
@@ -16,7 +19,11 @@ if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
 
     % Possibly not needed, but check if this is not just a very simple case of B=g=[]
 
-    x=A\f;
+    if UsePardiso
+        x=UaPardisoSolve(CtrlVar,A,f,A) ;
+    else
+        x=A\f;
+    end
     y=NaN;
 
     if nargout>3
@@ -113,14 +120,25 @@ else
         %  are needed.
         %
         tDecomposition=tic;
-        if isempty(dAtilde)
-            dAtilde=decomposition(Atilde);
-        end
-        tDecomposition=toc(tDecomposition) ;
+        if UsePardiso && ~isdistributed(Atilde)
+            % (16 Oct 2026) factorisation and solve with PARDISO, see UaPardisoSolve.m. The analysis (reordering and symbolic
+            % factorisation) is kept between calls, and only repeated if the sparsity pattern of Atilde changes.
+            if ~isempty(dAtilde)
+                error("ABfgPreEliminate:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
+            end
+            x=UaPardisoSolve(CtrlVar,Atilde,btilde,A) ;   % the pattern of A (the Jacobian) contains all rows of Atilde
+            tDecomposition=toc(tDecomposition) ;
+            tSolve=0 ;
+        else
+            if isempty(dAtilde)
+                dAtilde=decomposition(Atilde);
+            end
+            tDecomposition=toc(tDecomposition) ;
 
-        tSolve=tic;
-        x=dAtilde\btilde;
-        tSolve=toc(tSolve);
+            tSolve=tic;
+            x=dAtilde\btilde;
+            tSolve=toc(tSolve);
+        end
 
         % tSolve=tic;
         % x=Atilde\btilde;

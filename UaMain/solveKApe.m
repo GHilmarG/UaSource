@@ -11,6 +11,8 @@ narginchk(7,8)
 % This is supported for the methods "Bempty" (no constraints) and "EliminateBCsSolveSystemDirectly" (point constraints). For other methods
 % dA=[] is returned, and a given dA is ignored. If neither a third output nor dA is requested/given, the solution is calculated exactly
 % as before (backslash for "Bempty").
+% (16 Oct 2026) With CtrlVar.LinearSolver.Type="PARDISO", the systems solved with AsymmSolver="Bempty" and
+% "EliminateBCsSolveSystemDirectly" are solved with PARDISO (see UaPardisoSolve.m); then dA=[] is returned, and a given dA gives an error.
 if nargin<8 ; dA=[] ; end
 UseDecomposition = nargout>=3 || ~isempty(dA) ;
 
@@ -134,7 +136,14 @@ tSolve=tic;
 switch CtrlVar.AsymmSolver
     case "Bempty"
 
-        if UseDecomposition   % (15 Oct 2026)
+        if isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO"
+            % (16 Oct 2026) PARDISO (Intel oneMKL), see UaPardisoSolve.m. No decomposition is returned (dA=[]), and reusing a given
+            % decomposition (modified Newton-Raphson) is not supported.
+            if ~isempty(dA)
+                error("solveKApe:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
+            end
+            x=UaPardisoSolve(CtrlVar,A,f,A); y=[]; dA=[];
+        elseif UseDecomposition   % (15 Oct 2026)
             if isempty(dA) ; dA=decomposition(A) ; end
             x=dA\f; y=[];
         else

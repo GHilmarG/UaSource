@@ -7,6 +7,9 @@ function SetUaPath()
 % Check if the path includes, for example, Mesh2d.
 % And if not, add Ua directory and all subdirectory to the path
 %
+
+error("do not use, user must set the path")
+
 if ispc
     onPath = contains(lower(path),lower('Mesh2d'));
 else
