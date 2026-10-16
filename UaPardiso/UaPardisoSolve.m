@@ -97,7 +97,7 @@ Lib=string(Opt.Library) ;
 if Lib=="" ; Lib=string(getenv("UA_MKL_RT")) ; end
 if Lib=="" || ~isfile(Lib)
     error("UaPardisoSolve:Library",...
-        "The MKL runtime library (mkl_rt) was not found. Set CtrlVar.LinearSolver.PARDISO.Library, or the environment variable UA_MKL_RT, to its full path (eg ...\\Library\\bin\\mkl_rt.3.dll).")
+        "The MKL runtime library (mkl_rt) was not found. Set CtrlVar.LinearSolver.PARDISO.Library, or the environment variable UA_MKL_RT, to its full path (eg ...\\Library\\bin\\mkl_rt.3.dll on Windows, .../lib/libmkl_rt.so.3 on Linux).")
 end
 pardisoMex('load',char(Lib),char(Opt.ThreadingLayer)) ;   % returns immediately if already loaded
 

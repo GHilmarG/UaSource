@@ -34,6 +34,13 @@
 % solveKApeSymmetric.m: corrected isfield(CtrlVar,"Symmsolver") to isfield(CtrlVar,"SymmSolver"). Previously CtrlVar.SymmSolver was
 % always set to "auto", so that a solver given in CtrlVar.SymmSolver was ignored.
 %
+% Linux (NOT YET TESTED WITHIN MATLAB): pardisoMex.c now also compiles on Linux (dlopen instead of LoadLibrary; BuildPardisoMex adds -ldl).
+% The library is libmkl_rt.so.N (N=3 for MKL 2026, N=2 for MKL 2021-2025), eg .../lib/libmkl_rt.so.3 after pip install mkl. MKL is loaded
+% with RTLD_LOCAL|RTLD_DEEPBIND, so that it does not use symbols of the MKL loaded by MATLAB, and libmkl_core, libmkl_intel_lp64/ilp64 and
+% the threading layer are loaded first, from the folder of libmkl_rt (they have no RUNPATH, and LD_LIBRARY_PATH can not be changed within
+% MATLAB). Tested outside MATLAB (Ubuntu 24.04, gcc 13, MKL 2026.2, with a stand-in for the MEX API): all commands, both threading layers.
+% Not tested: the interaction with the MKL, TBB and OpenMP libraries of MATLAB on Linux. macOS is not supported.
+%
 % New folder UaSource/UaPardiso with:
 %   pardisoMex.c, BuildPardisoMex.m  MEX interface to PARDISO (compile with BuildPardisoMex, eg with MinGW64)
 %   UaPardisoSolve.m                 manages the PARDISO states, the fixed sparsity patterns, a residual check, and a fallback to decomposition

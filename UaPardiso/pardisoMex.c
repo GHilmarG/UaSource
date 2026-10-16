@@ -38,11 +38,94 @@
  * before the first computation, with MKL_Set_Threading_Layer. With the TBB layer, MKL uses all cores; 'setthreads' has no effect.
  *
  * Compile (MinGW64):  mex -R2018a pardisoMex.c
+ *
+ * Linux (16 Oct 2026, NOT YET TESTED WITHIN MATLAB; the loading and the PARDISO calls were tested outside MATLAB with MKL 2026.2):
+ *   The library is libmkl_rt.so.N (N=2 for MKL 2021-2025, N=3 for MKL 2026), eg .../lib/libmkl_rt.so.3 after pip install mkl. It is
+ *   loaded with dlopen(RTLD_NOW|RTLD_LOCAL|RTLD_DEEPBIND), so that MKL prefers its own symbols to those of the (reduced) MKL that MATLAB
+ *   has loaded. libmkl_rt loads its other libraries at run time by name; as they have no RUNPATH, and LD_LIBRARY_PATH can not be changed
+ *   within MATLAB, libmkl_core, libmkl_intel_lp64/ilp64 and the threading layer are loaded first, from the folder of libmkl_rt. The TBB
+ *   layer needs libtbb.so.12, normally that of MATLAB; if that is not found, the one in the folder of MKL is used. As on Windows the
+ *   OpenMP layer is not used. If MATLAB crashes or MKL can not be loaded, try the SEQUENTIAL layer first.
+ *   Compile with gcc:  mex -R2018a pardisoMex.c -ldl   (-ldl is only needed for glibc older than 2.34)
  */
 
+#if !defined(_WIN32) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE            /* for RTLD_DEEPBIND (glibc) */
+#endif
 #include "mex.h"
 #include <string.h>
+#include <stdio.h>
+
+/* ---- loading of the MKL runtime library at run time: Windows and Linux ---- */
+#ifdef _WIN32
+
 #include <windows.h>
+typedef HMODULE LibHandle;
+#define STRICMP _stricmp
+
+static LibHandle libOpen(const char *path, int layer, char *msg, size_t len)
+{
+    LibHandle h;
+    (void) layer;
+    h = LoadLibraryExA(path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);   /* dependencies are searched in the folder of path */
+    if (h == NULL) snprintf(msg, len, "Windows error %lu", GetLastError());
+    return h;
+}
+static void *libSym(LibHandle h, const char *name) { return (void *) GetProcAddress(h, name); }
+static void  libClose(LibHandle h) { FreeLibrary(h); }
+
+#else   /* Linux (not tested within MATLAB, see the notes at the top) */
+
+#include <dlfcn.h>
+#include <strings.h>
+typedef void *LibHandle;
+#define STRICMP strcasecmp
+
+static int dlFlags(void)
+{
+    int flags = RTLD_NOW | RTLD_LOCAL;
+#ifdef RTLD_DEEPBIND
+    flags |= RTLD_DEEPBIND;    /* MKL prefers its own symbols to those of the MKL already loaded by MATLAB */
+#endif
+    return flags;
+}
+
+static LibHandle libOpen(const char *path, int layer, char *msg, size_t len)
+{
+    /* path is eg .../lib/libmkl_rt.so.3. libmkl_rt loads the other MKL libraries at run time by name, and as these have no RUNPATH and
+       LD_LIBRARY_PATH can not be changed within MATLAB, they are loaded here first, by full path from the same folder and with the same
+       version suffix; libmkl_rt then finds them already loaded. Failures are ignored here (libmkl_rt then searches itself). */
+    char dir[2048], suffix[64], dep[2300];
+    const char *slash = strrchr(path, '/'), *base = slash ? slash + 1 : path, *p = strstr(base, ".so");
+    LibHandle h;
+    if (slash != NULL && p != NULL && (size_t) (slash - path) < sizeof(dir) && strlen(p) < sizeof(suffix)) {
+        const char *deps[5];
+        int k, nd = 0;
+        memcpy(dir, path, (size_t) (slash - path)); dir[slash - path] = 0;
+        strcpy(suffix, p);                                   /* eg ".so.3" */
+        deps[nd++] = "libmkl_core";
+        deps[nd++] = "libmkl_intel_lp64";
+        deps[nd++] = "libmkl_intel_ilp64";
+        deps[nd++] = (layer == 4) ? "libmkl_tbb_thread" : "libmkl_sequential";
+        for (k = 0; k < nd; k++) {
+            snprintf(dep, sizeof(dep), "%s/%s%s", dir, deps[k], suffix);
+            if (dlopen(dep, dlFlags()) == NULL && layer == 4 && k == nd - 1) {
+                /* libmkl_tbb_thread needs libtbb.so.12: normally that of MATLAB (already loaded, or in its library folder);
+                   only if it is not found, the one in the folder of MKL is used */
+                char tbb[2300];
+                snprintf(tbb, sizeof(tbb), "%s/libtbb.so.12", dir);
+                if (dlopen(tbb, RTLD_NOW | RTLD_GLOBAL) != NULL) dlopen(dep, dlFlags());
+            }
+        }
+    }
+    h = dlopen(path, dlFlags());
+    if (h == NULL) snprintf(msg, len, "%s", dlerror());
+    return h;
+}
+static void *libSym(LibHandle h, const char *name) { return dlsym(h, name); }
+static void  libClose(LibHandle h) { dlclose(h); }
+
+#endif
 
 typedef long long int i64;
 
@@ -72,7 +155,7 @@ typedef struct {
     double *pval;              /* fixed-pattern mode: values of A in the pattern of P (persistent memory) */
 } SolverState;
 
-static HMODULE       hMKL = NULL;
+static LibHandle     hMKL = NULL;
 static pardiso64_t   f_pardiso64 = NULL;
 static pardisoinit_t f_pardisoinit = NULL;
 static setthreads_t  f_setthreads = NULL;
@@ -194,27 +277,29 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (nrhs >= 3) {
             if (!mxIsChar(prhs[2])) mexErrMsgIdAndTxt("pardisoMex:usage", "layer must be \"TBB\" or \"SEQUENTIAL\".");
             mxGetString(prhs[2], layerName, sizeof(layerName));
-            if (_stricmp(layerName, "TBB") == 0) layer = 4;
-            else if (_stricmp(layerName, "SEQUENTIAL") == 0) layer = 1;
+            if (STRICMP(layerName, "TBB") == 0) layer = 4;
+            else if (STRICMP(layerName, "SEQUENTIAL") == 0) layer = 1;
             else mexErrMsgIdAndTxt("pardisoMex:usage", "layer must be \"TBB\" or \"SEQUENTIAL\" (the OpenMP layer can not be used within MATLAB).");
         }
         if (hMKL != NULL && threadingLayer != layer)
             mexErrMsgIdAndTxt("pardisoMex:load", "MKL is already loaded with another threading layer; restart MATLAB to change it.");
         if (hMKL == NULL) {
-            hMKL = LoadLibraryExA(path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
-            if (hMKL == NULL) mexErrMsgIdAndTxt("pardisoMex:load", "Could not load %s (Windows error %lu).", path, GetLastError());
-            f_pardiso64   = (pardiso64_t)   GetProcAddress(hMKL, "pardiso_64");
-            f_pardisoinit = (pardisoinit_t) GetProcAddress(hMKL, "pardisoinit");
-            f_setthreads  = (setthreads_t)  GetProcAddress(hMKL, "MKL_Set_Num_Threads");
-            f_getthreads  = (getthreads_t)  GetProcAddress(hMKL, "MKL_Get_Max_Threads");
-            f_version     = (version_t)     GetProcAddress(hMKL, "MKL_Get_Version_String");
-            f_setlayer    = (setlayer_t)    GetProcAddress(hMKL, "MKL_Set_Threading_Layer");
+            char msg[1024];
+            msg[0] = 0;
+            hMKL = libOpen(path, layer, msg, sizeof(msg));
+            if (hMKL == NULL) mexErrMsgIdAndTxt("pardisoMex:load", "Could not load %s (%s).", path, msg);
+            f_pardiso64   = (pardiso64_t)   libSym(hMKL, "pardiso_64");
+            f_pardisoinit = (pardisoinit_t) libSym(hMKL, "pardisoinit");
+            f_setthreads  = (setthreads_t)  libSym(hMKL, "MKL_Set_Num_Threads");
+            f_getthreads  = (getthreads_t)  libSym(hMKL, "MKL_Get_Max_Threads");
+            f_version     = (version_t)     libSym(hMKL, "MKL_Get_Version_String");
+            f_setlayer    = (setlayer_t)    libSym(hMKL, "MKL_Set_Threading_Layer");
             if (f_pardiso64 == NULL || f_pardisoinit == NULL) {
-                FreeLibrary(hMKL); hMKL = NULL; f_pardiso64 = NULL;
+                libClose(hMKL); hMKL = NULL; f_pardiso64 = NULL;
                 mexErrMsgIdAndTxt("pardisoMex:load", "pardiso_64 or pardisoinit not found in %s.", path);
             }
             if (f_setlayer == NULL) {
-                FreeLibrary(hMKL); hMKL = NULL; f_pardiso64 = NULL;
+                libClose(hMKL); hMKL = NULL; f_pardiso64 = NULL;
                 mexErrMsgIdAndTxt("pardisoMex:load", "MKL_Set_Threading_Layer not found in %s.", path);
             }
             /* must be done before the first computation; returns the layer in use, or -1 */
@@ -328,7 +413,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             char opt[16];
             if (!mxIsChar(prhs[3])) mexErrMsgIdAndTxt("pardisoMex:usage", "The fourth argument must be 'auto'.");
             mxGetString(prhs[3], opt, sizeof(opt));
-            if (_stricmp(opt, "auto") != 0) mexErrMsgIdAndTxt("pardisoMex:usage", "The fourth argument must be 'auto'.");
+            if (STRICMP(opt, "auto") != 0) mexErrMsgIdAndTxt("pardisoMex:usage", "The fourth argument must be 'auto'.");
             autoAnalyse = 1;
         }
         if (autoAnalyse) {
@@ -409,7 +494,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             char opt[16];
             if (!mxIsChar(prhs[4])) mexErrMsgIdAndTxt("pardisoMex:usage", "The fifth argument must be 'reanalyse'.");
             mxGetString(prhs[4], opt, sizeof(opt));
-            if (_stricmp(opt, "reanalyse") != 0) mexErrMsgIdAndTxt("pardisoMex:usage", "The fifth argument must be 'reanalyse'.");
+            if (STRICMP(opt, "reanalyse") != 0) mexErrMsgIdAndTxt("pardisoMex:usage", "The fifth argument must be 'reanalyse'.");
             force = 1;
         }
         n = mxGetN(A);
