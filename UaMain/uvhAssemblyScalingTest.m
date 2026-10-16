@@ -33,7 +33,8 @@ function Results=uvhAssemblyScalingTest(FileName,Options)
 %   .Threads     numbers of threads for the serial assembly (default 1, 2, 4, ... up to the number of cores)
 %   .Repeats     number of repeated measurements, of which the median is used (default 5)
 %   .State       index of the saved state to use (for a file with saved states; default 1)
-%   .Profile     parallel profile (default "Processes")
+%   .Profile     parallel profile: "Processes" (default) or "Threads" (thread-based pool, where the transfer of the results to the
+%                client is cheaper)
 %   .Tolerance   the recommended number of workers is the smallest number for which the time of the assembly of the residual and the
 %                Jacobian (according to the model) is within this fraction of the smallest time (default 0.05)
 %   .Solve       measure the solution of the linear system (default true)
@@ -78,7 +79,7 @@ P0=gcp('nocreate') ;
 if isempty(P0)
     n0=0 ; Profile0="" ;
 else
-    n0=P0.NumWorkers ; Profile0=string(P0.Cluster.Profile) ;
+    n0=P0.NumWorkers ; Profile0=PoolProfile(P0) ;
 end
 Cleanup=onCleanup(@() RestoreSession(nThreads0,n0,Profile0)) ;
 
@@ -128,7 +129,11 @@ end
 Results.Solve=TSolve ;
 
 %% parallel assembly
-c=parcluster(Opt.Profile) ;
+if string(Opt.Profile)=="Threads"
+    MaxWorkers=nCores ;              % parcluster is not supported for thread-based pools
+else
+    c=parcluster(Opt.Profile) ; MaxWorkers=c.NumWorkers ;
+end
 nW=numel(Opt.Workers) ;
 Par.Workers=Opt.Workers ;
 Par.Full=nan(1,nW) ; Par.ResidualOnly=nan(1,nW) ; Par.WorkerTime=nan(1,nW) ; Par.OtherSpmd=nan(1,nW) ; Par.Fetch=nan(1,nW) ;
@@ -139,12 +144,12 @@ fprintf("\n Parallel assembly (profile %s)\n",Opt.Profile) ;
 fprintf("   workers   residual and Jacobian (on workers, other spmd, transfer)   residual only   first call   memory per worker\n") ;
 for k=1:nW
     n=Opt.Workers(k) ;
-    if n>c.NumWorkers
-        fprintf("   %5i   skipped: the profile %s allows at most %i workers\n",n,Opt.Profile,c.NumWorkers) ;
+    if n>MaxWorkers
+        fprintf("   %5i   skipped: the profile %s allows at most %i workers\n",n,Opt.Profile,MaxWorkers) ;
         continue
     end
     P=gcp('nocreate') ;
-    if isempty(P) || P.NumWorkers~=n || string(P.Cluster.Profile)~=string(Opt.Profile)
+    if isempty(P) || P.NumWorkers~=n || PoolProfile(P)~=string(Opt.Profile)
         evalc("delete(P) ;") ;               % the output of delete and parpool is suppressed
         evalc("parpool(Opt.Profile,n) ;") ;
     end
@@ -253,7 +258,7 @@ end
 %%
 function [UserVar,CtrlVar,MUA,F0,F1,l1,BCs1]=LoadState(FileName,iState)
 
-w=whos("-file",FileName) ; names=string({w.name}) ;
+w=[] ; evalc("w=whos(""-file"",FileName) ;") ; names=string({w.name}) ;   % evalc: whos can also give the warning that decompositions can not be loaded
 ws=warning("off","all") ;   % eg the warning that decompositions can not be loaded
 if any(startsWith(names,"State_"))
     StateNames=sort(names(startsWith(names,"State_"))) ;
@@ -322,11 +327,21 @@ function RestoreSession(nThreads0,n0,Profile0)
 maxNumCompThreads(nThreads0) ;
 P=gcp('nocreate') ;
 if n0>0
-    if isempty(P) || P.NumWorkers~=n0 || string(P.Cluster.Profile)~=Profile0
+    if isempty(P) || P.NumWorkers~=n0 || PoolProfile(P)~=Profile0
         evalc("delete(P) ;") ;
         parpool(Profile0,n0) ;
     end
 else
     evalc("delete(P) ;") ;
+end
+end
+
+%%
+function p=PoolProfile(P)
+% the profile of a pool: "Threads" for a thread-based pool, otherwise the name of the cluster profile
+if isa(P,"parallel.ThreadPool")
+    p="Threads" ;
+else
+    p=string(P.Cluster.Profile) ;
 end
 end

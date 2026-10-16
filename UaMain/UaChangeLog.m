@@ -18,6 +18,23 @@
 % reduction of the time per Newton-Raphson iteration 27%. Thule (5,995 nodes): serial assembly recommended (the parallel assembly of the
 % residual only is slower than the serial one, and the full assembly only slightly faster).
 %
+% Larger Greenland mesh (56,070 nodes, 110,976 elements, 16 cores): 9 or 10 workers recommended in repeated runs, assembly 2.35 times
+% faster than the best serial assembly (1.52 s, 8 threads), estimated reduction of the time per Newton-Raphson iteration 22%. Model
+% parameters a=0.231 s, b=2.507 s, d=0.0152 s, optimum at about 13 workers; the time is within 7% of its minimum for 8 to 16 workers.
+%
+% uvhAssemblyScalingTest.m now also supports thread-based pools: Options.Profile="Threads" (parcluster is not supported for
+% thread-based pools, and the profile of an open pool is now determined with a local function PoolProfile). Results for the larger
+% Greenland mesh with a thread-based pool: the transfer of the Jacobian to the client is about 10 times cheaper than with processes
+% (0.01 s instead of 0.13-0.17 s), and with few workers the thread workers are faster (they use implicit multithreading), but beyond
+% about 8 workers they compete for the cores of the one process and the time increases again (1 worker 1.81 s, 4: 0.75 s, 8: 0.70 s,
+% 16: 1.29 s; model a=0.072 s, b=1.732 s, d=0.0658 s). 4 workers recommended, estimated reduction of the time per Newton-Raphson
+% iteration 21% (process-based pool: 9 or 10 workers, 22%).
+%
+% Also checked: MATLAB decomposition objects can not be passed to or from the workers of either process-based or thread-based pools
+% (they are serialised, and arrive as the decomposition of an empty matrix), but they can be computed and used on the workers, eg within
+% an spmd block (kept as a Composite), or with parallel.pool.Constant(@() decomposition(A)). The parallel uvh assembly is not affected.
+% See the section "Process-based and thread-based pools" of the chapter on the parallel assembly in the Ua Compendium.
+%
 % uvhMatrixAssemblySSTREAM_SPMD.m has a new optional fifth output, Timing, with the times of the parts of the parallel assembly
 % (fingerprint, sending changed inputs, the spmd block, the longest time on a worker, the transfer of the results, total). It is used by
 % uvhAssemblyScalingTest.m. Without the fifth output the behaviour is unchanged.
