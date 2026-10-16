@@ -1,6 +1,6 @@
 
 
-function [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssemblySSTREAM_SPMD(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
+function [UserVar,RunInfo,Ruvh,Kuvh,Timing]=uvhMatrixAssemblySSTREAM_SPMD(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
 %% uvh assembly in parallel, using spmd over sub-domains (the elements are distributed over the workers, see BuildMuaWorkers.m)
 %
@@ -21,9 +21,16 @@ function [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssemblySSTREAM_SPMD(UserVar,RunIn
 %
 % The results are identical to those of the serial assembly (uvhMatrixAssembly.m) to round-off.
 %
+% (16 Oct 2026) The optional fifth output, Timing, gives the times (in seconds) of the parts of the assembly: Fingerprint (detecting changes
+% of the inputs), Send (sending changed inputs to the workers), SendAll (true if F0 and F1 were sent), Spmd (the spmd block), Workers (the
+% longest time on a worker within the spmd block, including the summation), Fetch (transfer of the results to the client) and Total.
+% It is used by uvhAssemblyScalingTest.m. Without a parallel pool, Timing.Parallel=false and only Timing.Total is set.
+%
 %%
 
 narginchk(8,8)
+Timing=struct("Parallel",false,"Fingerprint",0,"Send",0,"SendAll",false,"Spmd",0,"Workers",NaN,"Fetch",0,"Total",0) ;
+tTotal=tic ;
 
 persistent W   % data kept on the workers between calls (Composites), with the fingerprints and copies used to detect changes
 
@@ -45,8 +52,9 @@ else
     Changing=["ub","vb","h","b","s"] ;
 
     % send F0 and F1 to the workers if anything else has changed since the last call
-    Key=StaticFingerprint(MUA,F0,F1,Changing,nW) ;
+    t0=tic ; Key=StaticFingerprint(MUA,F0,F1,Changing,nW) ; Timing.Fingerprint=toc(t0) ; Timing.Parallel=true ;
     SendAll = isempty(W) || ~isequal(W.Key,Key) || ~isvalid(W.Pool) || W.Pool~=ParPool ;
+    Timing.SendAll=SendAll ; t0=tic ;
     if SendAll
         F0all=F0 ; F1all=F1 ;
         spmd (nW)
@@ -70,12 +78,15 @@ else
         W.BCw=BCw ; W.BCs1=BCs1 ;
     end
 
+    Timing.Send=toc(t0) ;
     V=struct() ;
     for f=Changing ; V.(f)=F1.(f) ; end
     UMA=CtrlVar.uvhMatrixAssembly ;
     F0w=W.F0 ; F1w=W.F1 ; RIw=W.RunInfo ; CRw=W.CRw ; UVw=W.UVw ; BCw=W.BCw ;
 
+    t0=tic ;
     spmd (nW)
+        tw0=tic ;
         F1loc=F1w ;
         fn=fieldnames(V) ;
         for i=1:numel(fn) ; F1loc.(fn{i})=V.(fn{i}) ; end
@@ -83,15 +94,22 @@ else
         [~,~,rr,kk]=uvhMatrixAssembly(UVw,RIw,CtrlVarLoc,MUAworkers,F0w,F1loc,[],BCw);   % l1 is not used in the assembly
         rrsum = spmdPlus(rr,1);
         kksum = spmdPlus(kk,1);
+        tw=toc(tw0) ;
     end
+    Timing.Spmd=toc(t0) ;
+    if nargout>=5 ; Timing.Workers=max([tw{:}]) ; end
+    t0=tic ;
 
     % rrsum and kksum are composites
     % Ruvh and Kuvh are double sparse
 
     Ruvh=rrsum{1};
     Kuvh=kksum{1};
+    Timing.Fetch=toc(t0) ;
 
 end
+
+Timing.Total=toc(tTotal) ;
 
 end
 

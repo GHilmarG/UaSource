@@ -123,7 +123,7 @@ slope0=dJdp'*Gd;
 GradNorm=sqrt(sGs); 
 %% Make sure the RunInfo field is OK and properly set
 
-if isempty(RunInfo) ||  ~isfield(RunInfo,'Inverse') || numel(RunInfo.Inverse.Iterations)<=1
+if isempty(RunInfo) ||  ~isfield(RunInfo.Inverse,"Iterations") || numel(RunInfo.Inverse.Iterations)<=1
     RunInfo.Inverse.Iterations(1)=0;
     RunInfo.Inverse.J(1)=J0;
 

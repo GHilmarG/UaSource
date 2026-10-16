@@ -4,6 +4,24 @@
 % 
 % *Change Log* _October 2026_
 %
+% * New function uvhAssemblyScalingTest.m: performance of the parallel uvh assembly on a given computer (16 October 2026):
+%
+% For a model state, read from a file saved with CtrlVar.uvhSaveNewtonSystem.Save=true or from a restart file, the function times the
+% serial uvh assembly with different numbers of threads, the solution of the linear system, and the parallel (spmd) assembly with
+% different numbers of workers (default 1, 2, 4, 8, 12, ... up to the number of cores). It fits the model T(n)=a+b/n+d*n to the times of
+% the parallel assembly, and recommends either the parallel assembly with the smallest number of workers for which the time is within 5%
+% of the smallest time, or the serial assembly if the parallel one is not faster. It also estimates the reduction of the time per
+% Newton-Raphson iteration. Parallel pools opened by the function are closed at the end, and a pool that was open before is restored.
+%   Results=uvhAssemblyScalingTest("RestartFile.mat") ;
+%
+% Tests: Greenland (25,095 nodes, 16 cores): 8 workers recommended, assembly 2.7 times faster than the best serial assembly, estimated
+% reduction of the time per Newton-Raphson iteration 27%. Thule (5,995 nodes): serial assembly recommended (the parallel assembly of the
+% residual only is slower than the serial one, and the full assembly only slightly faster).
+%
+% uvhMatrixAssemblySSTREAM_SPMD.m has a new optional fifth output, Timing, with the times of the parts of the parallel assembly
+% (fingerprint, sending changed inputs, the spmd block, the longest time on a worker, the transfer of the results, total). It is used by
+% uvhAssemblyScalingTest.m. Without the fifth output the behaviour is unchanged.
+%
 % * Parallel (spmd) uvh assembly: overheads reduced (16 October 2026):
 %
 % uvhMatrixAssemblySSTREAM_SPMD.m (used if CtrlVar.Parallel.uvhAssembly.spmd.isOn=true and a parallel pool is open) has been revised.
@@ -26,6 +44,20 @@
 % agreeing to 1e-12 (round-off, different summation order). Tested also with remeshing (Thule, 5 remeshings in 20 time steps): identical
 % meshes and results agreeing to round-off. For small meshes the parallel assembly does not pay off: Thule with about 12,000 elements and
 % 4 workers was 10% slower than with the serial assembly.
+%
+% Scaling with the number of workers (otherwise idle computer with 16 cores, same Greenland model): full assembly 1.25 s with 1 worker,
+% 0.64 s (2), 0.44 s (4), 0.32 s (8), 0.31 s (12) and 0.35 s (16); residual only 0.48 s (1) to 0.17 s (8). The serial assembly benefits
+% from implicit multithreading only up to about 4 threads (1.12 s with 1 thread, 0.73 s with 4, no further gain with 8 or 16). The
+% measured times are described by T(n)=a+b/n+d*n with a=0.073 s (mainly the transfer of the Jacobian to the client), b=1.154 s (the
+% assembly, divided between the workers) and d=0.0126 s (data sent to each worker, summation over the workers, competition for cores
+% and memory bandwidth), with an optimum at about 10 workers (speed-up of about 2.3 compared with the best serial assembly). See the
+% chapter "Parallel assembly of the uvh system: performance and scaling" in the Ua Compendium.
+%
+% Possible further improvements (not implemented): sending each worker only the values at the nodes of its own elements, so that the
+% total amount of data sent no longer grows with the number of workers, and collecting the contributions of the workers on a fixed
+% global sparsity pattern instead of summing sparse matrices. Estimated to reduce the full assembly with the optimal number of workers
+% from about 0.31 s to about 0.2-0.25 s, and to shift the optimum to more workers; about 5% of the time of a Newton-Raphson iteration on
+% a computer with 16 cores.
 %
 % * Testing the Jacobian of the uvh system (15 October 2026):
 %
