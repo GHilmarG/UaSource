@@ -2,13 +2,112 @@
 
 %%
 % 
+% *Release Notes* _October 2026_
+%
+% * Grounding-line plots now based on h-h_{gl}, ie thickness minus grounding line thickness, rather than the flotation mask.
+% Thanks to Deborah Rhee for this suggestion. The grounding lines may now look a bit smoother. (Note that the grounding line
+% position itself is never used in the code when finding the solutions.)
+%
+% * Default for the positive-thickness constraints: active set on, and thickness penalty off.
+%
+%   CtrlVar.ThicknessConstraints=true;
+%   CtrlVar.ThicknessPenalty=false;
+%
+%
+% * Active-set method:
+% 
+% Various changes were made to the active-set iteration to make it less prone to cycling and unnecessary and temporary
+% release and activation of constraints. The active-set is not considerably more likely to converge in 1 to 3 iterations and
+% often no updates are required. 
+%
+%
+% * Explicit estimate:
+%
+% Explicit estimate is now, by default, only done for h. Boundary behavior related to level-set and min ice thickness are
+% more robust. 
+%
+%
+% * Reactions of the thickness constraints as an output:
+%
+% The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per
+% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time
+% step from the discrete reactions of the constraints, and includes all thickness constraints: the active set (h>=ThickMin), the
+% level-set constraints downstream of calving fronts, and user-defined thickness boundary conditions. In addition, the total rates at
+% which mass is added and removed by the constraints (units of mass per time, eg kg/yr) are stored for each time step in
+% RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for
+% example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to
+% the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by
+% the constraints (tested to round-off in the Thule example). 
+%
+%
+% * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):
+%
+% Two changes to the active-set method are now the default:
+%
+%   CtrlVar.ActiveSet.PredictiveActivation=true;   % (previously not available)
+%   CtrlVar.ActiveSet.ReleaseAlpha=1e-3;            % (previously 0)
+%
+% With predictive activation, nodes where the explicit estimate of the ice thickness at the end of the time step is at or below ThickMin
+% (while the thickness at the start of the time step is above ThickMin) are added to the active set at the start of the time step.
+% Previously, such nodes were only activated after the first uvh solve of the time step, which then always required a further solve. An
+% optional margin can be set through CtrlVar.ActiveSet.PredictiveActivationMargin (default 0).
+%
+% With ReleaseAlpha>0, a constrained node is only released if the ice there would, without the constraint, thicken by more than
+% ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0, nodes were released as soon as their multiplier had the wrong sign. In
+% some applications (eg Greenland) many of these releases are of nodes in ice-free areas whose multipliers are only negative at round-off
+% level (relative thickness gains of order 1e-8), and many of these nodes immediately fell below ThickMin again, requiring further
+% active-set iterations. 
+%
+%
+% * The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter
+% will therefore generally use larger time steps than before. To obtain the previous behaviour, set
+% CtrlVar.ATSTargetIterations=4.
+%
+%
+% * Estimate of the time-discretisation error of the ice thickness (10 October 2026):
+%
+% If CtrlVar.TimeDiscretisationErrorEstimate.Use=true, the local time-discretisation error of h is estimated in each time step
+% (TimeDiscretisationErrorEstimate.m). This is a predictor-corrector estimate, comparing the second-order explicit estimate of h with the
+% computed (implicit, theta=0.5) solution, and is only available for theta=0.5. The estimate is in units of h (ie m), and is the error
+% committed in that time step. It is stored as a nodal field in F.hTimeDiscretisationErrorEstimate, and norms of it are stored as time series
+% in RunInfo.Forward (hTimeDiscretisationErrorRMS, ..Max, ..Volume, ..ValidArea, etc.). Norms are calculated as sqrt(x'*M*x/A) with the
+% consistent mass matrix M, where A is the area over which the estimate is defined.  Optionally, the estimate can be accumulated over a run
+% (CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=true, see F.hTimeDiscretisationErrorAccumulated). The accumulated estimate is an
+% "error budget", ie the sum of the local errors, and not the global error, as errors are transported and may decay.
+%
+%
+% AdaptiveTimeStepping.m is now a driver that selects between two approaches, depending on CtrlVar.AdaptiveTimeSteppingMethod:
+%
+%   "iteration-based" : the time step is based on the number of non-linear iterations (AdaptiveTimeSteppingIterationBased.m). This is the
+%                       previous approach, unchanged, and is the default.
+%   "error-estimate"  : in addition based on the estimated time-discretisation error of h (AdaptiveTimeSteppingWithErrorEstimate.m).
+%
+% With "error-estimate", the time step is chosen such that the estimated local error of h per unit time, scaled by atol+rtol*|h|, is about
+% one, ie dt_new = Safety*dt*q^(-1/2), where q is the scaled error per unit time in the last time step (ATSTimeDiscretisationErrorLimit.m).
+% The time step may then also be increased up to this accuracy-based time step, provided the convergence of the non-linear iterations is
+% acceptable (number of iterations at most CtrlVar.ATSTargetIterations over the last few time steps); otherwise the minimum of the
+% accuracy-based time step and the time step based on the non-linear iterations is used. Integrated over a run of length T, the accumulated
+% local error is then approximately bounded by T*atol (for rtol=0), and the actual error at the end of a run decreases with atol
+% (approximately as atol^0.7 in tests). The time-discretisation error estimate is switched on automatically. Settings, with default values:
+%
+%   CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";      % or "error-estimate"
+%   CtrlVar.ATSTimeDiscretisationError.atol=0.01;               % m/yr; values of about 0.0005 to 0.003 have given good results in tests
+%   CtrlVar.ATSTimeDiscretisationError.rtol=0;                  % 1/yr
+%   CtrlVar.ATSTimeDiscretisationError.StartTime=-inf;          % the accuracy-based time step is only used from this time onwards
+%   CtrlVar.ATSTimeDiscretisationError.Safety=0.85; ...MaxIncrease=2; ...MaxDecrease=5; ...MinValidArea=0.1;
+%   CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true; ...ConvergenceCheckSteps=2;
+%
+% Recommendations: With "error-estimate", CtrlVar.ATSTargetIterations can be set to about 7 to 10, as the accuracy is then controlled
+% separately.
+%
+%
 % *Release Notes* _September 2026_
 %
 % * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.
 % Gradients used in optimisation are Sobolov gradients with respect to a metric defined by the explicit Hessians of the
 % regularization part. Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and
 % simplified. This may possibly require some changes in input files. Box constraints in inversion can be implemented using
-% two-sided variable transform. UaHessinan inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.
+% two-sided variable transform. UaHessian inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.
 %
 %
 % *  UK spelling used for `Optimisation' 
@@ -18,8 +117,8 @@
 %
 % * For the -uvh- solve, two normalization of the residuals are now available, selected by
 %
-%    CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
-%                                     = "blockwise"
+%    CtrlVar.uvhResidualNormalisation = "pooled"    (older approach)
+%                                     = "blockwise" (new default approach)
 %
 % The new blockwise normalization option is selected by setting 
 %
@@ -46,6 +145,7 @@
 %   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
 %
 % (Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)
+% (No longer the case since 9 October 2026, K is again a rate. See the October 2026 release notes.)
 %
 % *Release Notes* _July 2026_
 %

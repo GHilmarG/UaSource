@@ -187,6 +187,23 @@ end
 %%
 
 
+[isA,isB,isC] = isABC(CtrlVar);
+
+
+if isB
+
+
+    if     CtrlVar.Inverse.MinimisationMethod=="-UaOptimisation-HessianBased-"
+
+        fprintf("\t    B inversion can not be performed for CtrlVar.Inverse.MinimisationMethod=='-UaOptimisation-HessianBased-' \n")
+        fprintf("\t For Hessian-based inversion use insted: CtrlVar.Inverse.MinimisationMethod='-MatlbaOptimisation-HessianBased-' \n")
+        fprintf("\t Gradient-based inversion can be done using both Ua and Matlab optimisation.\n")
+        error("InvertForModelParameters:InvalidParameters")
+
+    end
+
+end
+
 
 if CtrlVar.Inverse.RieszMapGradient
     fprintf(" The Optimisation will use a Riesz-mapped gradient.\n")
@@ -201,14 +218,16 @@ else
 end
 
 if CtrlVar.Inverse.BoxTransform
-    fprintf("Box contraints are implemented through variable transform. \n ")
+    fprintf("  Box contraints are implemented through variable transform. \n ")
+else
+    fprintf("  Box contraint transform not used. \n ")
 end
 %% What inversions are being performed?
 %  And make sure the Matern parameters are all correctly defined
 [CtrlVar] = TikhonovToMaternMapping(CtrlVar,MUA);
 
 %%
-[isA,isB,isC] = isABC(CtrlVar);
+
 
 if isB
     if ~isempty(Meas.Bobs)
@@ -241,7 +260,12 @@ MUA.dG=decomposition(MUA.G);
 % F should always be populated with the fields used at each stage of the inversion, and all the calculations are done using
 % F. Start by populating F with the starting values
 F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+% In a B inversion b, h and GF have just been calculated from s, B and S by InvStartValues2F, using the geometrical closure of Calc_bh_From_sBS.m. Recalculating
+% b and s from h and B with the h-based relation of Calc_bs_From_hBS.m would overwrite b and s within the grounding-line transition zone (so that s would no longer
+% equal Meas.s), and would not be consistent with the closure used at every later step of the inversion (p2F.m). It is therefore not done in a B inversion.
+if ~isB
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+end
 
 
 F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
@@ -281,11 +305,13 @@ F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 
 if CtrlVar.Inverse.BoxTransform
 
+    % The mapping must be done in original physical space, so to set up the mapping box transform and Cholesky mapping must be
+    % (temporarily) disabled. 
     CtrlVarBox=CtrlVar ;
     CtrlVarBox.Inverse.BoxTransform=false ;
     CtrlVarBox.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;
 
-    [pPhysical,BoxLower,BoxUpper]=F2p(CtrlVarBox,MUA,F) ;
+    [pPhysical,BoxLower,BoxUpper]=F2p(CtrlVarBox,MUA,F,Meas) ;
 
     if isempty(BoxLower) || isempty(BoxUpper)
         error('InvertForModelParameters:NoBox',...
@@ -323,7 +349,7 @@ if CtrlVar.Inverse.BoxTransform
 
 end
 
-[p0,plb,pub]=F2p(CtrlVar,MUA,F);
+[p0,plb,pub]=F2p(CtrlVar,MUA,F,Meas);
 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
@@ -390,7 +416,7 @@ dJdpTest=[];
 if CtrlVar.Inverse.TestAdjoint.isTrue
     %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations.
 
-    [J,dJdp,dJdpTest] = TestCorrectnessOfAdjointGradient(func,p0,MUA,CtrlVar,plb,pub);
+    [J,dJdp,dJdpTest] = TestCorrectnessOfAdjointGradient(func,p0,MUA,CtrlVar,plb,pub,F.GF.node);
 
 
 else
@@ -471,83 +497,3 @@ end
 
 
 
-
-
-%%
-function [J,dJdp,dJdpTest] = TestCorrectnessOfAdjointGradient(func,p0,MUA,CtrlVar,plb,pub)
-% Get the gradient using the adjoint method
-%%
-[isA,isB,isC] = isABC(CtrlVar); 
-
-[J,dJdp]=func(p0);
-
-NA=MUA.Nnodes;
-
-% Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
-if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
-    nTests=min(20,numel(p0));    % just test for some random nodes
-    iRange=randi(MUA.Nnodes,nTests,1);
-else
-    iRange=CtrlVar.Inverse.TestAdjoint.iRange;
-end
-
-I=(iRange>=1) & (iRange <= MUA.Nnodes);  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
-iRange=iRange(I);
-
-% if the inversion is done for more than one field, then expand iRange accordingly.
-nBlocks=isA+isB+isC;
-
-switch nBlocks
-    case 2
-        iRange=[iRange(:);iRange(:)+NA];
-    case 3
-        iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
-end
-
-% select a reasonable step size. This could definitely be improved, but the key thing is to use a constant for log and
-% different step size of B compared to a and C.  Here is is also good to try different step sizes for convergence. 
-deltaA=0.0001;
-deltaB=1;
-deltaC=0.001; 
-if isA
-    deltaStepA=deltaA+zeros(MUA.Nnodes,1);
-else
-    deltaStepA=[];
-end
-if isB
-    deltaStepB=deltaB+zeros(MUA.Nnodes,1) ;
-else
-    deltaStepB=[];
-end
-if isC
-    deltaStepC=deltaC+zeros(MUA.Nnodes,1);
-else
-    deltaStepC=[];
-end
-
-deltaStep=[deltaStepA;deltaStepB;deltaStepC];
-
-
-% Gradient calculated using a brute-force finite difference approach
-dJdpTest = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange,deltaStep);
-
-Diff=norm(dJdp(iRange)-dJdpTest(iRange))/norm(dJdp(iRange));
-fprintf("Test Adjoint gradients: Normalized differences between adjoint gradient and FD: %g \n ",Diff)
-
-fig_dJdpTest=FindOrCreateFigure("Test dJdp") ; clf(fig_dJdpTest)
-plot(dJdp(iRange),dJdpTest(iRange),"or") ; axis equal ;
-hold on ;
-plot([min(dJdp(iRange)) max(dJdp(iRange))],[min(dJdp(iRange)) max(dJdp(iRange))],"--k")
-ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; axis on ; axis equal tight ; box off
-xlabel("Adjoint $\partial J/\partial p$ ",Interpreter="latex")  ;
-ylabel("Finite difference $\partial J/\partial p$",Interpreter="latex")
-title("$\partial J/\partial p$ :  "+CtrlVar.Inverse.InvertFor,Interpreter="latex")
-subtitle(sprintf("Normalized diff %g",Diff),Interpreter="latex")
-
-
-drawnow
-
-%%
-
-end
-%%

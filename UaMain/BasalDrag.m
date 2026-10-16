@@ -439,6 +439,9 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
 
 Nouts=nargout ;
 
+% Default values, so that all outputs are always assigned, also if CtrlVar.BasalDrag.CalculateDerivatives is false (for example in residual-only evaluations)
+dtaubxdui=[]; dtaubxdvi=[]; dtaubydui=[]; dtaubydvi=[]; dtaubxdhi=[]; dtaubydhi=[];
+
 
 speed=sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2) ;
 Tau=muk.*N ;  % muk rho g (h-hf)
@@ -522,7 +525,7 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
 %
 % dtaux/du = G N^(q/m) (beta2 + u dbeta2/du)
 %
-% dtaux/dh= G (q/m) N^(q/m-1) dN/dh  beta2 u  + dG/dh G  N^(q/m) beta2 u
+% dtaux/dh= G (q/m) N^(q/m-1) dN/dh  beta2 u  + dG/dh  N^(q/m) beta2 u
 %
 
 Nouts=nargout ;
@@ -547,7 +550,7 @@ if Nouts > 2   &&  CtrlVar.BasalDrag.CalculateDerivatives
     %
     %
 
-    E=delta.*T+He.*qm.*N.^(qm-1).*dNdh.*beta2i ;
+    E=delta.*Nqm.*beta2i+He.*qm.*N.^(qm-1).*dNdh.*beta2i ;
 
     dtaubxdhi=  E.*ub;
     dtaubydhi=  E.*vb;

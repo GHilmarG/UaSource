@@ -1,11 +1,17 @@
 
 function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hint)
 
+persistent WarnedAboutPenaltyWidth
+
 %%
 % Calculates additional mass-balance term based on if ice thickness is below min ice thickness. This can be thought of as a
-% penalty term. It is only applied if the ice thickness is below:
+% penalty term. It is only applied if the ice thickness is below hmin, where for the polynomial and the exponential options
 %
-%   hmin=CtrlVar.ThickMin ;
+%   hmin=2*CtrlVar.ThickMin ;
+%
+% and for the SoftPlus option (the default option, see below)
+%
+%   hmin=CtrlVar.ThickMin+delta,  delta=max(CtrlVar.ThickMin,CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs)
 %
 % This option is used in the -uvh- and the -h- solvers, and can be activated by setting:
 %
@@ -60,11 +66,16 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 %   K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K;
 %   l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
 %
-% Typical values might be:
+% K is a rate (units 1/time). If l is not set (default l=NaN), it is calculated at runtime as l=lRel*delta. The default values are:
 %
 %  CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="softplus";
-%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=10;
-%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin ;
+%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;     % 1/time
+%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=NaN;     % ie l=lRel*delta
+%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel=0.1;
+%  CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
+%
+% At h=ThickMin the penalty is then in its linear range and supplies a mass-balance rate of about K*delta. A node is held above
+% ThickMin by the penalty alone if theta*K*delta > |a|max (theta=CtrlVar.theta), otherwise the active set takes over.
 %
 %
 %
@@ -73,7 +84,7 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 
 switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 
-    case "polynomical"
+    case "polynomial"
 
         %% Polynomial barrier
         hmin=2*CtrlVar.ThickMin ;
@@ -87,7 +98,7 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         %PenaltyMask1=hint<hmin ;
         k=10000/hmin;
         PenaltyMask1 = HeavisideApprox(k,hmin,hint) ;
-        dPenaltyMask1dh = DiracDelta(k,hmin,hint) ;
+        dPenaltyMask1dh = -DiracDelta(k,hmin,hint) ;
 
         % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
 
@@ -100,42 +111,45 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         %% exponential barrier
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l;
-        hmin=CtrlVar.ThickMin ;
-        %K=10; l=hmin/10 ;
+        hmin=2*CtrlVar.ThickMin ;
         aPenalty1=K*exp(-(hint-hmin)/l);
-        daPenaltydh1=-K*exp(-(hint-hmin))/l;
+        daPenaltydh1=-K*exp(-(hint-hmin)/l)/l;
 
 
     case "softplus"
         %% Softplus
 
-        % note: Here K is scaled with dt. This change was done on 31 August, 2026
-        % It ensures that the penalty term is equal "per iteration" and makes sure
-        % it does its job even if dt goes down.  Otherwise, exactly when we have convergence issue due to small/negative ice
-        % thickness, and the time step therefore goes down (due to automated selection of dt within the time stepping) the penalty
-        % term goes to zero and does not help at all.
-        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K/(CtrlVar.dt+eps(CtrlVar.dt)) ;
-        
+        % (9 Oct 2026) The penalty is a mass-balance rate, ie K has units of 1/time. Between 31 Aug and 9 Oct 2026, K was scaled with
+        % 1/dt, making the penalty a per-time-step term that changes the thickness by a dt-independent amount in each time step. As a
+        % consequence the discrete solution had no limit for dt->0, the number of Newton iterations did not decrease for small dt,
+        % and the automated time stepping could drive dt to very small values. This scaling has been removed. When dt is small, the
+        % active set (thickness constraints) does the work that the per-time-step penalty was intended to do. A node is held above
+        % ThickMin by the penalty alone if theta*K*delta > |a|max, see Ua2D_DefaultParameters.
+
+        % Modification (8 Oct 2026): penalty centred a distance delta above ThickMin,
+        % delta=max(ThickMin,deltaAbs). For ThickMin>=deltaAbs this is the previous hmin=2*ThickMin,
+        % but it does not collapse to hmin=0 for ThickMin=0.
+        if isfield(CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus,"deltaAbs") ; deltaAbs=CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs ; else ; deltaAbs=0.1 ; end
+        hmin=CtrlVar.ThickMin+max(CtrlVar.ThickMin,deltaAbs) ;
+
+        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K ;   % a rate, units 1/time
+        % (9 Oct 2026) The smoothing distance l is calculated at runtime from delta, l=lRel*delta, unless it has been set explicitly
+        % (default l=NaN). With lRel=0.1 the penalty is in its linear range at h=ThickMin, ie (hmin-ThickMin)/l=10, and it only affects
+        % the thickness in a narrow band above ThickMin.
+        delta=max(CtrlVar.ThickMin,deltaAbs) ;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
-        hmin=CtrlVar.ThickMin ;
+        if isempty(l) || isnan(l)
+            lRel=0.1 ;
+            if isfield(CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus,"lRel") ; lRel=CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel ; end
+            l=lRel*delta ;
+        elseif l>delta/2 && isempty(WarnedAboutPenaltyWidth)
+            warning("ThicknessPenaltyMassBalanceFeedback:Width",...
+                "CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=%g is larger than delta/2=%g, where delta=max(ThickMin,deltaAbs). The penalty is then not in its linear range at h=ThickMin, and its capacity differs from K*delta. Consider l=0.1*delta, or leave l unset (NaN) so that it is calculated as lRel*delta.",l,delta/2)
+            WarnedAboutPenaltyWidth=true;
+        end
+
         k=1/(2*l);
 
-
-        % E=exp(-(hint-hmin)/l);
-        % SoftMinus=K*log(1+E);
-        % dSoftMinusdh=(-K/l)./ (1./E+1);
-        %
-
-        % E=exp(-2*k*(hint-hmin));
-        % SoftMinus=(K/(2*k)) * log(1+E);
-        % dSoftMinusdh=-K./(1+1./E );
-        %
-        %
-        % aPenalty1=SoftMinus;
-        % daPenaltydh1=dSoftMinusdh;
-
-        %
-        % k=1/l ;
         [aPlus,daPlusdh] = SoftPlus(k,-hint,-hmin);
         aPenalty1=K*aPlus;
         daPenaltydh1=-K*daPlusdh ; % don't forget the outer derivative, because the input to SoftPlus is -hint and not +hint
@@ -159,32 +173,39 @@ if CtrlVar.InfoLevelThickMin >= 10
         Fig=FindOrCreateFigure("a penalty versus ice thickness") ; clf(Fig)
 
         yyaxis left ;
-        plot(hint,aPenalty1,".b") ;
+        plot(hint,aPenalty1,".b",DisplayName="$a_{\mathrm{penalty}}$")
         ylabel("a Penalty")
         hold on ;
 
         yyaxis right ;
-        plot(hint,daPenaltydh1,".r") ; ylabel("da/dh")
+        plot(hint,daPenaltydh1,".r",DisplayName="$da_{\mathrm{penalty}}/dh$")
+        ylabel("da/dh")
 
-        xlim([min(0,min(hint)) 5*hmin]) ;
+        xrange=[min(0,min(hint)) 5*hmin];
+        if xrange(1)==xrange(2)
+            xrange(1)=hmin-1;
+            xrange(2)=hmin+1; 
+        end
+        xlim(xrange) ;
         xlabel("hint") ;
         title("a penalty") ;
-        xline(hmin,"--k","hmin") ;
+        xline(hmin,"--k","hmin",DisplayName="$h_{\mathrm{min}$")
         %ylim([-K/l 0])
 
 
         switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 
             case "softplus"
-                hExample=linspace(min(min(hint,-CtrlVar.ThickMin)),5*CtrlVar.ThickMin) ;
+                hExample=linspace(xrange(1),xrange(2)) ;
 
                 % k=1/l ;
                 [aPlusExample,daPlusdhExample] = SoftPlus(k,-hExample,-hmin);
                 aPlusExample=K*aPlusExample;
                 daPlusdhExample=-K*daPlusdhExample ; %
         end
-        hold on ; yyaxis left ; plot(hExample,aPlusExample,"--")
-        hold on ; yyaxis right ; plot(hExample,daPlusdhExample,"--")
+        hold on ; yyaxis left ; plot(hExample,aPlusExample,"--",DisplayName="$a_{\mathrm{penalty}}$ curve")
+        hold on ; yyaxis right ; plot(hExample,daPlusdhExample,"--",DisplayName="$da_{\mathrm{penalty}}/dh$ curve")
+        lg=legend(Interpreter="latex"); 
         %%
     end
 

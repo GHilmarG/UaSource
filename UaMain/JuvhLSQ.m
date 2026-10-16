@@ -85,14 +85,8 @@ rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
 % rForce=full(rForce) ;
 %%
 
-switch CtrlVar.uvhMinimisationQuantity
-    case "Force Residuals"
-        r=rForce;
-    case "Work Residuals"
-        r=rWork;
-    otherwise
-        error("CalcCostFunctionNRuvh:CaseNotFound","case not found")
-end
+% (15 Oct 2026) The force residual is always used (the option CtrlVar.uvhMinimisationQuantity has been removed).
+r=rForce;
 
 %     if nargout>=7
 %         Inodes=[];

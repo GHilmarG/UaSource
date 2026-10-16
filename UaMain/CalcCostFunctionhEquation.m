@@ -4,11 +4,15 @@
 
 
 
-function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dh,dl)
+function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dh,dl,BCs1)
 
 
 
-narginchk(12,12)
+narginchk(12,13)
+
+if nargin<13
+    BCs1=[];   % BCs1 is only used to exclude h-constrained nodes from the thickness penalty
+end
 nargoutchk(1,6)
 
 
@@ -25,7 +29,7 @@ l=l+gamma*dl;
  %[UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1); % actually this call only needed if mass-balance depends on h
 
 % Only here evaluating the right-hand side of the equation, is the J(x0+ gamma dx)
-[UserVar,R]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+[UserVar,R]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,BCs1) ;
 
 
 if ~isempty(L)

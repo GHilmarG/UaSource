@@ -316,7 +316,7 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 
 %% Plotting
 %
-% Most plotting is typically done by the user using his own version of the m-file 
+% Most plotting is typically done by the user using his/her own version of the m-file 
 %
 %   DefineOutputs.m
 %
@@ -333,7 +333,8 @@ CtrlVar.PlotOceanLakeNodes=0;        % Shows which nodes are considered a part o
 CtrlVar.PlotMeltNodes=0;
 
                            % (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)
-CtrlVar.PlotsXaxisLabel='x' ; CtrlVar.PlotsYaxisLabel='y' ; %
+CtrlVar.PlotsXaxisLabel="x" ; 
+CtrlVar.PlotsYaxisLabel="y" ; %
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smaller speed are scaled so that their speed its
                                             % equal to this value  (setting this to a large value makes all arrows
                                             % equally long)
@@ -394,7 +395,6 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
-CtrlVar.hTheta=0.5;
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
 % It has not been fully tested but seems to work very well for fully implicit transient calculation.
 % This option that can be obtained by setting:
@@ -422,8 +422,23 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
-CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % ["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
-CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
+CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-thickness-only-" ; % ["-Adams-Bashforth-","-Adams-Bashforth-thickness-only-","-dhdt-","-no extrapolation-"] ;
+                                                                          % (12 Oct 2026) default changed from "-Adams-Bashforth-" to "-Adams-Bashforth-thickness-only-":
+                                                                          % the thickness is extrapolated, the velocities start from their values at the start of the time step.
+                                                                          % In tests this reduced the number of non-linear iterations by 12-23% at the same time steps.
+
+% (10 Oct 2026) Estimate of the local time-discretisation error of the ice thickness in each time step, see TimeDiscretisationErrorEstimate.m.
+% If used, F.hTimeDiscretisationErrorEstimate holds the estimate (a nodal field, in m), and norms are stored as time series in RunInfo.Forward.
+% atol and rtol are only used in the scaled norm (rms of e./(atol+rtol*|h|)). Only available for theta=0.5.
+CtrlVar.TimeDiscretisationErrorEstimate.Use=false;
+CtrlVar.TimeDiscretisationErrorEstimate.atol=1;        % m
+CtrlVar.TimeDiscretisationErrorEstimate.rtol=1e-3;
+CtrlVar.TimeDiscretisationErrorEstimate.InfoLevel=1;   % if >=1, one line with the estimate is printed in each time step
+CtrlVar.TimeDiscretisationErrorEstimate.MaskBand="switched";   % ["switched","active"]: the estimate is not used next to nodes whose constraint state
+                                                                % changed within the last three time steps ("switched"), or next to all active nodes ("active")
+CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=false;                  % if true, the estimate is also accumulated over time steps in F.hTimeDiscretisationErrorAccumulated
+CtrlVar.TimeDiscretisationErrorEstimate.ResetAccumulatedAtRestart=false;   % if true, the accumulated estimate is reset at a restart (otherwise it is continued)
+CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-Adams-Bashforth-thickness-only-","-dhdt-","-no extrapolation-"] ;
 
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
@@ -510,7 +525,25 @@ CtrlVar.AGlenminWidthRelative = 1e-10 ;
 %
 
 
-%% uvh Convergence criteria
+%% uvh Solver and Convergence criteria
+% The default uvh solver approach is to use Newton iteration. As there is no natural cost function of the uvh problem, this
+% is not a minimization problem, but a root-finding problem. This option is selected by setting
+%
+%   CtrlVar.uvhSolver="Root-Finding Newton";  
+%
+% It is also possible to reformulate the problem as a Gauss-Newton problem, whereby the residuals are minimized in at
+% least-squares sense. This is a proper minimisation problem with a natural cost function. This second option can be selected
+% by setting
+%
+%   CtrlVar.uvhSolver="uvh_GaussNewton_fsolve";
+%
+% This minimisation problem is then solved using functions from the MATLAB minimisation toolbox. For some reason (We have
+% some ideas as to why this is) this approach is much slower, and therefore should not be used. 
+%
+
+CtrlVar.uvhSolver="Root-Finding Newton";  %  {"Root-Finding Newton","uvh_GaussNewton_fsolve"}
+
+
 % The non-linear uvh/uv loops are considered to have converged if:
 %
 %  1) Work and Force tolerances are both less than: 
@@ -524,6 +557,12 @@ CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 % while at the same time these Work and Force tolerances also fulfilled:
 CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  % both of those must be fulfilled
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one of those
+
+% 3) If the uvh iteration has stalled (stagnation, failed backtracking or too many iterations) with rForce above the desired force
+% tolerance, but below this value, then the time step is not reduced. If thickness constraints are used, the active set is
+% updated and the iteration is continued from the current iterate with the same time step. The time step is reduced only if
+% the residual is above this value, or if the active set can not be changed.
+CtrlVar.uvhStalledForceTolerance=1e-6;
 
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
@@ -539,11 +578,10 @@ CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 CtrlVar.hSolverMaxIterations=50;
 
-CtrlVar.uv2h.uvTolerance=1e-5; % this is the tolerance in the change of the uv solution 
-                               % when solving the transient problem semi-implicitly, 
-                               % ie. when using CtrlVar.ForwardTimeIntegration="-uv-h-" 
-                               %
-                               % This is the norm of the changes in the velocity solve (actually the square of the norm).
+% (8 Oct 2026) The convergence of the outer iteration of the semi-implicit -uv-h- solver (CtrlVar.ForwardTimeIntegration="-uv-h-")
+% is judged using the same cost function and the same tolerances as for the implicit -uvh- solver, ie
+% CtrlVar.uvhDesiredWorkAndForceTolerances and CtrlVar.uvhDesiredWorkOrForceTolerances (see uvhResidualsCriteria.m).
+% The previous parameter CtrlVar.uv2h.uvTolerance is no longer used.
 
 CtrlVar.uv2h.MaxIterations=15; % The maximum number of (outer) iterations in the semi-implicit -uv-h- solver
                                % The  -uv-h- solver solves for uv and h repeatedly. The iterations required for the uv solve and the h solver are referred
@@ -558,8 +596,21 @@ CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
 
 
 
-CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implicitly for u, v, and h
-CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implicitly for velocities.
+% (15 Oct 2026) CtrlVar.uvhMinimisationQuantity and CtrlVar.uvMinimisationQuantity have been removed. The uv and uvh solvers always use the force
+% residual as the merit function in the line search (NewtonLineSearch.m). The work residual is still calculated and used in the convergence criteria.
+%% Line search of the uv and uvh Newton-Raphson solvers (NewtonLineSearch.m, 15 Oct 2026)
+CtrlVar.NewtonLineSearch.Method="rLineminUa3";         % line search of the uv and uvh Newton-Raphson solvers: "rLineminUa3" (logic of the previous rLineminUa2.m,
+                                                    % without unnecessary evaluations of the residual), "NewtonLineSearch" (backtracking with the Armijo condition, see
+                                                    % NewtonLineSearch.m; the following parameters apply to this method only), or "rLineminUa2" (previous implementation).
+CtrlVar.NewtonLineSearch.ArmijoParameter=0.25;      % a step gamma is accepted if r(gamma) <= r(0)+ArmijoParameter*gamma*slope(0) (Armijo condition).
+                                                    % With slope(0)=-2 r(0), 0.25 requires the full step to halve r. (1e-4 resulted in more iterations.)
+CtrlVar.NewtonLineSearch.GammaMin=1e-3;             % smallest step length tried
+CtrlVar.NewtonLineSearch.MaxBacktrackingSteps=15;   % maximum number of backtracking steps
+CtrlVar.NewtonLineSearch.Extrapolation=false;       % if true, step lengths larger than one are tried if the full Newton step gives a large reduction
+CtrlVar.NewtonLineSearch.MaxExtrapolationSteps=3;   % maximum number of extrapolation steps
+CtrlVar.NewtonLineSearch.ExtrapolationFactor=2;     % factor by which the step length is increased in each extrapolation step
+CtrlVar.NewtonLineSearch.RefinementSteps=2;         % after backtracking, at most this number of refinement steps (minimum of a parabola) are done, 0 for none
+CtrlVar.NewtonLineSearch.RefinementRatio=0.5;       % a further refinement step is only done if the previous one reduced r at least by this factor
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implicitly for h
 CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
@@ -570,21 +621,34 @@ CtrlVar.LSFMinimisationQuantity="Force Residuals";
 
 
 CtrlVar.uvhResidualNormalisation="blockwise";   % the new blockwise uvh-residual calculation
+CtrlVar.uvhResidualRoundOffFloorFactor=1;       % (8 Oct 2026) Factor c in the estimate of the round-off floor of rForce, see
+                                                % uvhResidualRoundOffFloor.m. The force tolerances are replaced by max(tolerance,floor),
+                                                % because for small time steps the floor (which grows as 1/dt^2) can exceed the tolerance.
+CtrlVar.uvhResidualNormalisationTauFloor=0.01;  % (8 Oct 2026) Floor, in units of stress (kPa), on the normalisation of the uv residuals
+                                                % when CtrlVar.uvhResidualNormalisation="blockwise". The uv reference scale is
+                                                % max(actual, tauFloor*sqrt(2)*||M*1||), where M is the mass matrix, so that it does not
+                                                % vanish for h=0 and/or zero surface slope. Should be small compared to typical stresses.
+                                                % This number may need to be changed if one is using different physical units, however this only kicks in if thickness is
+                                                % very small, or zero, so it is unlikely that this number is otherwise of any importance. 
 
-CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
-CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.hMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvhResidualNormalisation=["lumped","blockwise"]; 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
-CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
 CtrlVar.Tracer.SUPG.tau="taus";
 
 CtrlVar.uvh.SUPG.tauMultiplier=1 ; 
-CtrlVar.h.SUPG.tauMultiplier=1 ; 
 CtrlVar.Tracer.SUPG.tauMultiplier=1 ; 
 
+% Options related to the Gauss-Newton formulation:
+CtrlVar.uvhFsolve.CheckGradients=false;
+CtrlVar.uvhFsolve.Display="iter";
+
+CtrlVar.uvhFsolve.MaxIterations=150;
+CtrlVar.uvhFsolve.StepTolerance=1e-12 ;
+CtrlVar.uvhFsolve.OptimalityTolerance=1e-20;          % fsolve's first-order optimality is absolute and depends on the scaling of J, so it is not used as the main stopping criterion
+CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhDesiredWorkAndForceTolerances(2). Convergence if norm(f)^2 is below this value
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
 % When solving the non-linear system (forward model) the recommended option is is
@@ -610,8 +674,27 @@ CtrlVar.Tracer.SUPG.tauMultiplier=1 ;
 CtrlVar.NR=1;                             % 1 gives Newton-Raphson (use Newton-Raphson whenever possible)
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, always a positive integer number.
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; % fractional reduction forcing an update
-CtrlVar.ModifiedNRuvhIntervalCriterion=1;  
-CtrlVar.ModifiedNRuvhReductionCriterion=0.5;
+% (15 Oct 2026) Reuse of the Jacobian (modified Newton) in the uvh solver. Unlike the classical modified Newton method, the Jacobian and its
+% decomposition are only reused in the final iterations of a solve, once the previous step was a full Newton step that reduced the residual by
+% at least the factor ModifiedNRuvhReductionCriterion (ie in the region of quadratic convergence). A step with the reused Jacobian is only
+% accepted if it reduces the residual by at least the factor ModifiedNRuvhAcceptCriterion, or meets the convergence criteria; otherwise a full
+% Newton step is done instead. ModifiedNRuvhIntervalCriterion is the maximum number of Newton steps with the same Jacobian (1: always update,
+% ie off; 2: at most one step with the reused Jacobian after each update; etc).
+CtrlVar.ModifiedNRuvhIntervalCriterion=1;
+CtrlVar.ModifiedNRuvhReductionCriterion=1e-2;
+CtrlVar.ModifiedNRuvhAcceptCriterion=0.1;
+
+%% (15 Oct 2026) Saving the state of uvh Newton-Raphson iterations, and testing the Jacobian (see SaveuvhNewtonState.m and TestuvhJacobian.m)
+CtrlVar.uvhSaveNewtonSystem.Save=false;                  % if true, the state of selected Newton-Raphson iterations is saved to a file, so that the
+                                                         % Jacobian can be tested afterwards with TestuvhJacobian(FileName)
+CtrlVar.uvhSaveNewtonSystem.Iterations=[1 2 3];          % Newton-Raphson iterations (within each uvh solve) to be saved ([] for all)
+CtrlVar.uvhSaveNewtonSystem.RunSteps=[];                 % run steps in which states are saved ([] for all)
+CtrlVar.uvhSaveNewtonSystem.MaxStates=100;               % maximum number of states saved
+CtrlVar.uvhSaveNewtonSystem.FileName="uvhNewtonStates.mat";
+CtrlVar.uvhTestJacobian.Test=false;                      % if true, the Jacobian is tested (TestuvhJacobian.m) in selected Newton-Raphson iterations,
+                                                         % and a summary is printed
+CtrlVar.uvhTestJacobian.Iterations=[1 2 3];
+CtrlVar.uvhTestJacobian.RunSteps=[];
 % Setting for example:
 % CtrlVar.ModifiedNRuvIntervalCriterion=10;     
 % CtrlVar.ModifiedNRuvReductionCriterion=0.95;
@@ -849,16 +932,6 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % an issue).
 %
 %
-% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit
-% initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method
-% is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the
-% adjoint gradients.
-%
-% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good
-% estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right
-% at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient
-% calculation using adjoint
-%
 % Ua has some inbuilt Optimisation methods and these are used by default. However, if the matlab Optimisation toolbox is installed, the
 % matlab routines can be used instead.
 %
@@ -868,11 +941,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.InvertFor='-logA-' ;
 %   CtrlVar.Inverse.Regularize.Field='-logA-logC-'
 %
-% is considered inconsistent (although in principle possible.) Also using the
-% `FixPoint' gradient calculation, which only works for C inversion, and
-% inverting for both A and C, i.e. 
-%
-%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
+%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint'}
 %   CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-AGlen-','-logA-','-logA-logC-'}
 %
 % is inconsistent. Ua tries to spot these input parameter mistakes and correct
@@ -917,12 +986,13 @@ CtrlVar.Inverse.MinimisationMethodOptions=[...
    
 % If a Hessian-based Optimisation is used, the the expressions for the Hessians can be selected as follows:
 
-CtrlVar.Inverse.Hessian="-DirectAdjoint-" ; % "-DirectAdjoint-","-Jpp-","-FiniteDifferences-" ; 
 
-CtrlVar.Inverse.HessianOptions=[...
+CtrlVar.Inverse.HessianCalculation="-DirectAdjoint-"; % "-FiniteDifferences-" 
+CtrlVar.Inverse.HessianTerms="-all-";  % only applies for the  HessianCalculation="-DirectAdjoint-" 
+
+CtrlVar.Inverse.HessianCalculationOptions=[...
     "-DirectAdjoint-";...
-    "-FiniteDifferences-";...
-    "-Jpp-"];
+    "-FiniteDifferences-"] ; 
 
 
 % Should a Riesz-mapped gradient be used?
@@ -975,9 +1045,8 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 
 %%
 % The gradient of the objective function is calculated using the adjoint method.
-% When inverting for C only, one can also use a gradient based on a `FixPoint'
-% iteration, which is often a very good initial approach. 
-CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
+
+CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint'}
 
 %% Inverse methodology: Select either Tikhonov or Matern 
 %
@@ -1646,6 +1715,11 @@ CtrlVar.ResetThicknessToMinThickness=0;  % set to 1 to reset thickness values le
 CtrlVar.ResetThicknessInNonLinLoop=0;    % if true, thickness in the non-linear iteration of the uvh implicit approach
                                          % is set to zero, provided CtrlVar.ResetThicknessToMinThickness is also true (usually not a good idea)
 
+% smooth floor on the thickness in the geometrical closure, used when b and h are calculated from s, B and S (CtrlVar.Calculate.Geometry="bh-FROM-sBS", as in
+% B inversions), see Calc_bh_From_sBS.m and ThicknessFloor.m. The thickness returned is then always larger than ThickMin, which means that the thickness
+% reset in uv.m (Option 1) is not triggered by the geometry calculated there.
+CtrlVar.ThickMinWidthRelative=0.05;     % width of the smooth floor in units of CtrlVar.ThickMin (the floor adds about 0.7 times this width at ThickMin). Set to 0 to switch the floor off.
+
 
 % active-set method, option 2
 CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).
@@ -1672,27 +1746,49 @@ CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickn
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of added new constraints at each active-set update. 
 
-CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=0;     % In any active-set iteration, this is the min number of additional new constraints.
-                                                                    % This can be used to suppress new active-set iteration if only a few new constraints are identified.
-                                                                    % The exact number here can be expected to be problem dependent, but it seems safe to assume that if only 
-                                                                    % a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has
-                                                                    % been defined as being "a few". 
                                                                  
 CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This implies that the nodes of all boundary elements are not included in the active set.
+CtrlVar.ActiveSet.EarlyExitOnNegativeThickness=true;   % (14 Oct 2026) If true, the uvh iteration is ended early if free (not constrained) nodes have
+                                                        % non-positive thickness in two consecutive iterations, and the active set is updated. The
+                                                        % momentum equations are then locally ill-posed and the iteration typically stagnates.
+CtrlVar.ActiveSet.EarlyExitThickness=0;                 % (14 Oct 2026) thickness threshold for this early exit
+CtrlVar.ActiveSet.PredictiveActivation=true;           % (14 Oct 2026, default true since 14 Oct 2026) If true, nodes where the explicit estimate of h at the end of the time step
+                                                        % is at or below ThickMin (and h at the start above ThickMin) are activated at the start of the time step
+CtrlVar.ActiveSet.PredictiveActivationMargin=0;         % (14 Oct 2026) only nodes predicted to be at least Margin*ThickMin below ThickMin are activated
+CtrlVar.ActiveSet.ActivationTolerance=1e-3;             % (14 Oct 2026) Free nodes are only activated if h<ThickMin*(1-ActivationTolerance). Nodes within
+                                                        % this tolerance are accepted as they are. This is the tolerance on primal feasibility (the constraint
+                                                        % h>=ThickMin), and the counterpart of ReleaseAlpha, which is the tolerance on dual feasibility (the sign of
+                                                        % the multipliers). Both are expressed as a fraction of ThickMin, and have the same default value.
+CtrlVar.ActiveSet.ReleaseAlpha=1e-3;                    % (14 Oct 2026) A constrained node is only released if, without the constraint, the ice there would
+                                                        % thicken by more than ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0 (the previous
+                                                        % default) nodes are released as soon as the multiplier has the wrong sign, which in some
+                                                        % applications (eg Greenland) leads to many releases of nodes whose multipliers are only
+                                                        % negative at round-off level, and that then immediately fall below ThickMin again.
+                                                        % PredictiveActivation should only be used together with ReleaseAlpha>0.
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
                                                                     % thickness is usually prescribed directly.
+CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 2026) Criterion for releasing active thickness constraints:
+                                                                       %   "discrete" : sign of the discrete reaction L'*lambda at the node (recommended)
+                                                                       %   "consistent-mass" : sign of the reaction mapped to a nodal field with the
+                                                                       %      inverse of the consistent mass matrix (previous approach, prone to cycling).
 
 
 % thickness penalty, option 3
-CtrlVar.ThicknessPenalty=0;                                         % set to true for using penalty term, 
-                                                                    % (can be done in combination with the active set method.)
+CtrlVar.ThicknessPenalty=false;                                     % set to true for using penalty term (can be used in combination with the active set method).
+                                                                    % (Note: changed to true as the default option on 1-Oct-2026, and back to false on 9-Oct-2026.
+                                                                    % With the improved active-set method, ie the discrete release criterion, locking of released
+                                                                    % nodes that are again below ThickMin, and the cycle fix, the active set alone converges reliably.
+                                                                    % In tests (Greenland nx50 and nx100 over 1 and 10 years, RadialIceCap) runs without the penalty
+                                                                    % were up to 40% faster, as the penalty increases the number of Newton iterations and thereby
+                                                                    % reduces the time step, and the penalty created an artificial thin-ice layer (up to about 10 m)
+                                                                    % in areas that are otherwise held at ThickMin by the active set.)
 
                                                                     
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";      %The functional form of the penalty term
                                                                     % The options are: "SoftPlus", "exponential", "polynomial" 
 CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponential","polynomial"]; 
 
-%% Thickness penalty term based on the SoftPlus function  
+%% Thickness penalty term based on the SoftPlus function  (recommended option)
 % For
 %
 %    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";   
@@ -1703,20 +1799,38 @@ CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponent
 % $$ y = \frac{K l}{2} \, \ln \left ( 1+e^{-2(h-hmin)/l} \right ) $$
 % 
 %
-% where K and l are parameters, and hmin=CtrlVar.ThickMin
+% where K and l are parameters, and hmin=CtrlVar.ThickMin+delta with delta=max(ThickMin,deltaAbs) (see below).
 %
-% Reasonable values for K and l are:
+% (9 Oct 2026) The penalty is a mass-balance RATE, ie K has units of 1/time (1/yr if time is in years). For hmin-h >> l the penalty
+% is approximately K*(hmin-h), so at h=ThickMin it supplies a mass-balance rate of about K*delta. A node is held above ThickMin by
+% the penalty alone if
 %
-%    l=CtrlVar.ThickMin/10
+%    theta*K*delta > |a|max          (theta=CtrlVar.theta)
 %
-% and K*l large compared to the (climatic) mass balance values, for example K=1000/l might be a reasonable selection if the mass
-% balance is on the order of 10
+% where |a|max is the magnitude of the most negative mass balance. Otherwise the active set (CtrlVar.ThicknessConstraints=1) takes
+% over. Between 31 Aug and 9 Oct 2026 K was scaled with 1/dt (a per-time-step penalty). This was reverted, see
+% ThicknessPenaltyMassBalanceFeedback.m.
+%
+% l should be small compared to delta. (9 Oct 2026) By default (l=NaN) l is calculated at runtime as l=lRel*delta, ie from the
+% value of ThickMin set in the input file. With lRel=0.1 the penalty is in its linear range at h=ThickMin. If l is set explicitly,
+% that value is used (a warning is given if l>delta/2).
 %
 
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin/10;
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000/CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;  % This is assuming 1000 is large compared to typical mass balance values
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=NaN;      % NaN: l=lRel*delta, calculated at runtime
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel=0.1;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;     % rate, units 1/time
 
-%% Thickness penalty term based on the exponential function  
+% (8 Oct 2026) The SoftPlus penalty is centred at hmin=ThickMin+delta, with delta=max(ThickMin,deltaAbs). For ThickMin>=deltaAbs this
+% is the previous hmin=2*ThickMin, but hmin does not collapse to zero for ThickMin=0. The penalty then starts to act above ThickMin
+% and does some of the work the active-set method would otherwise have to do.
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
+
+% (8 Oct 2026) If true, the penalty is applied as a lumped nodal term (see uvhMatrixAssembly.m) that depends only on the nodal thickness,
+% and nodes with thickness boundary conditions or active thickness constraints are excluded. If false, the penalty is evaluated at
+% integration points, and elements containing h-constrained nodes are excluded. The nodal option is only implemented for the uvh solver.
+CtrlVar.ThicknessPenaltyNodal=false;
+
+%% Thickness penalty term based on the exponential function (not recommended, use softplus instead)
 %
 % For
 %
@@ -1737,7 +1851,7 @@ CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000/CtrlVar.ThicknessPena
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K=10;
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l=CtrlVar.ThickMin/10;
 
-%% Thickness penalty term based on polynomials  
+%% Thickness penalty term based on polynomials   (not recommended, use softplus instead)
 %
 %    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="polynomial";   
 % 
@@ -2188,7 +2302,7 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
 % a3 in the above equation for ab.
 
-CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
+% (13 Oct 2026) CtrlVar.LevelSetMinIceThickness has been removed. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin.
 
 % Optionally, AGlen can be set to some prescribed, usually small, value downstream of all calving fronts.
 CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is here set to nan, there AGlen will NOT be modified
@@ -2538,6 +2652,9 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % Adaptive time stepping
+CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";   % (10 Oct 2026) ["iteration-based","error-estimate"], see AdaptiveTimeStepping.m.
+                                                        % "iteration-based": time step based on the number of non-linear iterations (AdaptiveTimeSteppingIterationBased.m)
+                                                        % "error-estimate" : in addition based on an estimate of the time-discretisation error of h (AdaptiveTimeSteppingWithErrorEstimate.m)
 CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithm
 CtrlVar.ATSdtMin=1e-6           ;   % minimum time step size (ie dt) set by the automated-time-stepping algorithm
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
@@ -2545,9 +2662,11 @@ CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreas
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           % number of iterations between considering increasing dt
 CtrlVar.ATSintervalDown=3 ;         % number of iterations between considering decreasing dt 
-CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
+CtrlVar.ATSTargetIterations=7;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
+                                    % (10 Oct 2026) default changed from 4 to 7. In tests, 7 gave about 40% shorter run times than 4,
+                                    % with only small differences in the solution.
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
 
                                     % The implicit time-stepping algorithms used in Ua by default are not limited by the CFL condition.
@@ -2558,6 +2677,25 @@ CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% o
 CtrlVar.ATSEnforceCFL=false  ;      % enforce Courant-Friedrichs-Lewy condition on time step (no need to do this in general as the forward time stepping for theta=1/2 is unconditionally stable). 
                                     % 
 CtrlVar.ATSEnforceCFLfactor=1 ;     % If enforcing CFL condition, maximum time step will be factor *v*dt/dx  
+
+% (10 Oct 2026) Parameters of the automated time stepping based on the time-discretisation error, used if
+% CtrlVar.AdaptiveTimeSteppingMethod="error-estimate" (see AdaptiveTimeSteppingWithErrorEstimate.m and ATSTimeDiscretisationErrorLimit.m).
+% The time step is then also limited such that the estimated local time-discretisation error of the ice thickness per unit time, scaled by
+% atol+rtol*|h|, does not exceed one. atol has units of thickness per unit time (eg m/yr), rtol units of 1/time. This requires the
+% time-discretisation error estimate (CtrlVar.TimeDiscretisationErrorEstimate.Use), which is switched on automatically, and is only available
+% for theta=0.5.
+CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true;   % if true, the time step may be increased up to the accuracy-based time step when
+                                                         % the convergence of the non-linear iterations is acceptable (otherwise min(dtNewton,dtAccuracy))
+CtrlVar.ATSTimeDiscretisationError.ConvergenceCheckSteps=2;   % number of previous time steps over which the number of non-linear iterations
+                                                             % must not exceed CtrlVar.ATSTargetIterations for the convergence to be acceptable
+CtrlVar.ATSTimeDiscretisationError.atol=0.01;          % m/yr
+CtrlVar.ATSTimeDiscretisationError.rtol=0;             % 1/yr
+CtrlVar.ATSTimeDiscretisationError.Safety=0.85;
+CtrlVar.ATSTimeDiscretisationError.MaxIncrease=2;      % largest increase of the time step (factor) due to this criterion
+CtrlVar.ATSTimeDiscretisationError.MaxDecrease=5;      % largest decrease of the time step (factor) due to this criterion
+CtrlVar.ATSTimeDiscretisationError.StartTime=-inf;     % the limit is only applied from this time onwards (eg to exclude an initial adjustment period)
+CtrlVar.ATSTimeDiscretisationError.MinValidArea=0.1;   % the limit is only applied if the estimate is defined over at least this fraction of the area
+CtrlVar.ATSTimeDiscretisationError.InfoLevel=1;
                                     % Setting to 1 limits time step to CFL, and setting it to 2 allows times step twice as large.
 
 CtrlVar.NeverChangePrescribedTimeStep=false ; % Even if adaptive time stepping is not used, the code may still change the time step. 
@@ -2587,10 +2725,7 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         %  
                                         %  0 : no mass-balance geometry feedback considered within non-lin iteration loop 
                                         %      (however, as always, mass balance is updated at each time step)
-                                        %  1 : mass-balance feedback included at the start of each non-lin iteration, 
-                                        %      but not within the backtracking step.
-                                        %  2 : Feedback included in non-lin loop, both at the beginning of each NR iteration, 
-                                        %      and within backtracking step.  
+                                        %
                                         %  3 : Consistent mass-balance feedback algorithm. As option 2, but with 
                                         %      the gradient of the mass-balance with respect to thickness added to the
                                         %      left-hand side of the NR system. Requires the user to supply this gradient through 
@@ -2605,15 +2740,7 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         %  CtrlVar.MassBalanceGeometryFeedback=0
                                         %  as doing so avoids calls to DefineMassBalance.m within the non-lin loop.
                                         %
-CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface mass balance.
-                                               % If not equal to zero, then the actual mass-balance value used at the end of the time step,
-                                               % becomes a weighted average of that at the beginning and the (correct) value at the 
-                                               % end of the time step.
-                                               % The value must be in the range [0,1]
-                                               % Only use this if encountering convergence problems.  
-                                               % Should always be equal to 0 if possible.
-                                               % If not equal to 0, the algorithm converges to a wrong solution (!),
-                                               % although the error might be very small if mass-balance geometry feedback is not that strong.
+CtrlVar.MustBe.MassBalanceGeometryFeedback = [0 3] ;
 CtrlVar.MassBalance.Evaluation="-node-";      
 
 %% Sea ice/melange                                               

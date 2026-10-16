@@ -21,7 +21,7 @@ function [FigHandle,ColorbarHandel]=PlotIntegrationPointBasedQuantities(CtrlVar,
 Value=Value(:);
 
 FigHandle=patch('faces',IntTriangulation,'vertices',IntCoordinates/CtrlVar.PlotXYscale,...
-    'FaceVertexCData',Value,'CDataMapping','scaled','EdgeColor','none','FaceColor','interp',varargin{:}) ;
+    'FaceVertexCData',Value,'CDataMapping','scaled','EdgeColor','none','FaceColor','interp','HandleVisibility','off',varargin{:}) ;
 
 ColorbarHandel=colorbar;
 xlabel(CtrlVar.PlotsXaxisLabel)  ; ylabel(CtrlVar.PlotsYaxisLabel) ;

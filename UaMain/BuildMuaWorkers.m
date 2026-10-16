@@ -150,6 +150,7 @@ if BuildWorkers
         MUAworkers.Deriv=MUA.Deriv(Partition{spmdIndex},:,:,:);
         MUAworkers.DetJ=MUA.DetJ(Partition{spmdIndex},:);
         MUAworkers.EleAreas=MUA.EleAreas(Partition{spmdIndex}) ;
+        [~,MUAworkers.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUAworkers) ;   % (16 Oct 2026) sparsity pattern of the sub-domain, for the faster pattern-based assembly
 
 
     end

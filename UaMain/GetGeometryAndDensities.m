@@ -165,6 +165,18 @@ if contains(FieldsToBeDefined,'s')|| contains(FieldsToBeDefined,'b')
     F.h=F.s-F.b;
 end
 
+if contains(FieldsToBeDefined,"-S-") && contains(FieldsToBeDefined,"-s-")
+    if any((F.s-F.S)<CtrlVar.ThickMin)
+
+        warning("Calc_bh_From_sBS:s_less_than_S","Based on user input, there are locations were (s - S) < CtrlVar.ThickMin \n")
+        fprintf("Here it s>S will be enforced. However, a better approach is to make sure that the input fields  do not violate this condition to begin with. \n")
+        fprintf("Consider modifying the inputs accordingly. \n")
+        ind=(F.s-F.S)< CtrlVar.ThickMin;
+        F.s(ind)=F.S(ind)+CtrlVar.ThickMin;
+
+    end
+end
+
 
 % Generally the min ice-thickness constraint should be enforced using the active set
 % method. However, when the user defines s and b it seems reasonable to expect that
@@ -179,20 +191,34 @@ end
 
 
 switch CtrlVar.Calculate.Geometry
-    
+
     case "bs-FROM-hBS"
-        
+
+        % This is when we think of the ice thickness, h, being the key geometrical variable which value we want to conserve.
+        % We here think of h, B and S as the independent geometrical variables.
         [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-        
+
     case "bh-FROM-sBS"
-        
-        
+
+        %% calculate b and h from s, B and S. This is used, for example, in a B inversion
+        % where s, B and S are the independent geometrical variables.
+        %  CtrlVar.MapOldToNew.Test=true;
         [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow) ;
-        
+
+        % G=F.GF.node;  Res=F.b - G.*F.B - (1-G).*(F.rho.*F.s-F.rhow.*F.S)./(F.rho-F.rhow) ;
+        % UaPlots(CtrlVar,MUA,F,Res,FigureTitle="Res")
+        % title("$b-\mathcal{G} B - (1-\mathcal{G}) ( \rho s -\rho_w S)/(\rho-\rho_w)$",Interpreter="latex")
+        % subtitle("")
+        % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+        %
+        % UaPlots(CtrlVar,MUA,F,F.h,FigureTitle="-h-") ;
+        % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+        % title("Thickness distribution ($h$)",Interpreter="latex") ; subtitle("")
+
     otherwise
-        
+
         error('which case')
-        
+
 end
 
 

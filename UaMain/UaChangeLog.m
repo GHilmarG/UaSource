@@ -1,0 +1,1143 @@
+
+
+%%
+% 
+% *Change Log* _October 2026_
+%
+% * New function uvhAssemblyScalingTest.m: performance of the parallel uvh assembly on a given computer (16 October 2026):
+%
+% For a model state, read from a file saved with CtrlVar.uvhSaveNewtonSystem.Save=true or from a restart file, the function times the
+% serial uvh assembly with different numbers of threads, the solution of the linear system, and the parallel (spmd) assembly with
+% different numbers of workers (default 1, 2, 4, 8, 12, ... up to the number of cores). It fits the model T(n)=a+b/n+d*n to the times of
+% the parallel assembly, and recommends either the parallel assembly with the smallest number of workers for which the time is within 5%
+% of the smallest time, or the serial assembly if the parallel one is not faster. It also estimates the reduction of the time per
+% Newton-Raphson iteration. Parallel pools opened by the function are closed at the end, and a pool that was open before is restored.
+%   Results=uvhAssemblyScalingTest("RestartFile.mat") ;
+%
+% Tests: Greenland (25,095 nodes, 16 cores): 8 workers recommended, assembly 2.7 times faster than the best serial assembly, estimated
+% reduction of the time per Newton-Raphson iteration 27%. Thule (5,995 nodes): serial assembly recommended (the parallel assembly of the
+% residual only is slower than the serial one, and the full assembly only slightly faster).
+%
+% Larger Greenland mesh (56,070 nodes, 110,976 elements, 16 cores): 9 or 10 workers recommended in repeated runs, assembly 2.35 times
+% faster than the best serial assembly (1.52 s, 8 threads), estimated reduction of the time per Newton-Raphson iteration 22%. Model
+% parameters a=0.231 s, b=2.507 s, d=0.0152 s, optimum at about 13 workers; the time is within 7% of its minimum for 8 to 16 workers.
+%
+% uvhAssemblyScalingTest.m now also supports thread-based pools: Options.Profile="Threads" (parcluster is not supported for
+% thread-based pools, and the profile of an open pool is now determined with a local function PoolProfile). Results for the larger
+% Greenland mesh with a thread-based pool: the transfer of the Jacobian to the client is about 10 times cheaper than with processes
+% (0.01 s instead of 0.13-0.17 s), and with few workers the thread workers are faster (they use implicit multithreading), but beyond
+% about 8 workers they compete for the cores of the one process and the time increases again (1 worker 1.81 s, 4: 0.75 s, 8: 0.70 s,
+% 16: 1.29 s; model a=0.072 s, b=1.732 s, d=0.0658 s). 4 workers recommended, estimated reduction of the time per Newton-Raphson
+% iteration 21% (process-based pool: 9 or 10 workers, 22%).
+%
+% Also checked: MATLAB decomposition objects can not be passed to or from the workers of either process-based or thread-based pools
+% (they are serialised, and arrive as the decomposition of an empty matrix), but they can be computed and used on the workers, eg within
+% an spmd block (kept as a Composite), or with parallel.pool.Constant(@() decomposition(A)). The parallel uvh assembly is not affected.
+% See the section "Process-based and thread-based pools" of the chapter on the parallel assembly in the Ua Compendium.
+%
+% uvhMatrixAssemblySSTREAM_SPMD.m has a new optional fifth output, Timing, with the times of the parts of the parallel assembly
+% (fingerprint, sending changed inputs, the spmd block, the longest time on a worker, the transfer of the results, total). It is used by
+% uvhAssemblyScalingTest.m. Without the fifth output the behaviour is unchanged.
+%
+% * Parallel (spmd) uvh assembly: overheads reduced (16 October 2026):
+%
+% uvhMatrixAssemblySSTREAM_SPMD.m (used if CtrlVar.Parallel.uvhAssembly.spmd.isOn=true and a parallel pool is open) has been revised.
+% Measurements (Greenland, 25095 nodes, 8 workers) had shown that the largest costs of the previous version were not the assembly on the
+% workers (about 0.19 s), but sending the inputs to the workers in each call (about 0.21 s, mainly F0 and F1 complete, and CtrlVar, a
+% large nested structure of only 0.3 MB that alone took about 0.13 s), so that the parallel assembly was hardly faster than the serial
+% one (0.71 against 0.78 s), and residual-only assemblies were slower (0.36 against 0.23 s). Changes:
+%
+% (1) F0, F1, CtrlVar (except CtrlVar.uvhMatrixAssembly), UserVar and BCs1 are kept on the workers between calls. Only ub, vb, h, b and s,
+% which change within a uvh solve, and CtrlVar.uvhMatrixAssembly are sent in each call. Everything else is only sent again if it has
+% changed: F0 and F1 are compared with a fingerprint (weighted sums of all numerical fields except the changing ones, the mesh, the number
+% of workers and the pool), CtrlVar, UserVar and BCs1 with isequaln. Whatever changes, the worst case is an unnecessary resend.
+% (2) The assembly and the summation over the workers are done in one spmd block instead of two.
+% (3) BuildMuaWorkers.m now adds the sparsity pattern of each sub-domain to the worker data, so that the workers use the faster
+% pattern-based construction of the sparse matrix, as the serial assembly does.
+%
+% Results (25095 nodes, 8 workers, with another run using 6 cores in the background): full assembly 0.38 s (serial 0.78 s, previous
+% parallel version 0.71 s), residual-only assembly 0.19 s (serial 0.23 s, previous 0.36 s), complete resend about 0.27 s. In a run of 10
+% time steps the wall time was reduced by 18% compared with the serial assembly, with the same Newton-Raphson iterations and results
+% agreeing to 1e-12 (round-off, different summation order). Tested also with remeshing (Thule, 5 remeshings in 20 time steps): identical
+% meshes and results agreeing to round-off. For small meshes the parallel assembly does not pay off: Thule with about 12,000 elements and
+% 4 workers was 10% slower than with the serial assembly.
+%
+% Scaling with the number of workers (otherwise idle computer with 16 cores, same Greenland model): full assembly 1.25 s with 1 worker,
+% 0.64 s (2), 0.44 s (4), 0.32 s (8), 0.31 s (12) and 0.35 s (16); residual only 0.48 s (1) to 0.17 s (8). The serial assembly benefits
+% from implicit multithreading only up to about 4 threads (1.12 s with 1 thread, 0.73 s with 4, no further gain with 8 or 16). The
+% measured times are described by T(n)=a+b/n+d*n with a=0.073 s (mainly the transfer of the Jacobian to the client), b=1.154 s (the
+% assembly, divided between the workers) and d=0.0126 s (data sent to each worker, summation over the workers, competition for cores
+% and memory bandwidth), with an optimum at about 10 workers (speed-up of about 2.3 compared with the best serial assembly). See the
+% chapter "Parallel assembly of the uvh system: performance and scaling" in the Ua Compendium.
+%
+% Possible further improvements (not implemented): sending each worker only the values at the nodes of its own elements, so that the
+% total amount of data sent no longer grows with the number of workers, and collecting the contributions of the workers on a fixed
+% global sparsity pattern instead of summing sparse matrices. Estimated to reduce the full assembly with the optimal number of workers
+% from about 0.31 s to about 0.2-0.25 s, and to shift the optimum to more workers; about 5% of the time of a Newton-Raphson iteration on
+% a computer with 16 cores.
+%
+% * Testing the Jacobian of the uvh system (15 October 2026):
+%
+% (1) New function TestuvhJacobian.m: a Taylor test of the uvh Jacobian. For a state x with residual R and Jacobian K (from uvhAssembly.m)
+% and a direction d, the remainder ||R(x+epsilon d)-R(x)-epsilon K d|| is calculated for epsilon=1e-1,...,1e-9, separately for the u, v
+% and h equations. For a consistent Jacobian it decreases as epsilon^2 (order 2), for a missing or wrong term as epsilon (order 1). Directions:
+% the Newton direction of the iteration, and smooth random perturbations of u, v, h, and of all three. Two measures are reported: the
+% observed order above the round-off level, and the smallest relative error over all epsilon (a missing term of relative size delta gives
+% at least delta). A block is flagged if the order is below 1.5 and the smallest relative error above 1e-4. Usage:
+%   Results=TestuvhJacobian(FileName)                                 % all states saved in a file (see (2))
+%   Results=TestuvhJacobian(FileName,Options)                         % eg Options.States, .Directions, .CtrlVar, .Plot
+%   Results=TestuvhJacobian(UserVar,CtrlVar,MUA,F0,F1,l1,BCs1,Options)  % a single state
+%
+% (2) New functions SaveuvhNewtonState.m and uvhNewtonStateSelected.m, and new options: CtrlVar.uvhSaveNewtonSystem.Save=true saves the
+% state of selected Newton-Raphson iterations of the uvh solver (CtrlVar.uvhSaveNewtonSystem.Iterations, .RunSteps, .MaxStates) to one
+% file (CtrlVar.uvhSaveNewtonSystem.FileName), each state as a variable State_0001, State_0002, ..., with the mesh saved only once (and
+% again after remeshing). CtrlVar.uvhTestJacobian.Test=true runs TestuvhJacobian.m directly during a run, in selected iterations. Both
+% are off by default (no change in behaviour). Called in SSTREAM_TransientImplicit.m after the Newton direction has been calculated.
+%
+% (3) Result: the Jacobian is consistent. RadialIceCap (3 states), Greenland with 6324 nodes (21 states, 3 time steps, Newton-Raphson
+% iterations 1-5) and Thule with a calving front and grounding lines (24 states): for all random directions and all blocks the observed
+% order was 1.98-2.03. For the Newton direction, the order was below 1.5 in some blocks in late iterations, but only where its
+% second-order remainder is smaller than the round-off noise of the residual (mainly the h equation for thick ice, where the terms are
+% large); the smallest relative errors there were 1e-6 to 1e-10. No block was flagged. The phase of slower-than-quadratic convergence
+% of the u and v residuals in the uvh solve (reductions by a factor of about 10 per iteration with full steps, after the h residual has
+% been removed in the first iteration) is therefore not caused by an inconsistent Jacobian, but presumably by the nonlinearity of the
+% flow and sliding laws (pre-asymptotic phase of the Newton-Raphson method).
+%
+% * Reuse of the Jacobian (modified Newton) in the uvh solver: implemented, tested, and found not to pay off (15 October 2026):
+%
+% (1) solveKApe.m can now return and reuse the matrix decomposition: [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar) returns the decomposition,
+% and [x,y]=solveKApe(...,CtrlVar,dA) uses it without a new factorisation. Supported for "Bempty" (no constraints; decomposition() instead
+% of backslash) and "EliminateBCsSolveSystemDirectly" (point constraints, via ABfgPreEliminate.m, which no longer builds the eliminated
+% matrix if the decomposition is given). Calls with two outputs and without dA are unchanged (backslash for "Bempty").
+%
+% (2) SSTREAM_TransientImplicit.m: optional reuse of the Jacobian and its decomposition within a uvh solve. The Jacobian is reused if the
+% previous step was a full Newton step that reduced the residual by at least the factor CtrlVar.ModifiedNRuvhReductionCriterion (now
+% default 1e-2), at most CtrlVar.ModifiedNRuvhIntervalCriterion-1 times in a row. A step with the reused Jacobian is only tried at full
+% length, and accepted if it reduces the residual by at least the factor CtrlVar.ModifiedNRuvhAcceptCriterion (new, default 0.1) or meets
+% the convergence criteria; otherwise it is discarded and a full Newton step is done at the same point. Default
+% CtrlVar.ModifiedNRuvhIntervalCriterion=1, ie off, which gives exactly the previous behaviour (tested: bit-identical Newton-Raphson paths
+% and results).
+%
+% (3) Result: reusing the Jacobian did not pay off (Greenland, 25095 nodes, 10 time steps). Reuse in the final iterations (reduction
+% criterion 1e-2): 73 instead of 61 Newton-Raphson iterations, 60 instead of 61 factorisations, run time +6% (interval 2) and +10%
+% (interval 3). Reuse after every full step (reduction criterion 1, acceptance criterion 0.5): 101 and 108 iterations, 55 and 75
+% factorisations, run time +8% and +34%. The steps with the reused Jacobian were accepted, but reduced the residual much less than full
+% Newton steps (typically by a factor of about 10, against full steps that reach the convergence tolerance directly), and so added
+% iterations rather than replacing full ones. This agrees with earlier experience with the classical modified Newton method.
+%
+% * Line search of the uv and uvh Newton-Raphson solvers (15 October 2026):
+%
+% (1) New line search rLineminUa3.m, now the default (CtrlVar.NewtonLineSearch.Method="rLineminUa3"). The logic is identical to that of
+% the previous rLineminUa2.m, but unnecessary evaluations of the residual (cost function) have been removed: (a) In
+% SSTREAM_TransientImplicit.m the residual at gamma=0 was evaluated twice, although it had just been assembled together with the
+% Jacobian. It is now calculated from the assembled residual (uvhResidualMeasures.m). (b) The residual at the full Newton step was
+% evaluated twice, once before the line search, and again at the end of rLineminUa2.m to obtain rForce, rWork, D2 and rBlocks.
+% rLineminUa3.m keeps all outputs of each evaluation, and evaluates the cost function as func(1,gamma*s) rather than func(gamma,s), which
+% is arithmetically identical. The Newton-Raphson paths and results are bit-identical to those with rLineminUa2.m. Tests: 70-72% fewer
+% residual evaluations in the uvh solver (Greenland with 6324 and 25095 nodes, Thule), and 18% shorter run times (Greenland, 25095 nodes,
+% 10 time steps, about 0.6 s less per Newton-Raphson iteration). In a 10-year run (Greenland, 25095 nodes, automated time stepping,
+% 97 time steps, 654 Newton-Raphson iterations), the run time was reduced by 25%, from 1851 s to 1390 s, with 810 instead of 2749 residual
+% evaluations (0.71 s less per Newton-Raphson iteration), and with bit-identical results. The uv solver (SSTREAM2dNR2.m) also uses
+% rLineminUa3.m by default, with results identical to those of the previous combination of a full-step test and rLineminUa.m.
+% Correction (15 October 2026, after the first version of rLineminUa3.m had been committed): in the Cauchy step of the fall-back, the
+% step length can be a sparse scalar, which caused an error in the look-up of stored evaluations (sprintf does not accept sparse
+% input). The step length is now converted with full() for the look-up only. Found in the Thule example, in the initial uv solve.
+%
+% (2) CtrlVar.NewtonLineSearch.Method selects the line search of the uv and uvh solvers: "rLineminUa3" (default), "NewtonLineSearch"
+% (see (3)), or "rLineminUa2" (the previous implementation, including the unnecessary evaluations; for comparison only).
+%
+% (3) New function NewtonLineSearch.m (optional, CtrlVar.NewtonLineSearch.Method="NewtonLineSearch"): backtracking with the Armijo
+% condition, quadratic and cubic interpolation with safeguards [0.1,0.5], an optional refinement after backtracking (minimum of a
+% parabola, repeated while it halves the residual), and optional extrapolation. Parameters: CtrlVar.NewtonLineSearch.ArmijoParameter
+% (default 0.25), GammaMin (1e-3), MaxBacktrackingSteps (15), RefinementSteps (2), RefinementRatio (0.5), Extrapolation (false),
+% MaxExtrapolationSteps (3) and ExtrapolationFactor (2). In tests it required fewer residual evaluations than rLineminUa3.m, but more
+% Newton-Raphson iterations (Greenland, 6324 nodes, 30 time steps: 176 against 150; Thule, 20 time steps: 232 against 229; initial uv
+% solve: 15 against 12). With the textbook value ArmijoParameter=1e-4 the number of iterations was considerably larger (193, 266 and 23),
+% as full steps that reduce the residual only marginally are then accepted, although a shorter step often reduces it much more. As a
+% residual evaluation is cheap compared with a Newton-Raphson iteration (about 1:12 in these tests), additional evaluations along the
+% Newton direction that find a better step are worthwhile, which is what the logic of rLineminUa2/3.m does. NewtonLineSearch.m is
+% therefore not the default.
+%
+% (4) The option to use the work residual as the merit function of the uv and uvh solvers, CtrlVar.uvhMinimisationQuantity and
+% CtrlVar.uvMinimisationQuantity="Work Residuals", has been removed. The force residual is always used. The work residual is still
+% calculated, and used in the convergence criteria. (Changes in CalcCostFunctionNRuvh.m, CalcCostFunctionNR.m, JuvhLSQ.m and
+% Ua2D_DefaultParameters.m. CtrlVarValidityCheck.m prints a note, and removes the fields, if these options are still set.)
+%
+% (5) The calculation of the residual measures (rForce, rWork, D2 and rBlocks) has been moved, unchanged, from CalcCostFunctionNRuvh.m
+% and CalcCostFunctionNR.m to the new functions uvhResidualMeasures.m and uvResidualMeasures.m, so that these measures can also be
+% calculated from an already assembled residual. (In CalcCostFunctionNRuvh.m, rBlocks is now always calculated.)
+%
+% (6) Bug fix in BackTracking.m: if additional outputs of the function were requested (nOut>1), these were from the last function
+% evaluation, which is not necessarily the returned (best) step. They are now from the returned step, with a further evaluation if
+% needed. In tests with synthetic functions this affected about 6% of the cases. This changes the results of callers that use these
+% outputs, eg MassContinuityEquationNewtonRaphson.m, wherever the returned step was not the last one evaluated.
+%
+% * Grounding-line plots now based on h-h_{gl}, ie thickness minus grounding line thickness, rather than the flotation mask.
+% Thanks to Deborah Rhee for this suggestion. The grounding lines may now look a bit smoother. (Note that the grounding line
+% position itself is never used in the code when finding the solutions.)
+%
+% * Default for the positive-thickness constraints: active set on, and thickness penalty off.
+%
+%   CtrlVar.ThicknessConstraints=true;
+%   CtrlVar.ThicknessPenalty=false;
+%
+% To use the penalty in combination with the active set, set
+%
+%   CtrlVar.ThicknessConstraints=true;
+%   CtrlVar.ThicknessPenalty=true;
+%
+% * An error in the calculation of the adjoint gradient for Budd law was spotted and corrected. In one line of the code, a term was
+% multiplied twice by the grounding/floating mask, instead of once. This will not have caused any errors in the forward
+% solution, but might have slowed done convergence in an inversion.
+%
+% * Thickness penalty (SoftPlus option), changes made 8-9 October 2026:
+%
+% (1) K is again a mass-balance rate (units 1/time). Between 31 August and 9 October 2026 K was internally divided by the time step,
+% making the penalty a per-time-step term. This was reverted because the penalty then changed the thickness by a dt-independent
+% amount in every time step, so that the solution had no limit for dt->0, the number of Newton iterations did not decrease for
+% small dt, and the automated time stepping could drive dt to very small values. With a rate, a node is held above ThickMin by the
+% penalty alone if theta*K*delta > |a|max, otherwise the active set takes over.
+%
+% (2) The penalty is centred at hmin=ThickMin+delta with delta=max(ThickMin,deltaAbs), default deltaAbs=0.1. This is the previous
+% hmin=2*ThickMin for ThickMin>=deltaAbs, but does not collapse to zero for ThickMin=0.
+%
+% (3) By default the smoothing distance l is calculated at runtime as l=lRel*delta (default lRel=0.1), ie from the value of ThickMin
+% in the input file. An explicitly set l is used as given.
+%
+% (4) The penalty can be applied as a lumped nodal term, CtrlVar.ThicknessPenaltyNodal=true (default false), which excludes nodes with
+% thickness boundary conditions or active thickness constraints.
+%
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;     % 1/time
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=NaN;     % l=lRel*delta
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel=0.1;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs=0.1;
+%
+% * Active-set method for the positive-thickness constraints, changes made 8-9 October 2026:
+%
+% (1) Constraints are released based on the sign of the discrete reaction at the node (CtrlVar.ActiveSet.ReleaseCriterion="discrete").
+% The previous approach, based on reactions mapped to a nodal field with the inverse of the consistent mass matrix, introduced sign
+% oscillations at individual nodes and caused the active set to cycle. It can still be selected with ReleaseCriterion="consistent-mass".
+%
+% (2) If a node released in an active-set iteration is again below ThickMin after the following solve, it is kept constrained, and no
+% further nodes are released for the rest of that time step. This prevents cycling. Re-activation of such nodes is not counted as a cycle.
+%
+% (3) If the active set is nevertheless found to be cyclical, one final uvh solve is done with the last active set, so that the returned
+% solution is consistent with the returned active set.
+%
+% (4) Initial active set: nodes with h<=ThickMin (rather than h<ThickMin) are included, so that a previous active set is recovered after
+% restarts and re-meshing.
+%
+% (5) CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints has been removed. It caused small updates of the active set to be
+% discarded, which could leave thickness violations in place over several time steps.
+%
+% (6) The active set is returned from the semi-implicit uv-h solver and carried over to the next time step.
+%
+% * Explicit estimate at the start of each time step (CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-"), corrected 9 October 2026:
+%
+% The rates used in the explicit estimate (F.dhdt, F.dubdt, F.dvbdt, F.duddt, F.dvddt) are backward differences over the previous time
+% step (see UpdateFtimeDerivatives.m), ie the time derivatives at the midpoint of that step. These were previously used in the
+% variable time step Adams-Bashforth formula (ExplicitEstimation.m), which requires the time derivatives at the start of the steps.
+% As a result the estimate was only first-order accurate (for a constant time step it reduced to X+dt*dX/dt). The estimate is now
+% calculated with ExplicitEstimationUsingBackwardDifferences.m, which is second-order accurate also for variable time steps, and exact
+% if the fields vary quadratically in time. The name "-Adams-Bashforth-" is kept for compatibility. The estimated thickness is not
+% allowed to be below ThickMin. Related changes:
+%
+%   - UaFields has a new property dtRates, the time step over which the rates were calculated.
+%   - Fm1 (the rates of the previous time step) is a UaFields object, is written to restart files, and is mapped onto a new mesh
+%     after remeshing (MapFm1BetweenMeshes.m). For older restart files Fm1 is created with all rates set to NaN, and the estimate then
+%     falls back to linear, or no, extrapolation in the first time step(s).
+%   - Which level of extrapolation (second order, linear, none) can be used is determined from the available data, node by node, and
+%     no longer from the run-step number.
+%   - The time step is taken from F.dt (and not from CtrlVar.dt) in UpdateFtimeDerivatives.m and ExplicitEstimationForUaFields.m.
+%     ExplicitEstimationForUaFields.m has the new time step as an additional (11th) input argument.
+%
+%
+% * Reactions of the thickness constraints as an output (15 October 2026):
+%
+% The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per
+% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time
+% step from the discrete reactions of the constraints, and includes all thickness constraints: the active set (h>=ThickMin), the
+% level-set constraints downstream of calving fronts, and user-defined thickness boundary conditions. In addition, the total rates at
+% which mass is added and removed by the constraints (units of mass per time, eg kg/yr) are stored for each time step in
+% RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for
+% example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to
+% the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by
+% the constraints (tested to round-off in the Thule example). The constraints can make a substantial contribution to mass budgets: in a
+% model of the Greenland ice sheet they added about 100 Gt/yr at ice-free nodes along the margins, as the thickness equation of such a
+% node also contains a share of the mass balance and thinning of neighbouring ice-covered nodes (through the overlap of the shape
+% functions). The calculation is done in the new function ThicknessConstraintReactions.m, which is also used by ActiveSetUpdate.m.
+%
+% * Time-discretisation error estimate near calving fronts (15 October 2026):
+%
+% The time-discretisation error estimate (TimeDiscretisationErrorEstimate.m) is now also masked at all nodes of elements cut by the
+% calving front (F.LSFMask.NodesOn), and not only at the nodes downstream of the front (F.LSFMask.NodesOut). The thickness at the nodes
+% of cut elements depends on the position of the front within the element, and does not evolve smoothly in time.
+%
+% * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):
+%
+% Two changes to the active-set method are now the default:
+%
+%   CtrlVar.ActiveSet.PredictiveActivation=true;   % (previously not available)
+%   CtrlVar.ActiveSet.ReleaseAlpha=1e-3;            % (previously 0)
+%
+% With predictive activation, nodes where the explicit estimate of the ice thickness at the end of the time step is at or below ThickMin
+% (while the thickness at the start of the time step is above ThickMin) are added to the active set at the start of the time step.
+% Previously, such nodes were only activated after the first uvh solve of the time step, which then always required a further solve. An
+% optional margin can be set through CtrlVar.ActiveSet.PredictiveActivationMargin (default 0).
+%
+% With ReleaseAlpha>0, a constrained node is only released if the ice there would, without the constraint, thicken by more than
+% ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0, nodes were released as soon as their multiplier had the wrong sign. In
+% some applications (eg Greenland) many of these releases are of nodes in ice-free areas whose multipliers are only negative at round-off
+% level (relative thickness gains of order 1e-8), and many of these nodes immediately fell below ThickMin again, requiring further
+% active-set iterations. The change in results is at most ReleaseAlpha*ThickMin (ie 1 mm for ThickMin=1 m) per time step at such nodes.
+%
+% Each of the two changes on its own did not reliably reduce run times, but together they reduce the number of uvh solves by about a
+% third, as the active set is then more often correct after the first solve. Tests (Greenland, 6324 and 25095 nodes, 10 years, automated
+% time stepping): 16-19% fewer Newton-Raphson iterations and 17-18% shorter run times, with no loss of accuracy compared with
+% high-accuracy reference solutions. For a synthetic ice cap (RadialIceCap) and for the Thule example with a moving calving front and
+% mesh refinement, the changes had practically no effect on run times or results. To obtain the previous behaviour, set
+% CtrlVar.ActiveSet.PredictiveActivation=false and CtrlVar.ActiveSet.ReleaseAlpha=0. Predictive activation should only be used together
+% with ReleaseAlpha>0; a note is printed otherwise.
+%
+% A third, related option, CtrlVar.ActiveSet.ActivationTolerance (default 1e-3), is the counterpart of ReleaseAlpha for activations: a
+% free node is only activated if h<ThickMin*(1-ActivationTolerance), ie nodes slightly below ThickMin are accepted as they are (they are not
+% set to ThickMin, and mass is conserved). ReleaseAlpha is thus a tolerance on dual feasibility (the sign of the multipliers), and
+% ActivationTolerance a tolerance on primal feasibility (the constraint h>=ThickMin), both expressed as a fraction of ThickMin, and with the
+% same default value. In the Greenland tests this reduced the number of Newton-Raphson iterations by a further 1-5%, with no measurable
+% effect on the results, and no free nodes remained below ThickMin. To obtain the previous behaviour, also set
+% CtrlVar.ActiveSet.ActivationTolerance=0.
+%
+% Related change: The explicit estimate of the thickness at the end of the time step (ExplicitEstimationForUaFields.m) is no longer
+% clipped at ThickMin. The (unclipped) estimate is used for predictive activation, and the thickness is made feasible (h>=ThickMin) at the
+% start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m). With predictive activation switched off, results are unchanged.
+%
+% * Active-set method: early exit from the uvh iteration if free nodes have non-positive thickness (14 October 2026):
+%
+% In transient runs with thickness constraints, the uvh iteration is now ended early if nodes that are not constrained have
+% non-positive ice thickness in two consecutive Newton-Raphson iterations. The active set is then updated (these nodes are activated),
+% and the iteration continued with the same time step. This typically happens after the active-set update has released a group of
+% neighbouring nodes, and the unconstrained solution then has thicknesses well below ThickMin at some of them. The momentum equations are
+% then locally ill-posed (the viscous stiffness is proportional to h, and the driving stress is not monotone in h), and the
+% Newton-Raphson iteration previously often stagnated, and the solution was then accepted at the (looser) acceptable tolerances, or the
+% time step reduced. The result of such a solve is discarded anyway, as these nodes are activated in the next active-set update. The
+% early exit is only done if a further active-set iteration is possible, so that the result of a time step is always a converged solve.
+%
+%   CtrlVar.ActiveSet.EarlyExitOnNegativeThickness=true;   % default, set to false for the previous behaviour
+%   CtrlVar.ActiveSet.EarlyExitThickness=0;                 % thickness threshold
+%
+% * Thickness constraints, level set, and related corrections (13-14 October 2026):
+%
+%   - Duplicate thickness constraints: Nodes with user-defined thickness boundary conditions (BCs.hFixedNode) could also be included in
+%     the active set, if they were downstream of a calving front (level-set constraints), resulting in duplicate rows in the constraint
+%     matrix. Such nodes are now removed from the active set (ActiveSetInitialisation.m, ActiveSetUpdate.m). In addition, BCs2MLC.m now
+%     stops with an error if a node appears more than once in the thickness constraints (BCs.hFixedNode and BCs.hPosNode), also if a
+%     node is included more than once in BCs.hFixedNode.
+%   - CalculateReactions.m: with the option hReactionsExcludeActiveSet, the wrong Lagrange multipliers were used if there were tied
+%     thickness constraints (not used by any current calls).
+%   - CtrlVar.LevelSetMinIceThickness has been removed. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin, which
+%     was already the value used in the active-set method. If CtrlVar.LevelSetMinIceThickness is still set, it is ignored, and a note is
+%     printed.
+%   - CtrlVar.LevelSetEvolution is now compared case-independently. Previously "-prescribed-" (the default) and "-Prescribed-" were
+%     treated differently in some places, so that, for example, a prescribed level set could be mapped instead of being redefined
+%     through DefineCalving.m after remeshing.
+%   - The information printed at the start of a run (eg "Time-dependent restart run") could be wrong if CtrlVar.TimeDependentRun was
+%     set through CtrlVar.ForwardTimeIntegration. This is now based on CtrlVar.TimeDependentRun (CtrlVarValidityCheck.m, PrintRunInfo.m).
+%
+% * Explicit estimate at the start of each time step: new option, and new default (12 October 2026):
+%
+% CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-thickness-only-" is a new option, and is now the default. Only the ice thickness is
+% extrapolated (second order, as in "-Adams-Bashforth-"), while the velocities are set to their values at the start of the time step, ie to
+% the converged solution of the previous time step. Tests showed that with "-Adams-Bashforth-" the initial residual of the non-linear
+% iterations is much smaller than without extrapolation, but that this did not reduce the number of non-linear iterations in realistic
+% settings (Greenland): with the same time steps, "-Adams-Bashforth-" required 6-13% MORE iterations than "-no extrapolation-". The reason
+% is that the extrapolated velocities are not consistent with the extrapolated thickness (they do not satisfy the momentum equations), and
+% velocities can change non-smoothly in time near grounding lines, at fast-flowing outlets, and where the active set of the thickness
+% constraints changes. The previous velocities, on the other hand, satisfy the momentum equations for the thickness at the start of the
+% time step, and the first Newton-Raphson step from this consistent state is very effective. 
+%
+%
+% * The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter
+% will therefore generally use larger time steps than before. In tests (Greenland, nx100, 10 years), ATSTargetIterations=7 gave about 40%
+% shorter run times than 4, with differences in ice thickness of at most about 0.5 m (rms below 0.01 m). To obtain the previous behaviour, set
+% CtrlVar.ATSTargetIterations=4.
+%
+% * Restart runs, changes made 10 October 2026:
+%
+% (1) The active set of the thickness constraints (BCs.hPosNode) and the Lagrange multipliers are restored from the restart file (provided
+% the mesh has not changed, and the boundary conditions defined in DefineBoundaryConditions.m are the same as in the previous run). Previously
+% the active set had to be recovered in the first time step, and the first uvh solve started with zero multipliers. A restart run now
+% continues where the previous run ended, and restarted and uninterrupted runs agree to within round-off errors.
+% (2) The run-step number written to the final restart file is now the number of the last completed run step. Previously it was one too
+% large, and the restart run skipped one run-step number.
+%
+% * Estimate of the time-discretisation error of the ice thickness (10 October 2026):
+%
+% If CtrlVar.TimeDiscretisationErrorEstimate.Use=true, the local time-discretisation error of h is estimated in each time step
+% (TimeDiscretisationErrorEstimate.m). This is a predictor-corrector estimate, comparing the second-order explicit estimate of h with the
+% computed (implicit, theta=0.5) solution, and is only available for theta=0.5. The estimate is in units of h (ie m), and is the error
+% committed in that time step. It is stored as a nodal field in F.hTimeDiscretisationErrorEstimate, and norms of it are stored as time series
+% in RunInfo.Forward (hTimeDiscretisationErrorRMS, ..Max, ..Volume, ..ValidArea, etc.). Norms are calculated as sqrt(x'*M*x/A) with the
+% consistent mass matrix M, where A is the area over which the estimate is defined. The estimate is not defined (NaN) at nodes with thickness
+% boundary conditions, active thickness constraints, h<=ThickMin, and next to nodes whose constraint state changed within the last three time
+% steps, as the thickness then does not evolve smoothly in time. Optionally, the estimate can be accumulated over a run
+% (CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=true, see F.hTimeDiscretisationErrorAccumulated). The accumulated estimate is an
+% "error budget", ie the sum of the local errors, and not the global error, as errors are transported and may decay.
+%
+% Experience from tests: The estimate is useful as a diagnostic for where and when time-discretisation errors arise. Errors are typically
+% largest during initial adjustments of the model state, and at fast-flowing outlets, where the spatial resolution may also be insufficient.
+%
+% * Automated time stepping based on the time-discretisation error (10 October 2026):
+%
+% AdaptiveTimeStepping.m is now a driver that selects between two approaches, depending on CtrlVar.AdaptiveTimeSteppingMethod:
+%
+%   "iteration-based" : the time step is based on the number of non-linear iterations (AdaptiveTimeSteppingIterationBased.m). This is the
+%                       previous approach, unchanged, and is the default.
+%   "error-estimate"  : in addition based on the estimated time-discretisation error of h (AdaptiveTimeSteppingWithErrorEstimate.m).
+%
+% With "error-estimate", the time step is chosen such that the estimated local error of h per unit time, scaled by atol+rtol*|h|, is about
+% one, ie dt_new = Safety*dt*q^(-1/2), where q is the scaled error per unit time in the last time step (ATSTimeDiscretisationErrorLimit.m).
+% The time step may then also be increased up to this accuracy-based time step, provided the convergence of the non-linear iterations is
+% acceptable (number of iterations at most CtrlVar.ATSTargetIterations over the last few time steps); otherwise the minimum of the
+% accuracy-based time step and the time step based on the non-linear iterations is used. Integrated over a run of length T, the accumulated
+% local error is then approximately bounded by T*atol (for rtol=0), and the actual error at the end of a run decreases with atol
+% (approximately as atol^0.7 in tests). The time-discretisation error estimate is switched on automatically. Settings, with default values:
+%
+%   CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";      % or "error-estimate"
+%   CtrlVar.ATSTimeDiscretisationError.atol=0.01;               % m/yr; values of about 0.0005 to 0.003 have given good results in tests
+%   CtrlVar.ATSTimeDiscretisationError.rtol=0;                  % 1/yr
+%   CtrlVar.ATSTimeDiscretisationError.StartTime=-inf;          % the accuracy-based time step is only used from this time onwards
+%   CtrlVar.ATSTimeDiscretisationError.Safety=0.85; ...MaxIncrease=2; ...MaxDecrease=5; ...MinValidArea=0.1;
+%   CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true; ...ConvergenceCheckSteps=2;
+%
+% Recommendations: With "error-estimate", CtrlVar.ATSTargetIterations can be set to about 7 to 10, as the accuracy is then controlled
+% separately. Note that the time stepping during an initial adjustment period can have a lasting effect on the solution, so excluding this
+% period through StartTime does not remove its effect. In tests (Greenland, nx50, 10 years), "error-estimate" with atol=0.001 m/yr gave
+% errors at the end of the run comparable to, or slightly smaller than, "iteration-based" with ATSTargetIterations=4, at about 10% lower
+% computational cost. A test with a slightly different norm, corresponding to an atol of roughly 0.0006 to 0.0008 m/yr with the present
+% norm, gave errors 2 to 3 times smaller than with ATSTargetIterations=4 at about the same cost. The largest remaining errors were at
+% fast-flowing outlets, where local mesh refinement may also be needed.
+%
+% The previous parameter CtrlVar.ATSTimeDiscretisationError.Use (only used for a few days) is no longer used; if set to true,
+% CtrlVar.AdaptiveTimeSteppingMethod is set to "error-estimate".
+%
+% *Change Log* _September 2026_
+%
+% * The conj grad Ua optimisation completely rewritten, and now seem to be competitive with the MATLAB lBFGS approach.
+% Gradients used in optimisation are Sobolov gradients with respect to a metric defined by the explicit Hessians of the
+% regularization part. Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and
+% simplified. This may possibly require some changes in input files. Box constraints in inversion can be implemented using
+% two-sided variable transform. UaHessian inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.
+%
+%
+% *  UK spelling used for `Optimisation' 
+%
+% *Change Log* _August 2026_
+%
+%
+% * For the -uvh- solve, two normalization of the residuals are now available, selected by
+%
+%    CtrlVar.uvhResidualNormalisation = "pooled"    (older approach)
+%                                     = "blockwise" (new default approach)
+%
+% The new blockwise normalization option is selected by setting 
+%
+%    CtrlVar.uvhResidualNormalisation="blockwise";
+%
+% It scales the uv and the h blocks of the uvh residual vector separately. This should give a better measure of the residual and
+% be less affected by relative differences in the uv and h residual blocks. 
+%
+% * There is a new "softplus" positive ice-thickness penalty formulation. It can be used in connection with the active-set iteration
+% enforcing the min ice thickness constraint. It adds an implicit penalty term to the uvh system. The penalty term is a
+% "soft" i.e. smooth function of the thickness violation. It has two parameters:
+%
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l
+%
+% $K$ is the slope of the linear term and l is a smoothness parameter. Note that $l$ has the units of ice thickness and should be
+% selected to be somewhat smaller than CtrlVar.ThickMin
+%
+% Typical values might be
+%
+%   CtrlVar.ThicknessPenalty=true;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="softplus";
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
+%
+% (Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)
+% (No longer the case since 9 October 2026, K is again a rate. See the October 2026 Change Log.)
+%
+% *Change Log* _July 2026_
+%
+% An option added to use Matérn covariance matrices in an inversion. The resulting precision matrices are either:
+%
+%
+% $$ Q_{\alpha=1} = \tau^2\left(\kappa^2 M + D\right) $$
+%
+% $$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$
+%
+% or
+%
+% $$Q_{\alpha=3} = \tau^2\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)$$
+%
+% where $M$ is the mass matrix, $\tilde{M}$ the lumped mass matrix, $D$ the stiffness matrix, and $\alpha$, $\kappa$ and $\tau$ are (hyper) parameters.  This option
+% is activated by setting:
+%
+%  CtrlVar.Inverse.Methodology="-Matern-" ;
+%
+% and there is extensive description of this approach in the UaCompendium. The Matérn covariance function is:
+%
+% $$\left(C_M\right)_{ij} = C(r_{ij}) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}\left(\kappa r_{ij}\right)^{\nu}\, K_{\nu}\!\left(\kappa r_{ij}\right) $$
+%
+% where
+%
+% $$ r_{ij}=\|\mathbf{x}_i-\mathbf{y}_j\| $$
+%
+% Previously only the $\alpha=1$ option was implemented, through
+%
+%   CtrlVar.Inverse.Methodology="-Tikhonov-" 
+%  
+% which still is the default option. 
+%
+% When using the "-Tikhonov-" option, the parameters are entered as $\gamma_s$ and $\gamma_a$ in
+%
+% $$ Q_{\alpha=1} =  \gamma_a M + \gamma_s D  $$
+%
+% When using the new "-Matern-" option for $\alpha=1$ you can get the same behavior by selecting 
+% $\tau$ and $\kappa$ in terms of $\gamma_s$ and $\gamma_a$ for $\alpha=1$. You can find the formulas in the UaCompendium or
+% use the function: 
+%
+%   [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)
+% 
+% Note that the relationship depends on the area of the computational domain. 
+%
+% *Change Log* _June 2026_
+%
+% * An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
+% indeed linearly independent, and if not, uses a row-subselection to find the rows which are maximally independent. 
+%
+%
+% Internally, the boundary conditions are represented as a constraint matrix 
+%
+% $$A_{\mathrm{eq}} \; x = b \quad ,  \quad A_{\mathrm{eq}} \in R^{m\times n} $$
+%
+% where $m$ is the number of constraints, and $n$ the number of degrees of freedom.
+% 
+% The matrix $A_{\mathrm{eq}}$ should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
+% However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.
+% 
+% By setting
+%
+%   CtrlVar.BCsRowSubsetSelection=true; 
+%
+% the matrix $A_{\mathrm{eq}}$ will be modified using a row-subset selection algorithm. This does involve a QR decomposition of $A_{\mathrm{eq}}$, but since $A_{\mathrm{eq}}$ is
+% usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not
+% required in the first place by ensuring that the boundary conditions contain no redundancies. 
+%
+%
+%
+%
+% * The default KKT solver for symmetrical matrices is now the Null-Space method. Previously the default was   
+% 
+%   CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
+% 
+% and this was used if the user used the default option
+%
+%    CtrlVar.SymmSolver='Auto'; 
+% 
+% This symmetrical solver preserves the symmetry of the reduced KKT system, whereas the 'EliminateBCsSolveSystemDirectly' did
+% not. Additionally, the new Null-Space solver solves (n-m) x (n-m) system where n is the degrees of freedom and m is the
+% number of constraints. Typically n is twice the number of nodes (uv solve) and m is the number of boundary conditions. The
+% 'EliminateBCsSolveSystemDirectly', on the other hand, always solves an n times n system. The new solver is always faster.
+% How much faster depends on the problem but one can expect it always to be at least twice as fact. Note that this only
+% applies to the solution of the KKT system. If there are no boundary conditions, the same default backslash solver is used
+% before.
+%
+% For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is
+% typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other
+% hand, the constraint matrix $A_{\mathrm{eq}}$ does not fulfill $A_{\mathrm{eq}} \, A_{\mathrm{eq}}^T = I_m$, a new unsymmetrical Null-Space solver is now used instead of
+% the previous Augmented Lagrangian solver.
+% 
+% One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will,
+% typically, be no difference in performance, even with BCs. It is possible that if one has a large number of BCs, manually
+% setting
+%
+%   CtrlVar.AsymmSolver="NullSpace";  
+%
+% might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver
+% requires the construction of a basis for the null-space of $A_{\mathrm{eq}}$.
+%
+% *Change Log* _March 2026_
+% 
+% An elementary additional mesh-generator is available. This one creates regular square meshes only (it is very basic
+% indeed!). This can be useful when, for example, when using some simple computational domains, or to generate an initial
+% mesh. All mesh refinements can then be applied to this mesh afterwards. 
+%
+% Example:
+%
+%   CtrlVar.MeshGenerator="UaSquareMesh";
+%   CtrlVar.UaSquareMesh.xmin=-650e3;
+%   CtrlVar.UaSquareMesh.xmax=900e3;
+%   CtrlVar.UaSquareMesh.ymin=-3400e3;
+%   CtrlVar.UaSquareMesh.ymax=-600e3;
+%   CtrlVar.UaSquareMesh.nx=100;
+%
+% Note that MeshCoordinates are not used above. By specifying MeshCoordinates, all elements outside of the square are
+% then automatically deactivated at the beginning of the run. An example for the use of this approach is in the Greenland
+% sub-folder of Examples. 
+%
+% 
+% 
+% <<HoffSquareMeshExample.PNG>>
+% 
+%
+%
+%
+% *Change Log* _January 2026_
+%
+% When calculating $\dot{h}$ explicitly,  homogenized  thickness ($h$) boundary conditions are applied to the $\dot{h}$ solve. So if
+% thickness is set to some prescribed value at some nodes, $\dot{h}$ at those nodes will be forced to be equal to zero. And if
+% thickness links/ties are defined between nodes, those same ties will be applied to $\dot{h}$. This has no effect on $\dot{h}$
+% values obtained in transient runs. But this will affect calculated/modeled $\dot{h}$ values used in an inversion when compared
+% against measured $\dot{h}$ values, in combination with thickness boundary conditions.
+%
+%
+%
+% *Change Log* _December 2025_
+%
+% * When using $\dot{h}$ measurements in with boundary conditions applied to h, the adjoint now uses the $\dot{h}$ calculated
+% explicitly using those BCs. Previously, when evaluating the sensitivities of the $\dot{h}$-cost function term at integration
+% points as part of the adjoint approach, this was not the case. 
+%
+% 
+%
+% *Change Log* _November 2025_
+%
+% * The file structure of the Ua folder on github has been changed so that all key m-files are now in the sub-folder UaMain.
+%
+% * The mesh2d package updated to latest version.
+%
+% * SuiteSparse folder deleted, as it is now part of core MATLAB functionality (since R2024a)
+%
+% * MATLAB seems to have been busy working on their Optimisation functions, and the performance of using
+%
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";  
+%
+% now appears improved. This option actually stop working in Matlab 2021b and 2022a, and this may have been due to
+% a bug in the optimisation toolbox. From at least 2024a onward this now works again, and based on some numerical tests,
+% appears much improved. This is currently not the default option, but users might consider setting
+%
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";  
+% 
+% in their DefineInitialInputs.m files, to benefit from these improvements. (The old default setting using a Hessian guestimate still works as before.) 
+%
+% * To select the algorithm for the forward-time integration, use the string variable
+%
+%   CtrlVar.ForwardTimeIntegration
+%
+% and set to either 
+%
+% # "-uv-"   for a velocity solve only, i.e. no evolution of ice thickness (h). (Sometimes this is referred to as
+% time-independent run, or as a diagnostic run.)
+% # "-uvh-"  for an implicit velocity and thickness solve, i.e. time dependent run 
+% # "-uv-h-"  for a semi-implicit velocity and thickness solve, i.e. time dependent run where the thickness is solved
+% implicitly, and an outer iteration loop is used to ensure that the velocities and thickness are consistent at the end of
+% the time step. This is not a recommended option, and is slower than the -uvh- option. 
+%
+%
+% *Change Log* _July 2025_
+%
+%
+%
+% * Enforcing post ice thickness can, as before, be done using the penalty method, by setting 
+% 
+%
+%    CtrlVar.ThicknessPenalty=1;  
+%
+% This causes an additional implicit mass-balance term to be added 
+%
+% $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
+% 
+% where 
+% 
+% $$h < h_{\min}$$
+% 
+% and where:
+%
+%  a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin
+%  a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad;
+%  a_3 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;
+%                                                             
+% Note: $a_1$ and $a_3$ need to be negative and $a_2$ positive, however, this is check internally so actually the sign on input is
+% immaterial. 
+%
+% * By setting:
+% 
+%   CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=true;
+%                                                        
+% nodes of boundary elements can now be excluded from the active set. By default this is false, which is the previous
+% behavior.
+%
+% * The parameter:
+%
+%   CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval
+%
+% is no longer used.  Instead the interval is now identical to the general adapt-meshing interval. See further
+% explanation in Ua2D_DefaultParameters.m
+%
+% *Change Log* _May 2025_
+%
+% * The call to  
+% 
+%   DefineDesiredEleSize.m
+% 
+% now only accepts one combination of the number of input and output variables. 
+% 
+% * UaUtilities contains a new function: 
+%
+%   ElementErrorEstimator(CtrlVar,MUA,F)
+%
+% which provides a "Recovery-based error estimator". An example of how to use this error indicator for automated mesh
+% refinement and un-refinement is provided in "1dIceStream" example within the UaExamples repository. 
+%
+% * Also within UaUtilities is the function 
+%
+%   InfluxOutfluxNodes.m
+%
+% which can be used to find nodes along the boundary where the velocity vectors are oriented into the domain (influx/inflow nodes) and
+% out of the domain (outflux/outflow nodes). This can be used, for example, in when defining boundary condition to ensure
+% that flux into the domain is some given value, e.g. zero.
+%
+%
+% *Change Log* _March 2025_
+%
+% * The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, better consistent with the uvh
+% assembly. This can lead to uv solve to be different if the ice density is varying greatly spatially. The basic difference
+% is that the flotation condition, which involves the product rho and h, is now evaluated at integration points directly.
+% Previously in the uv solve, it was evaluated by first forming the product, rho h, at nodes and then interpolating the
+% product to the integration points.
+%
+% * Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
+% ahead of a call to Ua. However, note that this might also depend on user settings for the parallel pool. For example if the
+% user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
+% all parallel options are turned off, and the run proceeds in non-parallel mode.
+%
+% * Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
+% done to reduce then umber of calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
+% F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
+% called within the assembly loop and then the mass balance will not lag behind.
+%
+% * The start and end times can now be specified using (new option):
+%
+%   CtrlVar.StartTime
+%   CtrlVar.EndTime
+%
+% Previously this was done using (old option):
+%
+%   CtrlVar.time     
+%   CtlrVar.TotalTime
+%
+% The previous option still works, but the new option is recommended. 
+%
+% * When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch
+% between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.
+%
+% * The implementation of the ice-thickness barrier function has been simplified, and is now similar to the barrier function
+% used in the level-set solver.
+%
+% * The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), now uses the active-set
+% method to enforce positive thickness.
+%
+% The model was tested with MATLAB R2024b 
+%
+% *Change Log* _September 2024_
+%
+% * For comparison purposes the semi-implicit solver has been updated. 
+%
+% This option is NOT recommended and the (fully) implicit approach continues to be the default. The semi-implicit approach is
+% both slower and less accurate that the implicit one.  This option has now been updated and made available for use as
+% apparently most (all?) other ice-flow models appear to be using this semi-implicit approach.
+%
+% This option is activated by setting:
+%
+%    CtrlVar.ForwardTimeIntegration="-uv-h-" ;
+%
+%
+% * The default value of 
+%
+%   CtrlVar.LevelSetMethodThicknessConstraints;
+%
+% is now set to true (previously set to false). Therefore if one uses the active-set method and the level-set method, min
+% thickness constraints will be automatically applied to all nodes downstream of calving fronts, unless of course this
+% parameter is set to false by the user. 
+% 
+% *Change Log* _July 2024_
+%
+% * The utility
+%   
+%   [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+%
+% has been updated to allow for calculation at integration points (before only calculated nodal values).
+%
+% * An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations
+% corrected. Thanks to Sainan Sun for pointing this out. 
+%
+% * A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
+%
+% *Change Log* _March 2024_
+%
+% * Positive thickness constraints --- added dynamically when using the active-set option --- are now not added to nodes already
+% contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
+% that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes
+% with thickness less than CtrlVar.ThicMin.
+% 
+%
+%
+% *Change Log* _February 2024_
+%
+% * Parallel spmd assembly option now improved and shows good scalability, although speedup always somewhat problem dependent.  
+% On local workstations with 12 workers, speedup ranging from 6 to 10 seems easily obtainable, and on machines with 24 workers a
+% speedup of 20 has been observed. 
+%
+% To switch on the smpd parallel assembly do:
+%
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    % uvh assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     % uv assembly in parallel using spmd over sub-domain (domain decomposition)  
+%
+%
+% * The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:
+%
+%   CtrlVar.Parallel.Distribute=true/false;                       % linear system is solved using distributed arrays. 
+%
+% Again, the speedup is problem dependent and never particularly large for low density sparse matrices as typically generated
+% by Úa and other FE programs. 
+%
+%   CtrlVar.Parallel.isTest=false/true;             % Runs both with and without parallel approach, and prints out some information on relative performance. 
+%                                                   % Good for testing if switching on the parallel options speeds things up, and by how much.
+% 
+% *Change Log* _October 2023_
+%
+% * A (rare) case where the Cauchy direction is not a direction of descent was incorrectly updated. This has now been addressed. 
+%
+%
+% *Change Log* _September 2023_
+%
+% * Thanks to Sebastian Rosier for providing an example where the backtracking algorithm failed. This has now been corrected.
+%
+%
+% *Change Log* _July 2023_
+%
+% * uv and uvh solver now uses dog-leg search if Newton back-tracking results in small steps.
+%
+% * Thanks to Sainan Sun for spotting that in an adaptive mesh step, call to calving was ahead of call to geometry and
+% densities. This has now been corrected.
+%
+% *Change Log* _July 2022_
+%
+% * Call to DefineOutputs is now only done at the beginning and end of runs if the variables
+%
+%       CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+%       CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop
+%
+% are set to true.
+%
+% * Calving options have been greatly improved and a flexible framework for implementing calving laws implemented. Although
+% still considered not fully tested, this option appears to work quite well. Further details can be found in
+% Ua2D_DefaultParameters.m and in the DefineCalving.m files. 
+%
+% * In the active-set method a minimum number of new active nodes can be specified for the active set to be updated ahead of a
+% new uvh solve, e.g.:
+%
+%   CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5; 
+%
+%
+% * UaPlots is a new plotting utility function.
+%
+% * Some minor bugs have been corrected, but nothing that should affect calculated solutions. 
+%
+% * This version requires MATLAB2021a or later. 
+%
+% *Change Log* _Sept 2021_
+%
+%
+% * Calving
+%
+% Calving can now be prescribed by defining a ice/ocean mask at each time step.
+% The implementation is more general and faster than other similar manual
+% calving options such as deactivating elements or prescribing an additional
+% mass balance term.
+%
+% The ice-free areas are automatically melted away using a mass-balance feedback
+% option implemented at the integration points. Second-order NR convergence is
+% obtained even if the resulting mass balance distribution varies significantly
+% spatially within an element
+%
+% To use this calving option set:
+%
+%      CtrlVar.LevelSetMethod=1;
+%
+% and then define the ice/ocean mask at each time step using the m-file
+%
+%      DefineCalving.m
+%
+%
+%
+% NOTE: Currently the only supported calving option is based on directly
+% prescribing the LSF at each time step
+%
+%
+% If you wanted, for example to get rid of all floating ice for x>500e3, do:
+%
+%
+%
+%         [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
+%           F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
+%           OceanNodes=MUA.coordinates(:,1)>500e3 & F.GF.NodesDownstreamOfGroundingLines;
+%           LSF=zeros(MUA.Nnodes,1)+ 1 ;
+%           LSF(OceanNodes)=-1;
+%         end
+%
+% Think of the LSF as a ice/ocean nodal mask, positive for ice and negative for ocean. 
+%
+% The the ice thickness in ice-free areas is
+%
+%   CtrlVar.LevelSetMinIceThickness
+%
+% While this could in principle be set to zero, doing so might create isolated
+% islands of ice, resulting in an undetermined system. So put this to a some
+% small positive value (small compared to typical ice thicknesses of interest).
+% By default:
+%
+%    CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;
+%
+% where
+%
+%     CtrlVar.ThickMin=1;   
+%
+%
+% Automated mesh refinement based on distance to calving from is possible in similar way as around grounding lines. For
+% example to locally refine all elements with 10e3 distance units from the calving front to 1e3, use:
+%
+%   CtrlVar.MeshAdapt.CFrange=[10e3 1e3] ; 
+%
+% Remember also to set 
+%
+%   CtrlVar.AdaptMesh=1;
+% 
+% as always needed to activate the remeshing options.
+%
+%
+% * New argument list option with F as an input
+% 
+% New:
+%
+%      DefineMassBalance(UserVar,CtrlVar,MUA,time,F)
+%
+% Old:
+% 
+%      DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+% 
+% The old approach still works and is generally recommended. 
+%
+% 
+% * Geometry and densities can now be defined in the same m-file, using 
+%
+%      DefineGeometryAndDensities.m 
+%
+% The previous approach of using separate m-files to define geometry
+% (DefineGeometry.m) and densities (DefineDensities.m) still works. But if you
+% have a "DefineGeometryAndDensities.m" in the run folder, only
+% "DefineGeometryAndDensities.m"  is used and "DefineGeometry.m" and
+% "DefineDensities.m" ignored.
+%
+% * x and y nodal values now a field of F, ie F.x and F.y
+%
+% The (x,y) coordinates of the nodes are now also accessible through F as
+%
+%   (F.x,F.y)
+%
+% These are always identical to MUA.coordinates, that is
+%
+%   F.x=MUA.coordinates(:,1)
+%   F.y=MUA.coordinates(:,2)
+%
+% This was simply done for convenience, and now one can, for example, create a plot showing the upper surface, s, as a function of x as
+%
+%   plot(F.x.F,s,'.')
+%
+% * Default inverse algorithm has changed. Now the default options is a
+% Hessian-based inversion.  The older-approach is still available by selecting a
+% Gradient-based inversion. This is specified using the CtrlVar field:
+%
+%       CtrlVar.Inverse.MinimisationMethod
+%
+% When using this Hessian-based inversion, there is no need to specify the value of 
+%
+%       CtrlVar.Inverse.AdjointGradientPreMultiplier 
+%
+% and this field is not used.
+%   
+% * Ocean and wind-induced drag over floating ice can be included. This is defined in 
+%
+%   DefineSeaIceParameters.m
+%
+% and you need to switch this option on by setting
+%
+%   CtrlVar.IncludeMelangeModelPhysics=true;
+%
+% in DefineInitialInputs.m
+%
+% * The quadrature degree can now be directly specified using
+%
+%   CtrlVar.QuadratureRuleDegree=N
+%
+% where N is a number that can be as high as 25 (Previously the highest possible
+% degree was 13). Generally, the default option should be fine, but there might
+% be instances were increasing the degree could help with obtaining second-order
+% convergence of the Newton-Raphson system.
+%
+% * The shallow-ice sheet (SIA/SSHEET) option now includes basal sliding.
+%
+% The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to
+% the thickness using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the
+% deformational and the basal sliding velocities. Note the SSHEET option is based on the shallow-ice approximation.
+%
+% *Change Log*
+% _June 2020_
+%
+% * Naming of some user input m-files has changed: 
+%
+%
+%       Ua2D_InitialUserInput.m  
+%
+% is now named:
+%
+%       DefineInitialInputs.m
+% 
+% And
+%   
+%       UaOutputs.m
+%
+% is now:
+%
+%       DefineOutputs.m
+%
+% These changes were done so that names of all user-input files start with 'Define'
+%
+% Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and
+% UaOutputs.m files you can, for example, consider using the m-file utility file:
+%
+%       RenameFileRecursively.m
+%
+% * Naming of a few CtrlVar fields has changed. For example
+%
+%       CtrlVar.ATStimeStepTarget
+%
+% is for example no longer used. Use:
+%
+%       CtrlVar.ATSdtMax
+%
+% instead.  
+%
+% You can now specify a minimum selected time step in the
+% automated-time-stepping (ATM) algorithm settting the field
+%    
+%       CtrlVar.ATSdtMin
+% 
+% Also
+%
+%   CtrlVar.UaOutputsDt 
+%
+% has also been replaced by
+%
+%   CtrlVar.DefineOutputsDt 
+%
+% If you define these old fields in your (new) DefineInitialInputs.m, �a will spot this and complain bitterly. 
+%
+% Those using Unix might want to systematically change names of some of the CtrlVar fields
+% in there old input files. You might be able to use something like:
+%
+%   find . -name "DefineInitialInputs.m" -exec sed -i 's/CtrlVar.ATStimeStepTarget/CtrlVar.ATSdtMax/g' {} +
+%   find . -name "Define*.m" -exec sed -i 's/CtrlVar.UaOutputsDt/CtrlVar.DefineOutputsDt/g' {} +
+%
+% * Exit criteria for the non-linear uv and uvh loops are now more flexible and allow for
+% more options. See comments in 
+%
+%       Ua2D_DefaultParameters.m
+%
+% for more details.
+%
+% The
+%
+%   RunInfo
+%
+% variable now contains more information about the run, such as time step and number of
+% non-linear iterations per runstep. 
+%
+% Most of the changes since last Feb 2020 have been 'under the hood'. For example solving
+% a KKT type system can now be done with a much more flexible pre-elimination method than
+% before.
+%
+% All line searches are now done using one single backtracking algorithm (before at least
+% 4 different backtracking routines were used.) 
+%
+% The KKT system is now always solved using the primal-dual method. (Previously the
+% initial iterative was made feasible and the primal method then used.) 
+%
+%
+% *Change Log*
+% _February 2020_
+%
+%
+% * Úa can now be called with CtrlVar as second argument, e.g 
+%
+%   Ua([],CtrlVar) 
+%
+% in which case the fields of the CtrlVar on input will be those used in the run
+% even if these same fields are also defined in Ua2D_InitialUserInput.m
+% 
+% * The combination of local mesh refinement using the newest-vertex bisection method with
+% mesh deactivation is now very flexible and allows for both reduction and extension of the
+% computational domain during the run.
+% 
+% * Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai,
+% Cornford, and  Umbi. Refer to the Úa compendium for definition of these
+% different sliding laws. Inversion is also possible for all these sliding laws except for
+% the Coulomb sliding.
+% 
+% * The semi-implicit time-stepping method now uses SUPG by default and when used the
+% automated time-stepping algorithm ensures that time step fulfils the CFL condition.
+% 
+% * When using automated mesh refinement/coarsening in a time-dependent run, the upper
+% surfaces are mapped between meshes and the thickness calculated afterwards. (Previously,
+% the thickness was mapped and the surface calculated afterwards.) This may cause a
+% potential violation of mass conservation. However, this also ensures smooth upper
+% surfaces even when refining mesh over areas with very uneven bedrock topography.
+% 
+% * Inversion can be done using all implemented sliding laws except Coulomb. 
+% 
+%
+% * u, v and h residuals now calculated in the L2 norm instead of the l2 norm as in the
+% past. 
+%
+% *New user input file options:*
+% 
+%   DefineRunStopCriterion.m
+% 
+%   DefineFinalReturnedValueOfUserVar.m
+% 
+%   DefineOutsideValues
+% 
+% *Several new computational utilities* 
+% 
+%
+%   LakeOrOcean3.m 
+%
+% is both fast and robust (Thanks to Sebastian Rosier).
+% 
+%   EleFlooding.m
+%
+% finds all nodes/elements connected to a given node fulfilling some
+% additional criterion.
+% 
+% 
+%%

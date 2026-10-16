@@ -94,6 +94,17 @@ else
 
 end
 
+% (14 Oct 2026) The flags doDiagnostic/doPrognostic are (again) derived from TimeDependentRun here, as TimeDependentRun may have been
+% modified above based on CtrlVar.ForwardTimeIntegration. Previously they were only set before that modification, and could then be
+% inconsistent with TimeDependentRun (only used for printing information about the run, see PrintRunInfo.m).
+if CtrlVar.TimeDependentRun
+    CtrlVar.doDiagnostic=0  ;
+    CtrlVar.doPrognostic=1 ;
+else
+    CtrlVar.doDiagnostic=1  ;
+    CtrlVar.doPrognostic=0 ;
+end
+
 % Again, if inverse run, the modify accordingly
 if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and diagnostic, if conflict
     CtrlVar.doDiagnostic=0  ;
@@ -252,8 +263,8 @@ if CtrlVar.InverseRun
     CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"--","-");
     CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"--","-");
 
-    if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),["fixpoint","adjoint"])
-        fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain either ''fixpoint'' or ``adjoint` \n')
+    if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),"adjoint")
+        fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain ``adjoint` \n')
         error('Invalid inputs.')
     end
 
@@ -399,6 +410,7 @@ if CtrlVar.InverseRun
 
     end
 
+    CtrlVar.Inverse.MinimisationMethod=replace(CtrlVar.Inverse.MinimisationMethod,"Optimization","Optimisation") ; % US -> UK spelling!
     CtrlVar.Inverse.MinimisationMethod="-"+ CtrlVar.Inverse.MinimisationMethod+"-"; 
     CtrlVar.Inverse.MinimisationMethod=replace(CtrlVar.Inverse.MinimisationMethod,"--","-");
 
@@ -412,31 +424,55 @@ if CtrlVar.InverseRun
 
     end
 
-    % if ~ismember(CtrlVar.Inverse.Hessian,CtrlVar.Inverse.HessianOptions)
-    % 
-    %     fprintf("CtrlVar.Inverse.Hessian=%s\n",CtrlVar.Inverse.Hessian)
-    %     fprintf("But must be one of these options:")
-    %     fprintf(" \t %s\n",CtrlVar.Inverse.HessianOptions)
-    %     error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.Hessian does not have a valid value. \n")
-    % 
-    % end
+    if ~ismember(CtrlVar.Inverse.HessianCalculation,CtrlVar.Inverse.HessianCalculationOptions)
+
+        fprintf("CtrlVar.Inverse.HessianCalculation=%s\n",CtrlVar.Inverse.HessianCalculation)
+        fprintf("But must be one of these options:\n")
+        fprintf(" \t %s\n",CtrlVar.Inverse.HessianCalculationOptions)
+        error("CtrlVarValidityCheck:IncorrectValue","CtrlVar.Inverse.HessianCalculation does not have a valid value. \n")
+
+    end
 
     switch CtrlVar.Inverse.MinimisationMethod
+
+        %
+        %         Ua        Metric aware               Riesz mapping          Cholesky mapping            Box transform      explicit box constraints                                               
+        %   Hessian  :           yes                       No                        no                       no               no
+        %   Gradient :           yes                       yes                       no                       yes              yes 
+        %   
+        %   
+        %
+        %     MATLAB        Metric aware               Riesz mapping          Cholesky mapping            Box transform      box constraints                                               
+        %   Hessian  :           no                       No                        No                       No                yes
+        %   Gradient :           no                       no                        yes                      yes               yes
+        %   
+        % Note: When using Cholesky mapping, explicit box constraints are removed. Therefore, to honor box constraints, these should
+        % be imposed through the box-transform. 
 
         case "-UaOptimisation-GradientBased-"
             % Use Riesz-mapped gradient. The Ua conjugate gradient optimizer if provided with the metric-matrix G as an input, and it
             % uses this information to calculate the true directional derivative and all inner products are done with respect to G.
             CtrlVar.Inverse.RieszMapGradient=true;
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+            CtrlVar.Inverse.BoxTransform=true;
         case "-MatlabOptimisation-GradientBased-"
             CtrlVar.Inverse.RieszMapGradient=false;
             % User the Riesz-mapped gradient. But we can NOT feed this gradient directly as described above. The key difference is that
             % the MATLAB Optimisation toolbox does not allow for the metric matrix G to be provided as an input.
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=true;
-        case {"-UaOptimisation-HessianBased-", "-MatlabOptimisation-HessianBased-"}
-            % Do NOT use the Riesz-mapped gradient. The Newton system is "metric-free"
-            CtrlVar.Inverse.RieszMapGradient=false;
-            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+            CtrlVar.Inverse.BoxTransform=true;
+        case "-UaOptimisation-HessianBased-"
+
+            CtrlVar.Inverse.RieszMapGradient=false;                             % Newton system is metric free
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;     % Ua HessianBased approach knows about the metric
+            CtrlVar.Inverse.BoxTransform=false;                                 % no box transform with Hessian, in fact the Ua Hessian solver can't really deal with box constraints at all... :-(
+
+        case "-MatlabOptimisation-HessianBased-"
+
+            CtrlVar.Inverse.RieszMapGradient=false;                          % It would be wrong to combine Riesz and Cholesky mappings. It would be doing the metric-transform twice
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;  % MATLAB fmincon does NOT use/know the metric, but this can only be done if there are no box constraints!
+            CtrlVar.Inverse.BoxTransform=false;                              % MATLAB fmincon deals with box constraints.
+
         otherwise
             error("case not found")
     end
@@ -663,5 +699,55 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
 
 end
 
+
+% (13 Oct 2026) CtrlVar.LevelSetEvolution is compared case-independently; any spelling of "-prescribed-" is normalised.
+if isfield(CtrlVar,'LevelSetEvolution') && strcmpi(CtrlVar.LevelSetEvolution,"-prescribed-")
+    CtrlVar.LevelSetEvolution="-prescribed-";
+end
+% (14 Oct 2026) Predictive activation without a positive ReleaseAlpha can increase the number of non-linear iterations.
+if isfield(CtrlVar,'ActiveSet') && isfield(CtrlVar.ActiveSet,'PredictiveActivation') && CtrlVar.ActiveSet.PredictiveActivation && isfield(CtrlVar.ActiveSet,'ReleaseAlpha') && CtrlVar.ActiveSet.ReleaseAlpha<=0
+    fprintf(' Note: CtrlVar.ActiveSet.PredictiveActivation=true is best used together with CtrlVar.ActiveSet.ReleaseAlpha>0 (default 1e-3). With ReleaseAlpha=0 it may increase the number of non-linear iterations.\n')
+end
+% (15 Oct 2026) CtrlVar.uvhMinimisationQuantity and CtrlVar.uvMinimisationQuantity have been removed; the force residual is always used.
+for fld=["uvhMinimisationQuantity","uvMinimisationQuantity"]
+    if isfield(CtrlVar,fld)
+        if string(CtrlVar.(fld))~="Force Residuals"
+            fprintf(' Note: CtrlVar.%s is no longer used. The force residual is always used as the merit function in the line search.\n',fld)
+        end
+        CtrlVar=rmfield(CtrlVar,fld);
+    end
+end
+% (13 Oct 2026) CtrlVar.LevelSetMinIceThickness is no longer used. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin.
+if isfield(CtrlVar,'LevelSetMinIceThickness')
+    fprintf(' Note: CtrlVar.LevelSetMinIceThickness is no longer used, and is ignored. Downstream of calving fronts the ice thickness is set to CtrlVar.ThickMin=%g.\n',CtrlVar.ThickMin)
+    CtrlVar=rmfield(CtrlVar,'LevelSetMinIceThickness');
+end
+
+% (10 Oct 2026) Automated time stepping based on the time-discretisation error
+if ~isfield(CtrlVar,'AdaptiveTimeSteppingMethod')
+    CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";
+end
+if isfield(CtrlVar,'ATSTimeDiscretisationError') && isfield(CtrlVar.ATSTimeDiscretisationError,'Use') && isequal(CtrlVar.ATSTimeDiscretisationError.Use,true) ...
+        && string(CtrlVar.AdaptiveTimeSteppingMethod)~="error-estimate"
+    CtrlVar.AdaptiveTimeSteppingMethod="error-estimate";
+    fprintf(' Note: CtrlVar.ATSTimeDiscretisationError.Use is no longer used. As it was set to true, CtrlVar.AdaptiveTimeSteppingMethod has been set to "error-estimate".\n')
+end
+if ~ismember(string(CtrlVar.AdaptiveTimeSteppingMethod),["iteration-based","error-estimate"])
+    error('CtrlVarValidityCheck:AdaptiveTimeSteppingMethod','Unknown value of CtrlVar.AdaptiveTimeSteppingMethod: %s. Use "iteration-based" or "error-estimate".',string(CtrlVar.AdaptiveTimeSteppingMethod))
+end
+if string(CtrlVar.AdaptiveTimeSteppingMethod)=="error-estimate"
+    if ~(isfield(CtrlVar,'TimeDiscretisationErrorEstimate') && isfield(CtrlVar.TimeDiscretisationErrorEstimate,'Use') && CtrlVar.TimeDiscretisationErrorEstimate.Use)
+        CtrlVar.TimeDiscretisationErrorEstimate.Use=true;
+        fprintf(' Note: CtrlVar.AdaptiveTimeSteppingMethod="error-estimate" requires the time-discretisation error estimate, and CtrlVar.TimeDiscretisationErrorEstimate.Use has been set to true.\n')
+    end
+    if abs(CtrlVar.theta-0.5)>1e-10
+        fprintf(' Note: The time-discretisation error estimate is only available for theta=0.5. The time step is then based on the number of non-linear iterations only.\n')
+    end
+end
+
+if isfield(CtrlVar,'MinNumberOfNewlyIntroducedActiveThicknessConstraints')
+    warning('Ua:CtrlVarValidityCheck:MinNumberOfNewlyIntroducedActiveThicknessConstraints',...
+        'The field CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints is no longer used (removed 9 Oct 2026). Small updates of the active set are no longer discarded.')
+end
 
 end

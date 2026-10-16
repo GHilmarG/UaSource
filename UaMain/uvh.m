@@ -7,25 +7,38 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
 
 narginchk(9,9)
 
-Solver="Root-Finding Newton";
-%Solver="Least-Squares Gauss-Newton";
 
 if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
-    CtrlVar=SetSmoothFloorWidths(CtrlVar,F);
+    CtrlVar=SetSmoothFloorWidths(CtrlVar,F0);
 end
 
-switch Solver
+switch CtrlVar.uvhSolver
 
-    case "Root-Finding Newton"
+    case {"Root-Finding Newton","uvh_GaussNewton_fsolve"}
 
 
         [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhRootFinding(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
 
 
     case "Least-Squares Gauss-Newton"
-
+        % This was a test case, it was an early Newton-Gauss approach, and was found to be much slower than the "Root-Finding Newton"
+        % approach. This was also not positioned inside the active-set loop. A valuable experience was gained, inasmuch it was
+        % established that the Newton approach is far better in terms of performance. 
+        %
+        % Note: There is another Gauss-Newton solver inside the active-set loop: "uvh_GaussNewton_fsolve"
+        %
+        % That Gauss-Newton solver works fine and produces identical results to the "Root-Finding Newton", but it is also slower
+        % than the "Root-Finding Newton".
+        %
         [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhLSQ(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
         RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=1;
+
+
+
+    otherwise
+
+        error("CaseFellThrough")
+
 end
 
 

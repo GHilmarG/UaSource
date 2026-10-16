@@ -257,7 +257,6 @@ end
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
-hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
 Psi_x_nod=reshape(Psi_x(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Psi_y_nod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -295,7 +294,10 @@ for Iint=1:MUA.nip
     rhoint=rhonod*fun;
     Psi_x_int=Psi_x_nod*fun;
     Psi_y_int=Psi_y_nod*fun;
-    hfint=hfnod*fun;
+    % The flotation thickness is evaluated at the integration point, h_f=rho_o (S-B)/rho with S, B and rho interpolated to the
+    % integration point, as in the forward model (uvMatrixAssemblySSTREAM.m), dIdBqGeneral.m, FBuv.m and FBB.m. This is not the same as
+    % interpolating a nodal h_f, which differs when the density varies horizontally.
+    hfint=F.rhow*Hint./rhoint;
     %hfint=(Sint-Bint)*F.rhow./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     %

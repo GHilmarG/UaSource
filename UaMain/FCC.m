@@ -30,7 +30,6 @@ h_node=reshape(F.h(MUA.connectivity,1),Nele,nod);   % Nele x nod
 B_node=reshape(F.B(MUA.connectivity,1),Nele,nod);
 S_node=reshape(F.S(MUA.connectivity,1),Nele,nod);
 rho_node=reshape(F.rho(MUA.connectivity,1),Nele,nod);
-hf_node=F.rhow*(S_node-B_node)./rho_node;
 
 C_node=reshape(F.C(MUA.connectivity,1),Nele,nod);
 m_node=reshape(F.m(MUA.connectivity,1),Nele,nod);
@@ -52,7 +51,10 @@ for Iint=1:nip
     % these are all values at integration points
 
     h=h_node*fun;
-    hf=hf_node*fun;
+    % The flotation thickness is evaluated at the integration point, h_f=rho_o (S-B)/rho with S, B and rho interpolated to the
+    % integration point, as in the forward model (uvMatrixAssemblySSTREAM.m), dIdBqGeneral.m, FBuv.m and FBB.m. This is not the same as
+    % interpolating a nodal h_f, which differs when the density varies horizontally.
+    hf=F.rhow*((S_node-B_node)*fun)./(rho_node*fun);
     u=u_node*fun;     % u velocity at integration point Iint
     v=v_node*fun;     % v velocity at integration point
     u_e=sqrt(u.*u + v.*v+u0^2) ;

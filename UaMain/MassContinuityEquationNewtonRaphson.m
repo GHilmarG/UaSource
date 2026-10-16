@@ -243,7 +243,7 @@ while true
 
 
 
-    [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+    [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,BCs1) ;
 
 
 
@@ -267,7 +267,7 @@ while true
         error('hEquationNewtonRaphson:NaNinSolution','NaN in the solution for dh')
     end
 
-    Func=@(gamma) CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l1.h,dh,dl);
+    Func=@(gamma) CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l1.h,dh,dl,BCs1);
 
 
     gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);

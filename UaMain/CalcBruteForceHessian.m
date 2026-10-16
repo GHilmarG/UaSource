@@ -46,7 +46,7 @@ end
 
 deltaStep=abs(p0)*1e-6+1e-6; 
 
-deltaStep=p0*0+1e-3; 
+deltaStep=p0*0+0.01; 
 
 if any(deltaStep==0)
     fprintf("At least one of the deltaStep values is equal to zero. \n")

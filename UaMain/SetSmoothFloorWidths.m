@@ -5,6 +5,15 @@
 function CtrlVar=SetSmoothFloorWidths(CtrlVar,F)
 
 
+if ~isfield(CtrlVar,"CminWidthRelative")
+
+    CtrlVar.CminWidthRelative     = 1e-10 ;
+end
+
+if ~isfield(CtrlVar,"AGlenminWidthRelative")
+    CtrlVar.AGlenminWidthRelative = 1e-10 ;
+end
+
 CtrlVar.CminWidth     = max(CtrlVar.Cmin,     CtrlVar.CminWidthRelative    *mean(F.C)) ;
 CtrlVar.AGlenminWidth = max(CtrlVar.AGlenmin, CtrlVar.AGlenminWidthRelative*mean(F.AGlen)) ;
 

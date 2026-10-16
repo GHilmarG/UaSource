@@ -17,7 +17,9 @@ function y = DiracDelta(k,x,x0)
 %   HeavisideApprox.m 
 %   SoftPlus.m
 % 
-%  
+% Note: the function name is a misnomer. It should more correctly be called DiracDeltaApprox or SoftDiracDelta, or something similar. 
+%
+%
 %%
 
 if nargin==2 ; error('DiracDelta: Need three arguments \n') ; end

@@ -1,6 +1,18 @@
-function  [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar)
+function  [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar,dA)
 
-narginchk(7,7)
+narginchk(7,8)
+
+% (15 Oct 2026) Optional reuse of the matrix decomposition, eg for a modified Newton method:
+%
+%   [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar)      returns, in addition, the decomposition dA used to solve the system
+%   [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar,dA)      uses the decomposition dA (no new factorisation). A must be the matrix for which dA
+%                                                  was calculated.
+%
+% This is supported for the methods "Bempty" (no constraints) and "EliminateBCsSolveSystemDirectly" (point constraints). For other methods
+% dA=[] is returned, and a given dA is ignored. If neither a third output nor dA is requested/given, the solution is calculated exactly
+% as before (backslash for "Bempty").
+if nargin<8 ; dA=[] ; end
+UseDecomposition = nargout>=3 || ~isempty(dA) ;
 
 % Solves:
 %
@@ -122,7 +134,12 @@ tSolve=tic;
 switch CtrlVar.AsymmSolver
     case "Bempty"
 
-        x=A\f; y=[];
+        if UseDecomposition   % (15 Oct 2026)
+            if isempty(dA) ; dA=decomposition(A) ; end
+            x=dA\f; y=[];
+        else
+            x=A\f; y=[];
+        end
 
     case "Backslash"
 
@@ -135,7 +152,11 @@ switch CtrlVar.AsymmSolver
     case "EliminateBCsSolveSystemDirectly"
 
 
-        [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+        if UseDecomposition   % (15 Oct 2026)
+            [x,y,dA]=ABfgPreEliminate(CtrlVar,A,B,f,g,dA);
+        else
+            [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+        end
 
     case "AugmentedLagrangian"
 
@@ -210,6 +231,7 @@ switch CtrlVar.AsymmSolver
 end
 
 tSolve=toc(tSolve);
+if ~ismember(string(CtrlVar.AsymmSolver),["Bempty","EliminateBCsSolveSystemDirectly"]) ; dA=[] ; end   % (15 Oct 2026) decomposition only supported for these methods
 if CtrlVar.InfoLevelLinSolve>=10
     fprintf("solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t Nr of rhs=%-i \t time=%-g sec \t method=%s \n ",...
         n+m,n,m,mf,tSolve,CtrlVar.AsymmSolver)

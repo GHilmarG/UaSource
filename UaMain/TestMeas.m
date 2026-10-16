@@ -24,7 +24,7 @@ if is_uv_meas
     
     
     if isdiag(Meas.vsCov)
-        if any(diag(Meas.usCov)==0)
+        if any(diag(Meas.vsCov)==0)
             error('Ua:TestMeas','The error covariance matrix vsCov is a diagonal matrix and has zeros on the diagonal. This is not allowed. Modify data errors')
         end
     end

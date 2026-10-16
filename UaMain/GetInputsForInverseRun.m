@@ -147,9 +147,60 @@ if CtrlVar.Inverse.Methodology=="-Tikhonov-"
     end
 end
 
+
+%%
+
+if isC
+
+    if any(Priors.C==0)
+
+        fprintf("One or more elements of Prior.C are zero. \n")
+        error('GetInputsForInverseRun:IncorrectInputs',"Prior.C can not be zero. ")
+
+    end
+
+
+end
+
 %% special test for B inversion
 if isB
 
+    if isempty(CtrlVar.Inverse.Matern.B.alpha)
+
+        fprintf("CtrlVar.Inverse.Matern.B.alpha can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.alphaIsNotDefined')
+
+    end
+
+    if isempty(CtrlVar.Inverse.Matern.B.kappa)
+
+        fprintf("CtrlVar.Inverse.Matern.B.kappa can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.kappaIsNotDefined')
+
+    end
+
+    if isempty(CtrlVar.Inverse.Matern.B.tau)
+
+        fprintf("CtrlVar.Inverse.Matern.B.tau can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.tauIsNotDefined')
+
+    end
+
+
+
+    if isempty(Meas.s)
+
+        fprintf('Meas.s can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.sIsNotDefined')
+
+    end
+
+    if isempty(Meas.dhdt)
+
+        fprintf('Meas.dhdt can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.dhdtIsNotDefined')
+
+    end
 
     if isempty(Meas.as)
 
@@ -232,9 +283,41 @@ if isB
 
     end
 
+
+
+    Ind=(Meas.s-F.S) < CtrlVar.ThickMin;
+
+    if any(Ind)
+
+        fprintf("\n Measurements of s, Meas.s,  were in places below the or too close to the ocean surface, S: (Meas.s-F.S) < CtrlVar.ThickMin) \n")
+        fprintf(" Measurements of s are shifted to make sure they are above the ocean surface elevation. \n")
+        Meas.s(Ind)=F.S(Ind)-1.1*CtrlVar.ThickMin;
+
+    end
+
+
+
+
+
     if ~isempty(Meas.Bobs)
 
         [Meas.BO,Meas.BInside,Meas.BEleID]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By) ;
+
+        In=Meas.BInside ;
+        v=Meas.Bobs(In)-(Meas.BO(In,:)*F.s-CtrlVar.ThickMin) ;
+        nBad=sum(v>0) ;
+        if nBad>0
+            fprintf("GetInputsForInverseRun: %i of %i bed observations (%.1f%%) lie above the\n", ...
+                nBad,numel(v),100*nBad/numel(v)) ;
+            fprintf("   surface (Bobs > s-ThickMin). Median overshoot %.1f m, max %.1f m.\n", ...
+                median(v(v>0)),max(v)) ;
+            fprintf("   These cannot be matched: B is bounded above by s-ThickMin.\n") ;
+            if nBad > 0.5*numel(v)
+                warning("GetInputsForInverseRun:BobsAboveSurface", ...
+                    "More than half the bed observations are above the surface. Check that Bobs and s share a datum.") ;
+            end
+        end
+
     end
 
 

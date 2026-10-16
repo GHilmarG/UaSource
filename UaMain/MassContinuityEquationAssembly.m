@@ -5,7 +5,7 @@
 
 
 
-function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,BCs1)
 
 
 
@@ -29,20 +29,47 @@ function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,Ctrl
 %%
 
 
-narginchk(6,6)
+narginchk(6,7)
 nargoutchk(2,4)
 
 nOut=nargout;
 
+% Nodes with thickness boundary conditions or active thickness constraints (8 Oct 2026). These nodes are excluded from the
+% thickness penalty: with the integration-point penalty, elements containing such nodes are excluded, and with the nodal penalty
+% (CtrlVar.ThicknessPenaltyNodal=true) the nodes themselves. If BCs1 is not given, no nodes are excluded.
+if nargin<7 || isempty(BCs1)
+    hConstrainedNodes=[];
+else
+    hConstrainedNodes=[BCs1.hFixedNode(:);BCs1.hPosNode(:)];
+end
+PenaltyNodal=isfield(CtrlVar,"ThicknessPenaltyNodal") && CtrlVar.ThicknessPenaltyNodal ;
+PenaltyElementMask=~any(ismember(MUA.connectivity,hConstrainedNodes),2) ;   % Nele x 1, false for elements containing an h-constrained node
+
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
-theta=CtrlVar.hTheta;
+theta=CtrlVar.theta;
 dt=CtrlVar.dt;
 
 
+%% Mass-balance geometry feedback (8 Oct 2026), done in the same way as in uvhMatrixAssembly.
+% For CtrlVar.MassBalanceGeometryFeedback=3 the mass balance is updated here using the current thickness (F1), at the end of the
+% time step, and the derivative of the mass balance with respect to thickness is included in K (and dFdt). The derivative is
+% treated as a nodal quantity: a_int=sum_k N_k a_k(h_k), so that d a_int/d h_j = N_j da_j/dh_j (see dadhnod below).
+% For CtrlVar.MassBalanceGeometryFeedback=0 the mass balance is used as given, and no derivative is included.
+% If the mass balance is evaluated at integration points ("-int-"), it is evaluated there directly as a function of the
+% integration-point thickness, and the derivative is then an integration-point quantity (da1dhint) and dadhnod is zero.
+MassBalanceAtIntPoints=contains(CtrlVar.MassBalance.Evaluation,"-int-");
+if CtrlVar.MassBalanceGeometryFeedback==3 && ~MassBalanceAtIntPoints
+    CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+    [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
+    CtrlVar.time=CtrlVar.time-CtrlVar.dt;
+    dadh=F1.dasdh+F1.dabdh;
+else
+    dadh=zeros(MUA.Nnodes,1);
+end
+
 a1=F1.as+F1.ab;
 a0=F0.as+F0.ab;
-da1dh=F1.dasdh+F1.dabdh;
 
 
 h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -51,7 +78,7 @@ h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 a0nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 a1nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-da1dhnod=reshape(da1dh(MUA.connectivity,1),MUA.Nele,MUA.nod);
+dadhnod=reshape(dadh(MUA.connectivity,1),MUA.Nele,MUA.nod);   % nodal derivative of the (user-defined) mass balance
 
 
 ub0nod=reshape(F0.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -60,7 +87,7 @@ ub1nod=reshape(F1.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vb0nod=reshape(F0.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vb1nod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-rhonod=reshape(F0.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+rhonod=reshape(F1.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 s0nod=reshape(F0.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 s1nod=reshape(F1.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -78,10 +105,6 @@ GF1node=reshape(F1.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
 dFdt=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Rh=zeros(MUA.Nele,MUA.nod);
-
-if isempty(F1.dabdh)
-    F1.dabdh=zeros(MUA.Nnodes,1) ;
-end
 
 if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
@@ -148,7 +171,7 @@ for Iint=1:MUA.nip  %Integration points
         F0int.as=nan(size(F0int.h)) ;
         F0int.ab=nan(size(F0int.h)) ;
         F1int.as=nan(size(F1int.h)) ;
-        F1int.as=nan(size(F1int.h)) ;
+        F1int.ab=nan(size(F1int.h)) ;
 
         GF0nodInt=GF0node*fun;
         GF1nodInt=GF1node*fun;
@@ -158,7 +181,15 @@ for Iint=1:MUA.nip  %Integration points
 
         MUAint.Nnodes=numel(h0int);
 
-        [UserVar,as1int,ab1int,dasdhint,dabdhint]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
+        if nargout("DefineMassBalance")==5
+            [UserVar,as1int,ab1int,dasdhint,dabdhint]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
+        else
+            [UserVar,as1int,ab1int]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
+            dasdhint=zeros(size(h1int)) ; dabdhint=zeros(size(h1int)) ;
+        end
+        if CtrlVar.MassBalanceGeometryFeedback~=3
+            dasdhint=zeros(size(h1int)) ; dabdhint=zeros(size(h1int)) ;
+        end
         [UserVar,as0int,ab0int]=DefineMassBalance(UserVar,CtrlVar,MUAint,F0int) ;
 
         a0int=as0int+ab0int ;
@@ -175,7 +206,7 @@ for Iint=1:MUA.nip  %Integration points
 
         a0int=a0nod*fun;
         a1int=a1nod*fun;
-        da1dhint=da1dhnod*fun;
+        da1dhint=zeros(MUA.Nele,1);   % the derivative of the user-defined mass balance is treated as a nodal quantity (dadhnod)
 
     end
 
@@ -193,7 +224,7 @@ for Iint=1:MUA.nip  %Integration points
 
     end
 
-    if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
+    if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty && ~PenaltyNodal   % integration-point penalty (nodal penalty: see end of routine)
 
 
         %%  New simpler implementation of a thickness barrier.
@@ -201,6 +232,8 @@ for Iint=1:MUA.nip  %Integration points
         % modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass balance equation
 
         [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,h1int) ;
+        aPenalty1=aPenalty1.*PenaltyElementMask ;          % no penalty in elements containing h-constrained nodes (8 Oct 2026)
+        daPenaltydh1=daPenaltydh1.*PenaltyElementMask ;
         a1int=a1int+aPenalty1;
         da1dhint=da1dhint+daPenaltydh1 ;
 
@@ -251,7 +284,7 @@ for Iint=1:MUA.nip  %Integration points
 
 
     speed0=sqrt(ub0int.*ub0int+vb0int.*vb0int+CtrlVar.SpeedZero^2);
-    tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.h.SUPG.tau) ;
+    tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau,CtrlVar.uvh.SUPG.tauMultiplier) ;
     tauSUPGint=CtrlVar.SUPG.beta0*tau;
 
 
@@ -266,7 +299,7 @@ for Iint=1:MUA.nip  %Integration points
     for Inod=1:MUA.nod
 
 
-        SUPG=fun(Inod)+CtrlVar.h.SUPG.Use*tauSUPGint.*(ub0int.*Deriv1(:,Inod)+vb0int.*Deriv2(:,Inod));
+        SUPG=fun(Inod)+0.5*tauSUPGint.*(ub0int.*Deriv1(:,Inod)+vb0int.*Deriv2(:,Inod));   % same SUPG weighting as in the uvh assembly (uvhNodalLoopSSTREAM_v2)
 
 
 
@@ -275,7 +308,7 @@ for Iint=1:MUA.nip  %Integration points
 
                 Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
                     +(rhoint.*fun(Jnod)...
-                    -dt*theta*rhoint.*da1dhint.*fun(Jnod)...
+                    -dt*theta*rhoint.*(da1dhint+dadhnod(:,Jnod)).*fun(Jnod)...
                     +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
                                +rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
                     .*SUPG.*detJw;
@@ -289,9 +322,13 @@ for Iint=1:MUA.nip  %Integration points
 
                 dFdt(:,Inod,Jnod)=dFdt(:,Inod,Jnod)...
                     +(...
-                    +theta*rhoint.*da1dhint.*fun(Jnod)...
-                    -theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
-                    -rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
+                    +rhoint.*(da1dhint+dadhnod(:,Jnod)).*fun(Jnod)...  % no theta for continuous time derivative, theta is an averaging ratio of two discrete time steps, 
+                    -...                            % but does not appear in the continuous formulation of the equations 
+                    ( ...
+                     rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
+                    +rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod) ...   % oops, there was a sign-error here, corrected on 8 Oct, 2026.
+                    ) ...
+                    )...
                     .*SUPG.*detJw./rhoint;
 
 
@@ -354,7 +391,7 @@ if nargout>2
 
     K=sparse(Iind,Jind,Kval,neq,neq);
 
-    if nargin>3
+    if nargout>3
         dFdtVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
         istak=0;
         for Inod=1:MUA.nod
@@ -364,6 +401,37 @@ if nargout>2
             end
         end
         dFdt=sparse(Iind,Jind,dFdtVal,neq,neq);
+    end
+
+end
+
+
+%% Lumped nodal thickness penalty (8 Oct 2026), done in the same way as in uvhMatrixAssembly (see comments there).
+% The penalty is a nodal term that depends only on the nodal thickness, with HRZ-lumped nodal weights. Nodes with thickness
+% boundary conditions or active thickness constraints are excluded. Added to f0, K and dFdt. As elsewhere in this routine, and as
+% in the uvh assembly, CtrlVar.theta and the density F1.rho are used. In dFdt, which is the derivative of the continuous-time rate of
+% change, there is no theta.
+if isfield(CtrlVar,"ThicknessPenalty") && CtrlVar.ThicknessPenalty && PenaltyNodal
+
+    MeDiag=zeros(MUA.Nele,MUA.nod) ; EleArea=zeros(MUA.Nele,1) ;
+    for Iint=1:MUA.nip
+        funI=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;    % nod x 1
+        detJwI=MUA.DetJ(:,Iint)*MUA.weights(Iint) ;        % Nele x 1
+        MeDiag=MeDiag+detJwI.*(funI.^2).' ;
+        EleArea=EleArea+detJwI ;
+    end
+    mEle=MeDiag.*(EleArea./sum(MeDiag,2)) ;                % HRZ: element weights sum to element area
+    mLump=accumarray(MUA.connectivity(:),mEle(:),[MUA.Nnodes 1]) ;
+
+    wPen=ones(MUA.Nnodes,1) ; wPen(hConstrainedNodes)=0 ;
+    [aPen,daPendh]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,F1.h) ;
+    mw=mLump.*wPen ;
+    f0=f0-sparse(dt*theta*F1.rho(:).*mw.*aPen) ;
+    if nargout>2
+        K=K+spdiags(-dt*theta*F1.rho(:).*mw.*daPendh,0,neq,neq) ;
+    end
+    if nargout>3
+        dFdt=dFdt+spdiags(mw.*daPendh,0,neq,neq) ;
     end
 
 end

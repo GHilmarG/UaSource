@@ -185,7 +185,7 @@ else
         
         RunInfo.Message="Getting inputs for a forward restart run";
         CtrlVar.RunInfoMessage=RunInfo.Message;
-        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo);
+        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo,Fm1]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo);
         
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
@@ -445,8 +445,8 @@ while 1
     F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
     %% -adapt time step   automated time stepping adaptive time stepping 
     if CtrlVar.TimeDependentRun && ~CtrlVar.NeverChangePrescribedTimeStep 
-        [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
-        F.dt=CtrlVar.dt; 
+        [RunInfo,F.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);   % F.dt is the master time step
+        CtrlVar.dt=F.dt ;    % CtrlVar.dt is only a copy of F.dt, kept for compatibility with the rest of the code
     end
  
     
@@ -455,7 +455,13 @@ while 1
         
        
         %[UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        MUAbeforeAdaptMesh=MUA;
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh2025(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        % (9 Oct 2026) Fm1 holds the rates of the previous time step. If the mesh has changed, these are mapped onto the new mesh.
+        if HasMeshChanged(MUA,MUAbeforeAdaptMesh)
+            [RunInfo,Fm1]=MapFm1BetweenMeshes(CtrlVar,RunInfo,MUAbeforeAdaptMesh,MUA,Fm1);
+        end
+        clear MUAbeforeAdaptMesh
         CtrlVar.AdaptMeshInitial=0;  % make sure to set this to zero, as this only applies to the first run step, which can be either the beginning of a new run, or a restart run
         F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 
@@ -642,7 +648,7 @@ while 1
             % F0.dubdt=(F0.ub-Fm1.ub)/dt  (where dt is the time step between Fm1 and F0.)
             %
             
-            [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
+            [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l,F.dt);
 
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
@@ -736,6 +742,8 @@ while 1
             MUA=UpdateMUA(CtrlVar,MUA);
 
        
+            hPosNodeStartOfStep=BCs.hPosNode;   % (10 Oct 2026) active set at the start of the time step, see TimeDiscretisationErrorEstimate.m
+            dtBeforeUvhSolve=F.dt ;
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
             %[norm(F.ub(BCs.ubFixedNode)-BCs.ubFixedValue) norm(F.vb(BCs.vbFixedNode)-BCs.vbFixedValue) norm(F.h(BCs.hFixedNode)-BCs.hFixedValue)]
 
@@ -743,13 +751,18 @@ while 1
                 CompareCalculationsOfRatesOfThicknessChanges(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l)
             end
 
-            CtrlVar.dt=dt;  % I might have changed dt within uvh
-            F.dt=dt;
+            F.dt=dt ;                 % I might have changed dt within uvh. F.dt is the time step
+            CtrlVar.dt=F.dt ;         % CtrlVar.dt is only a copy of F.dt, kept for compatibility with the rest of the code
+            if F.dt~=dtBeforeUvhSolve
+                fprintf(" The uvh solve did not converge with the original time step. The time step was reduced from dt=%g to dt=%g. \n",dtBeforeUvhSolve,F.dt) ;
+            end
+            RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=F.dt ;    % record the time step that was actually used
           
 
+            isConvergedWithoutWTSHTF=RunInfo.Forward.uvhConverged;   % (10 Oct 2026)
             if ~RunInfo.Forward.uvhConverged
             
-                [UserVar,RunInfo,F,F0,l]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l);
+                [UserVar,RunInfo,F,F0,l,BCs]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l);
 
             end
 
@@ -760,6 +773,11 @@ while 1
             % Recalculating geometry based on flotation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+            % (10 Oct 2026) Estimate of the time-discretisation error of h (if CtrlVar.TimeDiscretisationErrorEstimate.Use). This must be done
+            % before F0 and Fm1 are updated. Not done if the uvh solve only converged through WTSHTF.
+            if isConvergedWithoutWTSHTF
+                [RunInfo,F]=TimeDiscretisationErrorEstimate(CtrlVar,RunInfo,MUA,F0,F,Fm1,BCs,hPosNodeStartOfStep);
+            end
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l);
             F0=F; 
 
@@ -808,7 +826,7 @@ while 1
                 %
 
                 tCPUuv2h=tic;
-                [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+                [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
                 tCPUuv2h=toc(tCPUuv2h) ;
 
 
@@ -825,12 +843,16 @@ while 1
 
 
 
-            [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+            hPosNodeStartOfStep=BCs.hPosNode;   % (10 Oct 2026) active set at the start of the time step, see TimeDiscretisationErrorEstimate.m
+            [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
 
             CtrlVar.InitialDiagnosticStep=0;
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; 
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            if RunInfo.Forward.uvhConverged   % (10 Oct 2026) estimate of the time-discretisation error of h, see above
+                [RunInfo,F]=TimeDiscretisationErrorEstimate(CtrlVar,RunInfo,MUA,F0,F,Fm1,BCs,hPosNodeStartOfStep);
+            end
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l);
         
             F0=F; 
@@ -888,7 +910,7 @@ while 1
     
     if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
         
-        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
+        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo,Fm1);
 
     end
 
@@ -942,7 +964,14 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1
-    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
+    % (10 Oct 2026) All exits from the run-step loop occur after CtrlVar.CurrentRunStepNumber has been increased at the start of the loop,
+    % but before that run step has been done. The last completed run step is therefore CtrlVar.CurrentRunStepNumber-1, and this is the
+    % run-step number written to the final restart file. A restart run then continues with the next run step, as an uninterrupted run would,
+    % and there are no gaps in RunInfo.Forward. (The restart files written within the run-step loop are written after the run step has been
+    % done, and are not affected.)
+    CtrlVarFinalRestart=CtrlVar;
+    CtrlVarFinalRestart.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber-1;
+    WriteForwardRunRestartFile(UserVar,CtrlVarFinalRestart,MUA,BCs,F,F.GF,l,RunInfo,Fm1);
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end

@@ -661,10 +661,20 @@ end
 %fprintf('B: exit # %-i. fa=%-10.5g \t fb=%-10.5g \t fc=%-10.5g \t fgamma=%-10.5g \t fmin=%-10.5g \t b=%-10.5g \t c=%-10.5g \t gamma=%-10.5g  \n ',Iteration,fa,fb,fc,fgamma,fmin,b,c,gamma)
 
 
+gLastEval=NaN ; if iq>=1 && iq<=size(Infovector,1) ; gLastEval=Infovector(iq,1) ; end   % (15 Oct 2026) step of the last function evaluation
 I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 [~,I]=sort(Infovector(:,1)) ; Infovector=Infovector(I,:);
 
 [fgamma,I]=min(Infovector(:,2)) ; gamma=Infovector(I,1) ;
+% (15 Oct 2026) The additional outputs (varargout) must correspond to the returned step (the best value found), and not to the last
+% function evaluation, which is not necessarily the same. Previously varargout was always from the last evaluation (except on an
+% early exit, see above). If the returned step is not the last one evaluated, the function is therefore evaluated again at that step.
+if Fargcollect && ~isempty(nOut) && nOut>1 && ~isequal(gamma,gLastEval)
+    [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
+    fgamma=full(fgamma) ;
+    nFuncEval=nFuncEval+1 ;
+end
+gmin=gamma ; fmin=fgamma ;
 I=isnan(Infovector(:,1)) ; Infovector(I,:)=[];
 BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=Extrapolation;

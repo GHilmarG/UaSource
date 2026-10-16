@@ -23,7 +23,7 @@ function Hessian = BuildInversionHessian(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjo
 %
 
 
-switch CtrlVar.Inverse.Hessian
+switch CtrlVar.Inverse.HessianCalculation
 
     case "-DirectAdjoint-"
 
@@ -31,7 +31,7 @@ switch CtrlVar.Inverse.Hessian
 
     case "-Jpp-"
 
-        Hessian=Jpp(CtrlVar,MUA);
+        Hessian=Jpp(CtrlVar,MUA,F,Meas);
 
     case "-FiniteDifferences-"
 

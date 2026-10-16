@@ -8,28 +8,37 @@ function   [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l
 
 narginchk(8,8)
 
+% (9 Oct 2026) Fm1 holds the rates of the previous time step, ie the rates of F0, together with the time step over which these
+% rates were calculated (Fm1.dtRates). Both are needed for the second-order explicit estimate, see
+% ExplicitEstimationUsingBackwardDifferences.m. Fm1 is a UaFields object.
+Fm1=UaFields;
 Fm1.dhdt=F0.dhdt ;
 Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
 Fm1.duddt=F0.duddt ; Fm1.dvddt=F0.dvddt;
+Fm1.dtRates=F0.dtRates ;
 
-if CtrlVar.dt==0
+% (9 Oct 2026) F.dt is the time step. (CtrlVar.dt is only a copy of F.dt, kept for compatibility.)
+if F.dt==0
     F.dhdt=[];
     F.dubdt=[]; F.dvbdt=[];
     F.dsdt=[] ; F.dbdt=[];
+    F.dtRates=NaN;
     return
 
 end
 
 
-F.dhdt=(F.h-F0.h)/CtrlVar.dt;
-F.dsdt=(F.s-F0.s)/CtrlVar.dt;
-F.dbdt=(F.b-F0.b)/CtrlVar.dt;
+F.dhdt=(F.h-F0.h)/F.dt;
+F.dsdt=(F.s-F0.s)/F.dt;
+F.dbdt=(F.b-F0.b)/F.dt;
 
-F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ;
-F.dvbdt=(F.vb-F0.vb)/CtrlVar.dt;
+F.dubdt=(F.ub-F0.ub)/F.dt ;
+F.dvbdt=(F.vb-F0.vb)/F.dt;
 
-F.duddt=(F.ud-F0.ud)/CtrlVar.dt ;
-F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
+F.duddt=(F.ud-F0.ud)/F.dt ;
+F.dvddt=(F.vd-F0.vd)/F.dt;
+
+F.dtRates=F.dt ;   % (9 Oct 2026) the time step over which the above rates (backward differences) were calculated
 
 
 fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))

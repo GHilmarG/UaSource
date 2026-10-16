@@ -64,17 +64,25 @@ if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
 
     %% contributions from the u and v misfit terms
     %
-    % $$ 0.5 (u_{obs}-u)^T M (u_{obs}-u)/(err^2 Area) $$
+    % $$ I_{uv} = \frac{1}{2 \, Area} \left ( r_u^T M \, r_u + r_v^T M \, r_v \right ), \quad r_u=(u-u_{obs})/err_u, \quad r_v=(v-v_{obs})/err_v $$
     %
-    % and
+    % where M is the mass matrix. The gradient of this term (see Jq.m and Misfit.m) is D_u M D_u (u-u_{obs}) / Area, with D_u=diag(1/err_u), and the
+    % Hessian is therefore
     %
-    % $$ 0.5 (v_{obs}-u)^T M (v_{obs}-v)/(err^2 Area)$$
+    % $$ D_u M D_u / Area $$
     %
-    uErr2=spdiags(Meas.usCov);
-    d2Iduu=MUA.M./uErr2/Area;  % MUA.M is the mass matrix, OK this is not quite correct, only correct if errors are not spatially variable...
+    % and equivalently for v. This is exact also when the measurement errors vary in space, and reduces to M/(err^2 Area) when they do not.
+    %
+    if ~isfield(MUA,"M") || isempty(MUA.M)
+        MUA.M=MassMatrix2D1dof(MUA);
+    end
 
-    vErr2=spdiags(Meas.vsCov);
-    d2Idvv=MUA.M./vErr2/Area;
+    uErr=full(sqrt(spdiags(Meas.usCov)));
+    vErr=full(sqrt(spdiags(Meas.vsCov)));
+    Du=spdiags(1./uErr,0,MUA.Nnodes,MUA.Nnodes);
+    Dv=spdiags(1./vErr,0,MUA.Nnodes,MUA.Nnodes);
+    d2Iduu=Du*MUA.M*Du/Area;
+    d2Idvv=Dv*MUA.M*Dv/Area;
     d2Jduvduv=blkdiag(d2Iduu,d2Idvv);  % This is a block matrix, no mixing uv terms here
 
 end

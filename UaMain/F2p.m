@@ -1,7 +1,7 @@
-function [p,plb,pub]=F2p(CtrlVar,MUA,F)
+function [p,plb,pub]=F2p(CtrlVar,MUA,F,Meas)
 
 
-narginchk(3,3)
+narginchk(4,4)
 
 % p is the vector of the control variables, currently p=[A,B,C]
 % with A, B or C here only being nonempty when inverted for,
@@ -88,26 +88,35 @@ if isB
     %
     % This second situation is not going to happen if we do not update the bed, B, where the ice is already afloat. 
     %
-   
-    BAboveFloatationMinimum = 10/CtrlVar.kH ;   % ~10 grounding-line widths
- 
-    Bstar=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % we must have B > Bstar
+    % 
+    % BAboveFloatationMinimum = 10/CtrlVar.kH ;   % ~10 grounding-line widths
+    % 
+    % Bstar=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % we must have B > Bstar
+    % 
+    % GF=F.GF.node>0.5;
+    % lbB=nan(MUA.Nnodes,1);
+    % lbB(GF)=Bstar(GF) ;      % where grounded, set lower bound just above flotation as based on s, S and densities 
+    % BfloatationOffsetBound=100;
+    % lbB(~GF)=F.B(~GF)-BfloatationOffsetBound ;  % where afloat, set lower bound to some offset value below the current B. 
+    %                                             % I'm not expecting this to matter much as the B where the ice is afloat will not change much during the inversion.
+    %                                             % However, because of regularization on B, I might still have some changes in B across the grounding line.
 
-    GF=F.GF.node>0.5;
-    lbB=nan(MUA.Nnodes,1);
-    lbB(GF)=Bstar(GF) ;      % where grounded, set lower bound just above flotation as based on s, S and densities 
-    BfloatationOffsetBound=100;
-    lbB(~GF)=F.B(~GF)-BfloatationOffsetBound ;  % where afloat, set lower bound to some offset value below the current B. 
-                                                % I'm not expecting this to matter much as the B where the ice is afloat will not change much during the inversion.
-                                                % However, because of regularization on B, I might still have some changes in B across the grounding line.
+   F.s=Meas.s;
+   [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow);
 
-  
-    ubB=F.s-CtrlVar.ThickMin ; % This is Bmax, we must have B < Bmax
+    % Since I'm now allowing flotation within the domain, I don't have my old lower bounds on B which were there to ensure nothing
+    % would go afloat.  But I still need to populate the lbB vector. I guess it might be OK to set it to -inf, but for the time
+    % being I simply set to to a save lower limit 
+   lbB=-5000 + zeros(MUA.Nnodes,1);
 
-    ubB=max(lbB,ubB) ; % make sure ubB >= lbB
+   ubB=F.s-CtrlVar.ThickMin ; % This is Bmax, we must have B < Bmax = s - thickmin
 
-    % UaPlots(CtrlVar,MUA,F,lbB,FigureTitle="lbB")
-    % UaPlots(CtrlVar,MUA,F,ubB,FigureTitle="ubB")
+   if ~isempty(lbB)
+       ubB=max(lbB,ubB) ; % make sure ubB >= lbB
+   end
+
+   % UaPlots(CtrlVar,MUA,F,lbB,FigureTitle="lbB")
+   % UaPlots(CtrlVar,MUA,F,ubB,FigureTitle="ubB")
     % UaPlots(CtrlVar,MUA,F,ubB-lbB,FigureTitle="ubB-lbB") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
     % UaPlots(CtrlVar,MUA,F,"-B-",FigureTitle="B")
 

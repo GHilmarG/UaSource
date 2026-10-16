@@ -8,11 +8,9 @@ function [UserVar,RunInfo,BCs1,lambdahpos,isActiveSetModified,isActiveSetCyclica
 narginchk(10,10)
 nargoutchk(8,8)
 
-RunInfo.Forward.ActiveSetConverged=1;
-RunInfo.Forward.uvhIterationsTotal=0;
+% (9 Oct 2026) RunInfo.Forward.ActiveSetConverged is no longer set here. It is initialised by the calling routines at the start
+% of the active-set loop, and set to 0 there if the loop is left because the maximum number of iterations has been reached.
 isActiveSetCyclical=NaN;
-
-BCs1Input=BCs1;
 
 if ~CtrlVar.ThicknessConstraints
     return
@@ -78,11 +76,34 @@ lambdahpos=l1.h(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I alway
 if ~CtrlVar.LinFEbasis
     if numel(BCs1.hPosNode) >0
 
-        Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
-      
-        ah=-Reactions.h./(F1.rho.*F1.dt) ; % nodal array
-        ah=ah(BCs1.hPosNode)             ; % array equal in size to number of hPos constraints
-        lambdahpos=Reactions.h(BCs1.hPosNode);  % 
+        % Modification (8 Oct 2026): The decision to release a constrained node is based on the sign of the discrete reaction
+        % r=L_h'*lambda_h at that node, expressed as an equivalent mass flux using lumped (HRZ) nodal weights m_i:
+        %
+        %    ah_i = -r_i/(rho_i m_i dt)
+        %
+        % This is the KKT sign condition for the discretised problem. Previously the reactions were first mapped to a nodal field
+        % with the inverse of the consistent mass matrix, M\r (see CalculateReactions). That field has the right magnitude away from
+        % the edges of the active set, but the inverse of the consistent mass matrix introduces sign oscillations at individual nodes,
+        % so that nodes were released although their discrete reaction indicated that the constraint was needed. These nodes then
+        % immediately fell below ThickMin again in the next solve, and the active set cycled. The previous approach can still be
+        % selected by setting CtrlVar.ActiveSet.ReleaseCriterion="consistent-mass".
+        ReleaseCriterion="discrete";
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ReleaseCriterion")
+            ReleaseCriterion=CtrlVar.ActiveSet.ReleaseCriterion;
+        end
+
+        if ReleaseCriterion=="consistent-mass"
+            Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+            ah=-Reactions.h./(F1.rho.*F1.dt) ; % nodal array
+            ah=ah(BCs1.hPosNode)             ; % array equal in size to number of hPos constraints
+            lambdahpos=Reactions.h(BCs1.hPosNode);  %
+        else
+            % (15 Oct 2026) The calculation of the reactions and the equivalent mass-balance rates has been moved to
+            % ThicknessConstraintReactions.m, so that it can also be used to provide the reactions as an output (F.ah).
+            [ahNodal,rh]=ThicknessConstraintReactions(CtrlVar,MUA,F1,BCs1,l1) ;
+            ah=ahNodal(BCs1.hPosNode) ;
+            lambdahpos=rh(BCs1.hPosNode) ;
+        end
 
     else
         lambdahpos=[];
@@ -93,7 +114,7 @@ end
 
 
 if numel(lambdahpos) ~= numel(BCs1.hPosNode)
-    save TestSave ; error(' # of elements in lambdahpos must equal # of elements in BCs1.hPosNode')
+    error(' # of elements in lambdahpos must equal # of elements in BCs1.hPosNode')
 end
 
 
@@ -148,9 +169,56 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
     % thickness value over a time interval corresponding to one time unit.
 
     %isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ;
+    % alpha can be set through CtrlVar.ActiveSet.ReleaseAlpha. alpha=0 gives the behaviour above: release a node if ah<0. (14 Oct 2026) The default is now 1e-3, see Ua2D_DefaultParameters.m.
+    % A small positive value reduces chattering of the active set: a node is then only released if releasing it would raise the
+    % thickness by more than alpha*ThickMin during one time step. Note that a large alpha keeps nodes at the minimum thickness
+    % even though the multiplier indicates that they could rise, so that complementarity is only satisfied approximately.
     alpha=0; 
+    if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ReleaseAlpha")
+        alpha=CtrlVar.ActiveSet.ReleaseAlpha;
+    end
     
-    isNegavtiveMassFluxSmall=ah < -alpha*CtrlVar.ThickMin/F1.dt ;
+    % Modification (8 Oct 2026): the thickness scale of the release threshold is max(ThickMin,deltaAbs), so that alpha still has an
+    % effect if ThickMin=0 (deltaAbs is the thickness scale used for the penalty term, see Ua2D_DefaultParameters).
+    hScaleRelease=CtrlVar.ThickMin;
+    if isfield(CtrlVar,"ThicknessPenaltyMassBalanceFeedbackSoftPlus") && isfield(CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus,"deltaAbs")
+        hScaleRelease=max(hScaleRelease,CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs);
+    end
+    % (9 Oct 2026) Locking: a node that was released in the previous active-set iteration, but is again below ThickMin after the
+    % subsequent solve, is kept constrained for the rest of this time step, ie it is not released again. The solve has then shown
+    % that the constraint is needed, even if the sign of the reaction indicates otherwise. (The sign of the nodal reaction is not
+    % always a reliable indicator, in particular for higher-order elements, where the vertex shape functions have zero (6-node) or
+    % small (10-node) integrals.) This prevents the active set from cycling. The locks are reset at the start of each time step by
+    % the calling routines (uvhRootFinding, MassContinuityEquationNewtonRaphsonThicknessContraints), so a locked node can be released
+    % in a later time step.
+    if isfield(RunInfo.Forward,"ActiveSetLockedNodes") ; Locked=RunInfo.Forward.ActiveSetLockedNodes(:) ; else ; Locked=[] ; end
+    NewlyLocked=[];
+    if ~isempty(LastDeactivated)
+        LastDeactivated=LastDeactivated(:);
+        ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+        NewlyLocked=LastDeactivated(F1.h(LastDeactivated)<CtrlVar.ThickMin*(1-ActTol));   % (14 Oct 2026) same tolerance as for activation, see below
+        NewlyLocked=setdiff(NewlyLocked,Locked);
+        Locked=[Locked;NewlyLocked(:)];
+    end
+    RunInfo.Forward.ActiveSetLockedNodes=Locked;
+    % If any released node is again below ThickMin, the reactions are evidently not a reliable guide in this time step. No further
+    % nodes are then released for the rest of this time step (only activations), which ensures that the active-set loop terminates.
+    % The flag is reset at the start of each time step by the calling routines.
+    if ~isempty(NewlyLocked)
+        RunInfo.Forward.ActiveSetNoFurtherReleases=true;
+    end
+    NoFurtherReleases=isfield(RunInfo.Forward,"ActiveSetNoFurtherReleases") && isequal(RunInfo.Forward.ActiveSetNoFurtherReleases,true);
+    if ~isempty(NewlyLocked) && CtrlVar.ThicknessConstraintsInfoLevel>=1
+        fprintf(CtrlVar.fidlog,' Active-set: %i nodes released in the previous iteration are again below ThickMin. They are kept constrained, and no further nodes are released for the rest of this time step. \n',numel(NewlyLocked));
+    end
+
+    isNegavtiveMassFluxSmall=ah < -alpha*hScaleRelease/F1.dt ;
+    if ~isempty(Locked)
+        isNegavtiveMassFluxSmall=isNegavtiveMassFluxSmall & ~ismember(BCs1.hPosNode(:),Locked) ;   % locked nodes are not released
+    end
+    if NoFurtherReleases
+        isNegavtiveMassFluxSmall(:)=false ;
+    end
 
     NewInActiveConstraints=find(isNegavtiveMassFluxSmall); % the nodes are BCs1.hPosNode(NewInActiveConstraints)
     iNewInActiveConstraints=numel(NewInActiveConstraints);
@@ -191,7 +259,12 @@ NodesDeactivated=LastActiveSet(NewInActiveConstraints);
 
 %% Do I need to ACTIVATE some new thickness constraints?
 %I=h1<=CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
-I=F1.h<CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
+% (14 Oct 2026) CtrlVar.ActiveSet.ActivationTolerance (default 0): nodes are only activated if their thickness is less than
+% ThickMin*(1-ActivationTolerance). Nodes with thickness slightly below ThickMin, ie within this tolerance, are accepted as they are (they
+% are not set to ThickMin, the solution satisfies the discretised equations, and mass is conserved). This is the counterpart, for
+% activations, of CtrlVar.ActiveSet.ReleaseAlpha for releases.
+ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+I=F1.h<CtrlVar.ThickMin*(1-ActTol); % if thickness is less than ThickMin then further new thickness constraints must be introduced
 
 NewActive=find(I);
 NewActive=setdiff(NewActive,BCs1.hFixedNode) ;  % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions,
@@ -264,6 +337,11 @@ end
 
 
 % LastActiveSet is simply a copy of hPosNode at the beginning of the call
+% (13 Oct 2026) Nodes with user-defined thickness boundary conditions (BCs1.hFixedNode) must not also be in the active set, as this
+% results in duplicate thickness constraints. This is also done at the start, but must be repeated here as nodes may have been added
+% above, in particular the level-set constraints (F1.LSFMask.NodesOut).
+BCs1.hPosNode=setdiff(BCs1.hPosNode,BCs1.hFixedNode) ;
+
 DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
 
@@ -303,7 +381,12 @@ isActiveSetCyclical=false ;
 
 
 
-ActivatedAndPreviouslyDeactivatedDifference=setxor(Activated,LastDeactivated); % if empty then the sets of activated and previously de-activated nodes are identical
+% (9 Oct 2026) Nodes that are re-activated because they were locked (released in the previous active-set iteration and then again
+% below ThickMin) are excluded from the cycle test: their re-activation is the intended consequence of the locking, and not a cycle.
+% Otherwise the loop is exited as "cyclical" before the final solve with these nodes constrained.
+if isfield(RunInfo.Forward,"ActiveSetLockedNodes") ; LockedNodes=RunInfo.Forward.ActiveSetLockedNodes(:) ; else ; LockedNodes=[] ; end
+ActivatedForCycleTest=setdiff(Activated,LockedNodes);
+ActivatedAndPreviouslyDeactivatedDifference=setxor(ActivatedForCycleTest,LastDeactivated); % if empty then the sets of activated and previously de-activated nodes are identical
 DeactivatedAndPreviouslyActivatedDifference=setxor(DeActivated,LastActivated); % if empty then the sets of de-activated and previously activated nodes are identical
 
 if CtrlVar.ThicknessConstraintsInfoLevel>=1
@@ -321,7 +404,7 @@ if CtrlVar.ThicknessConstraintsInfoLevel>=1
     end
 end
 
-if ~(isempty(Activated) && isempty(DeActivated))  
+if ~(isempty(ActivatedForCycleTest) && isempty(DeActivated))  
     if isempty(ActivatedAndPreviouslyDeactivatedDifference)  && isempty(DeactivatedAndPreviouslyActivatedDifference)
         isActiveSetCyclical=true ;
         fprintf(' Active-set is cyclical. \n')
@@ -342,16 +425,6 @@ end
 BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
 %%
 
-if nDeactivated> 0 || nActivated>0
-    if nDeactivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
-        fprintf("ActiveSetInitialisation: Not introducing any new thickness constraints as:\n")
-        fprintf("\t #Deactivated=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nDeactivated,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
-        BCs1=BCs1Input;
-        Activated=[];
-        DeActivated=[];
-
-    end
-end
 
 
 
@@ -369,7 +442,6 @@ else
 end
 
 
-% setxor(BCs1.hPosNode,BCs1Input.hPosNode)
 
 
 RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;

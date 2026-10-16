@@ -112,12 +112,12 @@ ny=CtrlVar.UaSquareMesh.ny;
 
 % If the user only defines nx, then calculate a reasonable ny
 if isfinite(nx) && isnan(ny)
-    ny=round((CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin)/(CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin))*CtrlVar.UaSquareMesh.nx;
+    ny=round((CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin)/(CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin)*CtrlVar.UaSquareMesh.nx);
 end
 
 % If the user only defines ny, than calculate a reasonable nx
 if isfinite(ny) && isnan(nx)
-    nx=round((CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin)/(CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin))*CtrlVar.UaSquareMesh.ny;
+    nx=round((CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin)/(CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin)*CtrlVar.UaSquareMesh.ny);
 end
 
 % xmin=-10 ; xmax=10 ; ymin=-5 ; ymax=5;  dx=1 ; dy=1 ;  nx=round((xmax-xmin)/dx); ny=round((ymax-ymin)/dy);

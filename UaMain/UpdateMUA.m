@@ -280,6 +280,21 @@ if ~isfield(MUA,"uvhAssemblyPattern")
     MUA.uvhAssemblyPattern=[];
 end
 
+if ~isfield(CtrlVar,"MUA")  || ~isfield(CtrlVar.MUA,"AssemblyPattern")
+    CtrlVar.MUA.AssemblyPattern.uv=true;
+    CtrlVar.MUA.AssemblyPattern.uvh=true;
+end
+
+if ~isfield(CtrlVar.MUA.AssemblyPattern,"uv")
+    CtrlVar.MUA.AssemblyPattern.uv=true;
+end
+
+if ~isfield(CtrlVar.MUA.AssemblyPattern,"uvh")
+    CtrlVar.MUA.AssemblyPattern.uvh=true;
+end
+
+
+
 if CtrlVar.MUA.AssemblyPattern.uv && CtrlVar.MUA.AssemblyPattern.uvh
     if isempty(MUA.uvAssemblyPattern)  &&  isempty(MUA.uvhAssemblyPattern)
         [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);

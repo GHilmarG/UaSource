@@ -16,7 +16,7 @@ function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(Ct
     t3 = mu.^m;
     t4 = m.*3.0;
     t5 = m+1.0;
-    t6 = 2.0.^m;
+    %t6 = 2.0.^m;
     t7 = u.^2;
     t8 = u0.^2;
     t9 = v.^2;
@@ -26,7 +26,7 @@ function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(Ct
     t15 = 1.0./m;
     t11=dNdh ; % t11 = diff(t2,h);
     t12 = t2.^m;
-    t16 = 2.0.^t5;
+    %t16 = 2.0.^t5;
     t17 = mu.^t5;
     t18 = t4-1.0;
     t20 = t15.*2.0;
@@ -55,7 +55,7 @@ function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(Ct
     t30 = t26.^m;
     t34 = t26.^t5;
     t36 = t10.^t24;
-    t37 = t6.*t27;
+    %t37 = t6.*t27;
     t38 = m.*t8.*t27;
     % t44 = t19.*t28;
     t46 = t15.*t19.*(-1.0./2.0);
@@ -67,10 +67,10 @@ function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(Ct
     t54 = t53.^m;
     t55 = t53.^t14;
     t56 = t30.*t54;
-    t57 = t37+t54;
+    %t57 = t37+t54;
     t58 = m.*t8.*t56;
     t59 = t27+t56;
-    t60 = t57.^t33;
+    %t60 = t57.^t33;
     t61 = t59.^t23;
     Tauu = mu.*t2.*t26.*t35.*t49.*t61.*u;
     if nargout > 1
@@ -99,10 +99,12 @@ function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(Ct
             dTauvdu = t68;
         end
         if nargout > 6
-            dTauudh = t16.*t17.*t22.*t25.*t35.*t48.*t60.*u+mu.*t11.*t34.*t35.*t48.*t54.*t63.*u;
+            % The delta term must use t63=(mu^m N^m+He^m W^m)^(-(m+1)/m), with no factor 2^(m+1). The earlier version (t16 and t60)
+            % was only correct at He=1/2, which it is not within the smoothed grounding-line transition zone.
+            dTauudh = t17.*t22.*t25.*t35.*t48.*t63.*u+mu.*t11.*t34.*t35.*t48.*t54.*t63.*u;
         end
         if nargout > 7
-            dTauvdh = t16.*t17.*t22.*t25.*t35.*t48.*t60.*v+mu.*t11.*t34.*t35.*t48.*t54.*t63.*v;
+            dTauvdh = t17.*t22.*t25.*t35.*t48.*t63.*v+mu.*t11.*t34.*t35.*t48.*t54.*t63.*v;
         end
 
     else

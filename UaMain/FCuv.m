@@ -103,7 +103,6 @@ hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
-hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -126,7 +125,10 @@ for Iint=1:MUA.nip
     detJ=MUA.DetJ(:,Iint);
 
     h=hnod*fun;
-    hf=hfnod*fun;
+    % The flotation thickness is evaluated at the integration point, h_f=rho_o (S-B)/rho with S, B and rho interpolated to the
+    % integration point, as in the forward model (uvMatrixAssemblySSTREAM.m), dIdBqGeneral.m, FBuv.m and FBB.m. This is not the same as
+    % interpolating a nodal h_f, which differs when the density varies horizontally.
+    hf=F.rhow*((Snod-Bnod)*fun)./(rhonod*fun);
 
     u=unod*fun;
     v=vnod*fun;

@@ -68,7 +68,7 @@ end
 
 
 if isB
-    if CtrlVar.Inverse.Matern.logB.alpha==1
+    if CtrlVar.Inverse.Matern.B.alpha==1
         error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
     end
 end
@@ -143,7 +143,7 @@ while true
 
     iIteration=iIteration+1;
 
-    if CtrlVar.Inverse.HessianOptions=="-FiniteDifferences-"
+    if CtrlVar.Inverse.HessianCalculation=="-FiniteDifferences-"
   
          % In the future it might be easiest to just get this finite difference approximation from within JGH, although I have to be
          % careful when doing this because I will need to call JGH for the gradient as I do so...
@@ -164,6 +164,9 @@ while true
             %% This is here for testing purposes. Here a comparison is made against finite-differences
             iCol=randi(numel(p));
             % iCol=88;
+            
+            % I have to be a bit careful here, the step size may well need to be adjusted and varied for proper comparison
+            % Rerun this FE test with a number of amplitudes. Best simply to do so in the debugger.
             [~,HessianFD,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iCol) ;
             Diff=norm(HessianFD(:,iCol)-Hessian(:,iCol))/norm(Hessian(:,iCol));
             fprintf("UaOptimisationHessianEstimate: normalised norm of difference between Direct-Adjoint and finite-difference Hessian for column %i is: %g \n",iCol,Diff)

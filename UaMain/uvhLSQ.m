@@ -5,6 +5,28 @@
 function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhLSQ(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
 
 
+
+
+%% This uses a Newton-Gauss formulation. 
+%
+% The idea was to try a solve formulated as a true minimisation problem, rather than a root-finding problem.
+%
+% I'm using the MATLAB optimisation functions as much as possible. 
+% 
+% However, this turned out to be a very slow approach. Not sure why, it produces the same solutions in all cases tested 
+%
+% Message: do not use!
+%
+% Note: I later implemented a similar approach, but within the active set iteration (uvh_GaussNewton_fsolve.m).
+% That approach is switched on using 
+% 
+%   CtrlVar.uvhSolver="uvh_GaussNewton_fsolve"
+%
+% But again this was found to be slow as compared to the Newton-Raphson root-finding approach.
+% 
+%
+%
+%%
 dt=CtrlVar.dt;
 x=[F1.ub;F1.vb;F1.h];
 
