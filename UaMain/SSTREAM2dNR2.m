@@ -349,11 +349,13 @@ while true
     end
 
     tSolution=tic;
+    % (17 Oct 2026) structural sparsity pattern of the mesh, used by PARDISO (see UaPardisoSolve.m)
+    if isfield(MUA,"uvAssemblyPattern") ; uvPattern=MUA.uvAssemblyPattern ; else ; uvPattern=[] ; end
 
     if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
-        [sol,dl,dAtilde]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde);
+        [sol,dl,dAtilde]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde,uvPattern);
     else
-        [sol,dl,dAtilde]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde);
+        [sol,dl,dAtilde]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde,uvPattern);
     end
 
     RunInfo.CPU.Solution.uv=toc(tSolution)+RunInfo.CPU.Solution.uv;

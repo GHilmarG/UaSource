@@ -1,6 +1,6 @@
-function  [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar,dA)
+function  [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar,dA,StructuralPattern)
 
-narginchk(7,8)
+narginchk(7,9)
 
 % (15 Oct 2026) Optional reuse of the matrix decomposition, eg for a modified Newton method:
 %
@@ -13,7 +13,10 @@ narginchk(7,8)
 % as before (backslash for "Bempty").
 % (16 Oct 2026) With CtrlVar.LinearSolver.Type="PARDISO", the systems solved with AsymmSolver="Bempty" and
 % "EliminateBCsSolveSystemDirectly" are solved with PARDISO (see UaPardisoSolve.m); then dA=[] is returned, and a given dA gives an error.
+% (17 Oct 2026) Optional ninth input StructuralPattern: the assembly pattern of the mesh (eg MUA.uvhAssemblyPattern), passed on to
+% UaPardisoSolve.m as the fixed sparsity pattern for PARDISO. Only used if CtrlVar.LinearSolver.Type="PARDISO".
 if nargin<8 ; dA=[] ; end
+if nargin<9 ; StructuralPattern=[] ; end
 UseDecomposition = nargout>=3 || ~isempty(dA) ;
 
 % Solves:
@@ -142,7 +145,7 @@ switch CtrlVar.AsymmSolver
             if ~isempty(dA)
                 error("solveKApe:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
             end
-            x=UaPardisoSolve(CtrlVar,A,f,A); y=[]; dA=[];
+            x=UaPardisoSolve(CtrlVar,A,f,A,"nonsymmetric",StructuralPattern); y=[]; dA=[];
         elseif UseDecomposition   % (15 Oct 2026)
             if isempty(dA) ; dA=decomposition(A) ; end
             x=dA\f; y=[];
@@ -162,9 +165,9 @@ switch CtrlVar.AsymmSolver
 
 
         if UseDecomposition   % (15 Oct 2026)
-            [x,y,dA]=ABfgPreEliminate(CtrlVar,A,B,f,g,dA);
+            [x,y,dA]=ABfgPreEliminate(CtrlVar,A,B,f,g,dA,StructuralPattern);
         else
-            [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+            [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g,[],StructuralPattern);
         end
 
     case "AugmentedLagrangian"

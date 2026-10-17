@@ -1,10 +1,13 @@
-function [x,y,dAtilde,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde)
+function [x,y,dAtilde,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde,StructuralPattern)
 
 
-narginchk(5,6)
+narginchk(5,7)
 
 if nargin< 6
     dAtilde=[];
+end
+if nargin< 7
+    StructuralPattern=[];   % (17 Oct 2026) structural sparsity pattern of the mesh, for PARDISO (see UaPardisoSolve.m)
 end
 
 % (16 Oct 2026) PARDISO (Intel oneMKL) instead of decomposition/mldivide, if CtrlVar.LinearSolver.Type="PARDISO" (see UaPardisoSolve.m)
@@ -20,7 +23,7 @@ if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
     % Possibly not needed, but check if this is not just a very simple case of B=g=[]
 
     if UsePardiso
-        x=UaPardisoSolve(CtrlVar,A,f,A) ;
+        x=UaPardisoSolve(CtrlVar,A,f,A,"nonsymmetric",StructuralPattern) ;
     else
         x=A\f;
     end
@@ -126,7 +129,7 @@ else
             if ~isempty(dAtilde)
                 error("ABfgPreEliminate:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
             end
-            x=UaPardisoSolve(CtrlVar,Atilde,btilde,A) ;   % the pattern of A (the Jacobian) contains all rows of Atilde
+            x=UaPardisoSolve(CtrlVar,Atilde,btilde,A,"nonsymmetric",StructuralPattern) ;   % the patterns of A and of the mesh contain all rows of Atilde
             tDecomposition=toc(tDecomposition) ;
             tSolve=0 ;
         else

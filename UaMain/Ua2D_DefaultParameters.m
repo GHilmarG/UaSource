@@ -706,6 +706,8 @@ CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10;     % if the relative resi
                                                           % does not help, decomposition is used instead
 CtrlVar.LinearSolver.PARDISO.MinimumSize=20000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
                                                           % more than it saves); diagonal systems are always solved directly
+CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sparsity pattern of the mesh (MUA.uvAssemblyPattern,
+                                                          % MUA.uvhAssemblyPattern) as the fixed pattern: normally one analysis per mesh and type of system
 % Setting for example:
 % CtrlVar.ModifiedNRuvIntervalCriterion=10;     
 % CtrlVar.ModifiedNRuvReductionCriterion=0.95;

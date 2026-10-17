@@ -4,6 +4,33 @@
 % 
 % *Change Log* _October 2026_
 %
+% * PARDISO: structural sparsity pattern of the mesh as the fixed pattern (17 October 2026):
+%
+% Previously UaPardisoSolve.m learned the fixed pattern from the matrices it was given, and extended it whenever a matrix had a new
+% nonzero. As sparse() drops entries that are exactly zero, and whether a Jacobian entry is exactly zero depends on the state (ice free,
+% floating, current velocities, ...), new nonzeros appeared during the first iterations, and each required a new analysis (eg 10
+% extensions in 24 solves in a Greenland nx200 run from scratch, where PARDISO then gained only 5%). Now the structural pattern of the
+% mesh, ie all entries the assembled matrices can have, is used: the assembly patterns already stored in MUA.uvAssemblyPattern and
+% MUA.uvhAssemblyPattern (computed by AssemblyPatternCache.m in CreateMUA/UpdateMUA, fields i0, j0, neq) give it directly. No changes
+% to MUA were needed.
+%
+%   solveKApe.m, solveKApeSymmetric.m: new optional ninth input StructuralPattern, passed on to ABfgPreEliminate.m (new optional 7th
+%   input), KKT_null_space_decomposition_chol.m (new optional 6th input; for the direct reduction for nodal constraints, the pattern of
+%   H(f,f) is passed as a structure with fields Pattern and Index) and UaPardisoSolve.m (new optional 6th input).
+%   SSTREAM_TransientImplicit.m passes MUA.uvhAssemblyPattern, SSTREAM2dNR2.m passes MUA.uvAssemblyPattern. Other callers are unchanged
+%   and use the learned pattern as before.
+%   UaPardisoSolve.m: builds the logical pattern (tril for the symmetric types, plus the diagonal) once per mesh and caches it; a state
+%   gets it when it is created, or when a different structural pattern arrives (eg after remeshing). The pattern is ignored if it does
+%   not match the size of the matrix. If a matrix has an entry outside the pattern, the pattern is extended as before, so that a wrong
+%   or outdated pattern only costs time. New statistic StructuralPatterns.
+%   New option CtrlVar.LinearSolver.PARDISO.StructuralPattern=true (false: learned pattern, as before).
+%
+% Tests (Greenland, nx150): with a Jacobian with 2% of its off-diagonal entries zero followed by the full one, 1 analysis instead of 2 for
+% each of uvh with constraints, uv without constraints and uv with nodal constraints; solutions agree with MATLAB to 1e-13. A pattern of
+% the wrong size is ignored, one that is too small is extended. Transient run, 5 time steps from a restart file, 31 Newton-Raphson
+% iterations, 4 thread workers: 1 analysis for 31 factorisations (previously 7), 88.5 s instead of 93.0 s (MATLAB solver: 159.5 s); uvh
+% solves 54.9 s instead of 61.4 s; results agree with the MATLAB solver to 1e-12.
+%
 % * PARDISO (Intel oneMKL) as an alternative linear solver (16 October 2026):
 %
 % New option CtrlVar.LinearSolver.Type="PARDISO" (default "MATLAB"): the linear systems solved in ABfgPreEliminate.m (uv and uvh

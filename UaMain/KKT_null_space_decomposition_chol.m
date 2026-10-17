@@ -1,7 +1,7 @@
 
 
 
-function [x, lambda] = KKT_null_space_decomposition_chol(H, g, A, b, CtrlVar)
+function [x, lambda] = KKT_null_space_decomposition_chol(H, g, A, b, CtrlVar, StructuralPattern)
 
 %%
 % KKT_NULL_SPACE_CHOL  Solves the KKT system using the null space method
@@ -42,6 +42,7 @@ function [x, lambda] = KKT_null_space_decomposition_chol(H, g, A, b, CtrlVar)
 % (16 Oct 2026) Optional fifth input CtrlVar: if CtrlVar.LinearSolver.Type="PARDISO", the system with H (if A is empty) and the
 % system with the reduced Hessian Hr are solved with PARDISO (see UaPardisoSolve.m), the latter with a Cholesky factorisation.
 UsePardiso = nargin>=5 && isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO" ;
+if nargin<6 ; StructuralPattern=[] ; end   % (17 Oct 2026) structural sparsity pattern of the mesh (eg MUA.uvAssemblyPattern), for PARDISO
 
 
 if isempty(A) || ( m==0 && n==0)   % In this case there is no A matrix and I just use the backslash operator. 
@@ -49,7 +50,7 @@ if isempty(A) || ( m==0 && n==0)   % In this case there is no A matrix and I jus
     % function even if there is not KKT system as such.
 
     if UsePardiso
-        x=UaPardisoSolve(CtrlVar,H,g,H,"symmetric"); lambda=[];
+        x=UaPardisoSolve(CtrlVar,H,g,H,"symmetric",StructuralPattern); lambda=[];
     else
         x=H\g; lambda=[];
     end
@@ -86,7 +87,8 @@ if numel(dVal)==m && numel(unique(iRow))==m && numel(unique(iCol))==m
         Hff=(Hff+Hff')/2 ;   % as Hr below: H is symmetric by construction, but may not be exactly so due to rounding errors
         rhs_f=g(f,:)-H(f,c)*x(c,:) ;
         if UsePardiso
-            x(f,:)=UaPardisoSolve(CtrlVar,Hff,rhs_f,[],"spd") ;
+            if isempty(StructuralPattern) ; SPf=[] ; else ; SPf=struct("Pattern",StructuralPattern,"Index",find(f)) ; end   % pattern of H(f,f)
+            x(f,:)=UaPardisoSolve(CtrlVar,Hff,rhs_f,[],"spd",SPf) ;
         else
             x(f,:)=decomposition(Hff,'chol')\rhs_f ;
         end
