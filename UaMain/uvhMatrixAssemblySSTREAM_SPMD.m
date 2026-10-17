@@ -116,7 +116,14 @@ end
 %%
 function Key=StaticFingerprint(MUA,F0,F1,Changing,nW)
 % Fingerprint of the mesh, the number of workers, and all numerical fields of F0 and F1 except those that change within a uvh solve
-Key=[MUA.Nnodes MUA.Nele sum(MUA.connectivity(:)) nW FieldSums(F0,strings(0)) FieldSums(F1,Changing)] ;
+% (17 Oct 2026) the key of the mesh (see MeshKey.m) instead of sum(MUA.connectivity(:)), which did not detect eg a renumbering of the
+% nodes or the elements, or a change of the coordinates
+if isfield(MUA,"MeshKey") && isstruct(MUA.MeshKey) && isfield(MUA.MeshKey,"Topology") && isfield(MUA.MeshKey,"Geometry")
+    MK=[MUA.MeshKey.Topology MUA.MeshKey.Geometry] ;
+else
+    MK=MeshKey(MUA) ; MK=[MK.Topology MK.Geometry] ;
+end
+Key=[MUA.Nnodes MUA.Nele MK nW FieldSums(F0,strings(0)) FieldSums(F1,Changing)] ;
 end
 
 function s=FieldSums(F,Exclude)

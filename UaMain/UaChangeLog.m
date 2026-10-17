@@ -4,6 +4,38 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Mesh key: robust detection of changes of the mesh in UpdateMUA (17 October 2026):
+%
+% UpdateMUA.m only recognised a changed mesh by changed numbers of nodes, elements and nodes per element. A change of the connectivity
+% with the same sizes (eg a renumbering of nodes, or a reordering of elements) or a change of the coordinates went unnoticed, and the
+% quantities derived from the mesh were left unchanged. Test with the Greenland nx150 mesh: after a reordering of the elements (same
+% sizes and same sum of the connectivity), the uvh Jacobian assembled with the outdated quantities had a relative error of 1.0.
+%
+%   New ArrayChecksum.m: exact, platform-independent checksum of the bit patterns of a numerical array (two weighted sums modulo primes
+%   below 2^31, all intermediate values below 2^53; the probability that a change goes undetected is about 1 in 4e18).
+%   New MeshKey.m: Key.Topology (checksum of the connectivity, its size, and the number of nodes) and Key.Geometry (checksum of the
+%   coordinates and their size). About 25 ms for the nx150 mesh, about 120 ms for a mesh with 1e6 elements.
+%   CreateMUA.m and UpdateMUA.m store the key in MUA.MeshKey. UpdateMUA.m compares it with the key of the current mesh (in addition to the
+%   sizes): if the topology or the geometry has changed, the derived quantities are recalculated; the assembly patterns only if the
+%   topology has changed. If MUA has no key (eg from an older file), everything is recalculated once.
+%   AssemblyPatternCache.m stores the topology key in the patterns (field TopologyKey).
+%   uvhMatrixAssemblySSTREAM_SPMD.m: the mesh part of the fingerprint used to decide whether to resend the data to the workers is now
+%   the mesh key, instead of [Nnodes Nele sum(connectivity(:))], which did not detect a renumbering or a change of the coordinates.
+%   UaPardisoSolve.m: identifies structural patterns by TopologyKey (if available) instead of comparing i0 and j0.
+%
+% Two errors in UpdateMUA.m found with the tests (both only relevant after a change of the mesh):
+%   - The Cholesky factor of the mass matrix (MUA.MC, MUA.Mp; CtrlVar.MUA.CholeskyMassMatrix=true) was not recalculated together with
+%     the mass matrix, and was left for the old mesh (relative error 1.8e-3 after moving one node by 50 m). Now recalculated.
+%   - The workers (BuildMuaWorkers.m) were built before the element areas were recalculated, so they got the old areas, which are used
+%     in the SUPG terms of the uvh assembly (parallel and serial Jacobians differed by 1.3e-5 after moving one node). The element areas
+%     are now recalculated before the workers are built.
+%
+% Tests (nx150): changes detected: local node swap, element swap, renumbering of two nodes, change of one coordinate in the last bit, swap
+% across a block boundary. UpdateMUA: unchanged mesh 0.04 s, nothing recalculated; one node moved: Deriv, DetJ and areas changed in
+% exactly the 8 elements around it, patterns kept; elements reordered: patterns rebuilt, Jacobian identical to the original (1.5e-16);
+% parallel assembly (4 thread workers) identical to the serial one after both changes, data resent only when the mesh changed.
+% Transient run, 5 time steps: results bitwise identical to the run before these changes, 86.6 s instead of 88.5 s.
+%
 % * PARDISO: structural sparsity pattern of the mesh as the fixed pattern (17 October 2026):
 %
 % Previously UaPardisoSolve.m learned the fixed pattern from the matrices it was given, and extended it whenever a matrix had a new

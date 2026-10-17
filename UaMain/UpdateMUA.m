@@ -120,16 +120,28 @@ if CtrlVar.QuadRules2021
     end
 end
 
-%% Now check if the mesh has changed. This test is not 100% foolproof.
-% Possibly this test could be improved by using some checksum calculated from coordinates and connectivity.
-% However, it is exceedingly unlikely that the mesh has changed, but both number of nodes and elements did not. But this
-% could be improved in the future and made more robust.
+%% Now check if the mesh has changed.
+% (17 Oct 2026) In addition to the numbers of nodes and elements, the key of the mesh (see MeshKey.m) is compared with the one stored
+% in MUA.MeshKey when the quantities derived from the mesh were last calculated. TopologyHasChanged: the connectivity has changed
+% (including a renumbering of nodes or elements). GeometryHasChanged: the coordinates have changed. If MUA has no key (eg MUA from an
+% older file), everything is recalculated once.
 
-MeshHasChanged = ...
+NewMeshKey=MeshKey(MUA) ;
+if isfield(MUA,"MeshKey") && isstruct(MUA.MeshKey) && isfield(MUA.MeshKey,"Topology") && isfield(MUA.MeshKey,"Geometry")
+    TopologyHasChanged=~isequal(MUA.MeshKey.Topology,NewMeshKey.Topology) ;
+    GeometryHasChanged=~isequal(MUA.MeshKey.Geometry,NewMeshKey.Geometry) ;
+else
+    TopologyHasChanged=true ;
+    GeometryHasChanged=true ;
+end
+
+SizesHaveChanged = ...
     MUA.nod~=size(MUA.connectivity,2) || ...
     MUA.Nele~=size(MUA.connectivity,1) || ...
-    MUA.Nnodes~=size(MUA.coordinates,1) || ...
-    QuadratureRuleHasChanged ;
+    MUA.Nnodes~=size(MUA.coordinates,1) ;
+
+TopologyHasChanged = TopologyHasChanged || SizesHaveChanged ;
+MeshHasChanged = TopologyHasChanged || GeometryHasChanged || QuadratureRuleHasChanged ;
 
 
 % If the mesh has changed, quite a few things may have to be re-calculated. This is done here below, and this is the main
@@ -137,6 +149,7 @@ MeshHasChanged = ...
 if MeshHasChanged
     if CtrlVar.InfoLevel>=10
         fprintf('UpdateMUA: Mesh has changed \n ')
+        fprintf('UpdateMUA: topology changed %d, geometry changed %d, quadrature rule changed %d \n ',TopologyHasChanged,GeometryHasChanged,QuadratureRuleHasChanged)
         fprintf('UpdateMUA: finding mesh boundary \n ')
         fprintf('UpdateMUA: Calculating mesh derivatives \n ')
     end
@@ -186,18 +199,23 @@ if MeshHasChanged
         MUA.uvhAssemblyPattern=[];
     end
 
-    if CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh
+    if (CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh) && TopologyHasChanged   % (17 Oct 2026) the patterns only depend on the connectivity
         [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
     end
 
 
 
-    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
+    CholeskyMassMatrix=isfield(CtrlVar.MUA,"CholeskyMassMatrix") && CtrlVar.MUA.CholeskyMassMatrix ;
+    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix || CholeskyMassMatrix
 
         MUA.M=MassMatrix2D1dof(MUA);
 
         if CtrlVar.MUA.DecomposeMassMatrix
             MUA.dM=decomposition(MUA.M,'chol','upper') ;
+        end
+
+        if CholeskyMassMatrix   % (17 Oct 2026) previously not recalculated here, so that MUA.MC and MUA.Mp were left unchanged
+            [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
         end
 
 
@@ -216,6 +234,11 @@ if MeshHasChanged
 
 
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
+
+    % (17 Oct 2026) the element areas are needed by BuildMuaWorkers (and the SUPG terms of the assembly use them), so they have to be
+    % recalculated before the workers are built; previously they were only recalculated further below, so the workers got the old areas
+    MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity);
+    MUA.Area=sum(MUA.EleAreas);
 
     MUA.workers=[];
 
@@ -396,5 +419,9 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.
 end
 
 
+
+
+% (17 Oct 2026) the key of the mesh for which the quantities derived from the mesh were calculated (see MeshKey.m)
+MUA.MeshKey=NewMeshKey;
 
 end

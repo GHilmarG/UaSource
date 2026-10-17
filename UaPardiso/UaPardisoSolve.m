@@ -253,10 +253,16 @@ end
 
 for c=1:numel(Cache)
     E=Cache(c) ;
-    if E.neq==Base.neq && E.nk==numel(Base.i0) && E.Symmetric==Symmetric && isequal(E.Index,Index) ...
-            && isequal(E.i0,Base.i0) && isequal(E.j0,Base.j0)
-        P=E.P ; id=E.id ;
-        return
+    if E.neq==Base.neq && E.nk==numel(Base.i0) && E.Symmetric==Symmetric && isequal(E.Index,Index)
+        if isfield(Base,"TopologyKey") && ~isempty(E.TopologyKey)
+            Same=isequal(E.TopologyKey,Base.TopologyKey) ;   % (17 Oct 2026) key of the mesh (see MeshKey.m)
+        else
+            Same=isequal(E.i0,Base.i0) && isequal(E.j0,Base.j0) ;
+        end
+        if Same
+            P=E.P ; id=E.id ;
+            return
+        end
     end
 end
 
@@ -266,7 +272,8 @@ if Symmetric ; S=tril(S) ; end
 S=S | logical(speye(n)) ;
 
 NextId=NextId+1 ;
-E=struct("neq",Base.neq,"nk",numel(Base.i0),"Symmetric",Symmetric,"Index",Index,"i0",Base.i0,"j0",Base.j0,"P",S,"id",NextId) ;
+TK=[] ; if isfield(Base,"TopologyKey") ; TK=Base.TopologyKey ; end
+E=struct("neq",Base.neq,"nk",numel(Base.i0),"Symmetric",Symmetric,"Index",Index,"i0",Base.i0,"j0",Base.j0,"P",S,"id",NextId,"TopologyKey",TK) ;
 if isempty(Cache) ; Cache=E ; else ; Cache=[Cache(max(1,end-2):end) E] ; end   % at most four patterns
 P=S ; id=NextId ;
 
