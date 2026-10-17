@@ -17,7 +17,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2,frhs,grhs,Normalisation] = CalcCostF
     
    
     CtrlVar.uvMatrixAssembly.Ronly=true;  
-    % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+  
     [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
     
     if ~isempty(L)

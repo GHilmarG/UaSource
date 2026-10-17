@@ -4,6 +4,52 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Parallel uv assembly revised (17 October 2026), along the lines of the uvh assembly (16 October 2026):
+%
+% uvMatrixAssemblySSTREAM_SPMD.m was correct, but its overheads made it hardly faster than the serial assembly (Greenland nx150, 4 thread
+% workers: 0.56 s instead of 0.62 s for the residual and the Jacobian, 0.41 s instead of 0.32 s for the residual only, ie slower): in each
+% call CtrlVar, F and BCs were sent to all workers (0.17 s), and each worker calculated the uv assembly pattern of its sub-domain (and the
+% uvh pattern) anew (about 0.23 s), as the worker data contained no uv pattern. Changes:
+%
+%   uvMatrixAssemblySSTREAM_SPMD.m: F, CtrlVar and BCs are kept on the workers between calls. Only ub and vb, and the CtrlVar fields that are
+%   switched between calls (uvAssembly, uvMatrixAssembly, NRuvIncomplete) are sent in each call; F is sent again if the fingerprint of the
+%   mesh and the other fields changes (eg AGlen or C between the forward solves of an inversion, or after remeshing), CtrlVar and BCs if
+%   they change (isequaln). One spmd block for the assembly and the summation (previously two). Tint and Fext are summed over the workers
+%   as well (previously returned empty). The number of workers is CtrlVar.Parallel.uvAssembly.spmd.nWorkers (or the pool size), and the
+%   number of sub-domains in MUA.workers is used if they differ (previously CtrlVar.Parallel.uvhAssembly.spmd.nWorkers was set instead).
+%   Without a pool or without worker data, the serial assembly is used. Optional fifth output Timing, as in the uvh assembly.
+%   BuildMuaWorkers.m: the worker data contain the uv assembly pattern of the sub-domain as well as the uvh pattern.
+%   New SPMDFieldsFingerprint.m: the fingerprint of the inputs kept on the workers, previously local functions of
+%   uvhMatrixAssemblySSTREAM_SPMD.m, now shared by the uv and the uvh assembly (the key of the uvh assembly is unchanged).
+%   New uvAssemblyScalingTest.m: the uv counterpart of uvhAssemblyScalingTest.m (restart files).
+%
+% Results (nx150, 56,070 nodes, 16 cores, thread pool): residual and Jacobian 0.34 s instead of 0.61 s (4 or 8 workers), residual only
+% 0.21 s instead of 0.32 s; of the 0.34 s, 0.24 s are the assembly on the workers, 0.016 s the fingerprint and 0.003 s sending ub and vb.
+% Results identical to the serial assembly (K to 2e-16, R, Tint and Fext to 3e-15 relative to ||Fext||). Changes of ub and vb, of
+% another field (C), of CtrlVar (SpeedZero) and of the mesh (reordered elements) are handled correctly. uv solve (perturbed nx150 state):
+% same 14 iterations, 19.3 s instead of 23.9 s, velocities identical to 2e-12 m/a. uvAssemblyScalingTest recommends 4 thread workers
+% (1.7 times faster assembly), as uvhAssemblyScalingTest for the uvh assembly. The tests of the parallel uvh assembly give the same
+% results as before.
+%
+% * New TestuvJacobian.m: Taylor test of the Jacobian of the uv system (17 October 2026):
+%
+% The uv counterpart of TestuvhJacobian.m, with the same method, options and output: for a state x=[ub;vb], the remainder
+% ||R(x+eps d)-R(x)-eps K d|| is calculated for decades of eps, with R and K from uvMatrixAssembly.m (as in SSTREAM2dNR2.m), for the
+% Newton direction (calculated at the state, with the boundary conditions) and smooth random directions of u, v and both. Called with
+% the name of a restart file, or with (CtrlVar,MUA,F,BCs); other states are tested by changing F.ub and F.vb. In addition, the
+% symmetry of K is reported. Option ModifyJacobian (a function applied to K before the test) checks the test itself.
+%
+% Results (Greenland nx150 and nx200, Weertman sliding with m=3 and m=1, n=3): order 2.00 (1.99 to 2.04) for all directions and states
+% (converged state, velocities x0.5 and x2, 30% smooth perturbation, state after one time step); smallest relative error in the Newton
+% direction between 4e-8 and 1e-4; K exactly symmetric. The uv Jacobian is consistent. Check of the test: a term of relative size
+% 1e-3 added to the diagonal of K gives order 1.00 and a relative error of 3.8e-3 (flagged), one of 1e-6 still order 1.01 with a
+% relative error of 3.8e-6.
+%
+% Found with the test: CtrlVar.NRviscosity and CtrlVar.NRbeta2 had no effect, as uvMatrixAssemblySSTREAM.m always forms the full
+% Newton Jacobian. Removed (17 Oct 2026), together with the also unused CtrlVar.Picard and CtrlVar.Picarditmax, and the parfeval variant
+% of the uv assembly (uvMatrixAssemblySSTREAM_Parfeval.m, uvMatrixAssemblySSTREAMpartitionTriplets.m, and its branch and the related
+% test block in uvMatrixAssembly.m), the only place where CtrlVar.NRviscosity was still read.
+%
 % * Mesh key: robust detection of changes of the mesh in UpdateMUA (17 October 2026):
 %
 % UpdateMUA.m only recognised a changed mesh by changed numbers of nodes, elements and nodes per element. A change of the connectivity

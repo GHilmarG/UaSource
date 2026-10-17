@@ -715,12 +715,8 @@ CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sp
 % the fractional reduction r/r0 over previous iteration was less than 0.95.
 %
 
-CtrlVar.Picard=0;        % 1 gives Picard iteration, otherwise NR iteration (always use NR whenever possible).
-CtrlVar.NRviscosity=1;    % if 1 derivatives with respect to viscosity are included in the NR method
-CtrlVar.NRbeta2=1;        % if 1 derivatives with respect to slipperiness are included in the NR method
-                          % Note: if Picard=0 then the NRviscosity and NRbeta2 values are overwritten and set to 0. 
+
 CtrlVar.NRitmax=50;       % maximum number of NR iteration
-CtrlVar.Picarditmax=30;  % maximum number of Picard iterations
 CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Picard iteration
 CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping

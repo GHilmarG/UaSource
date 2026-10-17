@@ -26,6 +26,9 @@ function [UserVar,RunInfo,Ruvh,Kuvh,Timing]=uvhMatrixAssemblySSTREAM_SPMD(UserVa
 % longest time on a worker within the spmd block, including the summation), Fetch (transfer of the results to the client) and Total.
 % It is used by uvhAssemblyScalingTest.m. Without a parallel pool, Timing.Parallel=false and only Timing.Total is set.
 %
+% (17 Oct 2026) The fingerprint functions were moved to SPMDFieldsFingerprint.m (shared with uvMatrixAssemblySSTREAM_SPMD.m); the key is
+% unchanged.
+%
 %%
 
 narginchk(8,8)
@@ -52,7 +55,7 @@ else
     Changing=["ub","vb","h","b","s"] ;
 
     % send F0 and F1 to the workers if anything else has changed since the last call
-    t0=tic ; Key=StaticFingerprint(MUA,F0,F1,Changing,nW) ; Timing.Fingerprint=toc(t0) ; Timing.Parallel=true ;
+    t0=tic ; Key=SPMDFieldsFingerprint(MUA,nW,F0,strings(0),F1,Changing) ; Timing.Fingerprint=toc(t0) ; Timing.Parallel=true ;
     SendAll = isempty(W) || ~isequal(W.Key,Key) || ~isvalid(W.Pool) || W.Pool~=ParPool ;
     Timing.SendAll=SendAll ; t0=tic ;
     if SendAll
@@ -111,43 +114,4 @@ end
 
 Timing.Total=toc(tTotal) ;
 
-end
-
-%%
-function Key=StaticFingerprint(MUA,F0,F1,Changing,nW)
-% Fingerprint of the mesh, the number of workers, and all numerical fields of F0 and F1 except those that change within a uvh solve
-% (17 Oct 2026) the key of the mesh (see MeshKey.m) instead of sum(MUA.connectivity(:)), which did not detect eg a renumbering of the
-% nodes or the elements, or a change of the coordinates
-if isfield(MUA,"MeshKey") && isstruct(MUA.MeshKey) && isfield(MUA.MeshKey,"Topology") && isfield(MUA.MeshKey,"Geometry")
-    MK=[MUA.MeshKey.Topology MUA.MeshKey.Geometry] ;
-else
-    MK=MeshKey(MUA) ; MK=[MK.Topology MK.Geometry] ;
-end
-Key=[MUA.Nnodes MUA.Nele MK nW FieldSums(F0,strings(0)) FieldSums(F1,Changing)] ;
-end
-
-function s=FieldSums(F,Exclude)
-p=setdiff(string(properties(F)),Exclude,"stable") ;
-s=zeros(1,2*numel(p)) ;
-for k=1:numel(p)
-    x=F.(p(k)) ;
-    if isstruct(x)          % eg LSFMask, GF: weighted sum over its numerical fields
-        fn=fieldnames(x) ;
-        for i=1:numel(fn)
-            y=x.(fn{i}) ;
-            if (isnumeric(y) || islogical(y)) && ~isempty(y)
-                [a,b]=WeightedSum(y) ; s(2*k-1)=s(2*k-1)+i*a ; s(2*k)=s(2*k)+b ;
-            end
-        end
-    elseif (isnumeric(x) || islogical(x)) && ~isempty(x)
-        [s(2*k-1),s(2*k)]=WeightedSum(x) ;
-    end
-end
-end
-
-function [v,n]=WeightedSum(x)
-% weighted sum of the finite values, and the number of non-finite values
-x=double(full(x(:))) ; nf=~isfinite(x) ; n=nnz(nf) ; x(nf)=0 ;
-w=1+mod((1:numel(x))',97)/97 ;
-v=sum(x.*w) ;
 end
