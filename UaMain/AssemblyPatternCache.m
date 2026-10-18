@@ -144,6 +144,11 @@ if doUVH
     uvhAssemblyPattern.Nodal=Nodal;
 end
 
+% (17 Oct 2026) topology key of the mesh the patterns were built for (see MeshKey.m)
+Key=MeshKey(MUA) ;
+if doUV  ; uvAssemblyPattern.TopologyKey=Key.Topology  ; end
+if doUVH ; uvhAssemblyPattern.TopologyKey=Key.Topology ; end
+
 end
 
 

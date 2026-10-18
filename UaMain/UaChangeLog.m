@@ -4,6 +4,189 @@
 % 
 % *Change Log* _October 2026_
 %
+% * New LinesolveScalingTest.m: performance of the linear solvers (MATLAB and PARDISO) as a function of the number of cores (17 October 2026):
+%
+% For a restart file, the uvh system (constraints eliminated as in ABfgPreEliminate.m) or the uv system (nodal constraints removed,
+% Cholesky) is built once and saved; each measurement is then a separate MATLAB process restricted to p cores by processor affinity
+% (start /affinity on Windows, taskset on Linux), as PARDISO with the TBB layer ignores MKL_Set_Num_Threads, so that its number of
+% threads can not be limited from within MATLAB. Measured: PARDISO's phases separately (analysis, factorisation, substitution), with a
+% new analysis for each solve and with the analysis reused; MATLAB's backslash, and its factorisation (lu/chol) and substitution; both
+% solvers as called in Ua (solveKApe/solveKApeSymmetric). Model T(p)=a+b/p+dp, recommendation, plot.
+%
+% Results (Greenland nx150 uvh system, 168,210 unknowns, 16 cores): PARDISO with the analysis reused 1.05 s on 1 core, 0.21 s on 16
+% cores (factorisation 6.6 times faster); the analysis (about 1.4 s) does not parallelise; MATLAB's backslash about 2.0-2.3 s with any
+% number of cores. Unrestricted: PARDISO 1.3-1.4 times faster than MATLAB with all three phases, about 10 times with the analysis
+% reused, 6.5 times as called in Ua; the analysis is 84% of a solve with all three phases. Most of PARDISO's advantage in Ua therefore
+% comes from reusing the analysis, which the fixed (structural) sparsity pattern of each mesh allows.
+%
+% * Parallel uv assembly revised (17 October 2026), along the lines of the uvh assembly (16 October 2026):
+%
+% uvMatrixAssemblySSTREAM_SPMD.m was correct, but its overheads made it hardly faster than the serial assembly (Greenland nx150, 4 thread
+% workers: 0.56 s instead of 0.62 s for the residual and the Jacobian, 0.41 s instead of 0.32 s for the residual only, ie slower): in each
+% call CtrlVar, F and BCs were sent to all workers (0.17 s), and each worker calculated the uv assembly pattern of its sub-domain (and the
+% uvh pattern) anew (about 0.23 s), as the worker data contained no uv pattern. Changes:
+%
+%   uvMatrixAssemblySSTREAM_SPMD.m: F, CtrlVar and BCs are kept on the workers between calls. Only ub and vb, and the CtrlVar fields that are
+%   switched between calls (uvAssembly, uvMatrixAssembly, NRuvIncomplete) are sent in each call; F is sent again if the fingerprint of the
+%   mesh and the other fields changes (eg AGlen or C between the forward solves of an inversion, or after remeshing), CtrlVar and BCs if
+%   they change (isequaln). One spmd block for the assembly and the summation (previously two). Tint and Fext are summed over the workers
+%   as well (previously returned empty). The number of workers is CtrlVar.Parallel.uvAssembly.spmd.nWorkers (or the pool size), and the
+%   number of sub-domains in MUA.workers is used if they differ (previously CtrlVar.Parallel.uvhAssembly.spmd.nWorkers was set instead).
+%   Without a pool or without worker data, the serial assembly is used. Optional fifth output Timing, as in the uvh assembly.
+%   BuildMuaWorkers.m: the worker data contain the uv assembly pattern of the sub-domain as well as the uvh pattern.
+%   New SPMDFieldsFingerprint.m: the fingerprint of the inputs kept on the workers, previously local functions of
+%   uvhMatrixAssemblySSTREAM_SPMD.m, now shared by the uv and the uvh assembly (the key of the uvh assembly is unchanged).
+%   New uvAssemblyScalingTest.m: the uv counterpart of uvhAssemblyScalingTest.m (restart files).
+%
+% Results (nx150, 56,070 nodes, 16 cores, thread pool): residual and Jacobian 0.34 s instead of 0.61 s (4 or 8 workers), residual only
+% 0.21 s instead of 0.32 s; of the 0.34 s, 0.24 s are the assembly on the workers, 0.016 s the fingerprint and 0.003 s sending ub and vb.
+% Results identical to the serial assembly (K to 2e-16, R, Tint and Fext to 3e-15 relative to ||Fext||). Changes of ub and vb, of
+% another field (C), of CtrlVar (SpeedZero) and of the mesh (reordered elements) are handled correctly. uv solve (perturbed nx150 state):
+% same 14 iterations, 19.3 s instead of 23.9 s, velocities identical to 2e-12 m/a. uvAssemblyScalingTest recommends 4 thread workers
+% (1.7 times faster assembly), as uvhAssemblyScalingTest for the uvh assembly. The tests of the parallel uvh assembly give the same
+% results as before.
+%
+% * New TestuvJacobian.m: Taylor test of the Jacobian of the uv system (17 October 2026):
+%
+% The uv counterpart of TestuvhJacobian.m, with the same method, options and output: for a state x=[ub;vb], the remainder
+% ||R(x+eps d)-R(x)-eps K d|| is calculated for decades of eps, with R and K from uvMatrixAssembly.m (as in SSTREAM2dNR2.m), for the
+% Newton direction (calculated at the state, with the boundary conditions) and smooth random directions of u, v and both. Called with
+% the name of a restart file, or with (CtrlVar,MUA,F,BCs); other states are tested by changing F.ub and F.vb. In addition, the
+% symmetry of K is reported. Option ModifyJacobian (a function applied to K before the test) checks the test itself.
+%
+% Results (Greenland nx150 and nx200, Weertman sliding with m=3 and m=1, n=3): order 2.00 (1.99 to 2.04) for all directions and states
+% (converged state, velocities x0.5 and x2, 30% smooth perturbation, state after one time step); smallest relative error in the Newton
+% direction between 4e-8 and 1e-4; K exactly symmetric. The uv Jacobian is consistent. Check of the test: a term of relative size
+% 1e-3 added to the diagonal of K gives order 1.00 and a relative error of 3.8e-3 (flagged), one of 1e-6 still order 1.01 with a
+% relative error of 3.8e-6.
+%
+% Found with the test: CtrlVar.NRviscosity and CtrlVar.NRbeta2 had no effect, as uvMatrixAssemblySSTREAM.m always forms the full
+% Newton Jacobian. Removed (17 Oct 2026), together with the also unused CtrlVar.Picard and CtrlVar.Picarditmax, and the parfeval variant
+% of the uv assembly (uvMatrixAssemblySSTREAM_Parfeval.m, uvMatrixAssemblySSTREAMpartitionTriplets.m, and its branch and the related
+% test block in uvMatrixAssembly.m), the only place where CtrlVar.NRviscosity was still read.
+%
+% * Mesh key: robust detection of changes of the mesh in UpdateMUA (17 October 2026):
+%
+% UpdateMUA.m only recognised a changed mesh by changed numbers of nodes, elements and nodes per element. A change of the connectivity
+% with the same sizes (eg a renumbering of nodes, or a reordering of elements) or a change of the coordinates went unnoticed, and the
+% quantities derived from the mesh were left unchanged. Test with the Greenland nx150 mesh: after a reordering of the elements (same
+% sizes and same sum of the connectivity), the uvh Jacobian assembled with the outdated quantities had a relative error of 1.0.
+%
+%   New ArrayChecksum.m: exact, platform-independent checksum of the bit patterns of a numerical array (two weighted sums modulo primes
+%   below 2^31, all intermediate values below 2^53; the probability that a change goes undetected is about 1 in 4e18).
+%   New MeshKey.m: Key.Topology (checksum of the connectivity, its size, and the number of nodes) and Key.Geometry (checksum of the
+%   coordinates and their size). About 25 ms for the nx150 mesh, about 120 ms for a mesh with 1e6 elements.
+%   CreateMUA.m and UpdateMUA.m store the key in MUA.MeshKey. UpdateMUA.m compares it with the key of the current mesh (in addition to the
+%   sizes): if the topology or the geometry has changed, the derived quantities are recalculated; the assembly patterns only if the
+%   topology has changed. If MUA has no key (eg from an older file), everything is recalculated once.
+%   AssemblyPatternCache.m stores the topology key in the patterns (field TopologyKey).
+%   uvhMatrixAssemblySSTREAM_SPMD.m: the mesh part of the fingerprint used to decide whether to resend the data to the workers is now
+%   the mesh key, instead of [Nnodes Nele sum(connectivity(:))], which did not detect a renumbering or a change of the coordinates.
+%   UaPardisoSolve.m: identifies structural patterns by TopologyKey (if available) instead of comparing i0 and j0.
+%
+% Two errors in UpdateMUA.m found with the tests (both only relevant after a change of the mesh):
+%   - The Cholesky factor of the mass matrix (MUA.MC, MUA.Mp; CtrlVar.MUA.CholeskyMassMatrix=true) was not recalculated together with
+%     the mass matrix, and was left for the old mesh (relative error 1.8e-3 after moving one node by 50 m). Now recalculated.
+%   - The workers (BuildMuaWorkers.m) were built before the element areas were recalculated, so they got the old areas, which are used
+%     in the SUPG terms of the uvh assembly (parallel and serial Jacobians differed by 1.3e-5 after moving one node). The element areas
+%     are now recalculated before the workers are built.
+%
+% Tests (nx150): changes detected: local node swap, element swap, renumbering of two nodes, change of one coordinate in the last bit, swap
+% across a block boundary. UpdateMUA: unchanged mesh 0.04 s, nothing recalculated; one node moved: Deriv, DetJ and areas changed in
+% exactly the 8 elements around it, patterns kept; elements reordered: patterns rebuilt, Jacobian identical to the original (1.5e-16);
+% parallel assembly (4 thread workers) identical to the serial one after both changes, data resent only when the mesh changed.
+% Transient run, 5 time steps: results bitwise identical to the run before these changes, 86.6 s instead of 88.5 s.
+%
+% * PARDISO: structural sparsity pattern of the mesh as the fixed pattern (17 October 2026):
+%
+% Previously UaPardisoSolve.m learned the fixed pattern from the matrices it was given, and extended it whenever a matrix had a new
+% nonzero. As sparse() drops entries that are exactly zero, and whether a Jacobian entry is exactly zero depends on the state (ice free,
+% floating, current velocities, ...), new nonzeros appeared during the first iterations, and each required a new analysis (eg 10
+% extensions in 24 solves in a Greenland nx200 run from scratch, where PARDISO then gained only 5%). Now the structural pattern of the
+% mesh, ie all entries the assembled matrices can have, is used: the assembly patterns already stored in MUA.uvAssemblyPattern and
+% MUA.uvhAssemblyPattern (computed by AssemblyPatternCache.m in CreateMUA/UpdateMUA, fields i0, j0, neq) give it directly. No changes
+% to MUA were needed.
+%
+%   solveKApe.m, solveKApeSymmetric.m: new optional ninth input StructuralPattern, passed on to ABfgPreEliminate.m (new optional 7th
+%   input), KKT_null_space_decomposition_chol.m (new optional 6th input; for the direct reduction for nodal constraints, the pattern of
+%   H(f,f) is passed as a structure with fields Pattern and Index) and UaPardisoSolve.m (new optional 6th input).
+%   SSTREAM_TransientImplicit.m passes MUA.uvhAssemblyPattern, SSTREAM2dNR2.m passes MUA.uvAssemblyPattern. Other callers are unchanged
+%   and use the learned pattern as before.
+%   UaPardisoSolve.m: builds the logical pattern (tril for the symmetric types, plus the diagonal) once per mesh and caches it; a state
+%   gets it when it is created, or when a different structural pattern arrives (eg after remeshing). The pattern is ignored if it does
+%   not match the size of the matrix. If a matrix has an entry outside the pattern, the pattern is extended as before, so that a wrong
+%   or outdated pattern only costs time. New statistic StructuralPatterns.
+%   New option CtrlVar.LinearSolver.PARDISO.StructuralPattern=true (false: learned pattern, as before).
+%
+% Tests (Greenland, nx150): with a Jacobian with 2% of its off-diagonal entries zero followed by the full one, 1 analysis instead of 2 for
+% each of uvh with constraints, uv without constraints and uv with nodal constraints; solutions agree with MATLAB to 1e-13. A pattern of
+% the wrong size is ignored, one that is too small is extended. Transient run, 5 time steps from a restart file, 31 Newton-Raphson
+% iterations, 4 thread workers: 1 analysis for 31 factorisations (previously 7), 88.5 s instead of 93.0 s (MATLAB solver: 159.5 s); uvh
+% solves 54.9 s instead of 61.4 s; results agree with the MATLAB solver to 1e-12.
+%
+% * PARDISO (Intel oneMKL) as an alternative linear solver (16 October 2026):
+%
+% New option CtrlVar.LinearSolver.Type="PARDISO" (default "MATLAB"): the linear systems solved in ABfgPreEliminate.m (uv and uvh
+% Newton-Raphson systems) are solved with the multithreaded sparse direct solver PARDISO of Intel oneMKL instead of decomposition/mldivide
+% (UMFPACK). In solveKApe.m this covers AsymmSolver="Bempty" (no constraints, solved in solveKApe.m itself) and
+% "EliminateBCsSolveSystemDirectly" (nodal constraints, B*B' diagonal, solved in ABfgPreEliminate.m), ie the cases selected with
+% AsymmSolver="auto"; with PARDISO, no decomposition is returned (dA=[]), and a given dA (modified Newton-Raphson) gives an error.
+% Bempty test (Greenland, 168,210 unknowns): 0.25 s instead of 2.6 s per solve.
+%
+% Symmetric systems (solveKApeSymmetric.m): with PARDISO, SymmSolver="Bempty" is solved as symmetric indefinite (PARDISO matrix type -2,
+% LDL'), and in "NullSpace" (KKT_null_space_decomposition_chol.m, new optional fifth input CtrlVar) the reduced Hessian Hr=Z'*H*Z is
+% factorised with a Cholesky factorisation (type 2); if that fails (Hr not positive definite) the system is solved as symmetric
+% indefinite instead, with a warning. For the symmetric types only tril(A) is passed. Tests with the uv system of the Greenland model
+% (112,140 unknowns): Bempty 0.12 s instead of 0.51 s; NullSpace with 2324 constraints 0.27 s instead of 0.61 s (the Cholesky
+% factorisation of Hr 0.04 s instead of 0.41 s; the QR factorisation of A' and Z'*H*Z then took most of the time).
+%
+% KKT_null_space_decomposition_chol.m: new direct route for nodal constraints (each row of A has one nonzero, d_k in column c_k, and
+% all columns are different). Then Z=I(:,f), with f the free unknowns, and x(c)=b./d, H(f,f) x(f) = g(f)-H(f,c) x(c),
+% lambda=(g(c)-H(c,:) x)./d. Identical to the general null-space solution, but without the QR factorisation of A', Z'*H*Z, and the
+% factorisation of A*A'. For all other constraints (eg ties between unknowns, even if A*A' is diagonal) the general route is used.
+% uv system (112,140 unknowns, 2324 nodal constraints): 0.49 s instead of 0.61 s with MATLAB, 0.16 s instead of 0.27 s with PARDISO;
+% results identical to the general route.
+%
+% UaPardisoSolve.m: new optional fifth input MatrixType ("nonsymmetric", "spd", "symmetric"); separate states for each size and type,
+% at most 6 (the least recently used one is released); systems with fewer than CtrlVar.LinearSolver.PARDISO.MinimumSize (default 20000)
+% unknowns are solved with mldivide, and diagonal systems directly (for these, the analysis by PARDISO would cost more than it saves).
+%
+% solveKApeSymmetric.m: corrected isfield(CtrlVar,"Symmsolver") to isfield(CtrlVar,"SymmSolver"). Previously CtrlVar.SymmSolver was
+% always set to "auto", so that a solver given in CtrlVar.SymmSolver was ignored.
+%
+% Linux (NOT YET TESTED WITHIN MATLAB): pardisoMex.c now also compiles on Linux (dlopen instead of LoadLibrary; BuildPardisoMex adds -ldl).
+% The library is libmkl_rt.so.N (N=3 for MKL 2026, N=2 for MKL 2021-2025), eg .../lib/libmkl_rt.so.3 after pip install mkl. MKL is loaded
+% with RTLD_LOCAL|RTLD_DEEPBIND, so that it does not use symbols of the MKL loaded by MATLAB, and libmkl_core, libmkl_intel_lp64/ilp64 and
+% the threading layer are loaded first, from the folder of libmkl_rt (they have no RUNPATH, and LD_LIBRARY_PATH can not be changed within
+% MATLAB). Tested outside MATLAB (Ubuntu 24.04, gcc 13, MKL 2026.2, with a stand-in for the MEX API): all commands, both threading layers.
+% Not tested: the interaction with the MKL, TBB and OpenMP libraries of MATLAB on Linux. macOS is not supported.
+%
+% New folder UaSource/UaPardiso with:
+%   pardisoMex.c, BuildPardisoMex.m  MEX interface to PARDISO (compile with BuildPardisoMex, eg with MinGW64)
+%   UaPardisoSolve.m                 manages the PARDISO states, the fixed sparsity patterns, a residual check, and a fallback to decomposition
+% New settings: CtrlVar.LinearSolver.PARDISO.Library (path to mkl_rt, eg ...\Library\bin\mkl_rt.3.dll; if empty the environment variable
+% UA_MKL_RT is used), .ThreadingLayer ("TBB" or "SEQUENTIAL") and .ResidualTolerance (1e-10).
+%
+% Notes on the implementation:
+%  - The MKL runtime library is not part of MATLAB (the MKL in MATLAB does not contain PARDISO) and must be installed separately, eg
+%    pip install mkl. It is loaded at run time by pardisoMex, so no MKL headers or import libraries are needed to compile it.
+%  - MKL's OpenMP threading layer can not be used within MATLAB: it requires a newer OpenMP runtime than the one MATLAB has loaded, and
+%    MKL then aborts the MATLAB process. pardisoMex therefore sets the TBB threading layer (or the sequential one) itself, before the
+%    first computation, and rejects the OpenMP layer. With the TBB layer MKL uses all cores.
+%  - The matrix is passed without copying: the CSC arrays of a MATLAB sparse matrix A (64-bit indices) are the CSR arrays of A', which
+%    are passed to the 64-bit interface pardiso_64 with zero-based indexing, and PARDISO solves the transposed system (iparm(12)=2).
+%  - Fixed pattern: the analysis (reordering, symbolic factorisation) is much more expensive than the numerical factorisation, but the
+%    pattern of the Newton-Raphson matrices changes from one iteration to the next (exact zeros are not stored in MATLAB sparse matrices,
+%    and the rows of constrained nodes change with the active set). UaPardisoSolve therefore keeps, for each matrix size, a pattern that
+%    contains all patterns seen so far (initially the pattern of the full Jacobian and the diagonal); pardisoMex copies the values into
+%    this pattern, with explicit zeros, and the analysis is only repeated if the pattern has to be extended.
+%
+% Results (Greenland, 56,070 nodes, Atilde with 168,210 unknowns, 16 cores): factorisation 0.135-0.18 s with a stored analysis and
+% solve 0.09 s, against 2.5 s and 0.17 s with decomposition (UMFPACK, which does not benefit from more threads for these matrices);
+% analysis 1.2-1.4 s. solveKApe 0.40 s instead of 2.6 s. Model run of 5 time steps with the parallel assembly (4 thread workers): 93.0 s
+% instead of 159.5 s with decomposition, with the same Newton-Raphson iterations and results agreeing to 1e-12 (7 analyses for 31
+% factorisations); the uvh solves took 61 s instead of 128 s.
+%
 % * New function uvhAssemblyScalingTest.m: performance of the parallel uvh assembly on a given computer (16 October 2026):
 %
 % For a model state, read from a file saved with CtrlVar.uvhSaveNewtonSystem.Save=true or from a restart file, the function times the

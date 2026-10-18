@@ -14,6 +14,9 @@ function [iK,jK,Kval,iR,Tval,Fval]=uvMatrixAssemblySSTREAMpartitionTriplets(Ctrl
 narginchk(4,4)
 nargoutchk(6,6)
 
+error("this was a test using parfeval, no longer needed, do not use")
+
+
 %%  I'm guessing that it is best to do the partition here when using the parfeval option
 MUA.connectivity=MUA.connectivity(Partition,:) ;
 MUA.Nele=numel(Partition);

@@ -11,10 +11,6 @@ elseif nargin==1
 end
 
 
-
-SetUaPath() %%
-
-
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
 warning('off','MATLAB:decomposition:genericError')

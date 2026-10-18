@@ -13,6 +13,8 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_Parfeval(CtrlVar,MUA,F,BCs)
 %
 %%
 
+error("this was a test using parfeval, no longer needed, do not use")
+
 
 if isempty(CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
     poolobj = gcp;

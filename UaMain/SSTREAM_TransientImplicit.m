@@ -404,16 +404,18 @@ while true
 
     %
 
+    % (17 Oct 2026) structural sparsity pattern of the mesh, used by PARDISO (see UaPardisoSolve.m)
+    if isfield(MUA,"uvhAssemblyPattern") ; uvhPattern=MUA.uvhAssemblyPattern ; else ; uvhPattern=[] ; end
     tSolve=tic;
     if ModNROn   % (15 Oct 2026) keep, or reuse, the decomposition
         if ReuseJacobian
-            [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,dAstore);
+            [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,dAstore,uvhPattern);
         else
-            [duvh,dl,dAstore]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+            [duvh,dl,dAstore]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,[],uvhPattern);
             Kstore=K ; nReuse=0 ; nFactorisations=nFactorisations+1 ;
         end
     else
-        [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+        [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,[],uvhPattern);
     end
     RunInfo.CPU.Solution.uvh=RunInfo.CPU.Solution.uvh+toc(tSolve);
 

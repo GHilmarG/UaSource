@@ -1,22 +1,45 @@
-function [x,y,dAtilde,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde)
+function [x,y,dAtilde,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde,StructuralPattern)
 
-
-narginchk(5,6)
+%%
+%
+% I developed this approach independently, and then later learned (Claude) that this exact method is Eq (29) in
+%
+% F. Aghili, "A unified approach for inverse and direct dynamics of constrained multibody systems based 
+% on linear projection operator: applications to control and simulation",
+% IEEE Trans. on Robotics 21(5), 834–849 (2005), doi:10.1109/TRO.2005.851380.
+%
+% An almost identical approach is also found in:
+%
+% M. Ainsworth, "Essential boundary conditions and multi-point constraints in finite element analysis", 
+% Computer Methods in Applied Mechanics and Engineering, 190 (48). pp. 6323-6339.
+%
+%
+%
+narginchk(5,7)
 
 if nargin< 6
     dAtilde=[];
 end
+if nargin< 7
+    StructuralPattern=[];   % (17 Oct 2026) structural sparsity pattern of the mesh, for PARDISO (see UaPardisoSolve.m)
+end
+
+% (16 Oct 2026) PARDISO (Intel oneMKL) instead of decomposition/mldivide, if CtrlVar.LinearSolver.Type="PARDISO" (see UaPardisoSolve.m)
+UsePardiso = isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO" ;
 
 [nA,mA]=size(A);
-[nB,mB]=size(B);
-[nf,mf]=size(f);
+[nf,~]=size(f);
 
 
 if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
 
     % Possibly not needed, but check if this is not just a very simple case of B=g=[]
 
-    x=A\f;
+    if UsePardiso
+        x=UaPardisoSolve(CtrlVar,A,f,A,"nonsymmetric",StructuralPattern) ;
+    else
+        x=A\f;
+    end
     y=NaN;
 
     if nargout>3
@@ -68,34 +91,6 @@ else
 
   
 
-        if CtrlVar.Parallel.isTest && ~isempty(Atilde)
-
-            % seq:
-
-            % distribute
-            tSeq=tic ;
-            dAtildeSeq=decomposition(Atilde);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
-            xSeq=dAtildeSeq\btilde;
-            tSeq=toc(tSeq) ; 
-
-
-            % distribute
-            tDistributed=tic ;
-            AtildeDist=distributed(Atilde);
-            btildeDist=distributed(btilde);
-            dAtildeDist=decomposition(AtildeDist);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
-            xDist=dAtildeDist\btildeDist;
-            tDistributed=toc(tDistributed) ; 
-        
-            [nAtilde,mAtilde]=size(Atilde);
-            fprintf('\n ----------------------------- Info on distributed solve performance : \n')
-            fprintf('%i x %i :  tSeq=%f \t tDistributed=%f \t speedup=%f \n',nAtilde,mAtilde,tSeq,tDistributed,tSeq/tDistributed) ;
-            fprintf(' norm(xSeq-xDist)/norm(xSeq)=%g    \n',full(norm(xSeq-xDist)/norm(xSeq)))
-            fprintf(' ----------------------------- \n')
-
-
-        end
-
 
         % https://uk.mathworks.com/help/parallel-computing/benchmarking-a-b.html
 
@@ -112,15 +107,25 @@ else
         %  decomposition is about the same, and as expected this only speeds things up if several solves with the same matrix
         %  are needed.
         %
-        tDecomposition=tic;
-        if isempty(dAtilde)
-            dAtilde=decomposition(Atilde);
-        end
-        tDecomposition=toc(tDecomposition) ;
+    
+        if UsePardiso && ~isdistributed(Atilde)
+            % (16 Oct 2026) factorisation and solve with PARDISO, see UaPardisoSolve.m. The analysis (reordering and symbolic
+            % factorisation) is kept between calls, and only repeated if the sparsity pattern of Atilde changes.
+            if ~isempty(dAtilde)
+                error("ABfgPreEliminate:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
+            end
+            x=UaPardisoSolve(CtrlVar,Atilde,btilde,A,"nonsymmetric",StructuralPattern) ;   % the patterns of A and of the mesh contain all rows of Atilde
+        
+        else
+            if isempty(dAtilde)
+                dAtilde=decomposition(Atilde);
+            end
+     
 
-        tSolve=tic;
-        x=dAtilde\btilde;
-        tSolve=toc(tSolve);
+        
+            x=dAtilde\btilde;
+         
+        end
 
         % tSolve=tic;
         % x=Atilde\btilde;
@@ -132,14 +137,6 @@ else
             x=gather(x) ;
         end
         % toc
-
-
-     
-
-
-
-
-
 
 
         

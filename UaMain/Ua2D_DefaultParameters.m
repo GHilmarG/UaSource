@@ -695,6 +695,19 @@ CtrlVar.uvhTestJacobian.Test=false;                      % if true, the Jacobian
                                                          % and a summary is printed
 CtrlVar.uvhTestJacobian.Iterations=[1 2 3];
 CtrlVar.uvhTestJacobian.RunSteps=[];
+
+%% (16 Oct 2026) Linear solver for the systems solved in ABfgPreEliminate.m (eg in the uv and uvh Newton-Raphson iterations)
+CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
+                                                          % pardisoMex (see UaPardisoSolve.m), usually much faster, but requires the MKL runtime library
+CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL runtime library mkl_rt (eg ...\Library\bin\mkl_rt.3.dll, as installed
+                                                          % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
+CtrlVar.LinearSolver.PARDISO.ThreadingLayer="TBB";        % "TBB" (multithreaded) or "SEQUENTIAL"; the OpenMP layer of MKL can not be used within MATLAB
+CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10;     % if the relative residual of the solution is larger, the analysis is repeated, and if that
+                                                          % does not help, decomposition is used instead
+CtrlVar.LinearSolver.PARDISO.MinimumSize=20000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
+                                                          % more than it saves); diagonal systems are always solved directly
+CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sparsity pattern of the mesh (MUA.uvAssemblyPattern,
+                                                          % MUA.uvhAssemblyPattern) as the fixed pattern: normally one analysis per mesh and type of system
 % Setting for example:
 % CtrlVar.ModifiedNRuvIntervalCriterion=10;     
 % CtrlVar.ModifiedNRuvReductionCriterion=0.95;
@@ -702,12 +715,8 @@ CtrlVar.uvhTestJacobian.RunSteps=[];
 % the fractional reduction r/r0 over previous iteration was less than 0.95.
 %
 
-CtrlVar.Picard=0;        % 1 gives Picard iteration, otherwise NR iteration (always use NR whenever possible).
-CtrlVar.NRviscosity=1;    % if 1 derivatives with respect to viscosity are included in the NR method
-CtrlVar.NRbeta2=1;        % if 1 derivatives with respect to slipperiness are included in the NR method
-                          % Note: if Picard=0 then the NRviscosity and NRbeta2 values are overwritten and set to 0. 
+
 CtrlVar.NRitmax=50;       % maximum number of NR iteration
-CtrlVar.Picarditmax=30;  % maximum number of Picard iterations
 CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Picard iteration
 CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping

@@ -125,6 +125,9 @@ if CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.is
 
 end
 
+% (17 Oct 2026) key of the mesh (see MeshKey.m), used by UpdateMUA.m to detect changes of the mesh
+MUA.MeshKey=MeshKey(MUA);
+
 
 
 end
