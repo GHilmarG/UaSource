@@ -4,6 +4,21 @@
 % 
 % *Change Log* _October 2026_
 %
+% * New LinesolveScalingTest.m: performance of the linear solvers (MATLAB and PARDISO) as a function of the number of cores (17 October 2026):
+%
+% For a restart file, the uvh system (constraints eliminated as in ABfgPreEliminate.m) or the uv system (nodal constraints removed,
+% Cholesky) is built once and saved; each measurement is then a separate MATLAB process restricted to p cores by processor affinity
+% (start /affinity on Windows, taskset on Linux), as PARDISO with the TBB layer ignores MKL_Set_Num_Threads, so that its number of
+% threads can not be limited from within MATLAB. Measured: PARDISO's phases separately (analysis, factorisation, substitution), with a
+% new analysis for each solve and with the analysis reused; MATLAB's backslash, and its factorisation (lu/chol) and substitution; both
+% solvers as called in Ua (solveKApe/solveKApeSymmetric). Model T(p)=a+b/p+dp, recommendation, plot.
+%
+% Results (Greenland nx150 uvh system, 168,210 unknowns, 16 cores): PARDISO with the analysis reused 1.05 s on 1 core, 0.21 s on 16
+% cores (factorisation 6.6 times faster); the analysis (about 1.4 s) does not parallelise; MATLAB's backslash about 2.0-2.3 s with any
+% number of cores. Unrestricted: PARDISO 1.3-1.4 times faster than MATLAB with all three phases, about 10 times with the analysis
+% reused, 6.5 times as called in Ua; the analysis is 84% of a solve with all three phases. Most of PARDISO's advantage in Ua therefore
+% comes from reusing the analysis, which the fixed (structural) sparsity pattern of each mesh allows.
+%
 % * Parallel uv assembly revised (17 October 2026), along the lines of the uvh assembly (16 October 2026):
 %
 % uvMatrixAssemblySSTREAM_SPMD.m was correct, but its overheads made it hardly faster than the serial assembly (Greenland nx150, 4 thread

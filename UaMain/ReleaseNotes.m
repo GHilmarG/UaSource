@@ -4,6 +4,26 @@
 % 
 % *Release Notes* _October 2026_
 %
+% * Support for the PARDISO direct sparse solver:
+%
+% You can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
+% uvh system, CHOLMOD of the uv system).
+%
+% The advantage of PARIDISO over the default MATLAB solvers is that PARDISO allows for reuse of the analysis phase of the
+% solution. This is particularly interesting when a linear system with the same sparsity structure is solved repeatedly. While
+% PARDISO is not faster than the MATLAB solvers, the MATLAB solvers do not allow for this reuse of the analysis phase. In
+% practice this analysis phase is quite expensive and a big part of the overall solve. Using PARIDSO can therefore
+% significantly speed up the solve (factor of 5 to 10) and lead to reduction in overall run times of maybe 30 to 50%,
+% although the exact numbers are situation dependent. Information about the sparsity pattern is now stored as part of the MUA
+% structure and recalculated when the mesh changes. Some re-analyses phases may be required when using dynamical boundary conditions, but
+% this has been optimized within Úa and is now only occasionally required. 
+% 
+% Installation guide is found in 
+% 
+%   UaPardisoGuide.pdf
+%
+%
+%
 % * Grounding-line plots now based on h-h_{gl}, ie thickness minus grounding line thickness, rather than the flotation mask.
 % Thanks to Deborah Rhee for this suggestion. The grounding lines may now look a bit smoother. (Note that the grounding line
 % position itself is never used in the code when finding the solutions.)
