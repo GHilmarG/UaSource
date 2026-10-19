@@ -697,7 +697,7 @@ CtrlVar.uvhTestJacobian.Iterations=[1 2 3];
 CtrlVar.uvhTestJacobian.RunSteps=[];
 
 %% (16 Oct 2026) Linear solver for the systems solved in ABfgPreEliminate.m (eg in the uv and uvh Newton-Raphson iterations)
-CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
+CtrlVar.LinearSolver.Type="PARDISO";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
                                                           % pardisoMex (see UaPardisoSolve.m), usually much faster, but requires the MKL runtime library
 CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL runtime library mkl_rt (eg ...\Library\bin\mkl_rt.3.dll, as installed
                                                           % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
