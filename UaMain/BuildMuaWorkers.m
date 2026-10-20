@@ -103,7 +103,7 @@ else
     %         %     break
     %         % end
     %
-    %         % now check if exacly the same elements are part of each partition
+    %         % now check if exactly the same elements are part of each partition
     %         if ~all(MUAworkers{iWorker}.Partition==Partition{iWorker})
     %             % if sum(MUAworkers{iWorker}.Partition)~=sum(Partition{iWorker})
     %             areWorkersAlreadyBuild=false ;  % if new partition is not equal to previous one, rebuild
@@ -150,7 +150,8 @@ if BuildWorkers
         MUAworkers.Deriv=MUA.Deriv(Partition{spmdIndex},:,:,:);
         MUAworkers.DetJ=MUA.DetJ(Partition{spmdIndex},:);
         MUAworkers.EleAreas=MUA.EleAreas(Partition{spmdIndex}) ;
-        [MUAworkers.uvAssemblyPattern,MUAworkers.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUAworkers) ;   % (17 Oct 2026) the uv pattern as well, for uvMatrixAssemblySSTREAM_SPMD.m   % (16 Oct 2026) sparsity pattern of the sub-domain, for the faster pattern-based assembly
+        [MUAworkers.uvAssemblyPattern,MUAworkers.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUAworkers) ;   % (17 Oct 2026) the uv pattern as well, for uvMatrixAssemblySSTREAM_SPMD.m   
+                                                                                                                  % (16 Oct 2026) sparsity pattern of the sub-domain, for the faster pattern-based assembly
 
 
     end
