@@ -4,7 +4,7 @@
 function PrintRunInfo(CtrlVar)
 
 fprintf(CtrlVar.fidlog,'\n \n');
-fprintf(CtrlVar.fidlog,' **************************    %ca version: 18 October 2026 (alpha)  ********************** \n',218);
+fprintf(CtrlVar.fidlog,' **************************    %ca version: 22 October 2026 (alpha)  ********************** \n',218);
 fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datetime);
 fprintf(CtrlVar.fidlog,'   Experiment: %s  \n ',CtrlVar.Experiment);
 
@@ -13,6 +13,7 @@ if CtrlVar.doInverseStep
         fprintf(CtrlVar.fidlog,'   Inverse-modelling restart run.  \n ');
     else
         fprintf(CtrlVar.fidlog,'   Inverse-modelling run.  \n ');
+
     end
     
     fprintf('\tCtrlVar.Inverse.MinimisationMethod=''%s''\n' ,CtrlVar.Inverse.MinimisationMethod)

@@ -8,59 +8,15 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
 narginchk(9,9)
 
 
-if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
+if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth")
     CtrlVar=SetSmoothFloorWidths(CtrlVar,F0);
 end
 
-switch CtrlVar.uvhSolver
 
-    case {"Root-Finding Newton","uvh_GaussNewton_fsolve"}
+[UserVar,RunInfo,F1,l1,BCs1,dt]=uvhRootFinding(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
 
-
-        [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhRootFinding(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
-
-
-    case "Least-Squares Gauss-Newton"
-        % This was a test case, it was an early Newton-Gauss approach, and was found to be much slower than the "Root-Finding Newton"
-        % approach. This was also not positioned inside the active-set loop. A valuable experience was gained, inasmuch it was
-        % established that the Newton approach is far better in terms of performance. 
-        %
-        % Note: There is another Gauss-Newton solver inside the active-set loop: "uvh_GaussNewton_fsolve"
-        %
-        % That Gauss-Newton solver works fine and produces identical results to the "Root-Finding Newton", but it is also slower
-        % than the "Root-Finding Newton".
-        %
-        [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhLSQ(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
-        RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=1;
-
-
-
-    otherwise
-
-        error("CaseFellThrough")
-
-end
 
 
 return
-
-%%
-
-CompareWithLSQ=false;
-
-if CompareWithLSQ
-
-    [UserVar,RunInfo,F1test,l1,BCs1,dt]=uvhLSQ(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
-
-    UaPlots(CtrlVar,MUA,F1,"-uv-",FigureTitle="uv root (default)")
-    UaPlots(CtrlVar,MUA,F1test,"-uv-",FigureTitle="uv lsq (MATLAB)")
-    UaPlots(CtrlVar,MUA,F1test,[F1.ub-F1test.ub F1.vb-F1test.vb] ,FigureTitle="uv (diff)")
-
-
-    UaPlots(CtrlVar,MUA,F1,F1.h,FigureTitle="h root (default)")
-    UaPlots(CtrlVar,MUA,F1,F1.h,FigureTitle="h root (default)")
-    UaPlots(CtrlVar,MUA,F1test,F1test.h,FigureTitle="h lsq (MATLAB)")
-    UaPlots(CtrlVar,MUA,F1test,F1.h-F1test.h,FigureTitle="h diff")
-end
 
 end
