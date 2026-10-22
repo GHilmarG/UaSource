@@ -8,6 +8,7 @@ function varargout=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,UseB
 
 narginchk(5,inf)
 
+error("no longer used")
 
 if ~isa(BCsAdjoint,"BoundaryConditions")
     error("BCs required")

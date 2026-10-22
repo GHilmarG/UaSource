@@ -22,16 +22,20 @@ switch nod
         fun(:,5)=(two.*c3-one).*c3;
         fun(:,6)=d4.*c1.*c3 ;
     case 10 %cubic triangle
-        fun(:,1)= ((d3*c1-one)*(d3*c1-two)*c1)/two;
-        fun(:,2)= -(d9*(d3*c1-one)*(c1+c3-one)*c1)/two;
-        fun(:,3)=  (d9*(d3*c1+d3*c3-two)*(c1+c3-one)*c1)/two;
-        fun(:,4)=-((d3*c1+d3*c3-one)*(d3*c1+d3*c3-two)*(c1+c3-one))/two    ;
-        fun(:,5)=  (d9*(d3*c1+d3*c3-two)*(c1+c3-one)*c3)/two;
-        fun(:,6)= -(d9*(c1+c3-one)*(d3*c3-one)*c3)/two;
-        fun(:,7)= ((d3*c3-one)*(d3*c3-two)*c3)/two;
-        fun(:,8)=  (d9*(d3*c3-one)*c1*c3)/two;
-        fun(:,9)=  (d9*(d3*c1-one)*c1*c3)/two;
-        fun(:,10)=-d27*((c3-one)+c1)*c1*c3;
+        % Note: these expressions must use element-wise (.*) and not matrix (*)
+        % multiplication. B, and hence c1, c2 and c3, have one row per location, and
+        % with matrix multiplication this branch errors for any input with more than
+        % a single row. (Fixed Sept 2026.)
+        fun(:,1)= ((d3.*c1-one).*(d3.*c1-two).*c1)/two;
+        fun(:,2)= -(d9.*(d3.*c1-one).*(c1+c3-one).*c1)/two;
+        fun(:,3)=  (d9.*(d3.*c1+d3.*c3-two).*(c1+c3-one).*c1)/two;
+        fun(:,4)=-((d3.*c1+d3.*c3-one).*(d3.*c1+d3.*c3-two).*(c1+c3-one))/two    ;
+        fun(:,5)=  (d9.*(d3.*c1+d3.*c3-two).*(c1+c3-one).*c3)/two;
+        fun(:,6)= -(d9.*(c1+c3-one).*(d3.*c3-one).*c3)/two;
+        fun(:,7)= ((d3.*c3-one).*(d3.*c3-two).*c3)/two;
+        fun(:,8)=  (d9.*(d3.*c3-one).*c1.*c3)/two;
+        fun(:,9)=  (d9.*(d3.*c1-one).*c1.*c3)/two;
+        fun(:,10)=-d27.*((c3-one)+c1).*c1.*c3;
     otherwise
         disp('this type of triangle is not compatible with mapping function')
         

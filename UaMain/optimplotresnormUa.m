@@ -8,7 +8,7 @@ function stop = optimplotresnorm(~,optimValues,state,varargin)
     %   function
     %     options = optimoptions('lsqnonlin','PlotFcn',@optimplotresnorm);
     %
-    %   Pass the options into an optimization problem to view the plot
+    %   Pass the options into an Optimisation problem to view the plot
     %     lsqnonlin(@(x) sin(3*x),[1 4],[],[],options);
 
     %   Copyright 2006-2023 The MathWorks, Inc

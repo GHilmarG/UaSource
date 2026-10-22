@@ -14,6 +14,9 @@ function [iK,jK,Kval,iR,Tval,Fval]=uvMatrixAssemblySSTREAMpartitionTriplets(Ctrl
 narginchk(4,4)
 nargoutchk(6,6)
 
+error("this was a test using parfeval, no longer needed, do not use")
+
+
 %%  I'm guessing that it is best to do the partition here when using the parfeval option
 MUA.connectivity=MUA.connectivity(Partition,:) ;
 MUA.Nele=numel(Partition);
@@ -212,8 +215,10 @@ for Iint=1:MUA.nip
 
 
 
-    Cint=Cnod*fun;
-    Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
+    % For higher-order elements, Cint can become negative even if Cnod is positive at all nodes.
+    % Cint=Cnod*fun;
+    % Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
+    Cint=SmoothFloor(Cnod*fun,CtrlVar.Cmin,CtrlVar.CminWidth);  % smooth clipping
     mint=mnod*fun;
 
     if ~isempty(F.q)
@@ -250,8 +255,10 @@ for Iint=1:MUA.nip
     %     AGlenint=F.AGlen;
     %     nint=F.n;
     % else
-    AGlenint=AGlennod*fun;
-    AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    % For higher-order elements AGlen can become negative at integration points, even if AGlen is positive at all nodes.
+    % AGlenint=AGlennod*fun;
+    % AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    AGlenint=SmoothFloor(AGlennod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);  % smooth clipping
     nint=nnod*fun;
     %  end
 
@@ -495,7 +502,7 @@ if ~Ronly
 
     end
 
-    % Kuv=sparseUA(iK,jK,Kval,neq,neq);
+    % Kuv=sparse(iK,jK,Kval,neq,neq);
     %
     % if CtrlVar.TestForRealValues
     %     Kuv=(Kuv+Kuv.')/2 ;

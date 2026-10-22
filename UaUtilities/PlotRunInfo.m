@@ -106,6 +106,22 @@ legend(Location="best",Interpreter="latex");
 
 
 
+figIterationsRunSteps=FindOrCreateFigure("RunInfo: Active-Set"+FigName) ; clf(figIterationsRunSteps) ;
+
+yyaxis left
+stairs(RunInfo.Forward.uvhActiveSetIterations,'-',DisplayName="Active Set Iterations",LineWidth=2) ;
+ylabel('Active Set Iterations',Interpreter='latex')
+
+yyaxis right
+stairs(RunInfo.Forward.uvhActiveSetConstraints,'-',DisplayName="Active Set Constraints",LineWidth=2) ;
+ylabel('Active Set Constraints',Interpreter='latex')
+
+
+xlabel('Run Step',Interpreter='latex')
+legend(Location="best",Interpreter="latex");
+
+
+
 
 if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
     clearvars  figTimeStepsAndIterations figHist figdtRunSteps figIterationsRunSteps 

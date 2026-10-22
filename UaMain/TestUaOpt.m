@@ -106,7 +106,7 @@ CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
 
 fminuncOutfun(CtrlVar);
 
-[p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,RunInfo);
+[p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(CtrlVar,func,p0,RunInfo);
 
 
 p=zeros(numel(RunInfo.Inverse.p),2);

@@ -17,7 +17,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2,frhs,grhs,Normalisation] = CalcCostF
     
    
     CtrlVar.uvMatrixAssembly.Ronly=true;  
-    % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+  
     [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
     
     if ~isempty(L)
@@ -31,25 +31,10 @@ function [r,UserVar,RunInfo,rForce,rWork,D2,frhs,grhs,Normalisation] = CalcCostF
     end
     
     
-    % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
-    Normalisation=fext0'*fext0+1000*eps;
-    rForce=full([frhs;grhs]'*[frhs;grhs]./Normalisation); 
-    
-    % Newton Decrement
-    
-    D2=full([frhs;grhs]'*[dub;dvb;dl])  ;
-    rWork=D2^2 ;
-    
-    
-    
-    switch CtrlVar.uvMinimisationQuantity
-        case "Force Residuals"
-            r=rForce;
-        case "Work Residuals"
-            r=rWork;
-        otherwise
-            error("CalcCostFunctionNR:UnknownCase")
-    end
+    % (15 Oct 2026) The residual measures are calculated in uvResidualMeasures.m (same code as previously here). The force residual
+    % is always the merit function (the option CtrlVar.uvMinimisationQuantity="Work Residuals" has been removed).
+    [rForce,rWork,D2,Normalisation]=uvResidualMeasures(frhs,grhs,fext0,dub,dvb,dl) ;
+    r=rForce ;
     
     % fprintf('gamma=%f rRes=%g \t rWork=%g \t D2=%g \n',gamma,rRes,rWork,D2)
     

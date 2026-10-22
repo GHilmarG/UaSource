@@ -125,10 +125,10 @@ for Inod=1:MUA.nod
     end
 end
 
-M=sparseUA(Iind,Jind,XvalM,neq,neq);
+M=sparse(Iind,Jind,XvalM,neq,neq);
 
 if nargout>2
-    D=sparseUA(Iind,Jind,XvalD,neq,neq);
+    D=sparse(Iind,Jind,XvalD,neq,neq);
 else
     D=[];
 end
@@ -137,15 +137,15 @@ if nargout>3
 
     % assemble right-hand sides
 
-    rc=sparseUA(neq,1);
+    rc=sparse(neq,1);
     for Inod=1:MUA.nod
-        rc=rc+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHSc(:,Inod),neq,1);
+        rc=rc+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHSc(:,Inod),neq,1);
     end
 
 
-    rd=sparseUA(neq,1);
+    rd=sparse(neq,1);
     for Inod=1:MUA.nod
-        rd=rd+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHSd(:,Inod),neq,1);
+        rd=rd+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHSd(:,Inod),neq,1);
     end
 else
     rc=[] ; rd=[];

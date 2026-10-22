@@ -4,7 +4,6 @@ function KdFuvdC=dFuvdC(CtrlVar,MUA,F)
 
 %%
 %
-% Note: There is a sign issue here, actually this has the incorrect sign, but this is dealt with later in the solve... 
 %
 %
 % assembles the matrix K which is the FE form of
@@ -101,7 +100,9 @@ for Iint=1:MUA.nip
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-    Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    % For higher-order elements, Cint can become negative even if Cnod is positive at all nodes.
+    % Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    [Cint,dCeffdC]=SmoothFloor(Cnod*fun,CtrlVar.Cmin,CtrlVar.CminWidth);  % smooth clipping
     mint=mnod*fun;
     qint=qnod*fun;
     mukint=muknod*fun;
@@ -111,7 +112,10 @@ for Iint=1:MUA.nip
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
 
-    hfint=F.rhow*Hint./rhoint;                                   % this is linear, so fine to evaluate at int in this manner
+    % The flotation thickness is evaluated at the integration point, from S, B and rho interpolated to the integration point.
+    % It is linear in S and B, but not in rho, so this is not the same as interpolating a nodal hf if rho varies horizontally.
+    % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
+    hfint=F.rhow*Hint./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
 
 
@@ -119,6 +123,8 @@ for Iint=1:MUA.nip
     dtaudC= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
+
+    dtaudC = dtaudC.*dCeffdC ;   % chain rule from the smooth floor: dCeff/dC, taking dtaudC from Ceff to nodal C
 
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
@@ -157,7 +163,7 @@ for Inod=1:MUA.nod
     end
 end
 
-KdFuvdC=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
+KdFuvdC=sparse(Iind,Jind,Xval,2*nNodes,nNodes);
 
 end
 

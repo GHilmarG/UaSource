@@ -13,12 +13,16 @@ InvStartValues=InversionValues;
 
 [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
+[isA,isB,isC] = isABC(CtrlVar);
 
 BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
 
 
 %% Test inputs
 Meas=TestMeas(CtrlVar,MUA,Meas);
+
+
+
 
 [InvStartValues.AGlen,InvStartValues.n]=TestAGlenInputValues(CtrlVar,MUA,InvStartValues.AGlen,InvStartValues.n);
 %[Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
@@ -143,10 +147,60 @@ if CtrlVar.Inverse.Methodology=="-Tikhonov-"
     end
 end
 
+
+%%
+
+if isC
+
+    if any(Priors.C==0)
+
+        fprintf("One or more elements of Prior.C are zero. \n")
+        error('GetInputsForInverseRun:IncorrectInputs',"Prior.C can not be zero. ")
+
+    end
+
+
+end
+
 %% special test for B inversion
+if isB
 
-if contains(CtrlVar.Inverse.InvertFor,"-B-")
+    if isempty(CtrlVar.Inverse.Matern.B.alpha)
 
+        fprintf("CtrlVar.Inverse.Matern.B.alpha can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.alphaIsNotDefined')
+
+    end
+
+    if isempty(CtrlVar.Inverse.Matern.B.kappa)
+
+        fprintf("CtrlVar.Inverse.Matern.B.kappa can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.kappaIsNotDefined')
+
+    end
+
+    if isempty(CtrlVar.Inverse.Matern.B.tau)
+
+        fprintf("CtrlVar.Inverse.Matern.B.tau can not be left empty when inverting for B.\n")
+        error('GetInputsForInverseRun:CtrlVar.Inverse.Matern.B.tauIsNotDefined')
+
+    end
+
+
+
+    if isempty(Meas.s)
+
+        fprintf('Meas.s can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.sIsNotDefined')
+
+    end
+
+    if isempty(Meas.dhdt)
+
+        fprintf('Meas.dhdt can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.dhdtIsNotDefined')
+
+    end
 
     if isempty(Meas.as)
 
@@ -159,7 +213,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
         fprintf('Meas.ab can not be left empty when inverting for B.\n')
         error('GetInputsForInverseRun:Meas.abIsNotDefined')
-        
+
 
     end
 
@@ -168,55 +222,104 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
         fprintf('InvStartValues.B can not be left empty when inverting for B.\n')
         error('GetInputsForInverseRun:InvStartValues.BIsNotDefined')
-        
+
 
     end
 
-    if anynan(Meas.B)
+    if anynan(Meas.Bobs)
 
-        fprintf('Meas.B contains NaN.\n')
+        fprintf('Meas.Bobs contains NaN.\n')
         error('GetInputsForInverseRun:Meas.BHasNaNs')
 
 
     end
 
+    if  (numel(Meas.Bx) ~= numel(Meas.Bobs)) ||  (numel(Meas.By) ~= numel(Meas.Bobs))
+
+        fprintf("Meas.Bx and Meas.By do not have same number of elements as Meas.Bobs.\n")
+        fprintf("We must have same number of measurment locations (Meas.Bx,Meas.By) as observations (Meas.Bobs). \n ")
+        error("GetInputsForInverseRun:IncorrectInputs")
+
+    end
+
+    if  numel(Meas.BErr) ~= numel(Meas.Bobs)
+
+        fprintf("Meas.BErr and Meas.Bobs do not have same number of elements.\n")
+        fprintf("We must have same number of error estimates (Meas.BErr) as observations (Meas.Bobs). \n ")
+        error("GetInputsForInverseRun:IncorrectInputs")
+
+    end
+
+
+
     if isscalar(InvStartValues.B)
         InvStartValues.B=InvStartValues.B+zeros(MUA.Nnodes,1);
     end
-        
-   Ind=(Meas.s-InvStartValues.B) < CtrlVar.ThickMin;
 
-   if any(Ind)
+     if numel(InvStartValues.B)~=numel(F.B)
+         fprintf("numel(InvStartValues.B)~=numel(F.B)\n")
+         error("IncorrectInputs")
+     end
 
-       fprintf("Start values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
-       fprintf("Start values for B are shifted to make sure initial thickness is positive. \n")
-       InvStartValues.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+    Ind=(Meas.s-Priors.B) < CtrlVar.ThickMin;
 
-   end
+    if any(Ind)
+
+        fprintf("\nPriors for B were in places below measured surface, i.e. (Meas.s-Priors.B) < CtrlVar.ThickMin) \n")
+        fprintf("Priors for B are shifted to make sure ice thickness for B prior is positive. \n")
+        Priors.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+
+    end
+
+
+
+    Ind=(Meas.s-InvStartValues.B) < CtrlVar.ThickMin;
+
+    if any(Ind)
+
+        fprintf("\nStart values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
+        fprintf("Start values for B are shifted to make sure initial thickness is positive. \n")
+        InvStartValues.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+
+    end
+
+
+
+    Ind=(Meas.s-F.S) < CtrlVar.ThickMin;
+
+    if any(Ind)
+
+        fprintf("\n Measurements of s, Meas.s,  were in places below the or too close to the ocean surface, S: (Meas.s-F.S) < CtrlVar.ThickMin) \n")
+        fprintf(" Measurements of s are shifted to make sure they are above the ocean surface elevation. \n")
+        Meas.s(Ind)=F.S(Ind)-1.1*CtrlVar.ThickMin;
+
+    end
+
+
+
+
+
+    if ~isempty(Meas.Bobs)
+
+        [Meas.BO,Meas.BInside,Meas.BEleID]=BuildNode2DataMap(CtrlVar,MUA,Meas.Bx,Meas.By) ;
+
+        In=Meas.BInside ;
+        v=Meas.Bobs(In)-(Meas.BO(In,:)*F.s-CtrlVar.ThickMin) ;
+        nBad=sum(v>0) ;
+        if nBad>0
+            fprintf("GetInputsForInverseRun: %i of %i bed observations (%.1f%%) lie above the\n", ...
+                nBad,numel(v),100*nBad/numel(v)) ;
+            fprintf("   surface (Bobs > s-ThickMin). Median overshoot %.1f m, max %.1f m.\n", ...
+                median(v(v>0)),max(v)) ;
+            fprintf("   These cannot be matched: B is bounded above by s-ThickMin.\n") ;
+            if nBad > 0.5*numel(v)
+                warning("GetInputsForInverseRun:BobsAboveSurface", ...
+                    "More than half the bed observations are above the surface. Check that Bobs and s share a datum.") ;
+            end
+        end
+
+    end
+
+
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

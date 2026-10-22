@@ -79,7 +79,7 @@ arguments
     options.PlotCalvingFronts  logical = true
     options.CalvingFrontColor char = "b"
     options.GroundingLineColor char = "r"
-    options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.GetRidOfValuesDownStreamOfCalvingFronts=false;
     options.GetRidOfValuesDownStreamOfGroundingLines=false;
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
@@ -144,6 +144,14 @@ else
     end
 
 end
+%%
+
+if isempty(CtrlVar)
+    CtrlVar=struct;
+    CtrlVar.VelColorMap=jet(100) ;
+end
+
+
 %%
 
 lg=[]; % this will be a handle to the legend (if created).
@@ -269,6 +277,13 @@ else
 
 
     switch options.Plot
+
+        case {"-mesh-","mesh"}
+
+            CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+            PlotMuaMesh(CtrlVar,MUA,nan,options.MeshColor) ;
+            hold on
+            lg=legend(Interpreter="latex");
 
         case {"B","-B-"}
 
@@ -487,15 +502,34 @@ end
 
 
 if options.PlotGroundingLines
-    if isfield(F,"GF")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
-    elseif isfield(F.GF,"node")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
+    CtrlVar.DisplayName="Grounding lines";
+
+    % if isfield(F,"GF")
+    %     [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+    % elseif isfield(F.GF,"node")
+    %     [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor);
+    % end
+
+    % New approach to plotting the grounding line (thanks to Deborah Rhee for this suggestion)
+
+    if ~isempty(F) && isfield(F,"rhow") && isfield(F,"S") && isfield(F,"B" && isfield(F,"rho"))
+        hgl=F.rhow*(F.S-F.B)./F.rho;
+        gf=F.h-hgl ;
+        CtrlVar.DisplayName="Grounding lines";
+        PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="r");
+        CtrlVar.DisplayName=[];
     end
+
 end
 
+
+
+
+
 if options.PlotCalvingFronts
+    CtrlVar.DisplayName="Calving Fronts"; 
     [xCF,yCF]=PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+    CtrlVar.DisplayName=[];
 end
 
 

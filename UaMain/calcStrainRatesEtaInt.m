@@ -77,8 +77,10 @@ for Iint=1:MUA.nip
                 AGlenint(:,Iint)=AGlen;
                 nGlenint(:,Iint)=n;
             else
-                temp=AGlennod*fun;
-                temp(temp<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+                % For higher-order elements AGlen can become negative at integration points, even if AGlen is positive at all nodes.
+                % temp=AGlennod*fun;
+                % temp(temp<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+                temp=SmoothFloor(AGlennod*fun,CtrlVar.AGlenmin,CtrlVar.AGlenminWidth);  % smooth clipping, must match the forward assembly
                 AGlenint(:,Iint)=temp;
                 nGlenint(:,Iint)=nGlennod*fun;
             end
@@ -108,8 +110,8 @@ if nargin>4
         n=nGlenint;
         % etaInt=real(0.5*AGlenint.^(-1./n).*e.^((1-n)./n));
         % Eint=real((1-n)./(4*n).*AGlenint.^(-1./n).*e.^((1-3*n)./n));
-
-        [etaInt,Eint,e,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,n,exx,eyy,exy) ;
+        CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
+        [etaInt,Eint,e]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,n,exx,eyy,exy) ;
     end
 end
 

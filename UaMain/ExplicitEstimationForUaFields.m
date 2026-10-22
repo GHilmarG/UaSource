@@ -3,10 +3,13 @@
 
 
 
-function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs1,l1,BCs0,l0)
+function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs1,l1,BCs0,l0,dt)
+%
+% (9 Oct 2026) dt is the new time step, ie F.dt of the field for which the explicit estimate is made. (F0.dt is not
+% necessarily the new time step, and CtrlVar.dt is only a copy of F.dt.)
     
     nargoutchk(7,7)
-    narginchk(10,10)
+    narginchk(11,11)
     
  
   
@@ -31,56 +34,48 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
 
             [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F0,BCs0); % this now includes rho (2026-04)
             
-            h=F0.h+dhdt.*CtrlVar.dt ;
-            h(h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
+            h=F0.h+dhdt.*dt ;
+            % (14 Oct 2026) The estimate is no longer clipped at ThickMin here. It is made feasible (h>=ThickMin) where needed, ie at the start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m), after the active set has been initialised (see predictive activation in ActiveSetInitialisation.m). uv.m deals with h<ThickMin itself.
 
             % alternative approach: 
             % [UserVar,RunInfo,h]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l0,BCs0) ;
             
 
 
-            ub=F0.ub+F0.dubdt*CtrlVar.dt ;
-            vb=F0.vb+F0.dvbdt*CtrlVar.dt ;
-            ud=F0.ud+F0.duddt*CtrlVar.dt ;
-            vd=F0.vd+F0.dvddt*CtrlVar.dt ;
+            ub=F0.ub+F0.dubdt*dt ;
+            vb=F0.vb+F0.dvbdt*dt ;
+            ud=F0.ud+F0.duddt*dt ;
+            vd=F0.vd+F0.dvddt*dt ;
 
 
         case "-Adams-Bashforth-"
 
-            
-            
-            Itime=CtrlVar.CurrentRunStepNumber;
-            
-            if CtrlVar.CurrentRunStepNumber>=3
-                
-                if     (numel(F0.ub)~=numel(F0.dubdt)) ...
-                        || (numel(F0.vb)~=numel(F0.dvbdt)) ...
-                        || (numel(F0.ud)~=numel(F0.duddt)) ...
-                        || (numel(F0.vd)~=numel(F0.dvddt))
-                    
-                    Itime=1;
-                    
-                elseif      (numel(F0.dubdt)~=numel(Fm1.dubdt)) ...
-                        ||  (numel(F0.dvbdt)~=numel(Fm1.dvbdt)) ...
-                        ||  (numel(F0.dvbdt)~=numel(Fm1.dvbdt)) ...
-                        ||  (numel(F0.duddt)~=numel(Fm1.duddt)) ...
-                        ||  (numel(F0.dvddt)~=numel(Fm1.dvddt))
-                    Itime=2 ;
-                end
-                
-            end
-            
-            
-            
-         
-            % improve by checking which fields do need to be updated
+            % (9 Oct 2026) The name "-Adams-Bashforth-" is kept for compatibility. The rates in F0 and Fm1 are backward differences
+            % over the two previous time steps (see UpdateFtimeDerivatives.m), and the explicit estimate is calculated from these with
+            % ExplicitEstimationUsingBackwardDifferences.m, which is second-order accurate also for variable time steps. (Whether a
+            % second-order, linear or no extrapolation can be done is determined from the available data, node by node, within that
+            % function. This no longer depends on CtrlVar.CurrentRunStepNumber, and CtrlVar.dtRatio is not used.
             [ub,vb,ud,vd,h]=...
-                ExplicitEstimation(CtrlVar.dt,CtrlVar.dtRatio,Itime,...
+                ExplicitEstimationUsingBackwardDifferences(dt,F0.dtRates,Fm1.dtRates,...
                 F0.ub,F0.dubdt,Fm1.dubdt,...
                 F0.vb,F0.dvbdt,Fm1.dvbdt,...
                 F0.ud,F0.duddt,Fm1.duddt,...
                 F0.vd,F0.dvddt,Fm1.dvddt,...
                 F0.h,F0.dhdt,Fm1.dhdt);
+
+            % (14 Oct 2026) The estimate is no longer clipped at ThickMin here. It is made feasible (h>=ThickMin) where needed, ie at the start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m), after the active set has been initialised (see predictive activation in ActiveSetInitialisation.m). uv.m deals with h<ThickMin itself.
+
+        case "-Adams-Bashforth-thickness-only-"
+
+            % (12 Oct 2026) As "-Adams-Bashforth-", but only the thickness is extrapolated. The velocities are set to their values at the
+            % start of the time step, ie the converged solution of the previous time step. This starting point is consistent in the sense
+            % that the velocities satisfy the momentum equations for the thickness at the start of the time step, and the remaining error in
+            % the momentum equations is only due to the change in thickness. In tests (Greenland) the extrapolated velocities did not
+            % reduce the number of non-linear iterations, presumably because velocities change non-smoothly in time near grounding lines,
+            % fast-flowing outlets, and where the active set changes.
+            h=ExplicitEstimationUsingBackwardDifferences(dt,F0.dtRates,Fm1.dtRates,F0.h,F0.dhdt,Fm1.dhdt);
+            % (14 Oct 2026) The estimate is no longer clipped at ThickMin here. It is made feasible (h>=ThickMin) where needed, ie at the start of the uvh solve (uvhRootFinding.m, uvhSemiImplicit.m), after the active set has been initialised (see predictive activation in ActiveSetInitialisation.m). uv.m deals with h<ThickMin itself.
+            ub=F0.ub ; vb=F0.vb ; ud=F0.ud ; vd=F0.vd ;
 
     end
 

@@ -1,7 +1,7 @@
-function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo)
+function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo,Fm1]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo)
 
 narginchk(3,3) 
-nargoutchk(7,7)       
+nargoutchk(7,8)       
 
 fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFiletoRead)
 
@@ -30,6 +30,23 @@ fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFileto
         fprintf(CtrlVar.fidlog,'%s \n',exception.message);
         error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
     end
+
+    % (9 Oct 2026) Fm1, the rates of the previous time step, is saved in restart files from 9 Oct 2026 onwards. For older restart
+    % files Fm1 is created with all rates set to NaN, and the explicit estimate then falls back to linear, or no, extrapolation in
+    % the first time step(s) after the restart (see ExplicitEstimationUsingBackwardDifferences.m).
+    WarningState=warning('off','MATLAB:load:variableNotFound');
+    Stmp=load(CtrlVar.NameOfRestartFiletoRead,'Fm1');
+    warning(WarningState);
+    if isfield(Stmp,'Fm1') && isa(Stmp.Fm1,'UaFields')
+        Fm1=Stmp.Fm1;
+    else
+        fprintf('\n Restart file does not contain Fm1 (an older restart file). Fm1 is created with all rates set to NaN.\n')
+        Fm1=UaFields;
+        Fm1.dhdt=NaN(MUAold.Nnodes,1); Fm1.dubdt=NaN(MUAold.Nnodes,1); Fm1.dvbdt=NaN(MUAold.Nnodes,1);
+        Fm1.duddt=NaN(MUAold.Nnodes,1); Fm1.dvddt=NaN(MUAold.Nnodes,1);
+        Fm1.dtRates=NaN;
+    end
+    clear Stmp
     
 % else
 % 
@@ -78,6 +95,11 @@ if exist('l','var')==0
     fprintf(' The Lagrange variable l not found in restart file. Reset. \n')
     l=UaLagrangeVariables;
 end
+
+% (10 Oct 2026) The boundary conditions, including the active set of the thickness constraints (BCs.hPosNode), and the Lagrange
+% multipliers as read from the restart file. Used further below to restore the active set and the multipliers.
+BCsInRestartFile=BCs;
+lInRestartFile=l;
 
 
 if exist('RunInfo','var')==0
@@ -188,6 +210,7 @@ if isMeshChanged
     
     
     [UserVar,RunInfo,F,BCs,l]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,l);
+    [RunInfo,Fm1]=MapFm1BetweenMeshes(CtrlVar,RunInfo,MUAold,MUA,Fm1);   % (9 Oct 2026)
     %[UserVar,RunInfo,F,BCs,GF]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF);
     
     
@@ -229,6 +252,66 @@ fprintf('       These will overwrite those in restart file.\n')
 
 BCs=BoundaryConditions;
 [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
+
+%% (10 Oct 2026) Restoring the active set and the Lagrange multipliers from the restart file
+% so that a restart run continues where the previous run ended. Previously the active set was not restored (the boundary conditions are
+% redefined above through DefineBoundaryConditions.m, which does not include the active set), and the multipliers were reset. The active set
+% was then recovered in the first time step from h<=ThickMin (see ActiveSetInitialisation.m), but the first uvh solve started with zero
+% multipliers. This is only done if the mesh has not changed (if it has, the active set is recovered by ActiveSetInitialisation.m from the
+% mapped thickness) and for time-dependent runs.
+%
+% - The active set is restored, except for any nodes that are now fixed or tied through DefineBoundaryConditions.m.
+% - The multipliers are only restored if all user-defined constraints are unchanged and the active set has been restored completely. The
+%   order of the constraints, and hence of the multipliers, is then the same as in the previous run (see BCs2MLC.m).
+if CtrlVar.TimeDependentRun && ~isMeshChanged
+
+    isActiveSetRestored=true;
+    nPosInFile=numel(BCsInRestartFile.hPosNode);
+    if CtrlVar.ThicknessConstraints && nPosInFile>0
+        [PosNode,iKeep]=setdiff(BCsInRestartFile.hPosNode(:),[BCs.hFixedNode(:);BCs.hTiedNodeA(:);BCs.hTiedNodeB(:)],'stable');
+        BCs.hPosNode=PosNode;
+        if numel(BCsInRestartFile.hPosValue)==nPosInFile
+            BCs.hPosValue=BCsInRestartFile.hPosValue(iKeep);
+            BCs.hPosValue=BCs.hPosValue(:);
+        else
+            BCs.hPosValue=zeros(numel(PosNode),1)+CtrlVar.ThickMin;
+        end
+        isActiveSetRestored=numel(PosNode)==nPosInFile;
+        fprintf(' Active set restored from restart file: %i thickness constraints',numel(PosNode))
+        if ~isActiveSetRestored
+            fprintf(' (%i constraints in the restart file are not restored as these nodes are now fixed or tied)',nPosInFile-numel(PosNode))
+        end
+        fprintf('. \n')
+    end
+
+    isSame=@(a,b) isequal(a(:),b(:));
+    UserConstraintsUnchanged= ...
+        isSame(BCs.hFixedNode,BCsInRestartFile.hFixedNode) && isSame(BCs.hTiedNodeA,BCsInRestartFile.hTiedNodeA) && isSame(BCs.hTiedNodeB,BCsInRestartFile.hTiedNodeB) && ...
+        isSame(BCs.ubFixedNode,BCsInRestartFile.ubFixedNode) && isSame(BCs.vbFixedNode,BCsInRestartFile.vbFixedNode) && ...
+        isSame(BCs.ubTiedNodeA,BCsInRestartFile.ubTiedNodeA) && isSame(BCs.ubTiedNodeB,BCsInRestartFile.ubTiedNodeB) && ...
+        isSame(BCs.vbTiedNodeA,BCsInRestartFile.vbTiedNodeA) && isSame(BCs.vbTiedNodeB,BCsInRestartFile.vbTiedNodeB) && ...
+        isSame(BCs.ubvbFixedNormalNode,BCsInRestartFile.ubvbFixedNormalNode) && ...
+        isSame(BCs.udFixedNode,BCsInRestartFile.udFixedNode) && isSame(BCs.vdFixedNode,BCsInRestartFile.vdFixedNode) && ...
+        isSame(BCs.udTiedNodeA,BCsInRestartFile.udTiedNodeA) && isSame(BCs.udTiedNodeB,BCsInRestartFile.udTiedNodeB) && ...
+        isSame(BCs.vdTiedNodeA,BCsInRestartFile.vdTiedNodeA) && isSame(BCs.vdTiedNodeB,BCsInRestartFile.vdTiedNodeB) && ...
+        isSame(BCs.udvdFixedNormalNode,BCsInRestartFile.udvdFixedNormalNode) ;
+
+    if UserConstraintsUnchanged && isActiveSetRestored && isa(lInRestartFile,'UaLagrangeVariables')
+        l=lInRestartFile;
+        fprintf(' Lagrange multipliers restored from restart file. \n')
+    elseif ~UserConstraintsUnchanged
+        fprintf(' Lagrange multipliers not restored from restart file, because the boundary conditions defined in DefineBoundaryConditions.m have changed. \n')
+    elseif ~isActiveSetRestored
+        fprintf(' Lagrange multipliers not restored from restart file, because the active set could not be fully restored. \n')
+    end
+
+end
+% (10 Oct 2026) Optional reset of the accumulated time-discretisation error estimate at a restart (by default it is continued).
+if isfield(CtrlVar,"TimeDiscretisationErrorEstimate") && isfield(CtrlVar.TimeDiscretisationErrorEstimate,"ResetAccumulatedAtRestart") ...
+        && CtrlVar.TimeDiscretisationErrorEstimate.ResetAccumulatedAtRestart && ~isempty(F.hTimeDiscretisationErrorAccumulated)
+    F.hTimeDiscretisationErrorAccumulated=[];
+    fprintf(' Accumulated time-discretisation error estimate reset at restart. \n')
+end
 
 % This is now a part of DefineSlipperiness
 % if CtrlVar.IncludeMelangeModelPhysics

@@ -138,13 +138,13 @@ end
 
 % assemble right-hand side
 
-rhxd=sparseUA(neq,1); rhyd=sparseUA(neq,1);
-rhxb=sparseUA(neq,1); rhyb=sparseUA(neq,1);
+rhxd=sparse(neq,1); rhyd=sparse(neq,1);
+rhxb=sparse(neq,1); rhyb=sparse(neq,1);
 for Inod=1:MUA.nod
-    rhxd=rhxd+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bxd(:,Inod),neq,1);
-    rhyd=rhyd+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),byd(:,Inod),neq,1);
-    rhxb=rhxb+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bxb(:,Inod),neq,1);
-    rhyb=rhyb+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),byb(:,Inod),neq,1);
+    rhxd=rhxd+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bxd(:,Inod),neq,1);
+    rhyd=rhyd+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),byd(:,Inod),neq,1);
+    rhxb=rhxb+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bxb(:,Inod),neq,1);
+    rhyb=rhyb+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),byb(:,Inod),neq,1);
 end
 
 

@@ -9,7 +9,7 @@ To make changes, update the MATLAB code and republish this document.
 <title>ReleaseNotes</title>
 <meta name="generator" content="MATLAB 26.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2026-07-15">
+<meta name="DC.date" content="2026-09-02">
 <meta name="DC.source" content="ReleaseNotes.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -80,21 +80,65 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <!--introduction-->
 <!--/introduction-->
 <p>
-<b>Release Notes</b> <i>July 2026</i>
+<b>Release Notes</b> <i>August 2026</i>
 </p>
 <div>
 <ul>
-<li>An option added to use Matern covariance matrices in an inversion. The resulting precision matrices are either:</li>
+<li>For the -uvh- solve, two normalization of the residuals are now available, selected by</li>
 </ul>
 </div>
+<pre>  CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
+                                   = "blockwise"</pre>
+<p>The new blockwise normalization option is seleted by setting</p>
+<pre>  CtrlVar.uvhResidualNormalisation="blockwise";</pre>
+<p>It scales the uv and the h blocks of the residual vector separately. This should give a better measure of the residual and be less affected by relative differences in the uv and h residual blocks.</p>
+<div>
+<ul>
+<li>There is a new "softplus" positive ice-thickness penalty formulation. It can be used in connection with the active-set iteration enforcing the min ice thickness constraint. It adds an implicit penalty term to the uvh system. The penalty term is a "soft" i.e. smooth function of the thickness violation. It has two parameters:</li>
+</ul>
+</div>
+<pre class="language-matlab">CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l
+</pre>
+<p>
+<img src="ReleaseNotes_eq14155762934034653800.png" alt="$K$" style="width:12px;height:10px;"> is the slope of the linear term and l is a smoothness parameter. Note that <img src="ReleaseNotes_eq17216086743898025322.png" alt="$l$" style="width:4px;height:10px;"> has the units of ice thickness and should be selected to be somewhat smaller than CtrlVar.ThickMin</p>
+<p>Typical values might be</p>
+<pre class="language-matlab">CtrlVar.ThicknessPenalty=true;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction=<span class="string">"softplus"</span>;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
+</pre>
+<p>(Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)</p>
+<p>
+<b>Release Notes</b> <i>July 2026</i>
+</p>
+<p>An option added to use Mat&eacute;rn covariance matrices in an inversion. The resulting precision matrices are either:</p>
 <p>
 <img src="ReleaseNotes_eq09770266689793418644.png" alt="$$ Q_{\alpha=1} = \tau^2\left(\kappa^2 M + D\right) $$" style="width:122px;height:16px;"></p>
-<p>or</p>
 <p>
 <img src="ReleaseNotes_eq02806432307676200260.png" alt="$$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$" style="width:228px;height:20px;"></p>
+<p>or</p>
+<p>
+<img src="ReleaseNotes_eq01849406194307136264.png" alt="$$Q_{\alpha=3} = \tau^2\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)$$" style="width:312px;height:20px;"></p>
 <p>where <img src="ReleaseNotes_eq09319732146067371049.png" alt="$M$" style="width:14px;height:10px;"> is the mass matrix, <img src="ReleaseNotes_eq15667561282149361655.png" alt="$\tilde{M}$" style="width:14px;height:15px;"> the lumped mass matrix, <img src="ReleaseNotes_eq11414838477267473978.png" alt="$D$" style="width:11px;height:10px;"> the stiffness matrix, and <img src="ReleaseNotes_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:6px;">, <img src="ReleaseNotes_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> and <img src="ReleaseNotes_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:6px;"> are (hyper) parameters. This option is activated by setting:</p>
 <pre>CtrlVar.Inverse.Methodology="-Matern-" ;</pre>
-<p>and there is extensive description of this approach in the UaCompendium.</p>
+<p>and there is extensive description of this approach in the UaCompendium. The Mat&eacute;rn covariance function is:</p>
+<p>
+<img src="ReleaseNotes_eq04363232538738320206.png" alt="$$\left(C_M\right)_{ij} = C(r_{ij}) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}\left(\kappa r_{ij}\right)^{\nu}\, K_{\nu}\!\left(\kappa r_{ij}\right) $$" style="width:234px;height:36px;"></p>
+<p>where</p>
+<p>
+<img src="ReleaseNotes_eq05532860277977473609.png" alt="$$ r_{ij}=\|\mathbf{x}_i-\mathbf{y}_j\| $$" style="width:83px;height:16px;"></p>
+<p>Previously only the <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:10px;"> option was implemented, through</p>
+<pre class="language-matlab">CtrlVar.Inverse.Methodology=<span class="string">"-Tikhonov-"</span>
+</pre>
+<p>which still is the default option.</p>
+<p>When using the "-Tikhonov-" option, the parameters are entered as <img src="ReleaseNotes_eq04266825596800189285.png" alt="$\gamma_s$" style="width:10px;height:10px;"> and <img src="ReleaseNotes_eq10299851224723179983.png" alt="$\gamma_a$" style="width:11px;height:10px;"> in</p>
+<p>
+<img src="ReleaseNotes_eq10357830834230388680.png" alt="$$ Q_{\alpha=1} =  \gamma_a M + \gamma_s D  $$" style="width:110px;height:14px;"></p>
+<p>When using the new "-Matern-" option for <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:10px;"> you can get the same behavior by selecting <img src="ReleaseNotes_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:6px;"> and <img src="ReleaseNotes_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> in terms of <img src="ReleaseNotes_eq04266825596800189285.png" alt="$\gamma_s$" style="width:10px;height:10px;"> and <img src="ReleaseNotes_eq10299851224723179983.png" alt="$\gamma_a$" style="width:11px;height:10px;"> for <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:10px;">. You can find the formulas in the UaCompendium or use the function:</p>
+<pre class="language-matlab">[alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)
+</pre>
+<p>Note that the relationship depends on the area of the computational domain.</p>
 <p>
 <b>Release Notes</b> <i>June 2026</i>
 </p>
@@ -106,12 +150,12 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <p>Internally, the boundary conditions are represented as a constraint matrix</p>
 <p>
 <img src="ReleaseNotes_eq03744485538172999651.png" alt="$$A_{\mathrm{eq}} \; x = b \quad ,  \quad A_{\mathrm{eq}} \in R^{m\times n} $$" style="width:158px;height:17px;"></p>
-<p>where m is the number of constraints, and n the number of degrees of freedom.</p>
-<p>The matrix Aeq should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent. However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.</p>
+<p>where <img src="ReleaseNotes_eq18216620034067401164.png" alt="$m$" style="width:11px;height:6px;"> is the number of constraints, and <img src="ReleaseNotes_eq17555110721583917243.png" alt="$n$" style="width:8px;height:6px;"> the number of degrees of freedom.</p>
+<p>The matrix <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;"> should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent. However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.</p>
 <p>By setting</p>
 <pre class="language-matlab">CtrlVar.BCsRowSubsetSelection=true;
 </pre>
-<p>the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a QR decomposition of Aeq, but since Aeq is usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not required in the first place by ensuring that the boundary conditions contain no redundancies.</p>
+<p>the matrix <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;"> will be modified using a row-subset selection algorithm. This does involve a QR decomposition of <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;">, but since <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;"> is usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not required in the first place by ensuring that the boundary conditions contain no redundancies.</p>
 <div>
 <ul>
 <li>The default KKT solver for symmetrical matrices is now the Null-Space method. Previously the default was</li>
@@ -122,21 +166,36 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <p>and this was used if the user used the default option</p>
 <pre>  CtrlVar.SymmSolver='Auto';</pre>
 <p>This symmetrical solver preserves the symmetry of the reduced KKT system, whereas the 'EliminateBCsSolveSystemDirectly' did not. Additionally, the new Null-Space solver solves (n-m) x (n-m) system where n is the degrees of freedom and m is the number of constraints. Typically n is twice the number of nodes (uv solve) and m is the number of boundary conditions. The 'EliminateBCsSolveSystemDirectly', on the other hand, always solves an n times n system. The new solver is always faster. How much faster depends on the problem but one can expect it always to be at least twice as fact. Note that this only applies to the solution of the KKT system. If there are no boundary conditions, the same default backslash solver is used before.</p>
-<p>For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other hand, the constraint matrix Aeq does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used instead of the previous Augmented Lagrangian solver.</p>
+<p>For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other hand, the constraint matrix <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;"> does not fulfill <img src="ReleaseNotes_eq12362932922569311798.png" alt="$A_{\mathrm{eq}} \, A_{\mathrm{eq}}^T = I_m$" style="width:74px;height:20px;">, a new unsymmetrical Null-Space solver is now used instead of the previous Augmented Lagrangian solver.</p>
 <p>One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will, typically, be no difference in performance, even with BCs. It is possible that if one has a large number of BCs, manually setting</p>
 <pre class="language-matlab">CtrlVar.AsymmSolver=<span class="string">"NullSpace"</span>;
 </pre>
-<p>might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver requires the construction of a basis for the null-space of Aeq.</p>
+<p>might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver requires the construction of a basis for the null-space of <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;">.</p>
 <p>
-<b>Release Notes</b> <i>January 2025</i>
+<b>Release Notes</b> <i>March 2026</i>
 </p>
-<p>When calculating dh/dt explicitly, homogenized thickness (h) boundary conditions are applied to the dh/dt solve. So if thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if thickness links/ties are defined between nodes, those same ties will be applied to dh/dt. This has no effect on dh/dt values obtained in transient runs. But this will affect calculated/modeled dh/dt values used in an inversion when compared against measured dh/dt values, in combination with thickness boundary conditions.</p>
+<p>An elementary additional mesh-generator is available. This one creates regular square meshes only (it is very basic indeed!). This can be useful when, for example, when using some simple computational domains, or to generate an initial mesh. All mesh refinements can then be applied to this mesh afterwards.</p>
+<p>Example:</p>
+<pre class="language-matlab">CtrlVar.MeshGenerator=<span class="string">"UaSquareMesh"</span>;
+CtrlVar.UaSquareMesh.xmin=-650e3;
+CtrlVar.UaSquareMesh.xmax=900e3;
+CtrlVar.UaSquareMesh.ymin=-3400e3;
+CtrlVar.UaSquareMesh.ymax=-600e3;
+CtrlVar.UaSquareMesh.nx=100;
+</pre>
+<p>Note that MeshCoordinates are not used above. By specifying MeshCoordinates, all elements outside of the square are then automatically deactivated at the beginning of the run. An example for the use of this approach is in the Greenland sub-folder of Examples.</p>
+<p>
+<img vspace="5" hspace="5" src="HoffSquareMeshExample.PNG" alt=""> </p>
+<p>
+<b>Release Notes</b> <i>January 2026</i>
+</p>
+<p>When calculating <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> explicitly, homogenized thickness (<img src="ReleaseNotes_eq16410644637423230129.png" alt="$h$" style="width:8px;height:10px;">) boundary conditions are applied to the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> solve. So if thickness is set to some prescribed value at some nodes, <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> at those nodes will be forced to be equal to zero. And if thickness links/ties are defined between nodes, those same ties will be applied to <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;">. This has no effect on <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> values obtained in transient runs. But this will affect calculated/modeled <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> values used in an inversion when compared against measured <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> values, in combination with thickness boundary conditions.</p>
 <p>
 <b>Release Notes</b> <i>December 2025</i>
 </p>
 <div>
 <ul>
-<li>When using dh/dt measurements in with boundary conditions applied to h, the adjoint now uses the dh/dt calculated explicitly using those BCs. Previously, when evaluating the sensitivities of the dh/dt-cost function term at integration points as part of the adjoint approach, this was not the case.</li>
+<li>When using <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> measurements in with boundary conditions applied to h, the adjoint now uses the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> calculated explicitly using those BCs. Previously, when evaluating the sensitivities of the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;">-cost function term at integration points as part of the adjoint approach, this was not the case.</li>
 </ul>
 </div>
 <p>
@@ -177,15 +236,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <div>
 <ol>
 <li>"-uv-" for a velocity solve only, i.e. no evolution of ice thickness (h). (Sometimes this is referred to as time-independent run, or as a diagnostic run.)</li>
-</ol>
-</div>
-<div>
-<ol>
 <li>"-uvh-" for an implicit velocity and thickness solve, i.e. time dependent run</li>
-</ol>
-</div>
-<div>
-<ol>
 <li>"-uv-h-" for a semi-implicit velocity and thickness solve, i.e. time dependent run where the thickness is solved implicitly, and an outer iteration loop is used to ensure that the velocities and thickness are consistent at the end of the time step. This is not a recommended option, and is slower than the -uvh- option.</li>
 </ol>
 </div>
@@ -262,12 +313,12 @@ a_3 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;</pre>
 </div>
 <div>
 <ul>
-<li>Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found, all parallel options are turned off, and the run proceeds in non-parallel mode.</li>
+<li>Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started ahead of a call to Ua. However, note that this might also depend on user settings for the parallel pool. For example if the user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found, all parallel options are turned off, and the run proceeds in non-parallel mode.</li>
 </ul>
 </div>
 <div>
 <ul>
-<li>Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the &Uacute;a fields, F0, was same as the F from previous time step. Note that when the mass balance/thickness feedback is activated, the mass balance function is called within the assembly loop and then the mass balance will not lag behind.</li>
+<li>Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was done to reduce then umber of calls to DefineMassBalance, and to make sure that the mass balance of the &Uacute;a fields, F0, was same as the F from previous time step. Note that when the mass balance/thickness feedback is activated, the mass balance function is called within the assembly loop and then the mass balance will not lag behind.</li>
 </ul>
 </div>
 <div>
@@ -665,23 +716,83 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 
 %%
 %
+% *Release Notes* _August 2026_
+%
+%
+% * For the -uvh- solve, two normalization of the residuals are now available, selected by
+%
+%    CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
+%                                     = "blockwise"
+%
+% The new blockwise normalization option is seleted by setting 
+%
+%    CtrlVar.uvhResidualNormalisation="blockwise";
+%
+% It scales the uv and the h blocks of the residual vector separately. This should give a better measure of the residual and
+% be less affected by relative differences in the uv and h residual blocks. 
+%
+% * There is a new "softplus" positive ice-thickness penalty formulation. It can be used in connection with the active-set iteration
+% enforcing the min ice thickness constraint. It adds an implicit penalty term to the uvh system. The penalty term is a
+% "soft" i.e. smooth function of the thickness violation. It has two parameters:
+%
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l
+%
+% $K$ is the slope of the linear term and l is a smoothness parameter. Note that $l$ has the units of ice thickness and should be
+% selected to be somewhat smaller than CtrlVar.ThickMin
+%
+% Typical values might be
+%
+%   CtrlVar.ThicknessPenalty=true;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="softplus";
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;
+%   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
+%
+% (Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)
+%
 % *Release Notes* _July 2026_
 %
-% * An option added to use Matern covariance matrices in an inversion. The resulting precision matrices are either:
+% An option added to use Matérn covariance matrices in an inversion. The resulting precision matrices are either:
 %
 %
 % $$ Q_{\alpha=1} = \tau^2\left(\kappa^2 M + D\right) $$
 %
+% $$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$
+%
 % or
 %
-% $$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$
+% $$Q_{\alpha=3} = \tau^2\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)$$
 %
 % where $M$ is the mass matrix, $\tilde{M}$ the lumped mass matrix, $D$ the stiffness matrix, and $\alpha$, $\kappa$ and $\tau$ are (hyper) parameters.  This option
 % is activated by setting:
 %
 %  CtrlVar.Inverse.Methodology="-Matern-" ;
 %
-% and there is extensive description of this approach in the UaCompendium.
+% and there is extensive description of this approach in the UaCompendium. The Matérn covariance function is:
+%
+% $$\left(C_M\right)_{ij} = C(r_{ij}) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}\left(\kappa r_{ij}\right)^{\nu}\, K_{\nu}\!\left(\kappa r_{ij}\right) $$
+%
+% where
+%
+% $$ r_{ij}=\|\mathbf{x}_i-\mathbf{y}_j\| $$
+%
+% Previously only the $\alpha=1$ option was implemented, through
+%
+%   CtrlVar.Inverse.Methodology="-Tikhonov-" 
+%  
+% which still is the default option. 
+%
+% When using the "-Tikhonov-" option, the parameters are entered as $\gamma_s$ and $\gamma_a$ in
+%
+% $$ Q_{\alpha=1} =  \gamma_a M + \gamma_s D  $$
+%
+% When using the new "-Matern-" option for $\alpha=1$ you can get the same behavior by selecting 
+% $\tau$ and $\kappa$ in terms of $\gamma_s$ and $\gamma_a$ for $\alpha=1$. You can find the formulas in the UaCompendium or
+% use the function: 
+%
+%   [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)
+% 
+% Note that the relationship depends on the area of the computational domain. 
 %
 % *Release Notes* _June 2026_
 %
@@ -693,16 +804,16 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %
 % $$A_{\mathrm{eq}} \; x = b \quad ,  \quad A_{\mathrm{eq}} \in R^{m\times n} $$
 %
-% where m is the number of constraints, and n the number of degrees of freedom.
+% where $m$ is the number of constraints, and $n$ the number of degrees of freedom.
 % 
-% The matrix Aeq should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
+% The matrix $A_{\mathrm{eq}}$ should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
 % However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.
 % 
 % By setting
 %
 %   CtrlVar.BCsRowSubsetSelection=true; 
 %
-% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a QR decomposition of Aeq, but since Aeq is
+% the matrix $A_{\mathrm{eq}}$ will be modified using a row-subset selection algorithm. This does involve a QR decomposition of $A_{\mathrm{eq}}$, but since $A_{\mathrm{eq}}$ is
 % usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not
 % required in the first place by ensuring that the boundary conditions contain no redundancies. 
 %
@@ -727,7 +838,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %
 % For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is
 % typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other
-% hand, the constraint matrix Aeq does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used instead of
+% hand, the constraint matrix $A_{\mathrm{eq}}$ does not fulfill $A_{\mathrm{eq}} \, A_{\mathrm{eq}}^T = I_m$, a new unsymmetrical Null-Space solver is now used instead of
 % the previous Augmented Lagrangian solver.
 % 
 % One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will,
@@ -737,23 +848,48 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %   CtrlVar.AsymmSolver="NullSpace";  
 %
 % might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver
-% requires the construction of a basis for the null-space of Aeq.
+% requires the construction of a basis for the null-space of $A_{\mathrm{eq}}$.
+%
+% *Release Notes* _March 2026_
+% 
+% An elementary additional mesh-generator is available. This one creates regular square meshes only (it is very basic
+% indeed!). This can be useful when, for example, when using some simple computational domains, or to generate an initial
+% mesh. All mesh refinements can then be applied to this mesh afterwards. 
+%
+% Example:
+%
+%   CtrlVar.MeshGenerator="UaSquareMesh";
+%   CtrlVar.UaSquareMesh.xmin=-650e3;
+%   CtrlVar.UaSquareMesh.xmax=900e3;
+%   CtrlVar.UaSquareMesh.ymin=-3400e3;
+%   CtrlVar.UaSquareMesh.ymax=-600e3;
+%   CtrlVar.UaSquareMesh.nx=100;
+%
+% Note that MeshCoordinates are not used above. By specifying MeshCoordinates, all elements outside of the square are
+% then automatically deactivated at the beginning of the run. An example for the use of this approach is in the Greenland
+% sub-folder of Examples. 
+%
+% 
+% 
+% <<HoffSquareMeshExample.PNG>>
+% 
 %
 %
-% *Release Notes* _January 2025_
 %
-% When calculating dh/dt explicitly,  homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if
-% thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if
-% thickness links/ties are defined between nodes, those same ties will be applied to dh/dt. This has no effect on dh/dt
-% values obtained in transient runs. But this will affect calculated/modeled dh/dt values used in an inversion when compared
-% against measured dh/dt values, in combination with thickness boundary conditions.
+% *Release Notes* _January 2026_
+%
+% When calculating $\dot{h}$ explicitly,  homogenized  thickness ($h$) boundary conditions are applied to the $\dot{h}$ solve. So if
+% thickness is set to some prescribed value at some nodes, $\dot{h}$ at those nodes will be forced to be equal to zero. And if
+% thickness links/ties are defined between nodes, those same ties will be applied to $\dot{h}$. This has no effect on $\dot{h}$
+% values obtained in transient runs. But this will affect calculated/modeled $\dot{h}$ values used in an inversion when compared
+% against measured $\dot{h}$ values, in combination with thickness boundary conditions.
 %
 %
 %
 % *Release Notes* _December 2025_
 %
-% * When using dh/dt measurements in with boundary conditions applied to h, the adjoint now uses the dh/dt calculated
-% explicitly using those BCs. Previously, when evaluating the sensitivities of the dh/dt-cost function term at integration
+% * When using $\dot{h}$ measurements in with boundary conditions applied to h, the adjoint now uses the $\dot{h}$ calculated
+% explicitly using those BCs. Previously, when evaluating the sensitivities of the $\dot{h}$-cost function term at integration
 % points as part of the adjoint approach, this was not the case. 
 %
 % 
@@ -786,9 +922,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %
 % # "-uv-"   for a velocity solve only, i.e. no evolution of ice thickness (h). (Sometimes this is referred to as
 % time-independent run, or as a diagnostic run.)
-%
 % # "-uvh-"  for an implicit velocity and thickness solve, i.e. time dependent run 
-%
 % # "-uv-h-"  for a semi-implicit velocity and thickness solve, i.e. time dependent run where the thickness is solved
 % implicitly, and an outer iteration loop is used to ensure that the velocities and thickness are consistent at the end of
 % the time step. This is not a recommended option, and is slower than the -uvh- option. 
@@ -867,12 +1001,12 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 % product to the integration points.
 %
 % * Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
-% ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
+% ahead of a call to Ua. However, note that this might also depend on user settings for the parallel pool. For example if the
 % user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
 % all parallel options are turned off, and the run proceeds in non-parallel mode.
 %
 % * Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
-% done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
+% done to reduce then umber of calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
 % F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
 % called within the assembly loop and then the mass balance will not lag behind.
 %

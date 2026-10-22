@@ -146,14 +146,14 @@ end
 
 Jhdot=sum(JhdotIntSum) ;
 
-duJhdot=sparseUA(neq,1);
-dvJhdot=sparseUA(neq,1);
-dhJhdot=sparseUA(neq,1);
+duJhdot=sparse(neq,1);
+dvJhdot=sparse(neq,1);
+dhJhdot=sparse(neq,1);
 for Inod=1:MUA.nod
     
-    duJhdot=duJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),duJhdotIntSum(:,Inod),neq,1);
-    dvJhdot=dvJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dvJhdotIntSum(:,Inod),neq,1);
-    dhJhdot=dhJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dhJhdotIntSum(:,Inod),neq,1);
+    duJhdot=duJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),duJhdotIntSum(:,Inod),neq,1);
+    dvJhdot=dvJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dvJhdotIntSum(:,Inod),neq,1);
+    dhJhdot=dhJhdot+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dhJhdotIntSum(:,Inod),neq,1);
     
 end
 

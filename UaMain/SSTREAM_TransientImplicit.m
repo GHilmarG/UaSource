@@ -8,32 +8,51 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 narginchk(8,9)
 nargoutchk(4,5)
 
+% (9 Oct 2026) The Lagrange multipliers of the thickness constraints are (integrated) mass fluxes over the time step and scale with the
+% time step. If the multipliers used as the initial guess were calculated for a different time step (l1.dth), they are rescaled to
+% the current time step. Without this the initial residual is large after a change in dt (although this is linear and removed in
+% the first Newton iteration).
+if isprop(l1,"dth") && isfinite(l1.dth) && l1.dth>0 && l1.dth~=CtrlVar.dt && ~isempty(l1.h)
+    l1.h=l1.h*CtrlVar.dt/l1.dth;
+end
+if isprop(l1,"dth") ; l1.dth=CtrlVar.dt ; end
+
+
 
 
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Transient implicit with respect to u, v, and h  \n ') ; end
 
 
-%%
+%% Solves for velocities and ice thickness using the SSA approximation. Monolithic approach. 
 %
+% Momentum balance in $x$ and $y$ directions:
 %
-% $$ \mathbf{F}_x = \langle \mathcal{F}_x | \phi_i \rangle = \mathbf{0} $$
+% $$ \mathbf{F}^x = \langle \mathcal{F}^x | \phi_i \rangle = \mathbf{0} $$
 %
-% $$ \mathbf{F}_y  = \langle \mathcal{F}_y | \phi_i \rangle= \mathbf{0} $$
+% $$ \mathbf{F}^y  = \langle \mathcal{F}^y | \phi_i \rangle= \mathbf{0} $$
 %
-% $$ \mathbf{M}  = \langle \mathcal{M} | \phi_i + \tau \mathbf{v} \cdot \nabla \phi \rangle= \mathbf{0} $$
+% Mass conservation:
+%
+% $$ \mathbf{F}^h  = \langle \mathcal{F}^h | \phi_i + \tau \mathbf{v} \cdot \nabla \phi \rangle= \mathbf{0} $$
 %
 % where
 %
-% $$ \mathcal{M}(u,v,h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
+% $$ \mathcal{F}^h(u,v,h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
 %
+%
+% Ice thickness must be positive so we enforce
+%
+% $$h_i > h_{min}$$
+%
+% at all nodes. These inequities are enforced using the active-set method. 
 %
 % The Newton-Raphson system is: 
 % 
 % $$
 % \left [ \begin{array}{ccc}
-% \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{h}\\
-% \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{h}\\
-% \mathrm{d}\mathbf{M}  /\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{M}/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{M}/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{F}^x/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}^x/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}^x/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{F}^y/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}^y/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}^y/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{F}^h  /\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}^h/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}^h/\mathrm{d}\mathbf{h}\\
 % \end{array} \right ]
 % \left [ \begin{array}{c}
 % \Delta \mathbf{u} \\
@@ -41,79 +60,78 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % \Delta \mathbf{h} \\
 % \end{array} \right ]
 % =\left [ \begin{array}{c}
-% -\mathbf{F}_x(\mathbf{u},\mathbf{v},\mathbf{h})  \\
-% -\mathbf{F}_y(\mathbf{u},\mathbf{v},\mathbf{h})  \\
-% -\mathbf{M}(\mathbf{u},  \mathbf{v},\mathbf{h})  \\
+% -\mathbf{F}^x(\mathbf{u},\mathbf{v},\mathbf{h})  \\
+% -\mathbf{F}^y(\mathbf{u},\mathbf{v},\mathbf{h})  \\
+% -\mathbf{F}^h(\mathbf{u},  \mathbf{v},\mathbf{h})  \\
 % \end{array} \right ]
 % $$
 %
+% We can also write this system as
+%
+% $$\mathbf{K} \, \Delta \mathbf{x} = - \mathbf{F} $$
+%
+% where 
+% 
+% $$\Delta \mathbf{x}=(\Delta \mathbf{u},\Delta \mathbf{v},\Delta \mathbf{h}) $$ 
 %
 %
-%
-%
-%
-%
-%%
-
-
-
-
-
-
-
-%%
-% Fully implicit Newton-Raphson with regard to both u, v and h
-% advances the solution by dt
+% The transient problem defined by above equations of momentum and mass are solved using a Newton-Raphson with regard to both u, v and h
+% and the solution is advanced by dt
 %
 % h0, u0, and v0 are values at the start of the time step,
 % on input h1,u1,v1 are estimates for h, u, and v at the end of the time step
 % on exit  h1, u1, and v1 are calculated values for u,v and h at the end of the time step
 %
+% Boundary conditions on $u$, $v$ and $h$ 
+% 
+% $$ \mathbf{A}_{eq} \mathbf{x} = \mathbf{b} $$
+% 
+% are implemented using Lagrange multipliers. This gives us the KKT system
+%
+% $$
+% \left [ \begin{array}{cc}
+% \mathbf{K}      & \mathbf{A}_{eq}^T \\
+% \mathbf{A}_{eq} & 0
+% \end{array} \right ]
+% \left [ \begin{array}{c}
+% \Delta x \\
+% \Delta \mathbf{\lambda} 
+% \end{array} \right ]
+%  =
+% -\left [ \begin{array}{c}
+% \mathbf{F}(\mathbf{x}) + \mathbf{A}_{eq} \lambda \\
+% \mathbf{A}_{eq} \mathbf{x}-\mathbf{b}
+% \end{array} \right ]
+% $$
+%
+% The positive thickness constraints
+%
+% $$h_i > h_{min}$$
+%
+% are solved using the active set method. After having solved the NR system to full convergence, new active constraints are
+% added to the constraint matrix $\mathbf{A}_{eq}$ and new inactive constraints taken out. The active-set method therefore
+% requires an outer loop around the NR system/. This can add considerably to the run time. 
 %
 %
-%%
-% I need to solve
+%% The problem is not self-adjoint
 %
-% [Kxu Kxv Kxh Luv'  0  ] [du]        =  [ -Ru ] - Luv' luv
-% [Kyu Kyv Kyh          ] [dv]           [ -Rv ]
-% [Khu Khv Khh  0   Lh' ] [dh]           [ -Rh- Lh' lh ]
-% [  Luv        0    0  ] [duv]          [ cuv-Luv [u ;v ]
-% [ 0    Lh  0  0    0  ] [dlh]          [ ch-Lh h]
+% As the problem is not self-adjoint, it is not equivalent to solving a local quadratic problem
 %
-% All matrices are Nnodes x Nnodes, apart from:
-% Luv is #uv constraints x 2 Nnodes, i.e. Luv [u;v]= cuv
-% Lh  is # h constraints x Nnodes, i.e.    Lh h= ch
-%  or
+% $$ \min_{x} J = f(x) + \nabla f^T \, \cdot  \Delta x + \frac{1}{2} \Delta x^T \, \cdot \, K \, \Delta x $$
 %
-% [K L'] [ duvh ]      =  [ -R- L' l ]
-% [L 0 ] [  dl  ]         [ cuvh-L [u;v;h]  ]
-%
-% where
-%
-% K= [Kxu Kxv Kxh]
-%    [Kyu Kyv Kyh]
-%    [Khu Khv Khh]
-%
-% and
-% L=[Luv 0]
-%   [0  Lh]
-% and uvh=[u;v;h], duvh=[du;dv; dh]  and l=[luv ; lh]
-% where L [u;v;h]=cuvh
-%
-%
-%
-%%
-%  Newton system:
+% with the  Newton system:
 %
 % $$ K \Delta x = -g $$
 %
 % $$ g= \nabla f  $$
 %
-% This is equivalent to a minimization of the (unconstrained) local quadratic problem:
+% There is no such scalar function $f$
 %
-% $$ \min_{x} J = f(x) + \nabla f^T \, \cdot  \Delta x + \frac{1}{2} \Delta x^T \, \cdot \, K \, \Delta x $$
+% This would be the case if $K$ where symmetric and positive definite. But here $K$ is not!  So there is no natural
+% merit/cost function. The function that I use as a merit function is the normalized square of the right-hand-side of the
+% system.
 %
-%
+%%
 
 if nargin < 9 || isempty(FigNames)
     FigNames="";
@@ -131,9 +149,6 @@ rVector.Direction=strings(CtrlVar.NRitmax+1,1);
 BackTrackSteps=0;
 
 
-% if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' F0 thickness negative ') ; end
-
-
 tStart=tic;
 
 
@@ -146,35 +161,6 @@ dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h;
 
 u1Start=F1.ub ; v1Start=F1.vb ;  h1Start=F1.h ;
 
-
-%%
-if CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step
-    N=3;
-
-    speed1=sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb);
-    speed0=sqrt(F0.ub.*F0.ub+F0.vb.*F0.vb);
-    Duv=(speed1-speed0)./(speed0+10*CtrlVar.SpeedZero);
-    Dh=(F1.h-F0.h)./(F0.h+10*CtrlVar.ThickMin);
-
-
-
-    %     figure ; histogram(Duv);
-    %     figure ; histogram(Dh);
-
-
-    Iuvh=((Duv-mean(Duv))> N*std(Duv)) | ((Dh-mean(Dh)) > N*std(Dh)) | abs(Duv)>0.1 | abs(Dh) > 0.1;
-
-
-    fprintf(' Guarding agains wild extrapolation in uvh step.\n')
-    fprintf(' Resetting %i forward explicit estimates out of %i to values at previous time step. \n',...
-        numel(find(Iuvh)),numel(Iuvh))
-
-
-
-    F1.ub(Iuvh)=F0.ub(Iuvh);
-    F1.vb(Iuvh)=F0.vb(Iuvh);
-    F1.h(Iuvh)=F0.h(Iuvh);
-end
 
 
 
@@ -193,9 +179,13 @@ dl=luvh*0;
 
 nlubvb=numel(l1.ubvb) ; % I need to do this after the Luvh assembly, because l1 might have changed if linearly dependent BCs are discovered and corrected for.
 
+if ~isfield(CtrlVar,"uvhMakeInitialIterateFeasible")
+    CtrlVar.uvhMakeInitialIterateFeasible=true; 
+end
 
 if CtrlVar.uvhMakeInitialIterateFeasible
     %% Make sure iterate is feasible, at least with respect to direct BCs
+    % This is a very simple way of doing this, does not respect ties though. 
     F1.ub(BCs1.ubFixedNode)=BCs1.ubFixedValue;
     F1.vb(BCs1.vbFixedNode)=BCs1.vbFixedValue;
     F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
@@ -250,7 +240,24 @@ end
 iteration=0 ;
 
 RunInfo.Forward.uvhConverged=0;
+RunInfo.Forward.uvhStalled=false ;    % true if the iteration exited without having converged because of stagnation, failed backtracking or too many iterations
+RunInfo.Forward.uvhrForce=NaN ;        % value of rForce on exit
+RunInfo.Forward.uvhExitNegativeThickness=false ;  % (14 Oct 2026) true if the iteration was ended early because free nodes have non-positive thickness
+NegativeFreeNodesLastIteration=[] ;
 RunInfo.BackTrack.Converged=1 ;
+
+% (15 Oct 2026) Reuse of the Jacobian and its decomposition in the final Newton-Raphson iterations of a solve (modified Newton).
+% The Jacobian is only reused if the previous step was a full Newton step (gamma=1) that reduced r by at least the factor
+% CtrlVar.ModifiedNRuvhReductionCriterion, ie in the region of quadratic convergence, and at most CtrlVar.ModifiedNRuvhIntervalCriterion-1
+% times in a row. A step with the reused Jacobian is only accepted if it reduces r by at least the factor CtrlVar.ModifiedNRuvhAcceptCriterion,
+% or meets the convergence criteria. Otherwise it is discarded, and a full Newton step is done at the same point.
+ModNRmaxSteps=1 ; ModNRReduction=1e-2 ; ModNRAccept=0.1 ;
+if isfield(CtrlVar,"ModifiedNRuvhIntervalCriterion")  ; ModNRmaxSteps=CtrlVar.ModifiedNRuvhIntervalCriterion ; end
+if isfield(CtrlVar,"ModifiedNRuvhReductionCriterion") ; ModNRReduction=CtrlVar.ModifiedNRuvhReductionCriterion ; end
+if isfield(CtrlVar,"ModifiedNRuvhAcceptCriterion")    ; ModNRAccept=CtrlVar.ModifiedNRuvhAcceptCriterion ; end
+ModNROn = ModNRmaxSteps>1 ;
+dAstore=[] ; Kstore=[] ; nReuse=0 ; LastStepFull=false ; LastReduction=inf ; ForceFullNewton=false ; ReuseJacobian=false ;
+nFactorisations=0 ; nReuseAccepted=0 ; nReuseRejected=0 ;
 %r=inf;  rWork=inf ; rForce=inf; r0=inf;
 gamma=1 ;
 
@@ -280,20 +287,11 @@ while true
     end
 
 
-    if gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
-
-        ResidualsCriteria=(rWork<CtrlVar.uvhDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhDesiredWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.uvhDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhDesiredWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
-
-
-    else
-
-        ResidualsCriteria=(rWork<CtrlVar.uvhAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhAcceptableWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.uvhAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhAcceptableWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
-
-    end
+    % (8 Oct 2026) The convergence test is done in uvhResidualsCriteria, which is also used by the semi-implicit uv-h solver.
+    % The acceptable tolerances are used if the last backtracking step was short.
+    Acceptable=~(gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)) ;
+    rForceFloor=uvhResidualRoundOffFloor(CtrlVar,MUA,F1,Fext0) ;   % (8 Oct 2026) round-off floor of rForce, relevant for small time steps
+    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,Acceptable,rForceFloor) ;
 
 
     if ResidualsCriteria
@@ -302,8 +300,10 @@ while true
         if CtrlVar.InfoLevelNonLinIt>=1
             fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
                 CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
+            if ModNROn ; fprintf('  Modified Newton: %i factorisations, %i steps with reused Jacobian, %i discarded \n',nFactorisations,nReuseAccepted,nReuseRejected) ; end   % (15 Oct 2026)
         end
         RunInfo.Forward.uvhConverged=1;
+        RunInfo.Forward.uvhrForce=rForce ;
         break
 
     end
@@ -317,6 +317,8 @@ while true
         end
 
         RunInfo.Forward.uvhConverged=0;
+        RunInfo.Forward.uvhStalled=true ;
+        RunInfo.Forward.uvhrForce=rForce ;
         break
     end
 
@@ -327,7 +329,16 @@ while true
         end
 
      
-        RunInfo.Forward.uvhConverged=0;
+        if uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,true,rForceFloor)   % (8 Oct 2026) accepted if below the acceptable tolerances (incl. round-off floor)
+            RunInfo.Forward.uvhConverged=1;
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracking stagnated, but rForce=%-g is below the acceptable tolerances (round-off floor %-g). Solution accepted. \n',CtrlVar.time,CtrlVar.dt,rForce,rForceFloor)
+            end
+        else
+            RunInfo.Forward.uvhConverged=0;
+            RunInfo.Forward.uvhStalled=true ;
+        end
+        RunInfo.Forward.uvhrForce=rForce ;
         break
     end
 
@@ -342,13 +353,18 @@ while true
                 CtrlVar.time,CtrlVar.dt,r/r0,rRatioMin,r,iteration) ;
         end
 
-        if rWork < 1e-14
-            % OK, Im hard-wiring this condition here. The argument is that if the residual is below 1e-14 and the solver repeatedly
-            % returns very short steps, minimum has effectively been found.
-            
+        % The solution is judged to have converged only if rForce is below the desired force tolerance. Otherwise the iteration has
+        % stalled. Whether the residual is small enough for this to be dealt with by updating the active set, rather than by reducing
+        % the time step, is decided by the calling routine (uvhRootFinding), based on RunInfo.Forward.uvhrForce.
+        RunInfo.Forward.uvhrForce=rForce ;
+        if uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,true,rForceFloor)   % (8 Oct 2026) accepted if below the acceptable tolerances (incl. round-off floor)
             RunInfo.Forward.uvhConverged=true;
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Stagnated, but rForce=%-g is below the acceptable tolerances (round-off floor %-g). Solution accepted. \n',CtrlVar.time,CtrlVar.dt,rForce,rForceFloor)
+            end
         else
             RunInfo.Forward.uvhConverged=false;
+            RunInfo.Forward.uvhStalled=true ;
         end
 
         break
@@ -365,8 +381,18 @@ while true
     % step ahead of the cost function
 
 
-    CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
-    [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+    % (15 Oct 2026) reuse of the Jacobian (modified Newton), see above
+    ReuseJacobian = ModNROn && ~ForceFullNewton && ~isempty(dAstore) && LastStepFull && LastReduction<=ModNRReduction && nReuse<ModNRmaxSteps-1 ;
+    ForceFullNewton=false ;
+    if ReuseJacobian
+        gammaPrev=gamma ; r0Prev=r0 ;   % restored if the step is discarded
+        CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=true;
+        [UserVar,RunInfo,Ruvh]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+        K=Kstore ;
+    else
+        CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
+        [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+    end
 
     if ~isempty(L)
         frhs=-Ruvh-L'*luvh;                    % Lagrangian of the total augmented cost function 
@@ -378,14 +404,25 @@ while true
 
     %
 
+    % (17 Oct 2026) structural sparsity pattern of the mesh, used by PARDISO (see UaPardisoSolve.m)
+    if isfield(MUA,"uvhAssemblyPattern") ; uvhPattern=MUA.uvhAssemblyPattern ; else ; uvhPattern=[] ; end
     tSolve=tic;
-    [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+    if ModNROn   % (15 Oct 2026) keep, or reuse, the decomposition
+        if ReuseJacobian
+            [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,dAstore,uvhPattern);
+        else
+            [duvh,dl,dAstore]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,[],uvhPattern);
+            Kstore=K ; nReuse=0 ; nFactorisations=nFactorisations+1 ;
+        end
+    else
+        [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar,[],uvhPattern);
+    end
     RunInfo.CPU.Solution.uvh=RunInfo.CPU.Solution.uvh+toc(tSolve);
 
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
 
 
-    CtrlVar.TestForPosDefAlongNewtonDirection=true;
+    CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
     if CtrlVar.TestForPosDefAlongNewtonDirection
 
@@ -409,20 +446,36 @@ while true
         O=sparse(size(L,1),size(L,1)) ;
         H=[K L' ; L O];
 
-        % PD1=full(duvh'*K*duvh) ;
-        % PD2=full([duvh;dl]'*H*[duvh;dl]) ;
+        PD1=full(duvh'*K*duvh) ;
+        PD2=full([duvh;dl]'*H*[duvh;dl]) ;
         % fprintf("Pos def test: %g \t %g \n",PD1,PD2)
-        % if PD1 <0 || PD2 < 0
-        % 
-        %     fprintf("Newton direction not pos def! \n")
-        %     fprintf("Saving data for inspection in NewtonDirectionNotPosDef.mat \n")
-        %     save("NewtonDirectionNotPosDef.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F1","l1","BCs1","K","L","duvh","dl","frhs","grhs")
-        % 
-        % end
+        if PD1 <0 || PD2 < 0
+
+            fprintf("Newton direction not pos def! \n")
+            fprintf("Saving data for inspection in NewtonDirectionNotPosDef.mat \n")
+            save("NewtonDirectionNotPosDef.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F1","l1","BCs1","K","L","duvh","dl","frhs","grhs")
+
+        end
     end
 
     Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
-    gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
+    % (15 Oct 2026) The residual measures at gamma=0 are calculated from the residual assembled above (frhs, grhs), without a further
+    % assembly. (Previously Func(0), ie a further assembly of the same residual.)
+    LineSearchMethod="rLineminUa3" ; if isfield(CtrlVar,"NewtonLineSearch") && isfield(CtrlVar.NewtonLineSearch,"Method") ; LineSearchMethod=string(CtrlVar.NewtonLineSearch.Method) ; end
+    if LineSearchMethod=="rLineminUa2"   % the previous implementation, including a further assembly of the residual at gamma=0 (for comparison only)
+        gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma); rBlocks0=[nan nan nan nan] ;
+    else
+        gamma=0 ; [rForce0,rWork0,D20,rBlocks0]=uvhResidualMeasures(CtrlVar,MUA,frhs,grhs,cuvh,Fext0,dub,dvb,dh,dl) ;
+    end
+
+    % (15 Oct 2026) Optionally, save the state of this iteration (for testing the Jacobian afterwards with TestuvhJacobian.m), or test
+    % the Jacobian now. See CtrlVar.uvhSaveNewtonSystem and CtrlVar.uvhTestJacobian in Ua2D_DefaultParameters.m.
+    if isfield(CtrlVar,"uvhSaveNewtonSystem") && CtrlVar.uvhSaveNewtonSystem.Save
+        SaveuvhNewtonState(UserVar,CtrlVar,MUA,F0,F1,l1,BCs1,[dub;dvb;dh],dl,iteration,rForce0) ;
+    end
+    if isfield(CtrlVar,"uvhTestJacobian") && uvhNewtonStateSelected(CtrlVar.uvhTestJacobian,CtrlVar,iteration)
+        TestuvhJacobian(UserVar,CtrlVar,MUA,F0,F1,l1,BCs1,struct("NewtonDirection",[dub;dvb;dh],"Info",struct("State",1,"RunStep",CtrlVar.CurrentRunStepNumber,"time",CtrlVar.time,"Solve",NaN,"Iteration",iteration,"r0",rForce0))) ;
+    end
 
     if iteration==1  % save the first r value for plotting, etc
         rVector.gamma(1)=gamma;
@@ -433,24 +486,59 @@ while true
         rVector.Direction(1)="    ";
     end
 
-    %% calculate  residuals at full Newton step, i.e. at gamma=1
-
-
-    dJdu=frhs(1:MUA.Nnodes);
-    dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
-    dJdh=frhs(2*MUA.Nnodes+1:3*MUA.Nnodes);
-    dJdl=grhs ;
-
-    Normalisation=Fext0'*Fext0+1000*eps;
+    %% line search along the Newton direction
 
     func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
 
 
-    r0=func(0,dub,dvb,dh,dl) ;
-    r1=func(1,dub,dvb,dh,dl) ;
+    if ReuseJacobian
+        % (15 Oct 2026) Step with the reused Jacobian: only the full step is tried. It is accepted if it reduces r by at least the
+        % factor ModNRAccept, or if it meets the convergence criteria. Otherwise it is discarded, and a full Newton step is done at the
+        % same point (the variables used at the start of the loop are restored).
+        [r1,OutLS]=uvhLineSearchMerit(func,1,dub,dvb,dh,dl) ;
+        AcceptStep = r1<=ModNRAccept*rForce0 || uvhResidualsCriteria(CtrlVar,OutLS.rForce,OutLS.rWork,iteration,true,uvhResidualRoundOffFloor(CtrlVar,MUA,F1,Fext0)) ;
+        if AcceptStep
+            r0=rForce0 ; gamma=1 ; r=r1 ;
+            rForce=OutLS.rForce ; rWork=OutLS.rWork ; D2=OutLS.D2 ; rBlocks=OutLS.rBlocks ;
+            Du=dub ; Dv=dvb ; Dh=dh ; Dl=dl ;
+            BackTrackInfo=struct("Converged",1,"iarm",0,"Direction","M ","nFuncEval",1,"Infovector",[0 rForce0 ; 1 r1]) ;
+            nReuse=nReuse+1 ; nReuseAccepted=nReuseAccepted+1 ;
+        else
+            nReuseRejected=nReuseRejected+1 ; ForceFullNewton=true ;
+            gamma=gammaPrev ; r0=r0Prev ; iteration=iteration-1 ;
+            continue
+        end
+    else
+    % (15 Oct 2026) Line search along the Newton direction, selected by CtrlVar.NewtonLineSearch.Method:
+    %   "rLineminUa3"      : the logic of rLineminUa2.m, without the unnecessary evaluations of the residual (default)
+    %   "NewtonLineSearch" : backtracking with the Armijo condition (NewtonLineSearch.m)
+    %   "rLineminUa2"      : the previous implementation, including the unnecessary evaluations (for comparison only)
+    switch LineSearchMethod
+        case "NewtonLineSearch"
+            r0=rForce0 ;
+            Out0=struct("rForce",rForce0,"rWork",rWork0,"D2",D20,"rBlocks",rBlocks0) ;
+            FuncLS=@(g) uvhLineSearchMerit(func,g,dub,dvb,dh,dl) ;
+            [gamma,r,OutLS,BackTrackInfo]=NewtonLineSearch(FuncLS,r0,Out0,-2*r0,CtrlVar) ;
+            rForce=OutLS.rForce ; rWork=OutLS.rWork ; D2=OutLS.D2 ; rBlocks=OutLS.rBlocks ;
+            Du=gamma*dub ; Dv=gamma*dvb ; Dh=gamma*dh ; Dl=gamma*dl ;
+        case {"rLineminUa3","rLineminUa2"}
+            dJdu=frhs(1:MUA.Nnodes); dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes); dJdh=frhs(2*MUA.Nnodes+1:3*MUA.Nnodes); dJdl=grhs ;
+            Normalisation=Fext0'*Fext0+1000*eps;
+            if LineSearchMethod=="rLineminUa2"
+                r0=func(0,dub,dvb,dh,dl) ;
+                r1=func(1,dub,dvb,dh,dl) ;
+                [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] =rLineminUa2(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M);
+            else
+                r0=rForce0 ;   % from the assembled residual; the residual at gamma=1 is evaluated in rLineminUa3
+                [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2,rBlocks] =rLineminUa3(CtrlVar,UserVar,func,r0,NaN,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M);
+            end
+        otherwise
+            error("SSTREAM_TransientImplicit:LineSearchMethod","Unknown CtrlVar.NewtonLineSearch.Method: %s",LineSearchMethod)
+    end
+    end
+    LastStepFull=(gamma==1) ; LastReduction=r/r0 ;   % (15 Oct 2026) used to decide whether the Jacobian is reused in the next iteration
 
 
-    [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
     %%
 
     % slope0=-2*r0 ;
@@ -467,7 +555,7 @@ while true
 
     %% If desired, plot residual along search direction
     if CtrlVar.InfoLevelNonLinIt>=2 && CtrlVar.doplots==1
-        nnn=50;
+        nnn=20;
         gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
         Upper=2.2;
         Lower=-1 ;
@@ -488,12 +576,12 @@ while true
 
         [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
         [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
-        % [temp,I0]=min(abs(gammaTestVector)) ;
+    
 
         SlopeForce=-2*rForce0;
         SlopeWork=-2*rWork0;
         SlopeD2=-D20;
-        CtrlVar.MinimisationQuantity=CtrlVar.uvhMinimisationQuantity;
+        CtrlVar.MinimisationQuantity="Force Residuals";   % (15 Oct 2026) the force residual is always the merit function
         PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r,iteration,"-uvh-",...
             gammaTestVector,rForceTestvector,rWorkTestvector,rD2Testvector,...
             SlopeForce,SlopeWork,SlopeD2,rForce,rWork,D2);
@@ -517,6 +605,35 @@ while true
 
     l1.ubvb=luvh(1:nlubvb) ;  l1.h=luvh(nlubvb+1:end);
 
+    %% (14 Oct 2026) Early exit if free nodes have non-positive ice thickness
+    % If nodes that are not constrained (ie not in the active set) have non-positive ice thickness, the momentum equations are locally
+    % ill-posed (the viscous stiffness is proportional to h, and the driving stress is not monotone in h), and the Newton-Raphson
+    % iteration typically stagnates. This happens in particular after nodes have been released by the active-set update, but the
+    % unconstrained solution then has thicknesses well below ThickMin at these nodes. The solution of this solve will be discarded anyway,
+    % as these nodes are then activated in the next active-set update. The iteration is therefore ended here, if the same free nodes
+    % have non-positive thickness in two consecutive iterations. This is only done if allowed by the calling routine (uvhRootFinding),
+    % ie if a further active-set iteration is possible.
+    if isfield(CtrlVar,"uvhEarlyExitNegativeThicknessAllowed") && CtrlVar.uvhEarlyExitNegativeThicknessAllowed
+        hExit=0 ;
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"EarlyExitThickness") ; hExit=CtrlVar.ActiveSet.EarlyExitThickness ; end
+        NegativeFreeNodes=setdiff(find(F1.h<=hExit),[BCs1.hPosNode(:);BCs1.hFixedNode(:)]) ;
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ExcludeNodesOfBoundaryElements") && CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+            NegativeFreeNodes=setdiff(NegativeFreeNodes,unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:))) ;
+        end
+        if ~isempty(intersect(NegativeFreeNodes,NegativeFreeNodesLastIteration))
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): %i free node(s) with non-positive ice thickness (min %g) in two consecutive iterations. Iteration ended after %i iterations, active set to be updated. \n',...
+                    CtrlVar.time,CtrlVar.dt,numel(NegativeFreeNodes),min(F1.h(NegativeFreeNodes)),iteration) ;
+            end
+            RunInfo.Forward.uvhConverged=0;
+            RunInfo.Forward.uvhStalled=false ;
+            RunInfo.Forward.uvhExitNegativeThickness=true ;
+            RunInfo.Forward.uvhrForce=rForce ;
+            break
+        end
+        NegativeFreeNodesLastIteration=NegativeFreeNodes ;
+    end
+
 
 
     temp=CtrlVar.ResetThicknessToMinThickness;
@@ -536,30 +653,6 @@ while true
         BCsError=0;
     end
 
-    % Variables have been updated, if I have MassBalanceGeometryFeedback>0 I must
-    % update the surface mass balance within this non-linear loop. Actually I here
-    % only need to consider option 1 because if options 2 or 3 are used the
-    % mass-balance is updated anyhow within the assembly loop.
-    if CtrlVar.MassBalanceGeometryFeedback>0
-
-        rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
-        if rdamp~=0
-            as1Old=F1.as ; ab1Old=F1.ab;
-        end
-        
-        CtrlVar.time=CtrlVar.time+CtrlVar.dt; F1.time=CtrlVar.time;
-        
-        [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
-
-        CtrlVar.time=CtrlVar.time-CtrlVar.dt; F1.time=CtrlVar.time;
-
-        if rdamp~=0
-            % If Hessian inaccurate, or too non-linear, then dampen these changes might be a
-            % good idea.
-            F1.as=(1-rdamp)*F1.as+rdamp*as1Old;
-            F1.ab=(1-rdamp)*F1.ab+rdamp*ab1Old;
-        end
-    end
 
 
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
@@ -578,21 +671,11 @@ while true
 
     if CtrlVar.InfoLevelNonLinIt>=1
 
-        if RunInfo.BackTrack.Direction=="N "
-            Step="N " ;
-        elseif RunInfo.BackTrack.Direction=="MD"
-            Step="M " ;
-        elseif RunInfo.BackTrack.Direction=="SD"
-            Step="D ";
-        elseif RunInfo.BackTrack.Direction=="CN"
-            Step="CN" ;
-        else
-            Step="";
-        end
+    
 
         fprintf(...
-            'NR-SSTREAM(uvh):%3u/%-2u g%s=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g  \n ',...
-            iteration,RunInfo.BackTrack.iarm,Step,gamma,r/r0,r0,r,rForce,rWork,BCsError);
+            'NR-SSTREAM(uvh):%3u/%-2u g%2s=%-14.7g  r/r0=%-14.7g   r0=%-14.7g  r=%-14.7g  rForce=%-14.7g  rWork=%-14.7g  ru=%-14.7g \t rv=%-14.7g \t rh=%-14.7g \t rBCs=%g \n ',...
+            iteration,RunInfo.BackTrack.iarm, RunInfo.BackTrack.Direction,gamma,r/r0,r0,r,rForce,rWork,rBlocks);
 
     end
 
@@ -621,101 +704,10 @@ end
 %% print/plot some info
 
 if CtrlVar.InfoLevelNonLinIt>=2 && iteration >= 1 && CtrlVar.doplots==1
-
-
-    figNR=FindOrCreateFigure(FigNames+"NR-uvh r"); clf(figNR) ;
-    yyaxis left
-    semilogy(0:iteration,rVector.rForce(1:iteration+1),'-') ;
-    ylabel('$r_{\mathrm{Force}}^2$',Interpreter='latex')
-    text(0:iteration,rVector.rForce(1:iteration+1),extractBefore(rVector.Direction(1:iteration+1),3),HorizontalAlignment="center") ;
-    yyaxis right
-    semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
-    ylabel('$r_{\mathrm{Work}}^2$',Interpreter='latex')
-
-    title('Force and Work residuals (NR $uvh$ transient step)',Interpreter='latex') ;
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-    xlabel('Iteration',Interpreter='latex') ;
-
-    drawnow
+    Plot_rVector(CtrlVar,iteration,FigNames,rVector);
 end
-
-
 if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
-
-    %%
-    [~,xGL0,yGL0]=UaPlots(CtrlVar,MUA,F0,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u0,v0) at start of NR iteration") ;
-    title("$(u_b,v_b)$ at start of time step",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1,v1) at end of NR iteration") ;
-    title("Converged $(u_b,v_b)$ at end of time step",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,[F1.ub-F0.ub,F1.vb-F0.vb],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1-v0,v1-v0) at end of NR iteration") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-    title("Change in $(u_b,v_b)$ during time step",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,[F1.ub-u1Start,F1.vb-v1Start],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in u1 during NR iteration from initial guess") ;
-    title("Change in converged $(u_b,v_b)$ from initial explicit guess",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-
-    UaPlots(CtrlVar,MUA,F1,F1.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-    title("Converged ice thickness ($h_1$). Markers show locations where $h_1\le h_{\mathrm{min}}$",Interpreter="latex")
-    I=F1.h<=CtrlVar.ThickMin ;
-    plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'+m',MarkerSize=3)  ;
-    plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'om',MarkerSize=3)
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    UaPlots(CtrlVar,MUA,F1,F1.h-h1Start,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in h1 during NR iteration from initial guess") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-    title("Change in converged ice thickness ($h_1$) from initial guess",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-
-    UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration") ;
-    hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-
-    title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    [tbx0,tby0,~,~,HeInt0] = CalcBasalTraction(CtrlVar,[],MUA,F0,PlotResults=true,FigureTitle=" F0 ",FigureName=" F0 ") ;
-    [tbx1,tby1,~,~,HeInt1] = CalcBasalTraction(CtrlVar,[],MUA,F1,PlotResults=true,FigureTitle=" F1 ",FigureName=" F1 ") ;
-
-    dbx=tbx1-tbx0;
-    dby=tby1-tby0;
-
-    [F1.xint,F1.yint] = CalcIntegrationPointsCoordinates(MUA) ;
-    fdbt=FindOrCreateFigure("change in integration points traction ") ;  clf(fdbt);
-    cbar=QuiverColorGHG(F1.xint/CtrlVar.PlotXYscale,F1.yint/CtrlVar.PlotXYscale,dbx,dby,[]) ;
-    hold on
-    PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
-    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
-    PlotCalvingFronts(CtrlVar,MUA,F1,color="b");
-    PlotMuaBoundary(CtrlVar,MUA,"k--");
-    title(cbar,"(kPa)")
-    title("Change in basal tractions at integration points during time increment",Interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-    cbar=UaPlots(CtrlVar,MUA,F1,F1.GF.node-F0.GF.node,GetRidOfValuesDownStreamOfCalvingFronts=false,GroundingLineColor="k",FigureTitle="F1.GF.node-F0.GF.node") ;
-    hold on
-    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
-    title("Change in GF.node during time increment (F1.GF.node-F0.GF.node)",Interpreter="latex")
-    title(cbar,"")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
-
-    cbar=UaPlots(CtrlVar,MUA,F1,HeInt1-HeInt0,FigureTitle="HeInt1- Heint0") ;
-    hold on
-    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
-    title("$\Delta \mathcal{H}(h-h_f)$ at integration points",interpreter="latex")
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-    title(cbar,"",interpreter="latex")
-
-    drawnow
-    %%
+    Plot_DiagnosticsForConvergenceAnalysis(CtrlVar,MUA,F0,F1,u1Start,v1Start,h1Start);
 end
 
 
@@ -748,7 +740,112 @@ RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ;
 
 
 
+return
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   local functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function Plot_rVector(CtrlVar,iteration,FigNames,rVector)
+
+
+
+    figNR=FindOrCreateFigure(FigNames+"NR-uvh r"); clf(figNR) ;
+    yyaxis left
+    semilogy(0:iteration,rVector.rForce(1:iteration+1),'-') ;
+    ylabel('$r_{\mathrm{Force}}^2$',Interpreter='latex')
+    text(0:iteration,rVector.rForce(1:iteration+1),extractBefore(rVector.Direction(1:iteration+1),3),HorizontalAlignment="center") ;
+    yyaxis right
+    semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
+    ylabel('$r_{\mathrm{Work}}^2$',Interpreter='latex')
+
+    title('Force and Work residuals (NR $uvh$ transient step)',Interpreter='latex') ;
+    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+    xlabel('Iteration',Interpreter='latex') ;
+
+    drawnow
 
 end
 
+function Plot_DiagnosticsForConvergenceAnalysis(CtrlVar,MUA,F0,F1,u1Start,v1Start,h1Start)
+%%
+[~,xGL0,yGL0]=UaPlots(CtrlVar,MUA,F0,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u0,v0) at start of NR iteration") ;
+title("$(u_b,v_b)$ at start of time step",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 
+UaPlots(CtrlVar,MUA,F1,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1,v1) at end of NR iteration") ;
+title("Converged $(u_b,v_b)$ at end of time step",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+UaPlots(CtrlVar,MUA,F1,[F1.ub-F0.ub,F1.vb-F0.vb],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1-v0,v1-v0) at end of NR iteration") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+title("Change in $(u_b,v_b)$ during time step",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+UaPlots(CtrlVar,MUA,F1,[F1.ub-u1Start,F1.vb-v1Start],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in u1 during NR iteration from initial guess") ;
+title("Change in converged $(u_b,v_b)$ from initial explicit guess",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+
+UaPlots(CtrlVar,MUA,F1,F1.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+title("Converged ice thickness ($h_1$). Markers show locations where $h_1\le h_{\mathrm{min}}$",Interpreter="latex")
+I=F1.h<=CtrlVar.ThickMin ;
+plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'+m',MarkerSize=3)  ;
+plot(F1.x(I)/CtrlVar.PlotXYscale,F1.y(I)/CtrlVar.PlotXYscale,'om',MarkerSize=3)
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+UaPlots(CtrlVar,MUA,F1,F1.h-h1Start,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in h1 during NR iteration from initial guess") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+title("Change in converged ice thickness ($h_1$) from initial guess",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+
+UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration") ;
+hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+
+title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+[tbx0,tby0,~,~,HeInt0] = CalcBasalTraction(CtrlVar,[],MUA,F0,PlotResults=true,FigureTitle=" F0 ",FigureName=" F0 ") ;
+[tbx1,tby1,~,~,HeInt1] = CalcBasalTraction(CtrlVar,[],MUA,F1,PlotResults=true,FigureTitle=" F1 ",FigureName=" F1 ") ;
+
+dbx=tbx1-tbx0;
+dby=tby1-tby0;
+
+[xint,yint] = CalcIntegrationPointsCoordinates(MUA) ;
+fdbt=FindOrCreateFigure("change in integration points traction ") ;  clf(fdbt);
+cbar=QuiverColorGHG(xint/CtrlVar.PlotXYscale,yint/CtrlVar.PlotXYscale,dbx,dby,[]) ;
+hold on
+PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
+PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+PlotCalvingFronts(CtrlVar,MUA,F1,color="b");
+PlotMuaBoundary(CtrlVar,MUA,"k--");
+title(cbar,"(kPa)")
+title("Change in basal tractions at integration points during time increment",Interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+cbar=UaPlots(CtrlVar,MUA,F1,F1.GF.node-F0.GF.node,GetRidOfValuesDownStreamOfCalvingFronts=false,GroundingLineColor="k",FigureTitle="F1.GF.node-F0.GF.node") ;
+hold on
+PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+title("Change in GF.node during time increment (F1.GF.node-F0.GF.node)",Interpreter="latex")
+title(cbar,"")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+
+cbar=UaPlots(CtrlVar,MUA,F1,HeInt1-HeInt0,FigureTitle="HeInt1- Heint0") ;
+hold on
+PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+title("$\Delta \mathcal{H}(h-h_f)$ at integration points",interpreter="latex")
+subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+title(cbar,"",interpreter="latex")
+
+drawnow
+end
+
+
+function [f,Out]=uvhLineSearchMerit(func,gamma,dub,dvb,dh,dl)
+% (15 Oct 2026) Merit function and further quantities for NewtonLineSearch.m. The step gamma*[dub;dvb;dh;dl] is passed as the
+% displacement at unit step length, so that D2 and rWork refer to the step actually taken (as previously in rLineminUa2.m).
+[f,~,~,rForce,rWork,D2,rBlocks]=func(1,gamma*dub,gamma*dvb,gamma*dh,gamma*dl) ;
+Out=struct("rForce",rForce,"rWork",rWork,"D2",D2,"rBlocks",rBlocks) ;
+end

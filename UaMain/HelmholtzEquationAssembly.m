@@ -108,9 +108,9 @@ end
 
 % assemble right-hand side
 
-r=sparseUA(neq,1);
+r=sparse(neq,1);
 for Inod=1:MUA.nod
-    r=r+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHS(:,Inod),neq,1);
+    r=r+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHS(:,Inod),neq,1);
 end
 
 
@@ -126,7 +126,7 @@ for Inod=1:MUA.nod
     end
 end
 
-K=sparseUA(Iind,Jind,Xval,neq,neq);
+K=sparse(Iind,Jind,Xval,neq,neq);
 
 
 end

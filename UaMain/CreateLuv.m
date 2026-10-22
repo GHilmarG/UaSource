@@ -73,7 +73,7 @@ if numel(FixedNormalVelocityNode)>0
     end
 end
 
-Luv=sparseUA(ia,ib,xval,Nconstrains,2*MUA.Nnodes);
+Luv=sparse(ia,ib,xval,Nconstrains,2*MUA.Nnodes);
 
 end
 

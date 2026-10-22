@@ -50,8 +50,8 @@ for Inod=1:MUA.nod
     end
 end
 
-Dxx=sparseUA(Iind,Jind,Xval,neq,neq);
-Dyy=sparseUA(Iind,Jind,Yval,neq,neq);
+Dxx=sparse(Iind,Jind,Xval,neq,neq);
+Dyy=sparse(Iind,Jind,Yval,neq,neq);
 Dxx=(Dxx+Dxx.')/2 ; 
 Dyy=(Dyy+Dyy.')/2 ;
 

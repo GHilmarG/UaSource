@@ -1,6 +1,23 @@
-function  [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar)
+function  [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar,dA,StructuralPattern)
 
-narginchk(7,7)
+narginchk(7,9)
+
+% (15 Oct 2026) Optional reuse of the matrix decomposition, eg for a modified Newton method:
+%
+%   [x,y,dA]=solveKApe(A,B,f,g,x0,y0,CtrlVar)      returns, in addition, the decomposition dA used to solve the system
+%   [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar,dA)      uses the decomposition dA (no new factorisation). A must be the matrix for which dA
+%                                                  was calculated.
+%
+% This is supported for the methods "Bempty" (no constraints) and "EliminateBCsSolveSystemDirectly" (point constraints). For other methods
+% dA=[] is returned, and a given dA is ignored. If neither a third output nor dA is requested/given, the solution is calculated exactly
+% as before (backslash for "Bempty").
+% (16 Oct 2026) With CtrlVar.LinearSolver.Type="PARDISO", the systems solved with AsymmSolver="Bempty" and
+% "EliminateBCsSolveSystemDirectly" are solved with PARDISO (see UaPardisoSolve.m); then dA=[] is returned, and a given dA gives an error.
+% (17 Oct 2026) Optional ninth input StructuralPattern: the assembly pattern of the mesh (eg MUA.uvhAssemblyPattern), passed on to
+% UaPardisoSolve.m as the fixed sparsity pattern for PARDISO. Only used if CtrlVar.LinearSolver.Type="PARDISO".
+if nargin<8 ; dA=[] ; end
+if nargin<9 ; StructuralPattern=[] ; end
+UseDecomposition = nargout>=3 || ~isempty(dA) ;
 
 % Solves:
 %
@@ -66,6 +83,10 @@ n=size(A,1) ; m=size(B,1);
 
 %%
 
+if ~isfield(CtrlVar,"BCsRowSubsetSelection")
+    CtrlVar.BCsRowSubsetSelection=false;
+end
+
 if CtrlVar.BCsRowSubsetSelection
 
     [B,row_idx,flag] = RowSubsetSelection(B) ;
@@ -110,12 +131,27 @@ end
 
 % BB=B*B' ; [row,col,v]=find(BB); find(row~=col)
 
+
+% zz_NewtonMatrixLog('add',A,B,f,g);
+
 tSolve=tic;
 
 switch CtrlVar.AsymmSolver
     case "Bempty"
 
-        x=A\f; y=[];
+        if isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO"
+            % (16 Oct 2026) PARDISO (Intel oneMKL), see UaPardisoSolve.m. No decomposition is returned (dA=[]), and reusing a given
+            % decomposition (modified Newton-Raphson) is not supported.
+            if ~isempty(dA)
+                error("solveKApe:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
+            end
+            x=UaPardisoSolve(CtrlVar,A,f,A,"nonsymmetric",StructuralPattern); y=[]; dA=[];
+        elseif UseDecomposition   % (15 Oct 2026)
+            if isempty(dA) ; dA=decomposition(A) ; end
+            x=dA\f; y=[];
+        else
+            x=A\f; y=[];
+        end
 
     case "Backslash"
 
@@ -128,7 +164,11 @@ switch CtrlVar.AsymmSolver
     case "EliminateBCsSolveSystemDirectly"
 
 
-        [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+        if UseDecomposition   % (15 Oct 2026)
+            [x,y,dA]=ABfgPreEliminate(CtrlVar,A,B,f,g,dA,StructuralPattern);
+        else
+            [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g,[],StructuralPattern);
+        end
 
     case "AugmentedLagrangian"
 
@@ -203,6 +243,7 @@ switch CtrlVar.AsymmSolver
 end
 
 tSolve=toc(tSolve);
+if ~ismember(string(CtrlVar.AsymmSolver),["Bempty","EliminateBCsSolveSystemDirectly"]) ; dA=[] ; end   % (15 Oct 2026) decomposition only supported for these methods
 if CtrlVar.InfoLevelLinSolve>=10
     fprintf("solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t Nr of rhs=%-i \t time=%-g sec \t method=%s \n ",...
         n+m,n,m,mf,tSolve,CtrlVar.AsymmSolver)

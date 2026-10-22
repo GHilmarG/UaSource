@@ -110,7 +110,7 @@ while ~all(isnan(xa))
     sa=(xPolygon(k)-xa).^2+(yPolygon(k)-ya).^2;  % distance to all the `a' end points of remaining edges to the current end point of the merged line
     sb=(xPolygon(k)-xb).^2+(yPolygon(k)-yb).^2;  % distance to all the `b' end points of remaining edges to the current end point of the merged line
     [dista,ia]=min(sa);   % this ignores all NaN (of which there could be many)
-    [distb,ib]=min(sb);
+  [distb,ib]=min(sb);
     
     %[xPolygon(:) yPolygon(:)]
     % if the distance is zero, then I am on the same GL

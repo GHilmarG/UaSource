@@ -9,11 +9,11 @@
 
 
 
-function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
+function [r,UserVar,RunInfo,rForce,rWork,D2,rBlocks]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
 
 
 narginchk(17,17)
-nargoutchk(1,6)
+nargoutchk(1,7)
 
 if isnan(gamma)
     error("CalcCostFunctionNRuvh:nan","nan in gamma")
@@ -73,29 +73,10 @@ end
 % D2l=-Rl'*dl;
 % D2=full(D2u+D2v+D2h+D2l) ;  % For a feasible point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
 
-D2=[frhs;grhs]'*[dub;dvb;dh;dl];
-rWork=full(D2^2);
-
-
-
-
-% rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
-% rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
-rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
-
-%% Testing TestIng
-% rForce=(R'*R)/(fext0'*fext0);
-% rForce=full(rForce) ;
-%%
-
-switch CtrlVar.uvhMinimisationQuantity
-    case "Force Residuals"
-        r=rForce;
-    case "Work Residuals"
-        r=rWork;
-    otherwise
-        error("CalcCostFunctionNRuvh:CaseNotFound","case not found")
-end
+% (15 Oct 2026) The residual measures are calculated in uvhResidualMeasures.m (same code as previously here). The force residual is
+% always the merit function (the option CtrlVar.uvhMinimisationQuantity="Work Residuals" has been removed).
+[rForce,rWork,D2,rBlocks]=uvhResidualMeasures(CtrlVar,MUA,frhs,grhs,cuvh,fext0,dub,dvb,dh,dl) ;
+r=rForce ;
 
 %     if nargout>=7
 %         Inodes=[];

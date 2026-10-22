@@ -37,6 +37,13 @@ if isempty(RunInfo)
 end
 
 
+if ~isfield(CtrlVar,"CminWidth") || ~isfield(CtrlVar,"AGlenminWidth") 
+    CtrlVar=SetSmoothFloorWidths(CtrlVar,F);
+end
+
+
+
+
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
 
     poolobj = gcp('nocreate');

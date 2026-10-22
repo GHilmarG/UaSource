@@ -148,9 +148,9 @@ CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
 Infovector=zeros(MaxIterations+3,2)+NaN;
 gamma=nan;
 fgamma=nan;
-f0=nan; 
+f0=nan;
 xStart=nan;
-fStart=nan; 
+fStart=nan;
 iarm=nan;
 Extrapolation=nan;
 
@@ -661,10 +661,20 @@ end
 %fprintf('B: exit # %-i. fa=%-10.5g \t fb=%-10.5g \t fc=%-10.5g \t fgamma=%-10.5g \t fmin=%-10.5g \t b=%-10.5g \t c=%-10.5g \t gamma=%-10.5g  \n ',Iteration,fa,fb,fc,fgamma,fmin,b,c,gamma)
 
 
+gLastEval=NaN ; if iq>=1 && iq<=size(Infovector,1) ; gLastEval=Infovector(iq,1) ; end   % (15 Oct 2026) step of the last function evaluation
 I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 [~,I]=sort(Infovector(:,1)) ; Infovector=Infovector(I,:);
 
 [fgamma,I]=min(Infovector(:,2)) ; gamma=Infovector(I,1) ;
+% (15 Oct 2026) The additional outputs (varargout) must correspond to the returned step (the best value found), and not to the last
+% function evaluation, which is not necessarily the same. Previously varargout was always from the last evaluation (except on an
+% early exit, see above). If the returned step is not the last one evaluated, the function is therefore evaluated again at that step.
+if Fargcollect && ~isempty(nOut) && nOut>1 && ~isequal(gamma,gLastEval)
+    [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
+    fgamma=full(fgamma) ;
+    nFuncEval=nFuncEval+1 ;
+end
+gmin=gamma ; fmin=fgamma ;
 I=isnan(Infovector(:,1)) ; Infovector(I,:)=[];
 BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=Extrapolation;
@@ -709,12 +719,12 @@ BackTrackingPlot()
                     dx=(Upper-Lower)/100;
                 end
                 gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)];
-                for I=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
-                    gammaTest=gammaTestVector(I);
+                for Itest=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
+                    gammaTest=gammaTestVector(Itest);
                     rTest=Func(gammaTest);
                     rTest=full(rTest);
-                    gammaTestVector(I)=gammaTest ;
-                    rTestVector(I)=rTest;
+                    gammaTestVector(Itest)=gammaTest ;
+                    rTestVector(Itest)=rTest;
                 end
             else
                 gammaTestVector=[] ;
@@ -738,7 +748,7 @@ BackTrackingPlot()
             plot(Infovector(:,1),Infovector(:,2),'or-',DisplayName="backtracking values") ;
 
             xlabel('$\gamma$',Interpreter='latex') ;
-            ylabel('Cost',Interpreter='latex') ;
+            ylabel('$J$',Interpreter='latex') ;
 
             hold on
             plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10,DisplayName="estimated minimum")
@@ -772,8 +782,14 @@ BackTrackingPlot()
 
             title(ItText+sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
 
-            if isfield(CtrlVar,"time")
-                subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+            subtitle(sprintf("$\\gamma$=%g   $J(\\gamma)$=%g",gamma,fgamma),Interpreter="latex")
+
+
+            xline(CtrlVar.BacktrackingGammaMin,LineStyle="--",Label="min",DisplayName="min allowed step size")
+
+            if ~NoSlopeInformation
+                plot([0 2*gamma],[f0 f0+beta*slope0*2*gamma],'m','LineWidth',2,LineStyle="--",DisplayName="Armijo condition")
             end
 
             drawnow

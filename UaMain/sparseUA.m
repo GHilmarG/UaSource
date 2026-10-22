@@ -14,6 +14,8 @@ function S=sparseUA(varargin)
 %
 %%
 
+error("do not use anymore")
+
  S=sparse(varargin{:});
 
 

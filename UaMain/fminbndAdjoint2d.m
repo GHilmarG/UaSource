@@ -4,7 +4,7 @@ function [xf,fval,exitflag,output,Vx,Vy] = fminbndAdjoint2d(funfcn,ax,bx,options
 %   FUN in the interval x1 < X < x2.  FUN is a function handle.  FUN accepts 
 %   scalar input X and returns a scalar function value F evaluated at X.
 %
-%   X = FMINBND(FUN,x1,x2,OPTIONS) minimizes with the default optimization
+%   X = FMINBND(FUN,x1,x2,OPTIONS) minimizes with the default Optimisation
 %   parameters replaced by values in the structure OPTIONS, created with
 %   the OPTIMSET function. See OPTIMSET for details. FMINBND uses these
 %   options: Display, TolX, MaxFunEval, MaxIter, FunValCheck, PlotFcns, 
@@ -355,7 +355,7 @@ function msg = terminate(x,exitflag,finalf,funccount,maxfun,iter,maxiter,tol,pri
 switch exitflag
     case 1
         msg = ...
-            sprintf(['Optimization terminated:\n' ...
+            sprintf(['Optimisation terminated:\n' ...
             ' the current x satisfies the termination criteria using OPTIONS.TolX of %e \n'], tol);
         if print > 1 % only print msg if not 'off' or 'notify'
             disp(' ')
@@ -393,7 +393,7 @@ function [xOutputfcn, optimValues, stop] = callOutputAndPlotFcns(outputfcn,plotf
 % state - can have the values 'init','iter', or 'done'.
 
 % For the 'done' state we do not check the value of 'stop' because the
-% optimization is already done.
+% Optimisation is already done.
 optimValues.funccount = funccount;
 optimValues.iteration = iter;
 optimValues.fval = f;
@@ -426,7 +426,7 @@ end
 
 %--------------------------------------------------------------------------
 function [x,FVAL,EXITFLAG,OUTPUT] = cleanUpInterrupt(xOutputfcn,optimValues)
-% CLEANUPINTERRUPT updates or sets all the output arguments of FMINBND when the optimization
+% CLEANUPINTERRUPT updates or sets all the output arguments of FMINBND when the Optimisation
 % is interrupted.
 
 x = xOutputfcn;
@@ -435,7 +435,7 @@ EXITFLAG = -1;
 OUTPUT.iterations = optimValues.iteration;
 OUTPUT.funcCount = optimValues.funccount;
 OUTPUT.algorithm = 'golden section search, parabolic interpolation';
-OUTPUT.message = 'Optimization terminated prematurely by user.';
+OUTPUT.message = 'Optimisation terminated prematurely by user.';
 
 %--------------------------------------------------------------------------
 function f = checkfun(x,userfcn,varargin)

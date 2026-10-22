@@ -1,4 +1,10 @@
-function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rCWN0(C,C0,N,dNdh,He,delta,m,mu,u,v,u0)
+function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rCWN0(CtrlVar,C,N,dNdh,He,delta,m,mu,u,v)
+
+    C0=CtrlVar.Czero ;
+    u0=CtrlVar.SpeedZero ;
+
+    % Default outputs, so that all outputs are always assigned, also if CtrlVar.BasalDrag.CalculateDerivatives is false
+    Tauv=[]; dTauudu=[]; dTauvdv=[]; dTauudv=[]; dTauvdu=[]; dTauudh=[]; dTauvdh=[];
 
 
 %SLIDINGSYMBOLIC
@@ -37,44 +43,54 @@ t34 = t20.^t18;
 t36 = t20.^t30;
 % t21=0 ; % t21 = t19./4.0;
 t25 = m.*t22;
-t29 = t22.*2.0;
+%t29 = t22.*2.0;
 t32 = -t22;
 t37 = t20.^t31;
 t38 = t20.^t27;
 t39 = t20.^t28;
 t40 = t16.*t34;
-t26=0 ; % t26 = -t21;
+%t26=0 ; % t26 = -t21;
 t33 = t5.*t25;
 t41 = m.*t40;
-t43 = t29+t34;
+%t43 = t29+t34;
 t45 = t22+t40;
-t35 = t16+t26;
+%t35 = t16+t26;
 t42 = t5.*t41;
-t44 = 1.0./t43.^2;
+%t44 = 1.0./t43.^2;
 t46 = 1.0./t45;
 Tauu = mu.*t2.*t16.*t38.*t46.*u;
 if nargout > 1
     Tauv = mu.*t2.*t16.*t38.*t46.*v;
 end
-if nargout > 2
-    t48 = t25+t32+t41;
-    t47 = t46.^2;
-    dTauudu = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t4.*t22+t6.*t25+t6.*t41);
+
+if CtrlVar.BasalDrag.CalculateDerivatives
+
+    if nargout > 2
+        t48 = t25+t32+t41;
+        t47 = t46.^2;
+        dTauudu = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t4.*t22+t6.*t25+t6.*t41);
+    end
+    if nargout > 3
+        dTauvdv = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t6.*t22+t4.*t25+t4.*t41);
+    end
+    if nargout > 4
+        t49 = mu.*t2.*t13.*t16.*t39.*t47.*t48.*u.*v;
+        t50 = -t49;
+        dTauudv = t50;
+    end
+    if nargout > 5
+        dTauvdu = t50;
+    end
+    if nargout > 6
+        % Exact derivative of Tau=a*b/(a+b)*u/U with respect to h, where a=mu*N*(C+C0)^(1/m) and b=He*U^(1/m): the dN/dh term has He^2 and the
+        % delta term has 1/(a+b)^2, with b including He. (An earlier version used He instead of He^2 and a factor 4/(2a+U^(1/m))^2, which is only correct
+        % for He=1/2, i.e. not within the smoothed grounding-line transition zone.)
+        dTauudh = mu.*t9.*t16.^2.*t37.*t47.*u+t3.*t8.*t15.*t17.*t36.*t47.*u;
+    end
+    if nargout > 7
+        dTauvdh = mu.*t9.*t16.^2.*t37.*t47.*v+t3.*t8.*t15.*t17.*t36.*t47.*v;
+    end
 end
-if nargout > 3
-    dTauvdv = mu.*t2.*t13.*t16.*t39.*t47.*(t33+t42+t6.*t22+t4.*t25+t4.*t41);
-end
-if nargout > 4
-    t49 = mu.*t2.*t13.*t16.*t39.*t47.*t48.*u.*v;
-    t50 = -t49;
-    dTauudv = t50;
-end
-if nargout > 5
-    dTauvdu = t50;
-end
-if nargout > 6
-    dTauudh = mu.*t9.*t35.*t37.*t47.*u+t3.*t8.*t15.*t17.*t36.*t44.*u.*4.0;
-end
-if nargout > 7
-    dTauvdh = mu.*t9.*t35.*t37.*t47.*v+t3.*t8.*t15.*t17.*t36.*t44.*v.*4.0;
+
+
 end

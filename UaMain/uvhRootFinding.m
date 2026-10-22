@@ -7,14 +7,23 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvhRootFinding(UserVar,RunInfo,CtrlVar,
 
 narginchk(9,9)
 
-dt=CtrlVar.dt;
+% F1.dt is the time step. CtrlVar.dt is only a copy of F1.dt, kept for compatibility with older code.
+if isempty(F1.dt) || ~isfinite(F1.dt) || F1.dt<=0
+    F1.dt=CtrlVar.dt ;
+elseif F1.dt~=CtrlVar.dt
+    fprintf("uvhRootFinding: F1.dt=%g and CtrlVar.dt=%g differ on input. F1.dt is used. \n",F1.dt,CtrlVar.dt)
+end
+CtrlVar.dt=F1.dt ;
+dt=F1.dt ;
 
 
 RunInfo.Forward.ActiveSetConverged=1;
-RunInfo.Forward.uvhIterationsTotal=0;
 iActiveSetIteration=0;
+RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained for the rest of this time step, see ActiveSetUpdate
+RunInfo.Forward.ActiveSetNoFurtherReleases=false;
 isActiveSetCyclical=NaN;
 nlIt=nan(CtrlVar.NRitmax,1);
+BCsLastSolve=[] ; lLastSolve=[] ;   % (15 Oct 2026) boundary conditions and multipliers of the last uvh solve, used to calculate F1.ah
 
 
 
@@ -39,6 +48,8 @@ end
 
 if ~CtrlVar.ThicknessConstraints
 
+    % (14 Oct 2026) The explicit estimate of h1 is not clipped at ThickMin (see ExplicitEstimationForUaFields.m). The iterate is made feasible here.
+    F1.h=max(F1.h,CtrlVar.ThickMin) ;
 
     [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
@@ -46,8 +57,13 @@ if ~CtrlVar.ThicknessConstraints
 
         [UserVar,RunInfo,F1,F0,~,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1) ;
 
+        % The time step has been reduced. Continue with the reduced time step, both in the remaining solves in this function
+        % and on return. F1.dt is the master and CtrlVar.dt only a copy.
+        F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
+
     end
    
+    BCsLastSolve=BCs1 ; lLastSolve=l1 ;   % (15 Oct 2026) see end of this function
     F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0,BCs1,l1) ;
    % F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0) ; % but currently F0 is not returned...
 
@@ -70,9 +86,13 @@ if ~CtrlVar.ThicknessConstraints
 else   %  Thickness constraints used
 
     [UserVar,RunInfo,F1,l1,BCs1,~,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
+    % (14 Oct 2026) The explicit estimate of h1 is not clipped at ThickMin (see ExplicitEstimationForUaFields.m). The iterate is made feasible here. This is done after the active set has been initialised, as the
+    % (unclipped) estimate may be used there to predict the active set (CtrlVar.ActiveSet.PredictiveActivation).
+    F1.h=max(F1.h,CtrlVar.ThickMin) ;
     LastReleased=Released;  % Maybe here I should consider the possibility that the mesh has not changed and that I can use again the previous LastReleased and LastActivated list?
     LastActivated=Activated;
     iCounter=1;
+    FinalSolveAfterCycle=false;   % (9 Oct 2026) see below
 
     while true   % active-set loop
 
@@ -95,11 +115,46 @@ else   %  Thickness constraints used
         % F1.ub(BCs1.hPosNode)=F0.ub(BCs1.hPosNode);  % might help with convergence
         % F1.vb(BCs1.hPosNode)=F0.vb(BCs1.hPosNode);
 
+        % (14 Oct 2026) The uvh iteration may be ended early if free nodes have non-positive thickness (see SSTREAM_TransientImplicit),
+        % but only if a further active-set iteration is possible, so that the result of that solve is never accepted.
+        EarlyExitOption=true ;
+        if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"EarlyExitOnNegativeThickness") ; EarlyExitOption=CtrlVar.ActiveSet.EarlyExitOnNegativeThickness ; end
+        CtrlVar.uvhEarlyExitNegativeThicknessAllowed = EarlyExitOption && (iActiveSetIteration < CtrlVar.ThicknessConstraintsItMax) && ~FinalSolveAfterCycle ;
         [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
+        StalledPass=false ;
+        EarlyExitPass=false ;   % (14 Oct 2026)
         if ~RunInfo.Forward.uvhConverged
-            [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+
+            % (14 Oct 2026) Was the iteration ended early because free nodes have non-positive thickness? The active set is then updated
+            % (these nodes are activated), and the iteration continued with the same time step, as for a stalled iteration.
+            EarlyExitPass = isfield(RunInfo.Forward,"uvhExitNegativeThickness") && RunInfo.Forward.uvhExitNegativeThickness ;
+
+            % Did the iteration stall with a small residual? If so, reducing the time step is unlikely to help. The active set is
+            % then updated instead (see below), and the iteration started again from the current iterate with the same time step.
+            % Only if the residual is large, or if the active set can not be changed, is the time step reduced.
+            uvhStalledTol=1e-6 ;
+            if isfield(CtrlVar,"uvhStalledForceTolerance") ; uvhStalledTol=CtrlVar.uvhStalledForceTolerance ; end
+            StalledPass = isfield(RunInfo.Forward,"uvhStalled") && RunInfo.Forward.uvhStalled ...
+                && isfield(RunInfo.Forward,"uvhrForce") && RunInfo.Forward.uvhrForce < uvhStalledTol ;
+
+            if EarlyExitPass
+                fprintf(" uvhRootFinding: The uvh iteration was ended because free nodes have non-positive ice thickness. The time step is not reduced. The active set is updated. \n")
+            elseif StalledPass
+                fprintf(" uvhRootFinding: The uvh iteration stalled with rForce=%g, which is below %g. The time step is not reduced. The active set is updated and the iteration continued from the current iterate with dt=%g. \n",RunInfo.Forward.uvhrForce,uvhStalledTol,F1.dt)
+            else
+                [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+
+                % The time step has been reduced. Continue with the reduced time step, both in the remaining solves in this function
+                % and on return. F1.dt is the master and CtrlVar.dt only a copy.
+                F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
+            end
+
         end
+
+        % (15 Oct 2026) Keep the boundary conditions and multipliers of this solve, as the active set may be updated below without a
+        % further solve (if the maximum number of active-set iterations is reached).
+        BCsLastSolve=BCs1 ; lLastSolve=l1 ;
 
         if any(F1.h(BCs1.hPosNode) < CtrlVar.ThickMin)
 
@@ -135,15 +190,38 @@ else   %  Thickness constraints used
                 RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
         end
 
+        % (9 Oct 2026) If the active set was found to be cyclical in the previous active-set iteration, this was a final solve with
+        % that last active set, and the loop is now exited without a further update. The returned solution is then consistent with
+        % the returned active set. (If this final solve stalled, the loop is continued as usual, see above.)
+        if FinalSolveAfterCycle && ~StalledPass
+            break
+        end
+        FinalSolveAfterCycle=false;
+
         % Update active set once uvh solution has been found.
         % Note: If this active-set iteration does not converge,
         %       the uvh solution and the active set are not consistence,
         %       i.e. the uvh solution was not obtained for the BCs in the active set.
-        [UserVar,RunInfo,BCs1,~,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVar,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
+        CtrlVarAS=CtrlVar ;
+        if StalledPass || EarlyExitPass ; CtrlVarAS.ActiveSet.ReleaseAlpha=inf ; end    % a stalled solve has not converged and its multipliers are less reliable: no releases, only activations
+        [UserVar,RunInfo,BCs1,~,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVarAS,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
 
         LastReleased=Released;
         LastActivated=Activated;
         iActiveSetIteration=iActiveSetIteration+1;
+
+        if (StalledPass || EarlyExitPass) && (~isActiveSetModified || isActiveSetCyclical)
+
+            % The solve stalled, but the active set can not be used to resolve this. Now reduce the time step.
+            fprintf(" uvhRootFinding: The stalled uvh iteration can not be resolved by changing the active set. \n")
+            dtBeforeReduction=F1.dt ;
+            [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+            F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
+            if F1.dt < dtBeforeReduction
+                continue      % solve again, now with the reduced time step
+            end
+
+        end
 
         if ~isActiveSetModified
             fprintf(' Leaving active-set loop because active set unchanged in last active-set iteration. \n')
@@ -153,14 +231,12 @@ else   %  Thickness constraints used
 
         if isActiveSetCyclical
 
-            fprintf(" Leaving active-set pos. thickness loop because it has become cyclical\n");
+            fprintf(" Leaving active-set pos. thickness loop because it has become cyclical, after a final uvh solve with the last active set.\n");
 
-            % ToDo (1 Sept 2024):  Do I want to do one final uvh solve since the active set has changed?
-
-            % [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-
-
-            break
+            % (9 Oct 2026) One final uvh solve is done with the last active set (previously the loop was exited without this, and the
+            % returned uvh solution was then not consistent with the returned active set). The loop is exited after that solve.
+            FinalSolveAfterCycle=true;
+            continue
 
         end
 
@@ -174,9 +250,11 @@ else   %  Thickness constraints used
     end   % end of active set loop
 
 
-    % nodes where thickness still is too small
-    ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin),BCs1.hFixedNode) ;  % This should not really be needed as this must be equal to the "Activated" set, except that Active set is not updated if
-    % number of to-be-activated nodes less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
+    % nodes where thickness still is too small. (9 Oct 2026) This can only happen if the active-set loop was left because the maximum
+    % number of active-set iterations (CtrlVar.ThicknessConstraintsItMax) was reached. The last update of the active set is then
+    % carried forward to the next time step.
+    ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+    ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin*(1-ActTol)),BCs1.hFixedNode) ;   % (14 Oct 2026) nodes within the activation tolerance are accepted
 
 
     if numel(ToBeActivated)>0
@@ -210,6 +288,23 @@ else   %  Thickness constraints used
 end
 
 
+
+%% (15 Oct 2026) Reactions of the thickness constraints as an output
+% F1.ah is the equivalent local mass-balance rate of all thickness constraints (active set, level set, and user-defined thickness
+% boundary conditions), positive where ice is added and negative where ice is removed (see ThicknessConstraintReactions.m). The total
+% rates at which mass is added and removed by the constraints (eg removed by calving downstream of a calving front) are stored in
+% RunInfo.Forward. This is a diagnostic quantity only.
+if ~isempty(BCsLastSolve)
+    try
+        [F1.ah,rhAll]=ThicknessConstraintReactions(CtrlVar,MUA,F1,BCsLastSolve,lLastSolve) ;
+        MassRate=-rhAll/F1.dt ;                                      % mass per time added (positive) or removed (negative) at each node
+        RunInfo.Forward.ThicknessConstraintsMassAdded(CtrlVar.CurrentRunStepNumber)=sum(MassRate(MassRate>0)) ;
+        RunInfo.Forward.ThicknessConstraintsMassRemoved(CtrlVar.CurrentRunStepNumber)=sum(MassRate(MassRate<0)) ;
+    catch ME
+        warning('uvhRootFinding:ThicknessConstraintReactions','Reactions of thickness constraints could not be calculated: %s',ME.message) ;
+        F1.ah=[] ;
+    end
+end
 
 RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;
 RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=isActiveSetCyclical;

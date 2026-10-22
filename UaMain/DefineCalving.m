@@ -80,7 +80,7 @@ end
 
 %% Define calving rate (if needed)
 
-if  CtrlVar.LevelSetEvolution=="-Prescribed-"
+if  strcmpi(CtrlVar.LevelSetEvolution,"-prescribed-")   % (13 Oct 2026) case-independent
 
     c=nan;   % setting the calving rate to nan implies that the level set is not evolved
 

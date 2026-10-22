@@ -6,7 +6,7 @@ if isempty(F.LSF) ; return ; end
 
 if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
 
-    if CtrlVar.LevelSetEvolution=="-Prescribed-"
+    if strcmpi(CtrlVar.LevelSetEvolution,"-prescribed-")   % (13 Oct 2026) case-independent
 
         % get rid of ALL elements downstream of the calving fronts
 

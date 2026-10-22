@@ -183,13 +183,13 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2inconsistent(UserVa
         end
     end
 
-    Pv=sparseUA(neq,1);
-    Lv=sparseUA(neq,1);
-    Tv=sparseUA(neq,1);
+    Pv=sparse(neq,1);
+    Lv=sparse(neq,1);
+    Tv=sparse(neq,1);
     for Inod=1:MUA.nod
-        Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),P(:,Inod),neq,1);
-        Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),L(:,Inod),neq,1);
-        Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),neq,1);
+        Pv=Pv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),P(:,Inod),neq,1);
+        Lv=Lv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),L(:,Inod),neq,1);
+        Tv=Tv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),neq,1);
     end
     
     rh=isL*Lv+isP*Pv+isT*Tv; 
@@ -207,7 +207,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2inconsistent(UserVa
             end
         end
         
-        kv=sparseUA(Iind,Jind,Xval,neq,neq);
+        kv=sparse(Iind,Jind,Xval,neq,neq);
     end
     
 end

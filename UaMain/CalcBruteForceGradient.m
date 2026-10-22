@@ -1,4 +1,4 @@
-function dJ = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange)
+function dJ = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange,deltaStep)
 
  
 
@@ -31,7 +31,7 @@ fprintf(' Calculating gradients using brute-force method...')
 J0=func(p0);
 
 %deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
-deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+% deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
 
 
 % Testing gradient using brute force method
@@ -50,7 +50,7 @@ switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
     case {"forward-first-order"}
 
 
-        parfor k=1:numel(iRange)
+        for k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
             p1(I)=p1(I)+deltaStep(I);
@@ -58,12 +58,16 @@ switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
 
             % what to do if upper or lower bounds are not respected?
             % Here I decide not to try to be too clever, I just test for this and do not calculate if bounds violated
-            ind= p1<plb | p1>pub ;
+
+            if ~isempty(plb)  && ~isempty(pub)
+                ind= p1<plb | p1>pub ;
+            else
+                ind=[];
+            end
 
             if any(ind)
                 dJtemp(k)=nan;
             else
-
                 J1=func(p1);
                 dJtemp(k)=(J1-J0)/deltaStep(I);
             end
@@ -77,7 +81,7 @@ switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
     case {"central-second-order"}
 
 
-        parfor k=1:numel(iRange)
+        for k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
             pm1=p0;
@@ -87,8 +91,12 @@ switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
 
             % what to do if upper or lower bounds are not respected?
             % Here I decide not to try to be too clever, I just test for this and do not calculate if bounds violated
-            ind= p1<plb | p1>pub | pm1<plb | pm1 > pub ;
-
+            if ~isempty(plb)  && ~isempty(pub)
+                ind= p1<plb | p1>pub | pm1<plb | pm1 > pub ;
+            else
+                ind=[];
+            end
+            
             if any(ind)
                 dJtemp(k)=nan;
             else
@@ -117,7 +125,11 @@ switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
 
             % what to do if upper or lower bounds are not respected?
             % Here I decide not to try to be too clever, I just test for this and do not calculate if bounds violated
-            ind= pp1<plb | pp1>pub | pp2<plb | pp2 > pub ;
+            if ~isempty(plb)  && ~isempty(pub)
+                ind= pp1<plb | pp1>pub | pp2<plb | pp2 > pub ;
+            else
+                ind=[];
+            end
 
             if any(ind)
                 dJtemp(k)=nan;

@@ -54,7 +54,7 @@ for J=1:nod
     end
 end
 
-M=sparseUA(i,j,s,Nnod,Nnod);
+M=sparse(i,j,s,Nnod,Nnod);
 
 end
 

@@ -43,7 +43,7 @@ function [FigHandle,ColorbarHandle,tri]=PlotElementBasedQuantities(connectivity,
     end
     
     FigHandle=patch('Faces',tri,'Vertices',coordinates/CtrlVar.PlotXYscale,'FaceVertexCdata',Value,...
-        'CDataMapping','scaled','FaceColor','flat','EdgeColor','none','FaceLighting','none',varargin{:}) ;
+        'CDataMapping','scaled','FaceColor','flat','EdgeColor','none','FaceLighting','none','HandleVisibility','off',varargin{:}) ;
         
     ColorbarHandle=colorbar;
     if isfield(CtrlVar,"XaxisLabel")

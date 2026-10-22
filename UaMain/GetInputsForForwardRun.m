@@ -109,9 +109,9 @@ if CtrlVar.LevelSetMethod
     % Now this is a special initial case right at the beginning of the run
     % where LSF has been defined ahead of any uv or uvh solutions.
     % Here set all ice thicknesses strictly downstream of the zero level of the LSF to min.
-    fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.LevelSetMinIceThickness)
+    fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.ThickMin)
     F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-    F.h(F.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+    F.h(F.LSFMask.NodesOut)=CtrlVar.ThickMin;   % (13 Oct 2026) ThickMin, LevelSetMinIceThickness is no longer used
     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 end
 

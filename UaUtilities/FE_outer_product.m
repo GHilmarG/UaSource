@@ -92,7 +92,7 @@ for Inod=1:MUA.nod
     end
 end
 
-AB=sparseUA(Iind,Jind,Xval,neq,neq);
+AB=sparse(Iind,Jind,Xval,neq,neq);
 AB=(AB+AB')/2 ; % make numerically symmetric
 
 

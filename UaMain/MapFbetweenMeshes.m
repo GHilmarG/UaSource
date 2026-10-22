@@ -43,6 +43,14 @@ Fnew=UaFields;
 Fnew.solution="-none-" ; 
 Fnew.time=Fold.time;
 Fnew.dt=Fold.dt; 
+Fnew.dtRates=Fold.dtRates;   % (9 Oct 2026) the time step over which the rates were calculated, see UpdateFtimeDerivatives.m
+% (10 Oct 2026) The accumulated time-discretisation error estimate (see TimeDiscretisationErrorEstimate.m). The nodal fields are interpolated
+% onto the new mesh, with zero at new nodes outside of the old mesh, and TotalTime is carried over.
+AccErr=Fold.hTimeDiscretisationErrorAccumulated;
+if isstruct(AccErr) && isfield(AccErr,"Signed") && numel(AccErr.Signed)==MUAold.Nnodes
+    [RunInfo,AccSigned,AccAbs,AccValidTime]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,[0 0 0],AccErr.Signed,AccErr.Abs,AccErr.ValidTime);
+    Fnew.hTimeDiscretisationErrorAccumulated=struct("Signed",AccSigned,"Abs",AccAbs,"ValidTime",AccValidTime,"TotalTime",AccErr.TotalTime);
+end
 Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
 % density and the new geometry has been interpolated onto the new mesh.
 
@@ -67,8 +75,8 @@ if CtrlVar.TimeDependentRun
             fprintf('        The level set is also now reset to empty, and then defined by a call to DefineCalving.\n')
             [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,[]);
 
-            fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.LevelSetMinIceThickness)
-            Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+            fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.ThickMin)
+            Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.ThickMin;   % (13 Oct 2026) ThickMin, LevelSetMinIceThickness is no longer used
             [Fnew.b,Fnew.s,Fnew.h,Fnew.GF]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
 
         end
@@ -122,7 +130,7 @@ if CtrlVar.TimeDependentRun
 
         if  CtrlVar.LevelSetMethod
 
-            if CtrlVar.LevelSetEvolution=="-Prescribed-"
+            if strcmpi(CtrlVar.LevelSetEvolution,"-prescribed-")   % (13 Oct 2026) case-independent
 
                 fprintf("MapFbetweenMeshes: LevelSetEvolution is prescribed, so when mapping onto a new mesh, the levelset is defined through a call to DefineCalving.m \n")
                 BCsNew=[] ; % BCs have yet to be defined
@@ -202,8 +210,8 @@ else
         fprintf('        The level set is also now reset to empty,and then defined by a call to DefineCalving.\n')
         [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,[]);
 
-        fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.LevelSetMinIceThickness)
-        Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+        fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.ThickMin)
+        Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.ThickMin;   % (13 Oct 2026) ThickMin, LevelSetMinIceThickness is no longer used
         [Fnew.b,Fnew.s,Fnew.h,Fnew.GF]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
 
     end
@@ -283,7 +291,7 @@ switch lower(CtrlVar.FlowApproximation)
        
         [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.vd,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
             Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt) ;
 
 
@@ -294,7 +302,7 @@ switch lower(CtrlVar.FlowApproximation)
 
         [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt,Fnew.LSF]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt,OutsideValue.LSF],...
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.vd,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt,OutsideValue.LSF],...
             Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.duddt,Fold.dvddt,Fold.LSF) ;
 
         Fnew.dubdt=zeros(MUAnew.Nnodes,1);

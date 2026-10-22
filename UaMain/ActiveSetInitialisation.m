@@ -8,7 +8,6 @@ function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,DeActivated]=
 narginchk(8,8)
 
  
-BCs1Input=BCs1 ; 
 
 
 
@@ -29,7 +28,7 @@ end
 %% Special case:  Check if all thicknesses are above min thick, in which case all thickness constraints should be deactivated
 if min(F1.h) > 1.1*CtrlVar.ThickMin
     if CtrlVar.ThicknessConstraintsInfoLevel>=10
-        fprintf(CtrlVar.fidlog,' Eliminating any possible previous thickness constraints as min(h1)=%-g>1.1*CtrlVar.ThickMin=%-g \n',min(F0.h),CtrlVar.ThickMin);
+        fprintf(CtrlVar.fidlog,' Eliminating any possible previous thickness constraints as min(h1)=%-g>1.1*CtrlVar.ThickMin=%-g \n',min(F1.h),CtrlVar.ThickMin);
     end
     BCs1.hPosNode=[] ; 
 end
@@ -41,9 +40,12 @@ end
 %!if isempty(Lhpos)
 
 if isempty(BCs1.hPosNode)
-    Active=find(F1.h<CtrlVar.ThickMin);     % Although I might only want to add nodes to the active set if thickness is somewhat less than MinThick, I might here
+    ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+    Active=find(F1.h<=CtrlVar.ThickMin*(1-ActTol));    % Although I might only want to add nodes to the active set if thickness is somewhat less than MinThick, I might here
                                              % have a situation where this is a restart run where the active set has been set to empty, or a run after re-meshing, and I
                                              % want the initial active sets to be similar to previous active set. 
+                                             % (8 Oct 2026) "<=" rather than "<": nodes held at the bound by the active set have h=ThickMin
+                                             % exactly, and with "<" those nodes, ie the previous active set, were not recovered.
                                              %
     Active=setdiff(Active,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
     % even if this means that thicknesses at those nodes are less then MinThick
@@ -65,6 +67,33 @@ if isempty(BCs1.hPosNode)
     end
 end
 
+
+%% (14 Oct 2026) Predictive activation (optional, CtrlVar.ActiveSet.PredictiveActivation)
+% Nodes where the explicit estimate of the thickness at the end of the time step (F1.h, which on input is the explicit estimate, see
+% ExplicitEstimationForUaFields.m, and which is not clipped at ThickMin) is at or below ThickMin*(1-Margin), while the thickness at the start of
+% the time step is above ThickMin, are added to the active set at the start of the time step. Otherwise such nodes are only activated
+% after the first uvh solve of the time step, which then requires a further solve. Nodes that have been activated incorrectly are
+% released again by the active-set update after the first solve.
+if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"PredictiveActivation") && CtrlVar.ActiveSet.PredictiveActivation
+    % (14 Oct 2026) CtrlVar.ActiveSet.PredictiveActivationMargin (default 0): only nodes predicted to be at least Margin*ThickMin below
+    % ThickMin are activated. With Margin=0 all nodes predicted to be at or below ThickMin are activated.
+    Margin=0 ; if isfield(CtrlVar.ActiveSet,"PredictiveActivationMargin") ; Margin=CtrlVar.ActiveSet.PredictiveActivationMargin ; end
+    % (14 Oct 2026) Nodes accepted with a thickness slightly below ThickMin at the end of the previous time step (within
+    % CtrlVar.ActiveSet.ActivationTolerance) are also included, so that they are activated at the start of this time step if
+    % they are predicted to continue to thin.
+    ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
+    Predicted=find(F1.h<=CtrlVar.ThickMin*(1-Margin) & F0.h>CtrlVar.ThickMin*(1-ActTol)) ;
+    Predicted=setdiff(Predicted,[BCs1.hPosNode(:);BCs1.hFixedNode(:)]) ;
+    if isfield(CtrlVar.ActiveSet,"ExcludeNodesOfBoundaryElements") && CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+        Predicted=setdiff(Predicted,unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:))) ;
+    end
+    if ~isempty(Predicted)
+        BCs1.hPosNode=[BCs1.hPosNode(:);Predicted(:)] ;
+        if CtrlVar.ThicknessConstraintsInfoLevel>=1
+            fprintf(CtrlVar.fidlog,' Predictive activation: %i nodes added to the active set based on the explicit estimate of h1 \n',numel(Predicted));
+        end
+    end
+end
 
 % II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
 % F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
@@ -108,6 +137,11 @@ if isfield(CtrlVar,"ActiveSet")
     end
 end
 
+% (13 Oct 2026) Nodes with user-defined thickness boundary conditions (BCs1.hFixedNode) must not also be in the active set, as this
+% results in duplicate thickness constraints. This is also done at the start, but must be repeated here as nodes may have been added
+% above, in particular the level-set constraints (F1.LSFMask.NodesOut).
+BCs1.hPosNode=setdiff(BCs1.hPosNode,BCs1.hFixedNode) ;
+
 % I think the way LastActiveSet is initialized, both Deactivated  will always be empty by construction
 DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
@@ -118,19 +152,6 @@ nActivated=numel(Activated);
 %%
 
 
-if nDeactivated> 0 || nActivated>0
-    if nDeactivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
-        fprintf("ActiveSetInitialisation: Not introducing any new thickness constraints as:\n")
-        fprintf("\t #Deactivated=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nDeactivated,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
-
-        BCs1=BCs1Input;
-   
-        Activated=[];
-        DeActivated=[];
-        nDeactivated=0;
-        nActivated=0;
-    end
-end
 
 %%
 

@@ -149,7 +149,7 @@ end
 dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dh=zeros(MUA.Nnodes,1 ) ; dl=zeros(numel(luvh),1);
 sol=solveKApe(KdFuvhduvh,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
 
-% note that I'm here correcting for the (incorrect) sign in dFuvdC
+% note that I'm here correcting for the (incorrect) sign in dFuvdC (sign issue)
 KdudC=-sol(1:MUA.Nnodes,:);
 KdvdC=-sol(MUA.Nnodes+1:2*MUA.Nnodes,:);
 KdhdC=-sol(2*MUA.Nnodes+1:3*MUA.Nnodes,:);

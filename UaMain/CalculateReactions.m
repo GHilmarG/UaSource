@@ -114,7 +114,7 @@ lStar.h=[];  % only calculating physical lambdas for thickness constraints
 
 % getting rid of all positive thickness constraints as part of the active set
 if options.hReactionsExcludeActiveSet
-    BCs.hPosNode=[]; BCs.hPosValue=[]; lh=l.h(1:numel(BCs.hFixedNode)) ; l.h=lh ;
+    BCs.hPosNode=[]; BCs.hPosValue=[]; lh=l.h(1:numel(BCs.hTiedNodeA)+numel(BCs.hFixedNode)) ; l.h=lh ;   % (13 Oct 2026) rows: ties first, then fixed nodes, then active set (see createLh)
 end
 
 

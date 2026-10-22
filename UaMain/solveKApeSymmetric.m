@@ -8,13 +8,16 @@
 
 
 
-function  [x,y,dAtilde]=solveKApeSymmetric(H,Aeq,g,b,x0,y0,CtrlVar,dAtilde)
+function  [x,y,dAtilde]=solveKApeSymmetric(H,Aeq,g,b,x0,y0,CtrlVar,dAtilde,StructuralPattern)
 
 
-narginchk(7,8)
+narginchk(7,9)
 
 if nargin==7
     dAtilde=[];
+end
+if nargin<9
+    StructuralPattern=[];   % (17 Oct 2026) structural sparsity pattern of the mesh (eg MUA.uvAssemblyPattern), for PARDISO (see UaPardisoSolve.m)
 end
 
 % Solves:
@@ -73,11 +76,15 @@ if ny0~=nB
     save TestSave ; error('error in solveKApeSymmetric')
 end
 
-if ~isfield(CtrlVar,"Symmsolver")
+if ~isfield(CtrlVar,"SymmSolver")   % (16 Oct 2026) corrected: was "Symmsolver", so that CtrlVar.SymmSolver was always set to "auto"
     CtrlVar.SymmSolver="auto" ;
 end
 
 %%
+if ~isfield(CtrlVar,"BCsRowSubsetSelection")
+    CtrlVar.BCsRowSubsetSelection=false;
+end
+
 
 if CtrlVar.BCsRowSubsetSelection
 
@@ -96,10 +103,10 @@ if isequal(lower(CtrlVar.SymmSolver),"auto")
     if isempty(Aeq) || numel(Aeq)==0
         CtrlVar.SymmSolver="Bempty";
     elseif isdiag(Aeq*Aeq')
-        CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
+        %CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
         CtrlVar.SymmSolver="NullSpace";  % changed to NullSpace on 6 June 2026 from EliminateBCsSolveSystemDirectly
     else
-        CtrlVar.SymmSolver="AugmentedLagrangian";
+        %CtrlVar.SymmSolver="AugmentedLagrangian";
         CtrlVar.SymmSolver="NullSpace";   % changed to NullSpace on 6 June 2026 from AugmentedLagrangian
 
     end
@@ -110,7 +117,11 @@ tSolve=tic;
 
 switch CtrlVar.SymmSolver
     case "Bempty"
-        x=H\g;
+        if isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO"
+            x=UaPardisoSolve(CtrlVar,H,g,H,"symmetric",StructuralPattern) ;   % (16 Oct 2026) PARDISO, symmetric indefinite (LDL'), see UaPardisoSolve.m
+        else
+            x=H\g;
+        end
         y=[];
 
     case "AugmentedLagrangian"
@@ -131,13 +142,13 @@ switch CtrlVar.SymmSolver
     case "EliminateBCsSolveSystemDirectly"
 
         %[x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde);
-        [x,y,dAtilde]=ABfgPreEliminate(CtrlVar,H,Aeq,g,b,dAtilde) ;
+        [x,y,dAtilde]=ABfgPreEliminate(CtrlVar,H,Aeq,g,b,dAtilde,StructuralPattern) ;
 
     case "NullSpace"
 
         %[x, y] = KKT_null_space_chol(A, f, B, g);
         % [x, y] = KKT_null_space_decomposition(A, f, B, g);
-        [x, y] = KKT_null_space_decomposition_chol(H, g, Aeq, b);
+        [x, y] = KKT_null_space_decomposition_chol(H, g, Aeq, b, CtrlVar, StructuralPattern);   % (16 Oct 2026) CtrlVar passed for the PARDISO option
 
     case "RangeSpace"
 

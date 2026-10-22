@@ -10,7 +10,10 @@ function [UserVar,RunInfo,MUA]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUA,xNod,
     
     
     
-    if any(isnan(EleSizeDesired)) ; save TestSave ; error('fdsa') ; end
+    if any(isnan(EleSizeDesired)) 
+        save TestSave ; 
+        error("GlobalRemeshing:nanInEleSizeDesired","The variable EleSizeDesired contains nan. Presumbly some incorrect user inputs.\")
+    end
     
     %if strcmp(CtrlVar.MeshGenerator,'gmsh')
     if norm([xNod-MUA.coordinates(:,1);yNod-MUA.coordinates(:,2)]) > 100*eps

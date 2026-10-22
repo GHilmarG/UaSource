@@ -123,7 +123,7 @@ if isscalar(varargin)
    varargin={'color',varargin{1}};
 end
 
-hTri=triplot(TR,'color',CtrlVar.MeshColor,varargin{:}) ;
+hTri=triplot(TR,'color',CtrlVar.MeshColor,'HandleVisibility','off',varargin{:}) ;
 hold on
 
 if nargin>3

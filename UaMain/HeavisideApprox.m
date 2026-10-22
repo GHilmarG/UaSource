@@ -25,7 +25,7 @@ if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 %
 % $$y \approx 0 \quad \mathrm{if} \quad x < x_0$$
 %
-% $$y =1/2 \quad \mathrm{for} \quad x = x_0$$
+% $$y =1/2 \quad \mathrm{for} \quad x = x_0$$  
 %
 % Note:
 %

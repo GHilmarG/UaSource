@@ -4,7 +4,7 @@
 
 
 
-function [UserVar,RunInfo,F,F0,l]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l)
+function [UserVar,RunInfo,F,F0,l,BCs]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l)
 
 %%
 %
@@ -20,7 +20,7 @@ function [UserVar,RunInfo,F,F0,l]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,F
 %
 
 narginchk(9,9)
-nargoutchk(5,5)
+nargoutchk(5,6)   % BCs returned since 8 Oct 2026 (the active set may be modified in uvhSemiImplicit)
 
 if ~isfield(CtrlVar,"Try_uv_SolveIf_uvh_SolveNotConvergent")
     CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent=false; 
@@ -29,7 +29,7 @@ end
 
 if CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent
     fprintf("WTSHTF: Now trying uv-h solve. \n")
-    [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l,BCs)  ;
+    [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l,BCs)  ;
 end
    
 
