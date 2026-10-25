@@ -4,6 +4,30 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Level-set Newton-Raphson: fewer assemblies and iterations (25 October 2026):
+%
+% In each iteration of LevelSetEquationNewtonRaphson.m the level-set equation was assembled four times, each time with the matrix: once
+% for the Newton system, and three times in the line search (CalcCostFunctionLevelSetEquation.m at gamma=0, at gamma=1, and again at
+% the gamma returned by BackTracking.m). Changes:
+%
+%   LevelSetEquationAssemblyNR2.m, LevelSetEquationAssemblyNR2consistent.m: only the residual is assembled if only the residual is
+%   requested. LevelSetEquationAssemblyNR2consistentScalar.m already skipped the matrix for nargout==2, but the two wrappers always
+%   requested it. LevelSetEquationAssemblyNR2consistentScalar.m: K=(K+K')/2 (no advection term) only if K is requested.
+%   CalcCostFunctionLevelSetEquation.m: optional input R, the residual at gamma=0 if already assembled.
+%   LevelSetEquationNewtonRaphson.m: the residual assembled for the Newton system is used for the cost function at gamma=0, and the
+%   cost function at gamma=1 is not evaluated again if BackTracking.m returns gamma=1.
+%
+% Each iteration now needs one assembly with the matrix and, if gamma=1, one of the residual only. The results are unchanged (identical
+% iteration output). Thule example (50 km, 51 time steps, 102 level-set iterations): level-set assemblies 408 -> 204 (102 of them residual
+% only), time in LevelSetEquation.m 45 s -> 21 s, total run time 206 s -> 181 s.
+%
+% LevelSetEquationNewtonRaphson.m: the hard-wired rule forcing a further iteration if rRatio<0.01 and rWork>1e-20 has been removed. It
+% forced a second iteration in every level-set solve of the Thule example, although the first iteration reached r/r0 of about 1e-13
+% (the second took rForce to about 1e-26). Convergence is now decided by the LSFAcceptable/LSFDesired tolerances alone. Thule example:
+% level-set iterations 102 -> 77 (25 solves converge after one iteration; in the other 26 rWork is still above
+% LSFAcceptableWorkAndForceTolerances(1)=1e-10 after the first), time in LevelSetEquation.m 21 s -> 16 s. The time steps and the uvh
+% iteration output are unchanged.
+%
 % * New LinesolveScalingTest.m: performance of the linear solvers (MATLAB and PARDISO) as a function of the number of cores (17 October 2026):
 %
 % For a restart file, the uvh system (constraints eliminated as in ABfgPreEliminate.m) or the uv system (nodal constraints removed,

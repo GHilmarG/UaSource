@@ -697,14 +697,14 @@ CtrlVar.uvhTestJacobian.Iterations=[1 2 3];
 CtrlVar.uvhTestJacobian.RunSteps=[];
 
 %% (16 Oct 2026) Linear solver for the systems solved in ABfgPreEliminate.m (eg in the uv and uvh Newton-Raphson iterations)
-CtrlVar.LinearSolver.Type="PARDISO";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
-                                                          % pardisoMex (see UaPardisoSolve.m), usually much faster, but requires the MKL runtime library
+CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
+% pardisoMex (see UaPardisoSolve.m), usually much faster, but requires the MKL runtime library
 CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL runtime library mkl_rt (eg ...\Library\bin\mkl_rt.3.dll, as installed
                                                           % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
 CtrlVar.LinearSolver.PARDISO.ThreadingLayer="TBB";        % "TBB" (multithreaded) or "SEQUENTIAL"; the OpenMP layer of MKL can not be used within MATLAB
 CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10;     % if the relative residual of the solution is larger, the analysis is repeated, and if that
                                                           % does not help, decomposition is used instead
-CtrlVar.LinearSolver.PARDISO.MinimumSize=20000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
+CtrlVar.LinearSolver.PARDISO.MinimumSize=10000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
                                                           % more than it saves); diagonal systems are always solved directly
 CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sparsity pattern of the mesh (MUA.uvAssemblyPattern,
                                                           % MUA.uvhAssemblyPattern) as the fixed pattern: normally one analysis per mesh and type of system
@@ -2403,7 +2403,7 @@ CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geomet
 %   CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
 % 
 %
-% To enforc adapt meshing ahead of the first runs step only, set:
+% To enforce adapt meshing ahead of the first runs step only, set:
 %
 %   CtrlVar.AdaptMeshInitial=1 ; CtrlVar.AdaptMeshRunStepInterval=inf ;
 %

@@ -452,7 +452,7 @@ if nargout>2
     K=sparse(Iind,Jind,Xval,neq,neq);
 end
 
-if ~isL
+if nargout>2 && ~isL   % (25 Oct 2026) nargout>2 added, as K is not calculated if only the residual is requested
    
     % if I'm not including the advection term (ie only the transient and/or the diffusion term)
     % the system is symmetric
