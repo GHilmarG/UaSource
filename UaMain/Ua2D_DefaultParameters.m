@@ -1780,6 +1780,20 @@ CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 
                                                                        %   "discrete" : sign of the discrete reaction L'*lambda at the node (recommended)
                                                                        %   "consistent-mass" : sign of the reaction mapped to a nodal field with the
                                                                        %      inverse of the consistent mass matrix (previous approach, prone to cycling).
+CtrlVar.ActiveSet.DeferReleases=false;                  % (25 Oct 2026) If true, an active-set update that only releases nodes (no activations) after a converged uvh
+                                                        % solve is not followed by a further solve within the time step. The solution of the last solve (with these
+                                                        % nodes still at ThickMin) is accepted, and the nodes are released at the start of the next time step.
+                                                        % Activations are always followed by a further solve, so h>=ThickMin is still enforced in each time step;
+                                                        % only the sign condition on the multipliers lags by one time step. Only used in uvhRootFinding.m (-uvh-).
+CtrlVar.ActiveSet.DeferReleasesMaxThickening=inf;       % (25 Oct 2026) Releases are only deferred if, for all released nodes, the estimated thickening within the time
+                                                        % step (-ah*dt, see ActiveSetUpdate.m) is less than DeferReleasesMaxThickening*ThickMin.
+
+% Note: A sensible paring of DeferRelease and DeferReleasesMaxThickening is 
+%
+% CtrlVar.ActiveSet.DeferReleases=true; 
+% CtrlVar.ActiveSet.DeferReleasesMaxThickening=1; 
+%
+% This is a candidate for a new default option
 
 
 % thickness penalty, option 3

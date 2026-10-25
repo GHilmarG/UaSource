@@ -49,6 +49,7 @@ if isempty(BCs1.hPosNode)
                                              %
     Active=setdiff(Active,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
     % even if this means that thicknesses at those nodes are less then MinThick
+    Active=setdiff(Active,DeferredReleases(RunInfo,MUA)) ;   % (25 Oct 2026) nodes whose release was deferred in the previous time step, see below
 
     if isfield(CtrlVar,"ActiveSet")
         if CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
@@ -84,6 +85,18 @@ if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"PredictiveActivati
     ActTol=0 ; if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ActivationTolerance") ; ActTol=CtrlVar.ActiveSet.ActivationTolerance ; end   % (14 Oct 2026)
     Predicted=find(F1.h<=CtrlVar.ThickMin*(1-Margin) & F0.h>CtrlVar.ThickMin*(1-ActTol)) ;
     Predicted=setdiff(Predicted,[BCs1.hPosNode(:);BCs1.hFixedNode(:)]) ;
+    % (25 Oct 2026) Nodes whose release was deferred at the end of the previous time step (CtrlVar.ActiveSet.DeferReleases, see
+    % uvhRootFinding.m) are at ThickMin, and are therefore likely to be predicted to be at or below ThickMin, and would then be activated
+    % again right away. They are excluded here, provided the mesh has not changed since. If they do fall below ThickMin, they are
+    % activated by the active-set update after the first solve, as any other released node.
+    Deferred=DeferredReleases(RunInfo,MUA) ;
+    if ~isempty(Deferred)
+        nExcluded=numel(intersect(Predicted,Deferred)) ;
+        Predicted=setdiff(Predicted,Deferred) ;
+        if CtrlVar.ThicknessConstraintsInfoLevel>=1
+            fprintf(CtrlVar.fidlog,' Deferred releases: %i nodes released at the start of this time step (%i of them excluded from predictive activation) \n',numel(Deferred),nExcluded);
+        end
+    end
     if isfield(CtrlVar.ActiveSet,"ExcludeNodesOfBoundaryElements") && CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
         Predicted=setdiff(Predicted,unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:))) ;
     end
@@ -174,5 +187,23 @@ BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
 
 
 
+
+end
+
+%%
+function Deferred=DeferredReleases(RunInfo,MUA)
+
+% (25 Oct 2026) Nodes whose release was deferred at the end of the previous time step (CtrlVar.ActiveSet.DeferReleases, see
+% uvhRootFinding.m). Empty if there are none, or if the mesh has changed since (the node numbers then refer to a different mesh).
+
+Deferred=[] ;
+if ~isfield(RunInfo.Forward,"ActiveSetDeferredReleases") || isempty(RunInfo.Forward.ActiveSetDeferredReleases)
+    return
+end
+D=RunInfo.Forward.ActiveSetDeferredReleases ;
+if isfield(MUA,"MeshKey") && ~isempty(MUA.MeshKey) ; Key=MUA.MeshKey ; else ; Key=MeshKey(MUA) ; end
+if isequal(D.TopologyKey,Key.Topology)
+    Deferred=D.Nodes(:) ;
+end
 
 end

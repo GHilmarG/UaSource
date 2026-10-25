@@ -26,7 +26,7 @@ function [ScaleLineHandle,ScaleTextHandle]=ScaleBar(Scale,ScaleLabel,ScalePositi
 xlim = get(gca,'xlim');
 ylim = get(gca,'ylim');
 
-if nargin==0 || isempty(Scale) || isempty(ScaleLabel)
+if nargin<2 || isempty(Scale) || isempty(ScaleLabel)
 
     if diff(xlim)<200
 
@@ -60,7 +60,7 @@ if nargin==0 || isempty(Scale) || isempty(ScaleLabel)
 end
 
 
-if isempty(ScalePosition)
+if nargin<3 || isempty(ScalePosition)
 
     ScalePosition(1)=0.025;
     ScalePosition(2)=0.05;

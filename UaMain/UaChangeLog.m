@@ -4,6 +4,41 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Active set: option to defer releases to the next time step (25 October 2026):
+%
+% New option CtrlVar.ActiveSet.DeferReleases (default false, ie no change unless set). If, after a converged uvh solve, the active-set
+% update only releases nodes (no activations), the solution of that solve (with these nodes still at ThickMin) is accepted, and the
+% active-set loop is left without a further solve; the nodes are released at the start of the next time step. Activations are always
+% followed by a further solve, so h>=ThickMin is still enforced in each time step; only the sign condition on the multipliers lags by one
+% time step. CtrlVar.ActiveSet.DeferReleasesMaxThickening (default inf): releases are only deferred if, for all released nodes, the
+% estimated thickening within the time step (-ah*dt) is less than this times ThickMin. Changes:
+%
+%   uvhRootFinding.m: the decision, after the call to ActiveSetUpdate. The deferred nodes are kept, with the topology key of the mesh, in
+%   RunInfo.Forward.ActiveSetDeferredReleases, and their number and estimated thickening are printed.
+%   ActiveSetInitialisation.m: deferred nodes are excluded from the predictive activation (and from the initial active set if that is
+%   rebuilt), as they are at ThickMin and would otherwise be activated again right away. Ignored if the mesh has changed (new local
+%   function DeferredReleases).
+%   ActiveSetUpdate.m: the estimated thickening of the released nodes is stored in RunInfo.Forward.ActiveSetReleasedThickening
+%   (diagnostic only).
+%   Ua2D_DefaultParameters.m: the two new options.
+%
+% Motivation: in the Thule example (50 km, 51 time steps) 40 of the 43 time steps that needed more than one uvh solve did so only
+% because nodes were released, and in 9 time steps some of the released nodes fell below ThickMin again (and were locked), requiring a
+% third solve. With DeferReleases=true: uvh solves 106 -> 66 (time steps with a single solve 8 -> 41), uvh Newton iterations 404 -> 312,
+% locking events 9 -> 2, total run time 181 s -> 153 s; time steps unchanged. Effect on the solution after 0.1 yr: relative change in
+% ice volume -6e-6, RMS change in h 0.8 m, max 21 m. The changes are concentrated at the calving front (149 of the 161 nodes with
+% |dh|>0.1 m are floating, within about 40 km of nodes at ThickMin), where h changes by about 20 m per time step, and are everywhere
+% smaller than the change in h over one time step at that node. The mass removed by the thickness constraints increased by 6%.
+% The estimated thickening of the deferred nodes was mostly just above the release threshold (median about 1.1e-3*ThickMin), but up
+% to 12*ThickMin for single nodes.
+% With DeferReleasesMaxThickening=1 (deferral only if no released node is estimated to thicken by more than ThickMin): 17 deferrals
+% (33 nodes), uvh solves 106 -> 89, run time 181 s -> 171 s, locking events unchanged (9); relative change in ice volume -2e-7, RMS
+% change in h 2 cm, max 0.6 m, mass removed by the constraints +0.5%. Thus the releases with large estimated thickening account for most
+% of both the saving and the change in the solution.
+% Greenland example (nx100, 25,095 nodes, 0.1 yr, 9 time steps, no calving-front evolution): 3 deferrals (52 nodes), all with small
+% estimated thickening (at most 0.04*ThickMin), so DeferReleasesMaxThickening=1 and inf give identical results; uvh solves 15 -> 12,
+% Newton iterations 53 -> 49 (about 5%); relative change in ice volume 1e-8, RMS change in h 0.7 mm, max 8 cm (at a node with h=1.7 m).
+%
 % * Level-set Newton-Raphson: fewer assemblies and iterations (25 October 2026):
 %
 % In each iteration of LevelSetEquationNewtonRaphson.m the level-set equation was assembled four times, each time with the matrix: once
