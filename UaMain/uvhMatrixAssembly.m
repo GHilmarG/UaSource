@@ -181,6 +181,35 @@ else
 end
 
 
+%% (25 Oct 2026) Compiled element-based assembly (UaSource/UaCompiled)
+%
+% If CtrlVar.uvhMatrixAssembly.CompiledKernel=true, and the options, the element type and the cached assembly pattern allow it (see
+% uvhCompiledKernelCheck.m), the residual and the Jacobian are assembled by uvhMatrixAssemblyCompiled.m (compiled kernel, parallelised
+% over elements). The results are the same as those of the vectorised assembly below to round-off. Otherwise, or if UaCompiled is not on
+% the path, the vectorised assembly is used, as before.
+%
+persistent WarnedNoUaCompiled
+UseCompiledKernel=false ;
+if isfield(CtrlVar.uvhMatrixAssembly,"CompiledKernel") && CtrlVar.uvhMatrixAssembly.CompiledKernel
+    if exist("uvhCompiledKernelCheck","file")==2
+        [UseCompiledKernel,RK,KernelFull,KernelRonly]=uvhCompiledKernelCheck(CtrlVar,MUA) ;
+    elseif isempty(WarnedNoUaCompiled)
+        WarnedNoUaCompiled=true ;
+        fprintf(CtrlVar.fidlog,"uvhMatrixAssembly: CtrlVar.uvhMatrixAssembly.CompiledKernel=true, but UaSource/UaCompiled is not on the path. The vectorised assembly is used instead.\n") ;
+    end
+end
+
+if UseCompiledKernel
+
+    [R,KdFuvhduvh,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,BCs1,LSFMask,dadh,Ronly,RK,KernelFull,KernelRonly) ;
+    neq=3*MUA.Nnodes ;
+    if isempty(R)   % CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=true
+        KdFuvhduvh=[] ;
+        return
+    end
+
+else   % vectorised assembly (loop over integration points), as before
+
 ndim=2;  neq=3*MUA.Nnodes;
 neqx=MUA.Nnodes ;
 
@@ -450,6 +479,9 @@ if ~Ronly
 end
 
 
+end   % UseCompiledKernel
+
+
 %% Lumped nodal thickness penalty (8 Oct 2026)
 %
 % The penalty is added as a nodal term that depends only on the nodal thickness h_i, with lumped nodal weights m_i. Nodes with
@@ -500,7 +532,7 @@ if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>1000   % if min thicknes
     fprintf(CtrlVar.fidlog,msg) ;
 end
 
-if ~Ronly
+if ~Ronly && ~UseCompiledKernel   % (the compiled assembly checks the diagonal itself)
     if full(any(isnan(diag(KdFuvhduvh))))
         error(' NaN in K ' ) ;
     end

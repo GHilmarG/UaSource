@@ -171,7 +171,7 @@ if nargin<7 || isempty(BCs1) || isnan(BCs1)
     BCs1=BoundaryConditions();
 end
 
-if nargin<6 || isempty(l1) || isnan(l)
+if nargin<6 || isempty(l1) || isnan(l1)
     l1=UaLagrangeVariables;
 end
 

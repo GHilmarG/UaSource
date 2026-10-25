@@ -1732,6 +1732,9 @@ CtrlVar.ThickMinWidthRelative=0.05;     % width of the smooth floor in units of 
 
 % active-set method, option 2
 CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).
+                                            % Note: A better name for this field might be: CtrlVar.ActiveSet.On
+
+
 CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set iterations.
                                             % if the maximum number of active-set
                                             % iterations is reached, a warning is given,
@@ -2955,6 +2958,11 @@ CtrlVar.MapOldToNew.Test=false;   %
 %%
 CtrlVar.uvhMatrixAssembly.ZeroFields=false;
 CtrlVar.uvhMatrixAssembly.Ronly=false;
+CtrlVar.uvhMatrixAssembly.CompiledKernel=false;   % (25 Oct 2026) If true, the uvh assembly (uvhMatrixAssembly.m) uses the compiled element-based kernel in
+                                                  % UaSource/UaCompiled (MEX files built with MATLAB Coder, parallelised over elements with OpenMP), provided the
+                                                  % options and the element type are supported; otherwise the vectorised assembly is used, and the reason is printed
+                                                  % once. Results are the same to round-off. Not used within spmd workers (CtrlVar.Parallel.uvhAssembly.spmd.isOn=true).
+                                                  % See UaCompiled/README.md.
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
 CtrlVar.DevelopmentVersion=false ; % Internal variable, always set to false
 % (unless you want to use some untried, untested and unfinished features....)

@@ -194,9 +194,15 @@ if isprop(l1,"dth") ; l1.dth=CtrlVar.dt ; end
 % solve the momentum rows and the h rows of the uvh system, respectively, and the cost function is the normalised norm of the
 % right-hand side of the uvh system evaluated at the current iterate. The normalisation (reference residual Fext0) is calculated
 % in the same way as in SSTREAM_TransientImplicit.
-CtrlVarZero=CtrlVar; CtrlVarZero.uvhMatrixAssembly.ZeroFields=true; CtrlVarZero.uvhMatrixAssembly.Ronly=true;
+CtrlVarZero=CtrlVar; 
+CtrlVarZero.uvhMatrixAssembly.ZeroFields=true; 
+CtrlVarZero.uvhMatrixAssembly.Ronly=true;
 [UserVar,RunInfo,Fext0,~]=uvhAssembly(UserVar,RunInfo,CtrlVarZero,MUA,F0,F1,l1,BCs1);
-CtrlVarR=CtrlVar; CtrlVarR.uvhMatrixAssembly.ZeroFields=false; CtrlVarR.uvhMatrixAssembly.Ronly=true;
+
+CtrlVarR=CtrlVar; 
+CtrlVarR.uvhMatrixAssembly.ZeroFields=false; 
+CtrlVarR.uvhMatrixAssembly.Ronly=true;
+
 InfoLevelNonLinItOnInput=CtrlVar.InfoLevelNonLinIt;
 ub1Previous=F1.ub ; vb1Previous=F1.vb ; h1Previous=F1.h ; luvhPrevious=[] ;
 rForceVector=nan(size(duv1NormVector)) ;

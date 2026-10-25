@@ -14,22 +14,6 @@ function [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,
     tAssembly=toc(tAssembly);
     RunInfo.CPU.Assembly.uvh=RunInfo.CPU.Assembly.uvh+tAssembly;
 
-    if CtrlVar.InfoLevelCPU>=10
-        if CtrlVar.Parallel.uvhAssembly.spmd.isOn
-            if CtrlVar.uvhMatrixAssembly.Ronly
-                fprintf("SPMD Force vector assembly in %g sec \n",tAssembly)
-            else
-                fprintf("SPMD Matrix assembly in %g sec \n",tAssembly)
-            end
-        else
-            if CtrlVar.uvhMatrixAssembly.Ronly
-                fprintf("Force vector assembly in %g sec \n",tAssembly)
-            else
-                fprintf("Matrix assembly in %g sec \n",tAssembly)
-            end
-        end
-    end
-
 
 
  

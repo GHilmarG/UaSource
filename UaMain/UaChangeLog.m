@@ -4,6 +4,41 @@
 % 
 % *Change Log* _October 2026_
 %
+% * uvh assembly: optional compiled element-based assembly (25 October 2026):
+%
+% New option CtrlVar.uvhMatrixAssembly.CompiledKernel (default false, ie no change unless set). If true, and the options, the element
+% type and the cached assembly pattern allow it, uvhMatrixAssembly.m calls uvhMatrixAssemblyCompiled.m (new folder UaSource/UaCompiled,
+% see README.md there) instead of the vectorised assembly. Otherwise, or if UaCompiled is not on the path, the vectorised assembly is used,
+% unchanged; uvhCompiledKernelCheck.m decides this for each call and prints the reason once if the compiled assembly cannot be used.
+%
+% The compiled assembly consists of:
+%   - a kernel (uvhElementKernel.m) that loops over elements, with the loop over integration points inside, generated with MATLAB Coder
+%     and parallelised over elements with OpenMP. It gathers the nodal values of each element itself (from the nodal vectors and the
+%     connectivity), and contains the terms of uvhAssemblyIntPointImplicitSUPG_v2.m and uvhNodalLoopSSTREAM_v2.m. Options (sliding law,
+%     level-set feedback, penalty, barrier, melange, SUPG tau, ...) and all parameters are run-time inputs (MakeKernelParamsFlex.m), so no
+%     rebuild is needed when they change. MEX files: one for any element type with at most 10 nodes and 37 integration points, and a
+%     faster one for linear elements with 6 integration points; each for the residual and Jacobian, and for the residual only.
+%   - the element-matrix values are summed directly into the nonzeros of the sparse matrix (GatherSumCSC, parallel over the nonzeros,
+%     using an inverse of MUA.uvhAssemblyPattern.map computed once per mesh in uvhCSCPattern.m), and the sparse matrix is created directly
+%     from its CSC arrays (SparseFromCSC.c, hand-written C MEX), replacing accumarray and sparse. Entries that sum to exactly zero are kept
+%     as stored zeros (sparse drops them); the values are otherwise identical.
+%   The kernel calls modified copies of BasalDrag.m, SUPGtau.m and ThicknessPenaltyMassBalanceFeedback.m (in UaCompiled), with integer
+%   codes instead of strings for the sliding law and the SUPG tau option, and with plotting excluded from the compiled code. Not compiled:
+%   the inverse-run branch of BasalDrag.m and the sliding-law aliases "B" and "-C-" (not accepted by the forward branch of BasalDrag.m).
+%
+%   uvhMatrixAssembly.m: the switch, after the common preparation and before the vectorised assembly (which is unchanged).
+%   uvhMatrixAssemblySSTREAM_SPMD.m: the compiled assembly is not used within spmd workers (its OpenMP threads would compete with them).
+%   Ua2D_DefaultParameters.m: CtrlVar.uvhMatrixAssembly.CompiledKernel=false.
+%   UaSource/UaCompiled: the compiled assembly, the MEX files and the build script BuildUaCompiled.m.
+%
+% Tests: with CompiledKernel=false the results are bit-identical to before. With CompiledKernel=true residual and Jacobian agree with the
+% vectorised assembly to rounding errors for all supported options, for linear, quadratic and cubic elements and quadrature rules with 1 to
+% 33 points. Thule example, full run (0.1 yr, 51 time steps, mesh adaptation, level set, active set): identical time steps and Newton
+% iterations, solution identical to rounding errors (max |dh| 9e-12 m); uvh assembly 91 s -> 24 s, total 209 s -> 152 s (profiled).
+% Greenland example, nx200 (197,204 elements), one assembly, ratio serial vectorised : spmd vectorised (4 threads) : compiled =
+% 10.1 : 4.2 : 1 for residual and Jacobian (3894 / 1628 / 386 ms), and 8.9 : 3.1 : 1 for the residual only. For larger meshes, the
+% fastest combination was the compiled uvh assembly with spmd for the uv assembly (CtrlVar.Parallel.uvAssembly.spmd.isOn=true).
+%
 % * Active set: option to defer releases to the next time step (25 October 2026):
 %
 % New option CtrlVar.ActiveSet.DeferReleases (default false, ie no change unless set). If, after a converged uvh solve, the active-set
