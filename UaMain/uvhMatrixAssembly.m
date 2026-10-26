@@ -201,7 +201,11 @@ end
 
 if UseCompiledKernel
 
-    [R,KdFuvhduvh,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,BCs1,LSFMask,dadh,Ronly,RK,KernelFull,KernelRonly) ;
+    if nargout>4   % basal drag, effective viscosity and floating mask at the integration points requested (eg by CalcBasalTraction.m)
+        [R,KdFuvhduvh,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,BCs1,LSFMask,dadh,Ronly,RK,KernelFull,KernelRonly) ;
+    else
+        [R,KdFuvhduvh]=uvhMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,BCs1,LSFMask,dadh,Ronly,RK,KernelFull,KernelRonly) ;
+    end
     neq=3*MUA.Nnodes ;
     if isempty(R)   % CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=true
         KdFuvhduvh=[] ;

@@ -4,6 +4,23 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Compiled uvh assembly: less data movement into and out of the MEX files (25 October 2026, later):
+%
+% Timing experiments showed that the arithmetic in the compiled kernel scales well with the number of threads, and that about half of the
+% kernel time was spent moving data into and out of the MEX file. Changes (UaSource/UaCompiled, and the call in uvhMatrixAssembly.m):
+%   - MUA.Deriv and MUA.DetJ are passed as separate arrays instead of as fields of a structure: structure fields are copied into a MEX
+%     file, arrays are not (54+9 MB at nx200 in the Greenland example).
+%   - basal drag, effective viscosity and floating mask at the integration points are only calculated and returned if requested
+%     (uvhMatrixAssembly.m called with more than 4 outputs, eg by CalcBasalTraction.m).
+%   - outputs that are completely overwritten are not zero-filled (coder.nullcopy).
+%   - the element-matrix values are summed into the nonzeros of the sparse matrix within the kernel MEX file, so they are no longer
+%     returned (122 MB at nx200); GatherSumCSC.m and GatherSumCSC_mex removed.
+% Results are bit-identical to before. Greenland nx200, one assembly: residual and Jacobian 386 -> 244 ms, residual only 159 -> 93 ms;
+% ratio serial vectorised : spmd vectorised (4 threads) : compiled = 16.0 : 6.9 : 1 (residual and Jacobian), 15.4 : 5.1 : 1 (residual
+% only). Thule example, full run: uvh assembly 24 s -> 17 s (vectorised: 91 s). Greenland nx200, full run (0.1 yr) with the compiled
+% uvh assembly and spmd for the uv assembly: 133 s (spmd for both: 189 s). The MEX files must be rebuilt (BuildUaCompiled.m), as the
+% interface of the kernel has changed.
+%
 % * uvh assembly: optional compiled element-based assembly (25 October 2026):
 %
 % New option CtrlVar.uvhMatrixAssembly.CompiledKernel (default false, ie no change unless set). If true, and the options, the element

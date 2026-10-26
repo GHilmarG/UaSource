@@ -1,29 +1,35 @@
-function [Tx,Fx,Ty,Fy,Th,Fh,Xmat,tauxInt,tauyInt,etaInt,HeInt]=...
-    uvhElementKernel(MUA,conn,...
+function [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=...
+    uvhElementKernel(MUA,Deriv,DetJ,conn,...
     bv,hv,uv,vv,AGlenv,nv,Cv,mv,qv,mukv,V0v,h0v,u0v,v0v,as0v,ab0v,as1v,ab1v,dadhv,Bv,Sv,rhov,...
     LSFMaskv,hBCsMaskv,...
     uov,vov,Cov,mov,uav,vav,Cav,mav,...
-    CtrlVar,rhow,g,Ronly,ca,sa,dt)
+    CtrlVar,rhow,g,Ronly,ca,sa,dt,IntOut,invPtr,invIdx)
 
-%% Element-based uvh assembly kernel (25 Oct 2026), compiled with MATLAB Coder, see README.md in this folder
+%% Element-based uvh assembly kernel, compiled with MATLAB Coder (25 Oct 2026); see README.md in this folder
 %
-% CODEGEN VERSION: options and parameters in CtrlVar are run-time inputs; only Ronly and the derivative flags are constants.
-% Inputs are the nodal vectors (Nnodes x 1) and the connectivity; the nodal values of each element are gathered here. The element-matrix
-% values are returned element-major in Xmat (9*nod^2 x Nele) and summed into the nonzeros by GatherSumCSC (see uvhMatrixAssemblyCompiled.m). CtrlVar.BasalDrag.CalculateDerivatives and
-% CtrlVar.EffectiveViscosity.CalculateDerivatives must already be set by the caller (CtrlVar is a compile-time constant).
+% Called by uvhMatrixAssemblyCompiled.m through the MEX files built by BuildUaCompiled.m (entry points uvhKernelFull.m, uvhKernelRonly.m).
+% Replaces the loop over integration points in uvhMatrixAssembly.m (uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m) by a
+% loop over elements (parfor, OpenMP), with the loop over integration points inside. The terms are those of these two functions, written
+% for one element and one integration point; the pointwise functions (EffectiveViscositySSTREAM, BasalDragFlex, SUPGtauFlex, ...) are
+% called with scalar arguments.
 %
-% Replaces the loop over integration points in uvhMatrixAssembly.m, ie the calls to uvhAssemblyIntPointImplicitSUPG_v2.m and
-% uvhNodalLoopSSTREAM_v2.m, by a loop over elements, with the loop over integration points inside. For each element the nine
-% nod x nod blocks of the element matrix and the element residuals are accumulated locally and then written to the outputs,
-% which have the same layout as the arrays summed over integration points in uvhMatrixAssembly.m:
+% Inputs:
+%   MUA        : Nele, nod, nip, points, weights, EleAreas
+%   Deriv, DetJ: MUA.Deriv and MUA.DetJ, passed as separate arrays (fields of a structure input are copied into a MEX file, arrays are not)
+%   conn       : MUA.connectivity; the nodal values of each element are gathered from the nodal vectors (Nnodes x 1) here
+%   CtrlVar    : run-time options and parameters (MakeKernelParamsFlex.m); CtrlVar.BasalDrag.CalculateDerivatives and
+%                CtrlVar.EffectiveViscosity.CalculateDerivatives are set by the entry points
+%   Ronly      : compile-time constant (residual only)
+%   IntOut     : if true, basal drag, effective viscosity and floating mask at the integration points are returned
+%   invPtr, invIdx : from uvhCSCPattern.m, for summing the element-matrix values into the nonzeros
 %
-%   Tx, Fx, ... , Fh  : Nele x nod
-%   Kxu, ... , Khh    : Nele x nod x nod, with K(e,j,i) the derivative of the residual of node i with respect to the unknown at node j
-%   tauxInt, ...      : Nele x nip
+% Outputs:
+%   Tx, Fx, ... , Fh  : element residuals, Nele x nod
+%   vs                : the nonzero values of the Jacobian, in CSC order (empty if Ronly). The element-matrix values are kept internally
+%                       (Xmat, element-major) and summed into the nonzeros in parallel over the nonzeros, in the order given by invIdx
+%   tauxInt, ...      : Nele x nip if IntOut, otherwise 0 x nip
 %
-% The terms are those of uvhAssemblyIntPointImplicitSUPG_v2.m and uvhNodalLoopSSTREAM_v2.m, written for one element and one
-% integration point. The pointwise functions (EffectiveViscositySSTREAM, BasalDrag, SUPGtau, ...) are called with scalar arguments.
-% Interpreted this is slow; it is compiled with MATLAB Coder (BuildUaCompiled.m).
+% Outputs that are completely overwritten are not zero-filled (coder.nullcopy). Interpreted, this function is slow.
 %
 %%
 
@@ -59,15 +65,18 @@ for Iint=1:nip
 end
 weights=MUA.weights;
 
-Tx=zeros(Nele,nod); Fx=zeros(Nele,nod); Ty=zeros(Nele,nod); Fy=zeros(Nele,nod); Th=zeros(Nele,nod); Fh=zeros(Nele,nod);
+% (outputs that are completely overwritten are not zero-filled)
+Tx=coder.nullcopy(zeros(Nele,nod)); Fx=coder.nullcopy(zeros(Nele,nod)); Ty=coder.nullcopy(zeros(Nele,nod)); Fy=coder.nullcopy(zeros(Nele,nod)); Th=coder.nullcopy(zeros(Nele,nod)); Fh=coder.nullcopy(zeros(Nele,nod));
 % All element-matrix values in one array, element-major: Xmat(L,e), L = j + nod*(i-1) + nod^2*(c-1), with the nine blocks c in
 % row-major order (u,v,h)x(u,v,h). The values are summed into the nonzeros of the sparse matrix with GatherSumCSC (see uvhCSCPattern.m).
 if ~Ronly
-    Xmat=zeros(9*nod*nod,Nele);
+    Xmat=coder.nullcopy(zeros(9*nod*nod,Nele));
 else
     Xmat=zeros(9*nod*nod,0);
 end
-tauxInt=zeros(Nele,nip); tauyInt=zeros(Nele,nip); etaInt=zeros(Nele,nip); HeInt=zeros(Nele,nip);
+% basal drag, effective viscosity and floating mask at the integration points: only if requested (IntOut)
+nT=Nele*double(IntOut);
+tauxInt=coder.nullcopy(zeros(nT,nip)); tauyInt=coder.nullcopy(zeros(nT,nip)); etaInt=coder.nullcopy(zeros(nT,nip)); HeInt=coder.nullcopy(zeros(nT,nip));
 
 h0barr=0; h1barr=0; lambda_h=1;
 
@@ -107,9 +116,9 @@ parfor e=1:Nele
     for Iint=1:nip
 
         fun=N(:,Iint); funR=fun.';
-        Dx=reshape(MUA.Deriv(e,1,:,Iint),1,nod);
-        Dy=reshape(MUA.Deriv(e,2,:,Iint),1,nod);
-        detJw=MUA.DetJ(e,Iint)*weights(Iint);
+        Dx=reshape(Deriv(e,1,:,Iint),1,nod);
+        Dy=reshape(Deriv(e,2,:,Iint),1,nod);
+        detJw=DetJ(e,Iint)*weights(Iint);
 
         % values at the integration point
         hint=hn*fun; uint=un*fun; vint=vn*fun;
@@ -179,7 +188,9 @@ parfor e=1:Nele
             BasalDragFlex(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
 
         taux=taux(1); tauy=tauy(1); etaint=etaint(1);   % (1): scalars, as the inputs are scalars (sizes depend on run-time options in BasalDrag)
-        tauxInt(e,Iint)=taux; tauyInt(e,Iint)=tauy; etaInt(e,Iint)=etaint; HeInt(e,Iint)=Heint;
+        if IntOut
+            tauxInt(e,Iint)=taux; tauyInt(e,Iint)=tauy; etaInt(e,Iint)=etaint; HeInt(e,Iint)=Heint;
+        end
 
         if OnlyDragAndViscosity
             continue
@@ -276,4 +287,20 @@ parfor e=1:Nele
 
 end
 
+
+% Sum the element-matrix values into the nonzeros of the sparse matrix, in parallel over the nonzeros (each written by one thread),
+% in the order given by invIdx (see uvhCSCPattern.m). The element-matrix values Xmat stay inside the MEX file.
+if ~Ronly
+    nk=numel(invPtr)-1;
+    vs=coder.nullcopy(zeros(nk,1));
+    parfor k=1:nk
+        s=0;
+        for p=invPtr(k)+1:invPtr(k+1)
+            s=s+Xmat(invIdx(p));
+        end
+        vs(k)=s;
+    end
+else
+    vs=zeros(0,1);
+end
 end

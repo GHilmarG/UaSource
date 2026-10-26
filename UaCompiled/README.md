@@ -14,9 +14,10 @@ For larger meshes the fastest combination found was the compiled uvh assembly to
 
 ## How it works
 
-* `uvhElementKernel.m`: loops over elements (`parfor`, OpenMP), with the loop over integration points inside, and gathers the nodal values of each element from the nodal vectors and the connectivity. Contains the terms of `uvhAssemblyIntPointImplicitSUPG_v2.m` and `uvhNodalLoopSSTREAM_v2.m`. Returns the element residuals (`Tx ... Fh`, Nele x nod), the element-matrix values element-major (`Xmat`, 9*nod^2 x Nele), and basal drag, effective viscosity and floating mask at the integration points.
-* `uvhMatrixAssemblyCompiled.m`: prepares the inputs, calls the kernel, sums the residual with the precomputed indices of the assembly pattern (`P.iR`), sums the element-matrix values directly into the nonzeros of the sparse matrix (`GatherSumCSC`) and creates the sparse matrix directly from its CSC arrays (`SparseFromCSC`). This replaces `accumarray` and `sparse`. Entries that sum to exactly zero are kept as stored zeros.
-* `uvhCSCPattern.m`: per-mesh data derived from `MUA.uvhAssemblyPattern` (inverse map, CSC arrays, positions of the diagonal), kept in a persistent cache keyed by the topology key of the mesh.
+* `uvhElementKernel.m`: loops over elements (`parfor`, OpenMP), with the loop over integration points inside, and gathers the nodal values of each element from the nodal vectors and the connectivity. Contains the terms of `uvhAssemblyIntPointImplicitSUPG_v2.m` and `uvhNodalLoopSSTREAM_v2.m`. Returns the element residuals (`Tx ... Fh`, Nele x nod) and the nonzero values of the Jacobian in CSC order: the element-matrix values are kept inside the MEX file and summed into the nonzeros in parallel over the nonzeros (using the inverse map from `uvhCSCPattern.m`). Basal drag, effective viscosity and floating mask at the integration points are only returned if requested.
+* `uvhMatrixAssemblyCompiled.m`: prepares the inputs, calls the kernel, sums the residual with the precomputed indices of the assembly pattern (`P.iR`), and creates the sparse matrix directly from its CSC arrays (`SparseFromCSC`). This replaces `accumarray` and `sparse`. Entries that sum to exactly zero are kept as stored zeros.
+* Data movement: `MUA.Deriv` and `MUA.DetJ` are passed to the kernel as separate arrays (fields of a structure input are copied into a MEX file, arrays are not), outputs that are completely overwritten are not zero-filled (`coder.nullcopy`), and the element-matrix values never leave the kernel MEX file.
+* `uvhCSCPattern.m`: per-mesh data derived from `MUA.uvhAssemblyPattern` (inverse map for summing into the nonzeros, CSC arrays, positions of the diagonal), kept in a persistent cache keyed by the topology key of the mesh.
 
 ## Files
 
@@ -27,8 +28,7 @@ For larger meshes the fastest combination found was the compiled uvh assembly to
 | `uvhElementKernel.m` | The kernel |
 | `uvhKernelFull.m`, `uvhKernelRonly.m` | Entry points for code generation: residual and Jacobian / residual only (`Ronly` and the derivative flags are compile-time constants) |
 | `MakeKernelParamsFlex.m` | Run-time parameter structure from `CtrlVar` (fixed set of fields, integer codes for the sliding law and the SUPG tau option); `ok=false` if the options are not supported |
-| `uvhCSCPattern.m` | Per-mesh data for `GatherSumCSC` and `SparseFromCSC` |
-| `GatherSumCSC.m` | Sums the element-matrix values into the nonzeros (compiled: `GatherSumCSC_mex`) |
+| `uvhCSCPattern.m` | Per-mesh data for the summation into the nonzeros (in the kernel) and for `SparseFromCSC` |
 | `SparseFromCSC.c` | Creates a sparse matrix from its CSC arrays (hand-written C MEX: `SparseFromCSC`) |
 | `BasalDragFlex.m`, `SUPGtauFlex.m`, `ThicknessPenaltyMassBalanceFeedbackFlex.m` | Modified copies of the UaMain functions, see below |
 | `BuildUaCompiled.m` | Builds the MEX files |
@@ -57,7 +57,8 @@ Not compiled (the vectorised assembly is used): the inverse-run branch of `Basal
 
 With `CompiledKernel=false` the results are bit-identical to the vectorised assembly. With `CompiledKernel=true` residual and Jacobian agree with the vectorised assembly to rounding errors for all options listed above, for linear, quadratic and cubic elements, and for quadrature rules with 1 to 33 points.
 
-* Thule example, full run (0.1 yr, 51 time steps, mesh adaptation, level set, active set): identical time steps and Newton iterations, solution identical to rounding errors (max |dh| 9e-12 m); uvh assembly 91 s -> 24 s, run time 209 s -> 152 s (profiled).
-* Greenland example, one assembly, serial vectorised / spmd vectorised (4 threads) / compiled: nx200 (197,204 elements) 3894 / 1628 / 386 ms for residual and Jacobian, 1417 / 490 / 159 ms for the residual only.
+* Thule example, full run (0.1 yr, 51 time steps, mesh adaptation, level set, active set): identical time steps and Newton iterations, solution identical to rounding errors (max |dh| 9e-12 m); uvh assembly 91 s -> 17 s, run time 209 s -> 146 s (profiled).
+* Greenland example, one assembly, serial vectorised / spmd vectorised (4 threads) / compiled: nx200 (197,204 elements) 3903 / 1681 / 244 ms for residual and Jacobian, 1433 / 477 / 93 ms for the residual only (ratios 16.0 : 6.9 : 1 and 15.4 : 5.1 : 1).
+* Greenland example, nx200, full run (0.1 yr), compiled uvh assembly with spmd for the uv assembly: 133 s, against 189 s with spmd (4 threads) for both and 326 s serial vectorised; same time steps, Newton iterations and solution to rounding errors.
 
 Test files are in `UaExamples/Thule/PerfAnalysis`.
