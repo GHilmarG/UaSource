@@ -10,7 +10,7 @@ function [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=...
 % Called by uvhMatrixAssemblyCompiled.m through the MEX files built by BuildUaCompiled.m (entry points uvhKernelFull.m, uvhKernelRonly.m).
 % Replaces the loop over integration points in uvhMatrixAssembly.m (uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m) by a
 % loop over elements (parfor, OpenMP), with the loop over integration points inside. The terms are those of these two functions, written
-% for one element and one integration point; the pointwise functions (EffectiveViscositySSTREAM, BasalDrag, SUPGtauFlex, ...) are
+% for one element and one integration point; the pointwise functions (EffectiveViscositySSTREAM, BasalDrag, SUPGtau, ...) are
 % called with scalar arguments.
 %
 % Inputs:
@@ -40,7 +40,7 @@ assert(nod<=10) ; assert(nip<=37) ;   % upper bounds, so that the per-element ar
 theta=CtrlVar.theta;
 kH=CtrlVar.kH; Hh0=CtrlVar.Hh0; ThickMin=CtrlVar.ThickMin;
 beta0=CtrlVar.SUPG.beta0; SpeedZero=CtrlVar.SpeedZero;
-tauOption=CtrlVar.uvh.SUPG.tauCode;   % numeric code, see MakeKernelParamsFlex
+tauOption=CtrlVar.uvh.SUPG.tauCode;   % numeric code, see SUPGtauCode.m and MakeKernelParamsFlex.m
 tauMultiplier=CtrlVar.uvh.SUPG.tauMultiplier;
 
 % options, constant over the loops
@@ -150,7 +150,7 @@ parfor e=1:Nele
         end
 
         if UsePenalty
-            [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedbackFlex(CtrlVar,hint);
+            [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hint);
             aPenalty1=aPenalty1(1)*(~ConstrainedElement);      % (1): scalar, as hint is a scalar
             daPenaltydh1=daPenaltydh1(1)*(~ConstrainedElement);
             a1int=a1int+aPenalty1;
@@ -198,7 +198,7 @@ parfor e=1:Nele
         end
 
         speed0=sqrt(u0int*u0int+v0int*v0int+SpeedZero^2);
-        tau=SUPGtauFlex(CtrlVar,speed0,le,dt,tauOption,tauMultiplier);
+        tau=SUPGtau(CtrlVar,speed0,le,dt,tauOption,tauMultiplier);
         tau0=beta0*tau;
 
         % --- as uvhNodalLoopSSTREAM_v2.m, for one element ---

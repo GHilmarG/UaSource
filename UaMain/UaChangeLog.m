@@ -4,6 +4,21 @@
 % 
 % *Change Log* _October 2026_
 %
+% * SUPGtau.m and ThicknessPenaltyMassBalanceFeedback.m usable by MATLAB Coder; the compiled kernel uses them directly (26 October 2026):
+%
+% The compiled uvh assembly (UaSource/UaCompiled) used modified copies of these functions (SUPGtauFlex.m,
+% ThicknessPenaltyMassBalanceFeedbackFlex.m), which are now removed; the kernel calls the originals, as it does BasalDrag.m.
+%   SUPGtau.m: the option can be given as the name (CtrlVar.uvh.SUPG.tau) or as an integer code (new SUPGtauCode.m, also used by
+%     MakeKernelParamsFlex.m, so that strings are not compared at every integration point of the compiled kernel); the third output
+%     K is defined for all options (NaN except for "tau1"); plotting excluded from compiled code (coder.target('MATLAB')). Bug fix:
+%     the plotting (CtrlVar.doplots and CtrlVar.PlotSUPGparameter) tested ~isempty(MUA), but MUA is not an input, so it failed.
+%   ThicknessPenaltyMassBalanceFeedback.m: the width warning (with its persistent variable) and the diagnostic output excluded from
+%     compiled code. Bug fix: with InfoLevelThickMin>=10, the example curves were plotted for all penalty functions, but only exist
+%     for "softplus", so the diagnostic output failed for "polynomial" and "exponential".
+% In MATLAB the results are bit-identical to before (all options, name or code). Tests: compiled against vectorised for the five
+% tau options, the three penalty functions and the seven sliding laws: agreement to rounding errors; Thule example runs.
+% Note: for "tau1", K=coth(ECN)-1/ECN loses accuracy by cancellation for small ECN (the Taylor expansion is only used below 1e-6).
+%
 % * Worker data for the spmd assembly (MUA.workers): reliable and cheap check if they have to be built (26 October 2026):
 %
 % UpdateMUA.m is called twice in each run step. With spmd assembly, it called BuildMuaWorkers.m each time, which checked the existing

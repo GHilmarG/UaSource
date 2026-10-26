@@ -46,8 +46,12 @@ try
 catch
     R.SlidingLawCode=0 ; ok=false ; missing(end+1)="SlidingLaw="+string(R.SlidingLaw)+" (not a valid sliding law)" ;
 end
-R.uvh.SUPG.tauCode=find(strcmp(R.uvh.SUPG.tau,{'tau1','tau2','taus','taut','tau0'}));
-if isempty(R.uvh.SUPG.tauCode) ; R.uvh.SUPG.tauCode=0 ; ok=false ; missing(end+1)="uvh.SUPG.tau="+string(R.uvh.SUPG.tau)+" (not supported)" ; end
+% the SUPG tau option: names defined in SUPGtauCode.m (also used by SUPGtau.m)
+try
+    R.uvh.SUPG.tauCode=SUPGtauCode(R.uvh.SUPG.tau);
+catch
+    R.uvh.SUPG.tauCode=0 ; ok=false ; missing(end+1)="uvh.SUPG.tau="+string(R.uvh.SUPG.tau)+" (not a valid option)" ;
+end
 end
 
 function [in,v]=getpath(S,p)

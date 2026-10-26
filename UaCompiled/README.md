@@ -30,7 +30,6 @@ For larger meshes the fastest combination found was the compiled uvh assembly to
 | `MakeKernelParamsFlex.m` | Run-time parameter structure from `CtrlVar` (fixed set of fields, integer codes for the sliding law and the SUPG tau option); `ok=false` if the options are not supported |
 | `uvhCSCPattern.m` | Per-mesh data for the summation into the nonzeros (in the kernel) and for `SparseFromCSC` |
 | `SparseFromCSC.c` | Creates a sparse matrix from its CSC arrays (hand-written C MEX: `SparseFromCSC`) |
-| `SUPGtauFlex.m`, `ThicknessPenaltyMassBalanceFeedbackFlex.m` | Modified copies of the UaMain functions, see below. The basal drag is calculated by `BasalDrag.m` in UaMain, which MATLAB Coder uses directly |
 | `BuildUaCompiled.m` | Builds the MEX files |
 | `uvhKernel{Full,Ronly}_mex` | Kernel, any element type with nod<=10 and nip<=37 |
 | `uvhKernel{Full,Ronly}_n3i6_mex` | Kernel, linear elements with 6 integration points (fixed sizes, faster) |
@@ -47,10 +46,9 @@ Run-time (no rebuild needed): all numeric parameters including `dt`; melange ter
 
 Not compiled (the vectorised assembly is used): quadrature rules with more than 37 points, meshes without a cached assembly pattern, the per-integration-point debugging plots (`doplots` with `PlotSUPGparameter`, `InfoLevelThickMin>=10`).
 
-## Changes in the copies of the UaMain functions
+## Functions from UaMain used by the kernel
 
-* `SUPGtauFlex.m`: plotting excluded with `coder.target('MATLAB')`; the `switch` uses a numeric code for the tau option.
-* `ThicknessPenaltyMassBalanceFeedbackFlex.m`: plotting/info output and the warning that uses a persistent variable excluded with `coder.target('MATLAB')`.
+The kernel calls `BasalDrag.m` (with `SlidingLawBeta.m`), `SUPGtau.m`, `ThicknessPenaltyMassBalanceFeedback.m`, `EffectiveViscositySSTREAM.m` and other pointwise functions of UaMain directly; MATLAB Coder compiles them from there, so a change to one of them reaches the compiled kernel when the MEX files are rebuilt. They are written so that Coder can use them: options as integer codes where they are compared at every integration point (`SlidingLawCode.m`, `SUPGtauCode.m`, set once per assembly in `MakeKernelParamsFlex.m`), plotting, warnings and diagnostic output excluded from compiled code with `coder.target('MATLAB')`, no string arrays, all outputs defined on all paths. (Until 26 Oct 2026 the kernel used modified copies of `BasalDrag.m`, `SUPGtau.m` and `ThicknessPenaltyMassBalanceFeedback.m`.)
 
 ## Tests (25 October 2026)
 
