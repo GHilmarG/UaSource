@@ -4,6 +4,38 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Regression test of the compiled uvh assembly: UaSource/UaCompiled/Tests/TestUaCompiled.m (26 October 2026):
+%
+% A matlab.unittest class, run with results=runtests("TestUaCompiled"). It builds a small synthetic state itself (grounded and
+% floating ice, thickness near ThickMin, a level-set field, melange fields, non-converged velocities), and checks, for all sliding
+% laws (with and without melange), SUPG tau options, thickness penalty functions, the thickness barrier, active-set constraints,
+% level-set and mass-balance geometry feedback, ResetThicknessToMinThickness, Enforce_bAboveB, linear, quadratic and cubic elements
+% and quadrature rules with 1 to 33 points, that the compiled path is actually used and that residual and Jacobian agree with the
+% vectorised assembly (relative tolerance 1e-11, full and residual only); further OnlyCalcBasalDragAndEffectiveViscosity, the
+% fallback outside the compiled range, one implicit uvh time step (same Newton iterations and solution), and that the MEX files are
+% up to date. 40 tests, about 25 s, all passing. A deliberate change of 1e-6 in the SUPG parameter of the vectorised assembly only
+% made 35 of them fail.
+%
+% * Compiled uvh assembly: outdated or failing MEX files fall back to the vectorised assembly (26 October 2026):
+%
+%   - BuildUaCompiled.m records, for each MEX file, the MATLAB release and a checksum of each source file compiled into it, in
+%     UaCompiled/UaCompiledBuildInfo_<mexext>.mat (new UaCompiledBuildInfo.m; checksums with ArrayChecksum.m, of the file contents
+%     without carriage returns, so that other line endings do not count as a change). uvhCompiledKernelCheck.m compares these once per
+%     session and variant (about 0.1 s): if the MEX files were built with another release, or a source file changed since, the
+%     vectorised assembly is used, with a message naming the files. Without build information, a note says that this could not be
+%     checked.
+%   - A failure of the MEX files themselves (eg built for another MATLAB release or platform: "Invalid MEX-file", or an outdated
+%     interface) is reported as UaCompiled:KernelFailed by uvhMatrixAssemblyCompiled.m; uvhMatrixAssembly.m catches only this error,
+%     reports it once, switches the compiled kernel off for the rest of the session, and uses the vectorised assembly. Other errors
+%     (eg NaN in the matrix) are passed on as before.
+% Tests: unchanged sources: compiled path used; other line endings: still up to date; a changed source file and another release:
+% detected, vectorised assembly used; kernel MEX file replaced by another MEX file and by an invalid file: error reported once,
+% vectorised assembly used, results identical to the vectorised assembly.
+%
+% * Inverse run (Greenland, nx100, 2 iterations of an A, B, C inversion) with the rewritten BasalDrag.m against the code before the
+% rewrite (commit 0126b5d): identical cost function history (J, I, R), final estimates of A, B and C equal to rounding errors
+% (1e-16 relative), gradients to 2e-14.
+%
 % * SUPGtau.m and ThicknessPenaltyMassBalanceFeedback.m usable by MATLAB Coder; the compiled kernel uses them directly (26 October 2026):
 %
 % The compiled uvh assembly (UaSource/UaCompiled) used modified copies of these functions (SUPGtauFlex.m,

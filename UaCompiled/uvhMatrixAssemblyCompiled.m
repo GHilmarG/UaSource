@@ -31,10 +31,18 @@ MUAk=struct("Nele",MUA.Nele,"nod",MUA.nod,"nip",MUA.nip,"points",MUA.points,"wei
 args={MUAk,MUA.Deriv,MUA.DetJ,MUA.connectivity,col(F1.b),col(F1.h),col(F1.ub),col(F1.vb),col(F1.AGlen),col(F1.n),col(F1.C),col(F1.m), ...
       col(F1.q),col(F1.muk),col(F1.V0),col(F0.h),col(F0.ub),col(F0.vb),col(F0.as),col(F0.ab),col(F1.as),col(F1.ab),col(dadh),col(F1.B),col(F1.S), ...
       col(F1.rho),col(LSFMask),hBCsMask,uo,vo,Co,mo,ua,va,Ca,ma,RK,F1.rhow,F1.g,cos(F1.alpha),sin(F1.alpha),CtrlVar.dt,IntOut,invPtr,invIdx};
-if Ronly
-    [Tx,Fx,Ty,Fy,Th,Fh,~,tauxInt,tauyInt,etaInt,HeInt]=feval(KernelRonly,args{:});
-else
-    [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=feval(KernelFull,args{:});
+% (26 Oct 2026) A failure of the MEX file itself (eg built for another MATLAB release or another platform, or with an outdated
+% interface) is reported as UaCompiled:KernelFailed: uvhMatrixAssembly.m then uses the vectorised assembly instead.
+try
+    if Ronly
+        [Tx,Fx,Ty,Fy,Th,Fh,~,tauxInt,tauyInt,etaInt,HeInt]=feval(KernelRonly,args{:});
+    else
+        [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=feval(KernelFull,args{:});
+    end
+catch ME
+    if Ronly ; Kernel=KernelRonly ; else ; Kernel=KernelFull ; end
+    E=MException("UaCompiled:KernelFailed","%s: %s",Kernel,ME.message) ;
+    throw(addCause(E,ME)) ;
 end
 
 K=[];
@@ -56,7 +64,12 @@ if ~Ronly
     if any(isnan(vs(Cp.diagIdx)))
         error(' NaN in K ' ) ;
     end
-    K=SparseFromCSC(Cp.jc,Cp.ir,vs,neq);
+    try
+        K=SparseFromCSC(Cp.jc,Cp.ir,vs,neq);
+    catch ME
+        E=MException("UaCompiled:KernelFailed","SparseFromCSC: %s",ME.message) ;
+        throw(addCause(E,ME)) ;
+    end
 end
 
 end

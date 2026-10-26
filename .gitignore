@@ -17,6 +17,8 @@ resources/
 *.asv
 
 *.mat
+# build information of the MEX files in UaCompiled (see UaCompiled/UaCompiledBuildInfo.m), committed with them
+!UaCompiled/UaCompiledBuildInfo_*.mat
 
 *.fig
 

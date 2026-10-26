@@ -199,11 +199,29 @@ end
 
 if UseCompiledKernel
 
+    % (26 Oct 2026) If the MEX files themselves fail (UaCompiled:KernelFailed, eg built for another MATLAB release), the compiled
+    % kernel is switched off for the rest of the session (with a message), and the vectorised assembly below is used. Other errors
+    % (eg NaN in the matrix) are passed on, as with the vectorised assembly.
+    try
+
     if nargout>4   % basal drag, effective viscosity and floating mask at the integration points requested (eg by CalcBasalTraction.m)
         [R,KdFuvhduvh,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,BCs1,LSFMask,dadh,Ronly,RK,KernelFull,KernelRonly) ;
     else
         [R,KdFuvhduvh]=uvhMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,BCs1,LSFMask,dadh,Ronly,RK,KernelFull,KernelRonly) ;
     end
+
+    catch ME
+        if ~strcmp(ME.identifier,"UaCompiled:KernelFailed")
+            rethrow(ME) ;
+        end
+        uvhCompiledKernelCheck(CtrlVar,MUA,ME) ;   % reports the failure, and switches the compiled kernel off for this session
+        UseCompiledKernel=false ;
+    end
+
+end
+
+if UseCompiledKernel
+
     neq=3*MUA.Nnodes ;
     if isempty(R)   % CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=true
         KdFuvhduvh=[] ;

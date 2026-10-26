@@ -11,7 +11,8 @@ function BuildUaCompiled(Variants)
 %   Full_n3i6, Ronly_n3i6  : the same for linear elements with 6 integration points only (fixed sizes, faster)
 %   Sparse                 : SparseFromCSC, creates the sparse matrix directly from its CSC arrays (hand-written C, built with mex)
 %
-% The MEX files are written to this folder, the intermediate files of the code generation to tempdir.
+% The MEX files are written to this folder, the intermediate files of the code generation to tempdir. The MATLAB release and
+% checksums of the source files of each MEX file are recorded in UaCompiledBuildInfo_<mexext>.mat (see UaCompiledBuildInfo.m).
 %
 % A MEX file that has been called in the current MATLAB session cannot be replaced (the OpenMP threads keep it loaded),
 % so build in a fresh session, for example:
@@ -47,6 +48,8 @@ MUAt.Fields.EleAreas=coder.typeof(0,[Inf 1],[1 0]);
 V=coder.typeof(0,[Inf 1],[1 0]);   % nodal vectors, Nnodes x 1 (q, muk, V0 and the melange fields may be 0 x 1)
 U=coder.typeof(uint32(0),[Inf 1],[1 0]);   % invPtr, invIdx (see uvhCSCPattern.m)
 
+Built=strings(0);   % the MEX files built, for the build information (UaCompiledBuildInfo.m)
+
 for v=Variants
 
     switch v
@@ -65,6 +68,7 @@ for v=Variants
                 fprintf('BuildUaCompiled: compiler %s, SparseFromCSC built without OpenMP\n',cc.ShortName);
             end
             mex('-R2018a','-silent',Flags{:},'-outdir',Folder,fullfile(Folder,'SparseFromCSC.c'));
+            Built(end+1)="SparseFromCSC"; %#ok<AGROW>
 
         otherwise   % kernel variants
 
@@ -86,8 +90,16 @@ for v=Variants
             OutName="uvhKernel"+v+"_mex";
             fprintf('BuildUaCompiled: %s -> %s\n',Entry,OutName);
             codegen(char(Entry),'-config',cfg,'-args',args,'-o',char(fullfile(Folder,OutName)),'-d',char(fullfile(tempdir,'UaCompiledBuild',OutName)));
+            Built(end+1)=OutName; %#ok<AGROW>
 
     end
+end
+
+% (26 Oct 2026) record the MATLAB release and the checksums of the source files of the MEX files just built, so that
+% uvhCompiledKernelCheck.m can detect outdated MEX files (see UaCompiledBuildInfo.m)
+if ~isempty(Built)
+    UaCompiledBuildInfo("record",Built);
+    fprintf('BuildUaCompiled: build information recorded in UaCompiledBuildInfo_%s.mat\n',mexext);
 end
 
 end
