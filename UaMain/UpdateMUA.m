@@ -240,13 +240,8 @@ if MeshHasChanged
     MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity);
     MUA.Area=sum(MUA.EleAreas);
 
-    MUA.workers=[];
-
-    if CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn
-
-        MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
-
-    end
+    MUA.workers=[];      % (26 Oct 2026) the worker data are built anew at the end of this function (see there)
+    MUA.workersKey=[];
 
 
 end
@@ -381,39 +376,53 @@ if ~isfield(MUA,'Boundary') ||  ~isfield(MUA,'TR')
     end
 end
 
-MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas if each element
-MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
+% (26 Oct 2026) the element areas are recalculated above if the mesh has changed; here only if missing
+if ~isfield(MUA,"EleAreas") || numel(MUA.EleAreas)~=MUA.Nele || ~isfield(MUA,"Area")
+    MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas if each element
+    MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
+end
 
 
 if ~isfield(MUA,"workers")
     MUA.workers=[];
 end
-
-
+if ~isfield(MUA,"workersKey")
+    MUA.workersKey=[];
+end
 
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
 
-    % poolobj = gcp;
     poolobj = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
 
     if isempty(poolobj)
 
         fprintf("SPMD assembly is set to true, but parallel pool is empty. Create a parallel pool ahead of the call to %ca.\n",218)
 
-
     else
         CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
 
-        % not sure how to best to check if the composite is in good state
-        % if length(MUA.workers)  ~= CtrlVar.Parallel.uvhAssembly.spmd.nWorkers
-        %     MUA.workers=[] ;
-        % end
+        % (26 Oct 2026) Are the worker data (the Composite MUA.workers) valid for this mesh and this pool?
+        %  - all(exist(MUA.workers)) is false for all workers if the pool has been deleted, or replaced by a new one (even of the same
+        %    size): it checks that the Composite belongs to the current pool
+        %  - numel(MUA.workers) is the number of workers of the pool for which the worker data were built
+        %  - the contents of a Composite can only be checked by communicating with the workers, so the key of the mesh, the element
+        %    type and quadrature rule, and the number of workers for which they were built are kept in MUA.workersKey (see
+        %    MuaWorkersKey.m) and compared with the current ones. This also detects a change of the mesh that leaves the numbers of
+        %    nodes and elements unchanged.
+        % This takes well under a millisecond. Only if one of these does not hold are the worker data built (anew). Previously,
+        % BuildMuaWorkers.m checked this itself in each call, with an spmd round trip and a transfer of the worker data to the client
+        % (about 45 ms per call for a mesh of 110,000 elements).
+        Key=MuaWorkersKey(NewMeshKey,MUA,poolobj.NumWorkers) ;
+        WorkersValid = ~isempty(MUA.workers) && isequal(MUA.workersKey,Key) && numel(MUA.workers)==poolobj.NumWorkers && all(exist(MUA.workers)) ;  %#ok<EXIST>
 
-        if ~all(exist(MUA.workers))
-            MUA.workers=[];
+        if ~WorkersValid
+            MUA.workers=BuildMuaWorkers(CtrlVar,MUA,[]) ;
+            if isempty(MUA.workers)        % not built (CtrlVar.Parallel.BuildWorkers=false)
+                MUA.workersKey=[] ;
+            else
+                MUA.workersKey=Key ;
+            end
         end
-
-        MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
     end
 
 end

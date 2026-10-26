@@ -4,6 +4,28 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Worker data for the spmd assembly (MUA.workers): reliable and cheap check if they have to be built (26 October 2026):
+%
+% UpdateMUA.m is called twice in each run step. With spmd assembly, it called BuildMuaWorkers.m each time, which checked the existing
+% worker data by transferring the worker data of the first worker to the client (MUAworkers{1}.Nnodes) and comparing the element
+% partitions on the workers in an spmd block: about 45 ms per call for a mesh of 110,000 elements (Greenland nx150), and it did not
+% detect a change of the mesh that leaves the numbers of nodes and elements unchanged (eg nodes moved, or elements renumbered), as the
+% partitions only depend on these numbers; the workers would then have kept the old mesh.
+% Now:
+%   - UpdateMUA.m keeps a key of what the worker data were built for (MUA.workersKey, see the new MuaWorkersKey.m: the key of the mesh
+%     (MeshKey.m), element type, quadrature rule, number of workers), and checks: the key, numel(MUA.workers) equal to the number of
+%     workers of the pool, and all(exist(MUA.workers)), which is false for all workers if the pool has been deleted or replaced by a
+%     new one, even of the same size (the answer to the question in the comment there). Only if one of these does not hold are the
+%     worker data built. This takes well under a millisecond, and does not communicate with the workers.
+%   - BuildMuaWorkers.m no longer checks, it builds (unless CtrlVar.Parallel.BuildWorkers=false); the callers decide when.
+%   - CreateMUA.m sets MUA.workersKey when it builds the worker data.
+%   - UpdateMUA.m: no second build/check when the mesh has changed, and the element areas are only recalculated if needed.
+% Tests: with a 4-thread pool, unchanged mesh: no rebuild, UpdateMUA 2.3 ms (Thule test mesh); nodes moved, elements renumbered, new
+% pool of the same size, pool of another size: rebuilt, and the spmd assembly then agrees with the serial one (to rounding errors);
+% BuildWorkers=false respected. Greenland nx150, 1 yr: UpdateMUA 8.5 s -> 4.4 s (67 calls), BuildMuaWorkers 67 -> 4 calls, results
+% bit-identical. Thule with mesh adaptation and spmd for uvh and uv: worker data built twice (once for each mesh used in the solves),
+% same time steps and Newton iterations as the serial reference, results identical to rounding errors.
+%
 % * BasalDrag2.m renamed to BasalDrag.m, and unused files removed (26 October 2026):
 %
 % The rewritten basal drag (see the entries below) replaces the earlier version under its original name: BasalDrag2.m ->
