@@ -4,10 +4,25 @@
 % 
 % *Release Notes* _October 2026_
 %
-% * Support for the PARDISO direct sparse solver:
+% * Support for compiled uvh matrix assembly 
+% 
+% Users can now use a complied version of the uvh assembly routine. 
 %
-% You can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
-% uvh system, CHOLMOD of the uv system).
+% Details are provided in : |UaCompiledUserGuide.pdf| 
+% 
+% MEX files for 64-bit Windows with MATLAB2026b are included in the distribution, and to use this option set:
+%
+%   CtrlVar.uvhMatrixAssembly.CompiledKernel=true;
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=false; % the compiled assembly is parallel already
+%
+% For other platforms consult  |UaCompiledUserGuide.pdf| 
+%
+%
+% 
+%  * Support for the PARDISO direct sparse solver:
+% 
+%  You can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
+%  CHOLMOD of the uv system).
 %
 % The advantage of PARIDISO over the default MATLAB solvers is that PARDISO allows for reuse of the analysis phase of the
 % solution. This is particularly interesting when a linear system with the same sparsity structure is solved repeatedly. While
