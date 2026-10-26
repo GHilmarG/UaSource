@@ -202,12 +202,13 @@ hold on
 
 
 [Clat,hlat]=contour(ax1,X0,Y0,Lat,-85:dlat:85,LineColor=lcol,LabelFormat=@mylabelfunLat);
-
+hlat.Annotation.LegendInformation.IconDisplayStyle = "off";
 
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 
 [Clon,hlon]=contour(ax1,X0,Y0,Lon,-180+dlon:dlon:185,LineColor=lcol,LabelFormat=@mylabelfunLon);
+hlon.Annotation.LegendInformation.IconDisplayStyle = "off";
 set(hlon,'ShowText','on','TextStep',get(hlon,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 

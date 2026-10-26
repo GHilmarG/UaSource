@@ -10,7 +10,13 @@ if ~(nargout==2 || nargout==6)
     error('LevelSetEquationAssemblyNR2:IncorrectNumberOfInputs','Incorrect number of input arguments')
 end
 
-[UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,F0,F1);
+% (25 Oct 2026) Only the residual is assembled if only the residual is requested (eg in the line search, see
+% CalcCostFunctionLevelSetEquation.m). Previously the matrix was always assembled as well.
+if nargout==2
+    [UserVar,R]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,F0,F1);
+else
+    [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,F0,F1);
+end
 
 % f1=F1.LSF ;  f0=F0.LSF ; 
 % [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1);

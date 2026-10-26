@@ -49,7 +49,7 @@ end
 %
 %
 
-MUA.DetJ=[] ; MUA.Deriv=[] ; MUA.dM=[] ;  MUA.M=[] ;  MUA.TR=[] ;    MUA.workers=[];
+MUA.DetJ=[] ; MUA.Deriv=[] ; MUA.dM=[] ;  MUA.TR=[] ;    MUA.workers=[];
 
 Nouts=nargout('DefineOutputs');
 Nins=nargin('DefineOutputs');

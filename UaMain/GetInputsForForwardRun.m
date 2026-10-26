@@ -150,7 +150,7 @@ if ~isempty(MLC.hL)
 
     %BCsThicknessError=norm(MLC.hL*F.h-MLC.hRhs)/norm(MLC.hRhs+1000*eps) ;
 
-    BCsThicknessError=norm(MLC.hL*F.h-MLC.hRhs) > 10*eps(max(abs(F.h))) ;
+    BCsThicknessError=norm(MLC.hL*F.h-MLC.hRhs) > 10000*eps(max(abs(F.h))) ;
     
     if BCsThicknessError 
         

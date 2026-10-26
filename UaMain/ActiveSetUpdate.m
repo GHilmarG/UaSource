@@ -257,6 +257,14 @@ end
 
 NodesDeactivated=LastActiveSet(NewInActiveConstraints);
 
+% (25 Oct 2026) Estimated thickening within the time step (-ah*dt) of the nodes released here. Used if releases are deferred to the
+% next time step (CtrlVar.ActiveSet.DeferReleases, see uvhRootFinding.m). Diagnostic only: the update of the active set is not affected.
+if exist("ah","var") && ~isempty(NewInActiveConstraints)
+    RunInfo.Forward.ActiveSetReleasedThickening=-ah(NewInActiveConstraints)*F1.dt ;
+else
+    RunInfo.Forward.ActiveSetReleasedThickening=[] ;
+end
+
 %% Do I need to ACTIVATE some new thickness constraints?
 %I=h1<=CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
 % (14 Oct 2026) CtrlVar.ActiveSet.ActivationTolerance (default 0): nodes are only activated if their thickness is less than

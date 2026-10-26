@@ -112,7 +112,7 @@ if CtrlVar.MeshRefinementMethod=="start with explicit:global in the very first r
 
 end
 
-% isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
+% isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(Fold.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
 
 % isMeshAdapt=CtrlVar.AdaptMesh  ...
 %     && (CtrlVar.AdaptMeshInitial || (mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshRunStepInterval)==0 ...
@@ -124,7 +124,7 @@ end
 
 if isempty(AdaptMeshTime)
     if CtrlVar.AdaptMeshTimeInterval>0
-        AdaptMeshTime=ceil(CtrlVar.time/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
+        AdaptMeshTime=ceil(Fold.time/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
     else
         AdaptMeshTime=0;
     end
@@ -132,12 +132,18 @@ end
 
 if CtrlVar.AdaptMeshTimeInterval==0
     isAdaptMeshTime=true;
-elseif CtrlVar.time >= AdaptMeshTime
-    isAdaptMeshTime=true;
-    AdaptMeshTime=ceil((CtrlVar.time+eps(CtrlVar.time))/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
 else
-    isAdaptMeshTime=false;
+    AdaptTime=round(Fold.time/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval  ;
+    isAdaptMeshTime = abs(AdaptTime-Fold.time) <= Fold.dt/2 ; 
 end
+
+
+% elseif Fold.time >= AdaptMeshTime
+%     isAdaptMeshTime=true;
+%     AdaptMeshTime=ceil((Fold.time+eps(Fold.time))/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
+% else
+%     isAdaptMeshTime=false;
+% end
 
 if CtrlVar.AdaptMeshRunStepInterval==0
     isAdaptMeshRunStepInterval=true;
@@ -384,7 +390,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
 
                 fig.Children(2).XLim=fig.Children(1).XLim;
                 fig.Children(2).YLim=fig.Children(1).YLim;
-                sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
+                sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,Fold.time))
 
             end
 
@@ -516,7 +522,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
     axis tight
 
-    sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
+    sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,Fold.time))
 end
 
 
@@ -608,7 +614,7 @@ end
 RunInfo.MeshAdapt.Mesh.Nele(k)=MUAnew.Nele;
 RunInfo.MeshAdapt.Mesh.Nnodes(k)=MUAnew.Nnodes;
 RunInfo.MeshAdapt.Mesh.RunStepNumber(k)=CtrlVar.CurrentRunStepNumber;
-RunInfo.MeshAdapt.Mesh.time(k)=CtrlVar.time;
+RunInfo.MeshAdapt.Mesh.time(k)=Fold.time;
 
 
 

@@ -4,6 +4,117 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Compiled uvh assembly: less data movement into and out of the MEX files (25 October 2026, later):
+%
+% Timing experiments showed that the arithmetic in the compiled kernel scales well with the number of threads, and that about half of the
+% kernel time was spent moving data into and out of the MEX file. Changes (UaSource/UaCompiled, and the call in uvhMatrixAssembly.m):
+%   - MUA.Deriv and MUA.DetJ are passed as separate arrays instead of as fields of a structure: structure fields are copied into a MEX
+%     file, arrays are not (54+9 MB at nx200 in the Greenland example).
+%   - basal drag, effective viscosity and floating mask at the integration points are only calculated and returned if requested
+%     (uvhMatrixAssembly.m called with more than 4 outputs, eg by CalcBasalTraction.m).
+%   - outputs that are completely overwritten are not zero-filled (coder.nullcopy).
+%   - the element-matrix values are summed into the nonzeros of the sparse matrix within the kernel MEX file, so they are no longer
+%     returned (122 MB at nx200); GatherSumCSC.m and GatherSumCSC_mex removed.
+% Results are bit-identical to before. Greenland nx200, one assembly: residual and Jacobian 386 -> 244 ms, residual only 159 -> 93 ms;
+% ratio serial vectorised : spmd vectorised (4 threads) : compiled = 16.0 : 6.9 : 1 (residual and Jacobian), 15.4 : 5.1 : 1 (residual
+% only). Thule example, full run: uvh assembly 24 s -> 17 s (vectorised: 91 s). Greenland nx200, full run (0.1 yr) with the compiled
+% uvh assembly and spmd for the uv assembly: 133 s (spmd for both: 189 s). The MEX files must be rebuilt (BuildUaCompiled.m), as the
+% interface of the kernel has changed.
+%
+% * uvh assembly: optional compiled element-based assembly (25 October 2026):
+%
+% New option CtrlVar.uvhMatrixAssembly.CompiledKernel (default false, ie no change unless set). If true, and the options, the element
+% type and the cached assembly pattern allow it, uvhMatrixAssembly.m calls uvhMatrixAssemblyCompiled.m (new folder UaSource/UaCompiled,
+% see README.md there) instead of the vectorised assembly. Otherwise, or if UaCompiled is not on the path, the vectorised assembly is used,
+% unchanged; uvhCompiledKernelCheck.m decides this for each call and prints the reason once if the compiled assembly cannot be used.
+%
+% The compiled assembly consists of:
+%   - a kernel (uvhElementKernel.m) that loops over elements, with the loop over integration points inside, generated with MATLAB Coder
+%     and parallelised over elements with OpenMP. It gathers the nodal values of each element itself (from the nodal vectors and the
+%     connectivity), and contains the terms of uvhAssemblyIntPointImplicitSUPG_v2.m and uvhNodalLoopSSTREAM_v2.m. Options (sliding law,
+%     level-set feedback, penalty, barrier, melange, SUPG tau, ...) and all parameters are run-time inputs (MakeKernelParamsFlex.m), so no
+%     rebuild is needed when they change. MEX files: one for any element type with at most 10 nodes and 37 integration points, and a
+%     faster one for linear elements with 6 integration points; each for the residual and Jacobian, and for the residual only.
+%   - the element-matrix values are summed directly into the nonzeros of the sparse matrix (GatherSumCSC, parallel over the nonzeros,
+%     using an inverse of MUA.uvhAssemblyPattern.map computed once per mesh in uvhCSCPattern.m), and the sparse matrix is created directly
+%     from its CSC arrays (SparseFromCSC.c, hand-written C MEX), replacing accumarray and sparse. Entries that sum to exactly zero are kept
+%     as stored zeros (sparse drops them); the values are otherwise identical.
+%   The kernel calls modified copies of BasalDrag.m, SUPGtau.m and ThicknessPenaltyMassBalanceFeedback.m (in UaCompiled), with integer
+%   codes instead of strings for the sliding law and the SUPG tau option, and with plotting excluded from the compiled code. Not compiled:
+%   the inverse-run branch of BasalDrag.m and the sliding-law aliases "B" and "-C-" (not accepted by the forward branch of BasalDrag.m).
+%
+%   uvhMatrixAssembly.m: the switch, after the common preparation and before the vectorised assembly (which is unchanged).
+%   uvhMatrixAssemblySSTREAM_SPMD.m: the compiled assembly is not used within spmd workers (its OpenMP threads would compete with them).
+%   Ua2D_DefaultParameters.m: CtrlVar.uvhMatrixAssembly.CompiledKernel=false.
+%   UaSource/UaCompiled: the compiled assembly, the MEX files and the build script BuildUaCompiled.m.
+%
+% Tests: with CompiledKernel=false the results are bit-identical to before. With CompiledKernel=true residual and Jacobian agree with the
+% vectorised assembly to rounding errors for all supported options, for linear, quadratic and cubic elements and quadrature rules with 1 to
+% 33 points. Thule example, full run (0.1 yr, 51 time steps, mesh adaptation, level set, active set): identical time steps and Newton
+% iterations, solution identical to rounding errors (max |dh| 9e-12 m); uvh assembly 91 s -> 24 s, total 209 s -> 152 s (profiled).
+% Greenland example, nx200 (197,204 elements), one assembly, ratio serial vectorised : spmd vectorised (4 threads) : compiled =
+% 10.1 : 4.2 : 1 for residual and Jacobian (3894 / 1628 / 386 ms), and 8.9 : 3.1 : 1 for the residual only. For larger meshes, the
+% fastest combination was the compiled uvh assembly with spmd for the uv assembly (CtrlVar.Parallel.uvAssembly.spmd.isOn=true).
+%
+% * Active set: option to defer releases to the next time step (25 October 2026):
+%
+% New option CtrlVar.ActiveSet.DeferReleases (default false, ie no change unless set). If, after a converged uvh solve, the active-set
+% update only releases nodes (no activations), the solution of that solve (with these nodes still at ThickMin) is accepted, and the
+% active-set loop is left without a further solve; the nodes are released at the start of the next time step. Activations are always
+% followed by a further solve, so h>=ThickMin is still enforced in each time step; only the sign condition on the multipliers lags by one
+% time step. CtrlVar.ActiveSet.DeferReleasesMaxThickening (default inf): releases are only deferred if, for all released nodes, the
+% estimated thickening within the time step (-ah*dt) is less than this times ThickMin. Changes:
+%
+%   uvhRootFinding.m: the decision, after the call to ActiveSetUpdate. The deferred nodes are kept, with the topology key of the mesh, in
+%   RunInfo.Forward.ActiveSetDeferredReleases, and their number and estimated thickening are printed.
+%   ActiveSetInitialisation.m: deferred nodes are excluded from the predictive activation (and from the initial active set if that is
+%   rebuilt), as they are at ThickMin and would otherwise be activated again right away. Ignored if the mesh has changed (new local
+%   function DeferredReleases).
+%   ActiveSetUpdate.m: the estimated thickening of the released nodes is stored in RunInfo.Forward.ActiveSetReleasedThickening
+%   (diagnostic only).
+%   Ua2D_DefaultParameters.m: the two new options.
+%
+% Motivation: in the Thule example (50 km, 51 time steps) 40 of the 43 time steps that needed more than one uvh solve did so only
+% because nodes were released, and in 9 time steps some of the released nodes fell below ThickMin again (and were locked), requiring a
+% third solve. With DeferReleases=true: uvh solves 106 -> 66 (time steps with a single solve 8 -> 41), uvh Newton iterations 404 -> 312,
+% locking events 9 -> 2, total run time 181 s -> 153 s; time steps unchanged. Effect on the solution after 0.1 yr: relative change in
+% ice volume -6e-6, RMS change in h 0.8 m, max 21 m. The changes are concentrated at the calving front (149 of the 161 nodes with
+% |dh|>0.1 m are floating, within about 40 km of nodes at ThickMin), where h changes by about 20 m per time step, and are everywhere
+% smaller than the change in h over one time step at that node. The mass removed by the thickness constraints increased by 6%.
+% The estimated thickening of the deferred nodes was mostly just above the release threshold (median about 1.1e-3*ThickMin), but up
+% to 12*ThickMin for single nodes.
+% With DeferReleasesMaxThickening=1 (deferral only if no released node is estimated to thicken by more than ThickMin): 17 deferrals
+% (33 nodes), uvh solves 106 -> 89, run time 181 s -> 171 s, locking events unchanged (9); relative change in ice volume -2e-7, RMS
+% change in h 2 cm, max 0.6 m, mass removed by the constraints +0.5%. Thus the releases with large estimated thickening account for most
+% of both the saving and the change in the solution.
+% Greenland example (nx100, 25,095 nodes, 0.1 yr, 9 time steps, no calving-front evolution): 3 deferrals (52 nodes), all with small
+% estimated thickening (at most 0.04*ThickMin), so DeferReleasesMaxThickening=1 and inf give identical results; uvh solves 15 -> 12,
+% Newton iterations 53 -> 49 (about 5%); relative change in ice volume 1e-8, RMS change in h 0.7 mm, max 8 cm (at a node with h=1.7 m).
+%
+% * Level-set Newton-Raphson: fewer assemblies and iterations (25 October 2026):
+%
+% In each iteration of LevelSetEquationNewtonRaphson.m the level-set equation was assembled four times, each time with the matrix: once
+% for the Newton system, and three times in the line search (CalcCostFunctionLevelSetEquation.m at gamma=0, at gamma=1, and again at
+% the gamma returned by BackTracking.m). Changes:
+%
+%   LevelSetEquationAssemblyNR2.m, LevelSetEquationAssemblyNR2consistent.m: only the residual is assembled if only the residual is
+%   requested. LevelSetEquationAssemblyNR2consistentScalar.m already skipped the matrix for nargout==2, but the two wrappers always
+%   requested it. LevelSetEquationAssemblyNR2consistentScalar.m: K=(K+K')/2 (no advection term) only if K is requested.
+%   CalcCostFunctionLevelSetEquation.m: optional input R, the residual at gamma=0 if already assembled.
+%   LevelSetEquationNewtonRaphson.m: the residual assembled for the Newton system is used for the cost function at gamma=0, and the
+%   cost function at gamma=1 is not evaluated again if BackTracking.m returns gamma=1.
+%
+% Each iteration now needs one assembly with the matrix and, if gamma=1, one of the residual only. The results are unchanged (identical
+% iteration output). Thule example (50 km, 51 time steps, 102 level-set iterations): level-set assemblies 408 -> 204 (102 of them residual
+% only), time in LevelSetEquation.m 45 s -> 21 s, total run time 206 s -> 181 s.
+%
+% LevelSetEquationNewtonRaphson.m: the hard-wired rule forcing a further iteration if rRatio<0.01 and rWork>1e-20 has been removed. It
+% forced a second iteration in every level-set solve of the Thule example, although the first iteration reached r/r0 of about 1e-13
+% (the second took rForce to about 1e-26). Convergence is now decided by the LSFAcceptable/LSFDesired tolerances alone. Thule example:
+% level-set iterations 102 -> 77 (25 solves converge after one iteration; in the other 26 rWork is still above
+% LSFAcceptableWorkAndForceTolerances(1)=1e-10 after the first), time in LevelSetEquation.m 21 s -> 16 s. The time steps and the uvh
+% iteration output are unchanged.
+%
 % * New LinesolveScalingTest.m: performance of the linear solvers (MATLAB and PARDISO) as a function of the number of cores (17 October 2026):
 %
 % For a restart file, the uvh system (constraints eliminated as in ABfgPreEliminate.m) or the uv system (nodal constraints removed,

@@ -11,7 +11,12 @@ switch CtrlVar.LevelSetMethodEquationForm
 
     case "scalar"
 
-        [UserVar,R,K]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,F0,F1) ;
+        % (25 Oct 2026) K is only assembled if requested (only the residual is needed in the line search)
+        if nargout>2
+            [UserVar,R,K]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,F0,F1) ;
+        else
+            [UserVar,R]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,F0,F1) ;
+        end
 
         % [UserVar,R,K]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1);
         Qx=[] ; Qy=[] ; Rv=[];
