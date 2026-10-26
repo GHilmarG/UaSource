@@ -46,8 +46,7 @@ end
 
 if isempty(q)
 
-    pattern=["Budd","W-N0"];
-    if contains(CtrlVar.SlidingLaw,pattern)
+    if SlidingLawCode(CtrlVar.SlidingLaw)==2   % Budd (26 Oct 2026, names and aliases see SlidingLawCode.m)
         fprintf("Input Error:  \t For sliding law: %s \n \t \t \t \t q must be defined in DefineSlipperiness.m \n",CtrlVar.SlidingLaw)
         fprintf("\t \t \t \t and in an inverse run in DefineInputsForInverseRun.m as well. \n")
         error("Incorrect inputs")
@@ -71,8 +70,7 @@ end
 
 if isempty(muk)
 
-    pattern=["Tsai","Coulomb","Cornford","Umbi","minCW-N0","rpCW-N0","rCW-N0"]  ;
-    if contains(CtrlVar.SlidingLaw,pattern)
+    if any(SlidingLawCode(CtrlVar.SlidingLaw)==[3 4 5 6])   % Coulomb, Tsai, Cornford, Umbi
         fprintf("Input Error:  \t For sliding law: %s \n \t \t \t \t muk must be defined in DefineSlipperiness.m \n",CtrlVar.SlidingLaw)
         fprintf("\t \t \t \t and in an inverse run in DefineInputsForInverseRun.m as well. \n")
         error("Incorrect inputs")
@@ -92,15 +90,13 @@ else
 
 end
 
-pattern=["Joughin","rCW-V0"];
-if ~contains(CtrlVar.SlidingLaw,pattern)
+if SlidingLawCode(CtrlVar.SlidingLaw)~=7   % not Joughin
     V0=[];
 end
 
 if isempty(V0)
 
-    pattern=["Joughin","rCW-V0"];
-    if contains(CtrlVar.SlidingLaw,pattern)
+    if SlidingLawCode(CtrlVar.SlidingLaw)==7   % Joughin
         fprintf("Input Error:  \t For sliding law: %s \n \t \t \t \t V0 must be defined in DefineSlipperiness.m \n",CtrlVar.SlidingLaw)
         fprintf("\t \t \t \t and in an inverse run in DefineInputsForInverseRun.m as well. \n")
         error("Incorrect inputs")

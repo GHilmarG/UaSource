@@ -85,7 +85,7 @@ if ~contains(CtrlVar.Inverse.InvertFor,"logC",IgnoreCase=true)
     return
 end
 
-if CtrlVar.SlidingLaw~="Weertman"
+if SlidingLawCode(CtrlVar.SlidingLaw)~=1   % Weertman
 
     error("FCuv:NotImplemented","only implemented for Weertman sliding law.")
 

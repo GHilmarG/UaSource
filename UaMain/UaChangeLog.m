@@ -4,6 +4,78 @@
 % 
 % *Change Log* _October 2026_
 %
+% * BasalDrag2.m renamed to BasalDrag.m, and unused files removed (26 October 2026):
+%
+% The rewritten basal drag (see the entries below) replaces the earlier version under its original name: BasalDrag2.m ->
+% BasalDrag.m, BasalDrag2dC.m -> BasalDragdC.m; all calls and references (UaMain, UaCompiled) changed accordingly. Note that the
+% call of BasalDrag.m has changed: BasalDrag(CtrlVar,Derivatives,He,delta,h,H,rho,rhow,g,ub,vb,C,m,q,muk,V0,uo,vo,Co,mo,ua,va,Ca,ma).
+% Removed: BasalDragOld.m, BasalDragPreUa2026b.m, rpCWN0.m, rCWN0.m, rCWV0.m (no longer used), uvhAssemblyIntPointImplicitSUPG.m
+% (replaced by uvhAssemblyIntPointImplicitSUPG_v2.m), uvMatrixAssemblySSTREAM_Parfeval.m and
+% uvMatrixAssemblySSTREAMpartitionTriplets.m (no longer used, see the entry of 17 October). Also removed: the setting of
+% CtrlVar.BasalDrag.CalculateDerivatives in uvhMatrixAssembly.m, uvhAssemblyIntPointImplicitSUPG_v2.m and uvMatrixAssemblySSTREAM.m,
+% and CtrlVar.Inverse.dFuvdClambda in Ua2D_DefaultParameters.m, both no longer read. MEX files in UaCompiled rebuilt.
+% Tests: outputs of all callers bit-identical to before the rename; compiled against vectorised for all sliding laws as before;
+% Thule and RadialIceCap examples run.
+%
+% * Compiled uvh assembly uses BasalDrag2.m directly; examples use the new sliding-law aliases (26 October 2026):
+%
+% UaSource/UaCompiled: the kernel (uvhElementKernel.m) calls BasalDrag2.m from UaMain, which MATLAB Coder compiles directly, with
+% an explicit derivative switch (0 if Ronly, otherwise 2). BasalDragFlex.m (the modified copy of BasalDrag.m) removed.
+% MakeKernelParamsFlex.m: the sliding-law code from SlidingLawCode.m instead of its own table (which still had "W" and "C"), and
+% the check for the inverse branch (CtrlVar.Inverse.dFuvdClambda) removed. In the kernel, q, muk and V0 start as NaN and the
+% melange variables as 0 instead of [] (fixed types). All sliding laws and aliases are now supported by the compiled kernel.
+% MEX files rebuilt. Tests: compiled against vectorised for all 7 sliding laws, with and without melange, full and residual only:
+% agreement to rounding errors; Thule full run with the compiled kernel: same time steps and Newton iterations as the vectorised
+% reference, max |dh| 5e-12 m; Greenland nx200, one assembly: 239 ms (before: 244 ms), residual only 90 ms (93 ms).
+%
+% UaExamples: "W" -> "-W-" (MismipPlus, RadialIceCap), and the remaining comparisons with sliding-law names in the examples
+% (Calving, Greenland, Inverse, PIG-TWG) use SlidingLawCode.m; the Inverse example tested for "rCW-V0" (capital V).
+%
+% * Sliding-law names and aliases: one definition, SlidingLawCode.m (26 October 2026):
+%
+% The names of the sliding laws were compared against string lists in many places, with inconsistent aliases. All now use
+% SlidingLawCode.m: CtrlVarValidityCheck.m (which calls it first, so that the former aliases "W", "B", "C" give an informative
+% error), Ua2D_DefaultParameters.m (CtrlVar.MustBe.SlidingLaw updated to the accepted names, and the description of the laws),
+% DefineInputsForInverseRun.m, GetSlipperyDistribution.m, TestSlipperinessInputValues.m, dFuvdC.m, dIdCq.m, FBC.m, FCuv.m, Fqq.m,
+% WeertmanSecondOrderDerivatives.m, TestInverseHessianEndToEnd.m, and the template DefineInitialInputs.m ("W" -> "Weertman").
+% Inconsistencies found and corrected on the way:
+%   - Joughin: "rCW-V0" (capital V) in the MustBe list and in TestSlipperinessInputValues.m, but "rCW-v0" in BasalDrag.m, so
+%     the alias did not work (and V0 was set to []). Now "rCW-v0" throughout.
+%   - GetSlipperyDistribution.m required muk (5 outputs) for "W" (Weertman) and "W-N0" (Budd), but not for "Weertman". Now
+%     q is required for Budd and muk for Coulomb, Tsai, Cornford and Umbi, whatever the alias.
+%   - dFuvdC.m and dIdCq.m used q only for "Budd", not for its alias "W-N0"; FCuv.m accepted only "Weertman", not "W".
+%   - WeertmanSecondOrderDerivatives.m: its error message for other sliding laws was a string array, so that error() itself
+%     failed ("badMessageArgument"), eg in FBB.m.
+%   - DefineInitialInputs.m described "rCW-N0" as Cornford; it is Umbi (Cornford is "rpCW-N0").
+% Tests: all accepted names pass CtrlVarValidityCheck, the former aliases give the informative error; the outputs of the BasalDrag2
+% callers are unchanged for all sliding laws; Thule example runs.
+%
+% * BasalDrag2.m: rewritten basal drag (26 October 2026):
+%
+% BasalDrag.m had grown by adding one sliding law after another. New, replacing it:
+%   SlidingLawCode.m : the one place where the names and aliases of the sliding laws are defined (integer code 1-7). New aliases
+%                      "-W-" (Weertman), "-B-" (Budd), "-C-" (Coulomb); "W", "B" and "C" are no longer accepted (error with a
+%                      message naming the new alias).
+%   SlidingLawBeta.m : all sliding laws are isotropic, taub = beta (ub,vb); for each law the drag coefficient beta(U,h,C) and its
+%                      derivatives with respect to U, h and C, as explicit expressions. Replaces the local functions of BasalDrag.m
+%                      and the generated rpCWN0.m, rCWN0.m and rCWV0.m (Cornford, Umbi, Joughin).
+%   BasalDrag2.m     : drag and its derivatives, assembled from beta in the same way for all laws, plus the melange terms. Which
+%                      derivatives are calculated is given explicitly (Derivatives=0,1,2: none, u and v, u v and h), not by the number
+%                      of output arguments or CtrlVar.BasalDrag.CalculateDerivatives. All outputs are always defined. MUA and B are
+%                      no longer inputs.
+%   BasalDrag2dC.m   : the derivative with respect to C (inverse problem), instead of returning it in taubx when
+%                      CtrlVar.Inverse.dFuvdClambda=true.
+% Written so that MATLAB Coder can use them directly (tested: compiled results identical to MATLAB). NRosier (could not run) removed.
+%
+% Callers changed to BasalDrag2/BasalDrag2dC: uvhAssemblyIntPointImplicitSUPG_v2.m, uvMatrixAssemblySSTREAM.m, dFuvdBGeneral.m,
+% dIdBqGeneral.m, FBB.m, dFuvdC.m, dIdCq.m, CalcBasalTraction.m (the setting and resetting of CtrlVar.Inverse.dFuvdClambda, and of
+% CtrlVar.BasalDrag.CalculateDerivatives in the inverse routines, removed). BasalDrag.m itself is not yet removed.
+%
+% Tests: BasalDrag2 against BasalDrag for all 7 sliding laws, m=1 and 3, with and without melange: agreement to 1.6e-15 (relative);
+% BasalDrag2dC against the dFuvdClambda branch: 1.2e-15; derivatives against finite differences; outputs of the 8 changed callers
+% before and after, for all sliding laws: agreement to rounding errors (at most 1.3e-14). Thule example, full run with the
+% vectorised assembly: same time steps and Newton iterations, solution identical to rounding errors (max |dh| 1e-11 m).
+%
 % * Compiled uvh assembly: less data movement into and out of the MEX files (25 October 2026, later):
 %
 % Timing experiments showed that the arithmetic in the compiled kernel scales well with the number of threads, and that about half of the

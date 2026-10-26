@@ -10,7 +10,7 @@ function [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=...
 % Called by uvhMatrixAssemblyCompiled.m through the MEX files built by BuildUaCompiled.m (entry points uvhKernelFull.m, uvhKernelRonly.m).
 % Replaces the loop over integration points in uvhMatrixAssembly.m (uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m) by a
 % loop over elements (parfor, OpenMP), with the loop over integration points inside. The terms are those of these two functions, written
-% for one element and one integration point; the pointwise functions (EffectiveViscositySSTREAM, BasalDragFlex, SUPGtauFlex, ...) are
+% for one element and one integration point; the pointwise functions (EffectiveViscositySSTREAM, BasalDrag, SUPGtauFlex, ...) are
 % called with scalar arguments.
 %
 % Inputs:
@@ -48,6 +48,7 @@ Melange=CtrlVar.IncludeMelangeModelPhysics;
 UseLSF=CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback;
 UsePenalty=isfield(CtrlVar,'ThicknessPenalty') && CtrlVar.ThicknessPenalty && ~(isfield(CtrlVar,'ThicknessPenaltyNodal') && CtrlVar.ThicknessPenaltyNodal);
 UseBarrier=isfield(CtrlVar,'ThicknessBarrier') && isfield(CtrlVar,'ThicknessBarrierMassBalanceFeedbackCoeffLog') && CtrlVar.ThicknessBarrier;
+DragDerivatives=2*double(~Ronly);   % BasalDrag: derivatives with respect to u, v and h, unless Ronly
 hBarrier=0; pBarrier=0;   % defined on all paths (code generation)
 if UseBarrier
     hBarrier=CtrlVar.ThickMin+eps(CtrlVar.ThickMin);
@@ -83,8 +84,8 @@ h0barr=0; h1barr=0; lambda_h=1;
 parfor e=1:Nele
     idx=conn(e,:);   % nodes of element e (the nodal values are gathered here, step 3)
     % variables assigned only in some branches are initialised in each iteration (parfor)
-    uoint=[]; voint=[]; Coint=[]; moint=[]; uaint=[]; vaint=[]; Caint=[]; maint=[];
-    qint=[]; mukint=[]; V0int=[];
+    uoint=0; voint=0; Coint=0; moint=0; uaint=0; vaint=0; Caint=0; maint=0;   % used only with melange
+    qint=NaN; mukint=NaN; V0int=NaN;   % used only by the sliding laws that need them (NaN if not given, caught by the NaN check)
     bpn=zeros(1,nod);
 
     % nodal values of this element, 1 x nod
@@ -185,9 +186,9 @@ parfor e=1:Nele
 
         [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
         [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh]=...
-            BasalDragFlex(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
+            BasalDrag(CtrlVar,DragDerivatives,Heint,deltaint,hint,Hint,rhoint,rhow,g,uint,vint,Cint,mint,qint,mukint,V0int,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
 
-        taux=taux(1); tauy=tauy(1); etaint=etaint(1);   % (1): scalars, as the inputs are scalars (sizes depend on run-time options in BasalDrag)
+        taux=taux(1); tauy=tauy(1); etaint=etaint(1);   % (1): scalars, as the inputs are scalars
         if IntOut
             tauxInt(e,Iint)=taux; tauyInt(e,Iint)=tauy; etaInt(e,Iint)=etaint; HeInt(e,Iint)=Heint;
         end

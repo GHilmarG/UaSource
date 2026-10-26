@@ -39,10 +39,8 @@ end
 
 
 if Ronly
-    CtrlVar.BasalDrag.CalculateDerivatives=false;  
     CtrlVar.EffectiveViscosity.CalculateDerivatives=false;
 else
-    CtrlVar.BasalDrag.CalculateDerivatives=true;
     CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
 
 end

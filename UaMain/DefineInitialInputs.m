@@ -39,11 +39,10 @@ CtrlVar.UseUserDefinedRunStopCriterion=false; % one can also introduce UserDefin
                                               % through DefineRunStopCriterion.m
 
 %% Sliding law
-CtrlVar.SlidingLaw="W" ; 
-    % "W" is the Weertman sliding law
-    % "W-N0" is the Bud sliding law.
-    % "minCW-N0" is the Tsai sliding law
-    % "rCW-N0" ;  is the Cornford sliding law. This uses a 'reciprocal sum' of Coulomb and Weertman sliding laws. 
+CtrlVar.SlidingLaw="Weertman" ;
+    % Sliding laws, with their aliases (see SlidingLawCode.m):
+    %   "Weertman" ("-W-"), "Budd" ("-B-", "W-N0"), "Coulomb" ("-C-"), "Tsai" ("minCW-N0"),
+    %   "Cornford" ("rpCW-N0"), "Umbi" ("rCW-N0"), "Joughin" ("rCW-v0")
     % For description of further options and definitions, see Ua2D_DefaultParameters and
     % the UaCompendium.pdf 
 %% time step, and time-stepping 

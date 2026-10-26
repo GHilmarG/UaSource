@@ -30,7 +30,7 @@ For larger meshes the fastest combination found was the compiled uvh assembly to
 | `MakeKernelParamsFlex.m` | Run-time parameter structure from `CtrlVar` (fixed set of fields, integer codes for the sliding law and the SUPG tau option); `ok=false` if the options are not supported |
 | `uvhCSCPattern.m` | Per-mesh data for the summation into the nonzeros (in the kernel) and for `SparseFromCSC` |
 | `SparseFromCSC.c` | Creates a sparse matrix from its CSC arrays (hand-written C MEX: `SparseFromCSC`) |
-| `BasalDragFlex.m`, `SUPGtauFlex.m`, `ThicknessPenaltyMassBalanceFeedbackFlex.m` | Modified copies of the UaMain functions, see below |
+| `SUPGtauFlex.m`, `ThicknessPenaltyMassBalanceFeedbackFlex.m` | Modified copies of the UaMain functions, see below. The basal drag is calculated by `BasalDrag.m` in UaMain, which MATLAB Coder uses directly |
 | `BuildUaCompiled.m` | Builds the MEX files |
 | `uvhKernel{Full,Ronly}_mex` | Kernel, any element type with nod<=10 and nip<=37 |
 | `uvhKernel{Full,Ronly}_n3i6_mex` | Kernel, linear elements with 6 integration points (fixed sizes, faster) |
@@ -43,13 +43,12 @@ Requires MATLAB Coder and a C compiler, preferably with OpenMP (tested with MinG
 
 ## Supported options
 
-Run-time (no rebuild needed): all numeric parameters including `dt`; melange terms; `OnlyCalcBasalDragAndEffectiveViscosity`; the sliding laws of the forward branch of `BasalDrag` (Weertman/W, Budd/W-N0, Coulomb/C, Tsai/minCW-N0, Cornford/rpCW-N0, Umbi/rCW-N0, Joughin/rCW-v0); level-set mass-balance feedback; thickness penalty (SoftPlus, polynomial, exponential); thickness barrier; `ResetThicknessToMinThickness`, `Enforce_bAboveB`; SUPG tau options tau1, tau2, taus, taut, tau0; linear, quadratic and cubic elements; quadrature rules with at most 37 points.
+Run-time (no rebuild needed): all numeric parameters including `dt`; melange terms; `OnlyCalcBasalDragAndEffectiveViscosity`; all sliding laws of `BasalDrag.m`, with all their names and aliases (`SlidingLawCode.m`); level-set mass-balance feedback; thickness penalty (SoftPlus, polynomial, exponential); thickness barrier; `ResetThicknessToMinThickness`, `Enforce_bAboveB`; SUPG tau options tau1, tau2, taus, taut, tau0; linear, quadratic and cubic elements; quadrature rules with at most 37 points.
 
-Not compiled (the vectorised assembly is used): the inverse-run branch of `BasalDrag` (`CtrlVar.Inverse.dFuvdClambda`), the sliding-law aliases "B" and "-C-" (which the forward branch of `BasalDrag` does not accept either), quadrature rules with more than 37 points, meshes without a cached assembly pattern, the per-integration-point debugging plots (`doplots` with `PlotSUPGparameter`, `InfoLevelThickMin>=10`).
+Not compiled (the vectorised assembly is used): quadrature rules with more than 37 points, meshes without a cached assembly pattern, the per-integration-point debugging plots (`doplots` with `PlotSUPGparameter`, `InfoLevelThickMin>=10`).
 
 ## Changes in the copies of the UaMain functions
 
-* `BasalDragFlex.m`: `ismember(string(...),[...])` replaced by an integer code (code generation does not support string arrays, and comparing strings at every integration point was slow); `t=[]; beta2i=[]; Dbeta2i=[]` replaced by zero arrays (same size in all branches); the inverse branch is excluded with `coder.target('MATLAB')`; the forward `switch` uses the integer code `CtrlVar.SlidingLawCode`.
 * `SUPGtauFlex.m`: plotting excluded with `coder.target('MATLAB')`; the `switch` uses a numeric code for the tau option.
 * `ThicknessPenaltyMassBalanceFeedbackFlex.m`: plotting/info output and the warning that uses a persistent variable excluded with `coder.target('MATLAB')`.
 
