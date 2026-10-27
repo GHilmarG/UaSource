@@ -158,8 +158,11 @@ CtrlVar.alpha=0 ;
 %
 % *Tsai:*   Tau=min(TauC,TauW)
 %
-% *Conford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
+% *Cornford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
 %
+% *Umbi:*  1/Tau = 1/TauC + 1/TauW
+%
+% *Joughin:*  Tau = TauW (U/(U+V0))^(1/m), with a threshold speed V0
 %
 % The *Budd* sliding law is a simple extension of the Weertman sliding law where:
 %
@@ -168,8 +171,11 @@ CtrlVar.alpha=0 ;
 % The effective pressure is currently only calculated using a 'zeroth-order' hydrology
 % model, where N=rho g (h-h_f) where h_f is the flotation thickness. 
 %
+% Names and aliases (26 Oct 2026; defined in SlidingLawCode.m, which this list must match):
+%   "Weertman" ("-W-"), "Budd" ("-B-", "W-N0"), "Coulomb" ("-C-"), "Tsai" ("minCW-N0"), "Cornford" ("rpCW-N0"), "Umbi" ("rCW-N0"),
+%   "Joughin" ("rCW-v0"). The former aliases "W", "B" and "C" are no longer accepted.
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","Joughin","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0","rCW-V0"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","-W-","Budd","-B-","W-N0","Coulomb","-C-","Tsai","minCW-N0","Cornford","rpCW-N0","Umbi","rCW-N0","Joughin","rCW-v0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
 % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -1134,7 +1140,6 @@ CtrlVar.Inverse.Regularize.Multiplier=1;
 
 
 %
-CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 %%
 % [----------  The following parameters are only relevant if using the
 % UaOptimisation i.e. only if

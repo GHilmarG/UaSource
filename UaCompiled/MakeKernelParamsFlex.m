@@ -13,10 +13,10 @@ if isempty(P)
      "ThicknessPenaltyMassBalanceFeedbackSoftPlus.K","ThicknessPenaltyMassBalanceFeedbackSoftPlus.deltaAbs","ThicknessPenaltyMassBalanceFeedbackSoftPlus.l","ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel", ...
      "SUPG.beta0","uvh.SUPG.tauMultiplier","Hydrology.gammaw","ThicknessBarrierMassBalanceFeedbackCoeffLog", ...
      "Enforce_bAboveB","IncludeMelangeModelPhysics","LevelSetMethod","LevelSetMethodAutomaticallyApplyMassBalanceFeedback", ...
-     "OnlyCalcBasalDragAndEffectiveViscosity","ResetThicknessToMinThickness","ThicknessBarrier","ThicknessPenalty","ThicknessPenaltyNodal","Inverse.dFuvdClambda"];
+     "OnlyCalcBasalDragAndEffectiveViscosity","ResetThicknessToMinThickness","ThicknessBarrier","ThicknessPenalty","ThicknessPenaltyNodal"];
     Chr=["SlidingLaw","ThicknessPenaltyMassBalanceFeedbackFunction","uvh.SUPG.tau"];
     % fields that may be missing in CtrlVar, with the value the code assumes if they are missing
-    Opt=struct("ThicknessBarrier",0,"ThicknessBarrierMassBalanceFeedbackCoeffLog",0,"OnlyCalcBasalDragAndEffectiveViscosity",0,"ThicknessPenaltyNodal",0,"Inverse_dFuvdClambda",0,"Hydrology_gammaw",NaN);
+    Opt=struct("ThicknessBarrier",0,"ThicknessBarrierMassBalanceFeedbackCoeffLog",0,"OnlyCalcBasalDragAndEffectiveViscosity",0,"ThicknessPenaltyNodal",0,"Hydrology_gammaw",NaN);
     P.Num=cellfun(@(p) cellstr(split(p,".")).',cellstr(Num),'UniformOutput',false) ; P.NumName=Num ;
     P.Chr=cellfun(@(p) cellstr(split(p,".")).',cellstr(Chr),'UniformOutput',false) ; P.ChrName=Chr ;
     P.Opt=Opt ; P.OptKey=strrep(Num,".","_") ;
@@ -39,14 +39,19 @@ for k=1:numel(P.Chr)
 end
 % display-only fields: plotting is not part of the compiled code
 R.doplots=0; R.PlotSUPGparameter=0; R.InfoLevelThickMin=0;
-% integer codes for the string options, as in the forward branch of BasalDrag.m and in SUPGtau.m (0: not supported, use the vectorised assembly)
-Laws={{'Weertman','W'},{'Budd','W-N0'},{'Coulomb','C'},{'Tsai','minCW-N0'},{'rpCW-N0','Cornford'},{'rCW-N0','Umbi'},{'Joughin','rCW-v0'}};
-R.SlidingLawCode=0; for k=1:numel(Laws) ; if any(strcmp(R.SlidingLaw,Laws{k})) ; R.SlidingLawCode=k ; end ; end
-if R.SlidingLawCode==0 ; ok=false ; missing(end+1)="SlidingLaw="+string(R.SlidingLaw)+" (not supported)" ; end
-R.uvh.SUPG.tauCode=find(strcmp(R.uvh.SUPG.tau,{'tau1','tau2','taus','taut','tau0'}));
-if isempty(R.uvh.SUPG.tauCode) ; R.uvh.SUPG.tauCode=0 ; ok=false ; missing(end+1)="uvh.SUPG.tau="+string(R.uvh.SUPG.tau)+" (not supported)" ; end
-% the inverse-run branch of BasalDrag (dFuvdC) is not part of the compiled kernel
-if R.Inverse.dFuvdClambda~=0 ; ok=false ; missing(end+1)="Inverse.dFuvdClambda (inverse branch not compiled)" ; end
+% integer codes for the string options (0: not supported, use the vectorised assembly)
+% the sliding law: names and aliases are defined in SlidingLawCode.m (also used by BasalDrag.m)
+try
+    R.SlidingLawCode=SlidingLawCode(R.SlidingLaw);
+catch
+    R.SlidingLawCode=0 ; ok=false ; missing(end+1)="SlidingLaw="+string(R.SlidingLaw)+" (not a valid sliding law)" ;
+end
+% the SUPG tau option: names defined in SUPGtauCode.m (also used by SUPGtau.m)
+try
+    R.uvh.SUPG.tauCode=SUPGtauCode(R.uvh.SUPG.tau);
+catch
+    R.uvh.SUPG.tauCode=0 ; ok=false ; missing(end+1)="uvh.SUPG.tau="+string(R.uvh.SUPG.tau)+" (not a valid option)" ;
+end
 end
 
 function [in,v]=getpath(S,p)

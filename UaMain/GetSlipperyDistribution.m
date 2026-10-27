@@ -10,12 +10,14 @@ N=nargout('DefineSlipperyDistribution');
 
 
 
-if any(CtrlVar.SlidingLaw==["Budd","W-N0"]) && N<4
+SlidingLaw=SlidingLawCode(CtrlVar.SlidingLaw);   % (26 Oct 2026) names and aliases, see SlidingLawCode.m
+
+if SlidingLaw==2 && N<4   % Budd
     error("GetSlipperyDistribution:nargout","When using Budd sliding law, DefineSlipperyDistribution.m must return 4 parameters [UserVar,C,m,q] ")
 end
 
 
-if any(CtrlVar.SlidingLaw==["Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0"])  && N<5
+if any(SlidingLaw==[3 4 5 6]) && N<5   % Coulomb, Tsai, Cornford, Umbi (need muk)
     fprintf("\n \n When using the sliding law %s, DefineSlipperyDistribution.m must return 5 parameters [UserVar,C,m,q,muk]. \n",CtrlVar.SlidingLaw)
     fprintf(" Note: The sliding law only depends on the parameters C, m, muk. (so you can set, for example, q=NaN.)  \n")
     error("GetSlipperyDistribution:nargout","Incorrect number of output parameters in DefineSlipperiness ")

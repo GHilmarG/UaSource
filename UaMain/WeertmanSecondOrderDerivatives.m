@@ -48,7 +48,7 @@ function [d2taubxdhdh,d2taubydhdh,d2taubxdhdu,d2taubxdhdv,d2taubydhdu,d2taubydhd
 %    \frac{\partial^2 t_{bx}}{\partial h \partial v} = \tilde{\delta}(\Delta h) \, D\beta^2 \, u_b v_b $$
 %
 % which are $\partial t_{bx}/\partial u$ and $\partial t_{bx}/\partial v$ with $\mathcal{G} \to \tilde{\delta}$.
-% Compare the Weertman sub-function of BasalDrag.m, lines 493 to 500.
+% Compare the Weertman case in SlidingLawBeta.m (used by BasalDrag.m).
 %
 % For the effective-pressure dependent laws (Budd, Tsai, Cornford, Umbi) $\beta^2$ depends on $N$, and hence on
 % $\Delta h$, so there are further terms and none of the above applies. Those laws are rejected here.
@@ -77,11 +77,11 @@ function [d2taubxdhdh,d2taubydhdh,d2taubxdhdu,d2taubxdhdv,d2taubydhdu,d2taubydhd
 narginchk(6,6)
 nargoutchk(2,6)
 
-if ~ismember(string(CtrlVar.SlidingLaw),["W","Weertman"])
+if SlidingLawCode(CtrlVar.SlidingLaw)~=1   % Weertman
     error("WeertmanSecondOrderDerivatives:SlidingLawNotImplemented",...
-        ["Second-order derivatives of the basal traction are currently implemented for the Weertman sliding\n" ...
-         "law only, but CtrlVar.SlidingLaw=""%s"".\n" ...
-         "For the effective-pressure dependent laws beta^2 depends on N, and hence on h, giving further terms."],...
+        "Second-order derivatives of the basal traction are currently implemented for the Weertman sliding\n" + ...
+         "law only, but CtrlVar.SlidingLaw=""%s"".\n" + ...
+         "For the effective-pressure dependent laws beta^2 depends on N, and hence on h, giving further terms.",...
         CtrlVar.SlidingLaw)
 end
 
@@ -95,8 +95,8 @@ u0 = CtrlVar.SpeedZero ;
 
 U  = sqrt(ub.*ub+vb.*vb+u0*u0) ;
 t  = (U./(C+C0)).^(1./m) ;
-beta2  = t./U ;                        % as in BasalDrag.m
-Dbeta2 = (1./m-1).*t./U.^3 ;           % as in BasalDrag.m , zero for m=1
+beta2  = t./U ;                        % as in SlidingLawBeta.m (b)
+Dbeta2 = (1./m-1).*t./U.^3 ;           % as in SlidingLawBeta.m (DbetaU), zero for m=1
 
 G      = HeavisideApprox(CtrlVar.kH,Dh,CtrlVar.Hh0) ;
 Dtilde = DiracDelta(CtrlVar.kH,Dh,CtrlVar.Hh0) ;        % regularised delta, not a Dirac delta

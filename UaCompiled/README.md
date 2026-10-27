@@ -30,12 +30,15 @@ For larger meshes the fastest combination found was the compiled uvh assembly to
 | `MakeKernelParamsFlex.m` | Run-time parameter structure from `CtrlVar` (fixed set of fields, integer codes for the sliding law and the SUPG tau option); `ok=false` if the options are not supported |
 | `uvhCSCPattern.m` | Per-mesh data for the summation into the nonzeros (in the kernel) and for `SparseFromCSC` |
 | `SparseFromCSC.c` | Creates a sparse matrix from its CSC arrays (hand-written C MEX: `SparseFromCSC`) |
-| `BasalDragFlex.m`, `SUPGtauFlex.m`, `ThicknessPenaltyMassBalanceFeedbackFlex.m` | Modified copies of the UaMain functions, see below |
 | `BuildUaCompiled.m` | Builds the MEX files |
+| `UaCompiledBuildInfo.m`, `UaCompiledBuildInfo_<mexext>.mat` | Build information: MATLAB release and checksums of the source files of each MEX file, recorded by `BuildUaCompiled.m`, checked by `uvhCompiledKernelCheck.m` once per session; outdated MEX files are not used |
+| `Tests/TestUaCompiled.m` | Regression test (matlab.unittest): compiled against vectorised assembly for all options, element types and quadrature rules, fallback, one Newton solve, build information. `runtests("TestUaCompiled")`, about 25 s |
 | `uvhKernel{Full,Ronly}_mex` | Kernel, any element type with nod<=10 and nip<=37 |
 | `uvhKernel{Full,Ronly}_n3i6_mex` | Kernel, linear elements with 6 integration points (fixed sizes, faster) |
 
 ## Building
+
+If the MEX files are outdated (a source file changed since they were built, or another MATLAB release), or fail when called (eg "Invalid MEX-file"), the vectorised assembly is used, with a message saying why; rebuild them with `BuildUaCompiled.m`.
 
 Requires MATLAB Coder and a C compiler, preferably with OpenMP (tested with MinGW64 14.2, R2026b, Windows). Build in a fresh MATLAB session, because a MEX file with OpenMP that has been called cannot be replaced in the same session:
 
@@ -43,17 +46,21 @@ Requires MATLAB Coder and a C compiler, preferably with OpenMP (tested with MinG
 
 ## Supported options
 
-Run-time (no rebuild needed): all numeric parameters including `dt`; melange terms; `OnlyCalcBasalDragAndEffectiveViscosity`; the sliding laws of the forward branch of `BasalDrag` (Weertman/W, Budd/W-N0, Coulomb/C, Tsai/minCW-N0, Cornford/rpCW-N0, Umbi/rCW-N0, Joughin/rCW-v0); level-set mass-balance feedback; thickness penalty (SoftPlus, polynomial, exponential); thickness barrier; `ResetThicknessToMinThickness`, `Enforce_bAboveB`; SUPG tau options tau1, tau2, taus, taut, tau0; linear, quadratic and cubic elements; quadrature rules with at most 37 points.
+Run-time (no rebuild needed): all numeric parameters including `dt`; melange terms; `OnlyCalcBasalDragAndEffectiveViscosity`; all sliding laws of `BasalDrag.m`, with all their names and aliases (`SlidingLawCode.m`); level-set mass-balance feedback; thickness penalty (SoftPlus, polynomial, exponential); thickness barrier; `ResetThicknessToMinThickness`, `Enforce_bAboveB`; SUPG tau options tau1, tau2, taus, taut, tau0; linear, quadratic and cubic elements; quadrature rules with at most 37 points.
 
-Not compiled (the vectorised assembly is used): the inverse-run branch of `BasalDrag` (`CtrlVar.Inverse.dFuvdClambda`), the sliding-law aliases "B" and "-C-" (which the forward branch of `BasalDrag` does not accept either), quadrature rules with more than 37 points, meshes without a cached assembly pattern, the per-integration-point debugging plots (`doplots` with `PlotSUPGparameter`, `InfoLevelThickMin>=10`).
+Not compiled (the vectorised assembly is used): quadrature rules with more than 37 points, meshes without a cached assembly pattern, the per-integration-point debugging plots (`doplots` with `PlotSUPGparameter`, `InfoLevelThickMin>=10`).
 
-## Changes in the copies of the UaMain functions
+## Functions from UaMain used by the kernel
 
-* `BasalDragFlex.m`: `ismember(string(...),[...])` replaced by an integer code (code generation does not support string arrays, and comparing strings at every integration point was slow); `t=[]; beta2i=[]; Dbeta2i=[]` replaced by zero arrays (same size in all branches); the inverse branch is excluded with `coder.target('MATLAB')`; the forward `switch` uses the integer code `CtrlVar.SlidingLawCode`.
-* `SUPGtauFlex.m`: plotting excluded with `coder.target('MATLAB')`; the `switch` uses a numeric code for the tau option.
-* `ThicknessPenaltyMassBalanceFeedbackFlex.m`: plotting/info output and the warning that uses a persistent variable excluded with `coder.target('MATLAB')`.
+The kernel calls `BasalDrag.m` (with `SlidingLawBeta.m`), `SUPGtau.m`, `ThicknessPenaltyMassBalanceFeedback.m`, `EffectiveViscositySSTREAM.m` and other pointwise functions of UaMain directly; MATLAB Coder compiles them from there, so a change to one of them reaches the compiled kernel when the MEX files are rebuilt. They are written so that Coder can use them: options as integer codes where they are compared at every integration point (`SlidingLawCode.m`, `SUPGtauCode.m`, set once per assembly in `MakeKernelParamsFlex.m`), plotting, warnings and diagnostic output excluded from compiled code with `coder.target('MATLAB')`, no string arrays, all outputs defined on all paths. (Until 26 Oct 2026 the kernel used modified copies of `BasalDrag.m`, `SUPGtau.m` and `ThicknessPenaltyMassBalanceFeedback.m`.)
 
 ## Tests (25 October 2026)
+
+Run the regression test after any change to the kernel, to the functions it compiles, or to the vectorised uvh assembly, and after rebuilding the MEX files:
+
+    results=runtests("TestUaCompiled"); table(results)
+
+It builds a small synthetic state itself (no files needed), checks for each case that the compiled path is actually used, and compares residual and Jacobian with the vectorised assembly (relative tolerance 1e-11). 40 tests, about 25 s.
 
 With `CompiledKernel=false` the results are bit-identical to the vectorised assembly. With `CompiledKernel=true` residual and Jacobian agree with the vectorised assembly to rounding errors for all options listed above, for linear, quadratic and cubic elements, and for quadrature rules with 1 to 33 points.
 

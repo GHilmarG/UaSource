@@ -50,81 +50,13 @@ Partition{nW}=i1:i2 ;
 
 MUA.dM=[] ;
 
-% Have I already build the workers for this mesh?
-% I test this by seeing if the previous partition is the same 
+% (26 Oct 2026) The worker data are always built here: the callers decide when this is necessary. UpdateMUA.m keeps the key of
+% the mesh and the number of workers for which the worker data were built (MUA.workersKey, see MuaWorkersKey.m), and checks with
+% all(exist(MUA.workers)) that the Composite belongs to the current pool. The previous check here (number of nodes, and the element
+% partitions compared on the workers) required communication with the workers, and did not detect a change of the mesh that leaves
+% the numbers of nodes and elements unchanged. The input MUAworkers is only returned unchanged if CtrlVar.Parallel.BuildWorkers=false.
 
-% Not clear to me how to check if composite is in correct state.
-% The only option seems to be just to try to access it and see if it produces an error.
-
-BuildWorkers= false ; 
-
-
-if isempty(MUAworkers) || numel(MUAworkers)==0  % if all empty, rebuild
-
-    BuildWorkers= true;
-
-else
-
-    try
-        isCompoositeInCorrectState=MUAworkers{1}.Nnodes==MUA.Nnodes ;
-    catch
-        isCompoositeInCorrectState=false;  % if not in correct state, rebuild
-
-    end
-
-    if ~isCompoositeInCorrectState
-        BuildWorkers=true;
-    else  % Composite is technically in correct state, but may not contain the right elements
-
-        % check if all partitions already contain the correct elements, if so then there is no need to build the workers anew
-        spmd (0,nW)
-
-            T=all(MUAworkers.Partition==Partition{spmdIndex}) ;
-            Tand=spmdReduce(@and,T,1) ;
-
-        end
-
-       
-        if ~Tand{1}
-             % Does not contain the correct elements, so rebuild
-            BuildWorkers=true;
-        end
-    end
-
-    % Turns out the spmd version above is much faster
-    % if isCompoositeInCorrectState
-    %
-    %     areWorkersAlreadyBuild=true;
-    %     for iWorker=1:nW
-    %
-    %         % % do a simple test first
-    %         % if numel(MUAworkers{iWorker}.Partition)~=numel(Partition{iWorker})
-    %         %     areWorkersAlreadyBuild=false ;
-    %         %     break
-    %         % end
-    %
-    %         % now check if exactly the same elements are part of each partition
-    %         if ~all(MUAworkers{iWorker}.Partition==Partition{iWorker})
-    %             % if sum(MUAworkers{iWorker}.Partition)~=sum(Partition{iWorker})
-    %             areWorkersAlreadyBuild=false ;  % if new partition is not equal to previous one, rebuild
-    %
-    %             break
-    %         end
-    %
-    %     end
-    %
-    %     if ~areWorkersAlreadyBuild
-    %         BuildWorkers=true;
-    %     end
-    %
-    % end
-
-end
-
-
-
-
-
+BuildWorkers=true ;
 
 if BuildWorkers
     MUA.workers=[];   % Make sure to get rid of this composite, within the MUA structure ahead of the spmd call

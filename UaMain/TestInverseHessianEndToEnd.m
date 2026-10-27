@@ -183,7 +183,7 @@ else
 
 end
 
-if ~strcmpi(string(CtrlVar.SlidingLaw),"Weertman")
+if SlidingLawCode(CtrlVar.SlidingLaw)~=1   % Weertman
     error("TestInverseHessianEndToEnd:SlidingLaw",...
         "The Hessian is only implemented for the Weertman sliding law, but CtrlVar.SlidingLaw=%s.",string(CtrlVar.SlidingLaw))
 end

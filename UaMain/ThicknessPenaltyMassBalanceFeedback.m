@@ -77,6 +77,9 @@ persistent WarnedAboutPenaltyWidth
 % At h=ThickMin the penalty is then in its linear range and supplies a mass-balance rate of about K*delta. A node is held above
 % ThickMin by the penalty alone if theta*K*delta > |a|max (theta=CtrlVar.theta), otherwise the active set takes over.
 %
+% (26 Oct 2026) Written so that MATLAB Coder can use it directly (the compiled uvh assembly, UaSource/UaCompiled): the warning (with
+% its persistent variable) and the diagnostic output are excluded from compiled code.
+%
 %
 %
 %
@@ -142,7 +145,7 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
             lRel=0.1 ;
             if isfield(CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus,"lRel") ; lRel=CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.lRel ; end
             l=lRel*delta ;
-        elseif l>delta/2 && isempty(WarnedAboutPenaltyWidth)
+        elseif coder.target('MATLAB') && l>delta/2 && isempty(WarnedAboutPenaltyWidth)   % (26 Oct 2026) not in compiled code (persistent variable)
             warning("ThicknessPenaltyMassBalanceFeedback:Width",...
                 "CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=%g is larger than delta/2=%g, where delta=max(ThickMin,deltaAbs). The penalty is then not in its linear range at h=ThickMin, and its capacity differs from K*delta. Consider l=0.1*delta, or leave l unset (NaN) so that it is calculated as lRel*delta.",l,delta/2)
             WarnedAboutPenaltyWidth=true;
@@ -162,7 +165,7 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 end
 
 
-if CtrlVar.InfoLevelThickMin >= 10
+if coder.target('MATLAB') && CtrlVar.InfoLevelThickMin >= 10   % (26 Oct 2026) diagnostic output, not in compiled code
     ThicknessLessThanZero=hint<0 ;
     if any(ThicknessLessThanZero)
         fprintf("\t Some hint negative at integration point with min(hint)=%g. \t Number of neg integration point thicknesses: %i \n",min(hint),numel(find(ThicknessLessThanZero)))
@@ -202,9 +205,10 @@ if CtrlVar.InfoLevelThickMin >= 10
                 [aPlusExample,daPlusdhExample] = SoftPlus(k,-hExample,-hmin);
                 aPlusExample=K*aPlusExample;
                 daPlusdhExample=-K*daPlusdhExample ; %
+                % (26 Oct 2026) the example curves only exist for softplus (previously plotted for all options, which failed)
+                hold on ; yyaxis left ; plot(hExample,aPlusExample,"--",DisplayName="$a_{\mathrm{penalty}}$ curve")
+                hold on ; yyaxis right ; plot(hExample,daPlusdhExample,"--",DisplayName="$da_{\mathrm{penalty}}/dh$ curve")
         end
-        hold on ; yyaxis left ; plot(hExample,aPlusExample,"--",DisplayName="$a_{\mathrm{penalty}}$ curve")
-        hold on ; yyaxis right ; plot(hExample,daPlusdhExample,"--",DisplayName="$da_{\mathrm{penalty}}/dh$ curve")
         lg=legend(Interpreter="latex"); 
         %%
     end

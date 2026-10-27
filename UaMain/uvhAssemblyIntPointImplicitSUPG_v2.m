@@ -50,10 +50,8 @@ nargoutchk(15,19)
 
 
 if Ronly
-    CtrlVar.BasalDrag.CalculateDerivatives=false;  
     CtrlVar.EffectiveViscosity.CalculateDerivatives=false;
 else
-    CtrlVar.BasalDrag.CalculateDerivatives=true;
     CtrlVar.EffectiveViscosity.CalculateDerivatives=true;
 
 end
@@ -355,7 +353,7 @@ end
 %uoint=[];voint=[];Coint=[] ;moint=[] ;uaint=[] ;vaint=[] ;Caint=[]; maint=[];
 
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
-    BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
+    BasalDrag(CtrlVar,2*double(~Ronly),Heint,deltaint,hint,Hint,rhoint,rhow,g,uint,vint,Cint,mint,qint,mukint,V0int,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);   % (26 Oct 2026) derivatives with respect to u, v and h unless Ronly
 
 
 if ~isfield(CtrlVar,"OnlyCalcBasalDragAndEffectiveViscosity")
