@@ -21,7 +21,7 @@
 % 
 %  * Support for the PARDISO direct sparse solver:
 % 
-%  You can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
+%  Users can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
 %  CHOLMOD of the uv system).
 %
 % The advantage of PARIDISO over the default MATLAB solvers is that PARDISO allows for reuse of the analysis phase of the
@@ -39,7 +39,7 @@
 %
 %
 %
-% * Grounding-line plots now based on h-h_{gl}, ie thickness minus grounding line thickness, rather than the flotation mask.
+% * Grounding-line plots now based on $h-h_{gl}$, ie thickness minus grounding line thickness, rather than the flotation mask.
 % Thanks to Deborah Rhee for this suggestion. The grounding lines may now look a bit smoother. (Note that the grounding line
 % position itself is never used in the code when finding the solutions.)
 %
