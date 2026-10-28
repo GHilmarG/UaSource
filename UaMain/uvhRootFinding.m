@@ -86,6 +86,7 @@ if ~CtrlVar.ThicknessConstraints
 else   %  Thickness constraints used
 
     [UserVar,RunInfo,F1,l1,BCs1,~,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
+    RunInfo.Forward.ActiveSetDeferredReleases=[] ;   % (25 Oct 2026) deferred releases of the previous time step have now been used, see below
     % (14 Oct 2026) The explicit estimate of h1 is not clipped at ThickMin (see ExplicitEstimationForUaFields.m). The iterate is made feasible here. This is done after the active set has been initialised, as the
     % (unclipped) estimate may be used there to predict the active set (CtrlVar.ActiveSet.PredictiveActivation).
     F1.h=max(F1.h,CtrlVar.ThickMin) ;
@@ -221,6 +222,27 @@ else   %  Thickness constraints used
                 continue      % solve again, now with the reduced time step
             end
 
+        end
+
+        % (25 Oct 2026) Deferred release (CtrlVar.ActiveSet.DeferReleases): if, after a converged solve, the update only releases nodes (no
+        % activations), the solution of that solve (with these nodes still at ThickMin) is accepted, and the active-set loop is left without
+        % a further solve. BCs1 has these nodes already released, so they are released at the start of the next time step. Their numbers are
+        % kept in RunInfo.Forward.ActiveSetDeferredReleases, so that ActiveSetInitialisation does not activate them again right away through
+        % the predictive activation. Releases are only deferred if, for all released nodes, the estimated thickening within the time step
+        % (see ActiveSetUpdate.m) is less than CtrlVar.ActiveSet.DeferReleasesMaxThickening*ThickMin.
+        DeferOption=isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"DeferReleases") && CtrlVar.ActiveSet.DeferReleases ;
+        if DeferOption && isActiveSetModified && ~isequal(isActiveSetCyclical,true) && isempty(Activated) && ~isempty(Released) ...
+                && ~StalledPass && ~EarlyExitPass && RunInfo.Forward.uvhConverged
+            Thickening=[] ; if isfield(RunInfo.Forward,"ActiveSetReleasedThickening") ; Thickening=RunInfo.Forward.ActiveSetReleasedThickening ; end
+            MaxThickening=inf ; if isfield(CtrlVar.ActiveSet,"DeferReleasesMaxThickening") ; MaxThickening=CtrlVar.ActiveSet.DeferReleasesMaxThickening ; end
+            if ~isempty(Thickening) && all(Thickening < MaxThickening*CtrlVar.ThickMin)
+                if isfield(MUA,"MeshKey") && ~isempty(MUA.MeshKey) ; Key=MUA.MeshKey ; else ; Key=MeshKey(MUA) ; end
+                RunInfo.Forward.ActiveSetDeferredReleases=struct("Nodes",Released(:),"TopologyKey",Key.Topology) ;
+                q=Thickening/CtrlVar.ThickMin ;
+                fprintf(CtrlVar.fidlog,' Deferred releases: %i nodes to be released at the start of the next time step, without a further solve. Estimated thickening/ThickMin (min|median|max)=(%g|%g|%g) \n',...
+                    numel(Released),min(q),median(q),max(q)) ;
+                break
+            end
         end
 
         if ~isActiveSetModified

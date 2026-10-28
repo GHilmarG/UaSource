@@ -1,644 +1,139 @@
+function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh] = ...
+    BasalDrag(CtrlVar,Derivatives,He,delta,h,H,rho,rhow,g,ub,vb,C,m,q,muk,V0,uo,vo,Co,mo,ua,va,Ca,ma)
 
-
-
-
-
-
-
-
-function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = ...
-    BasalDrag(CtrlVar,MUA,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g,muk,V0)
-
-narginchk(25,25)
-
-
-if nargout==2
-    % if the number of output arguments is only 2, then clearly there is not need to calculate any derivatives
-    CtrlVar.BasalDrag.CalculateDerivatives=false;
-else
-
-    % has on call, calculating derivatives been set even though these are in the return parameter list?
-    if ~(isfield(CtrlVar,"BasalDrag") && isfield(CtrlVar.BasalDrag,"CalculateDerivatives"))
-        CtrlVar.BasalDrag.CalculateDerivatives=true;
-    end
-end
-
-%%
-% Returns basal drag and the directional derivatives of basal drag with respect to u,
-% v and h.
+%% Basal drag and its derivatives with respect to ub, vb and h
 %
-% taubx     :  x component of basal drag
-% tauby     :  y component of basal drag
-% dtaubxdu  :  derivative of x component of basal drag with respect to u
-% dtaubxdv  :  derivative of x component of basal drag with respect to v
-% dtaubxdh  :  derivative of x component of basal drag with respect to h
-% dtaubydu  :  derivative of y component of basal drag with respect to u
-% dtaubydv  :  derivative of y component of basal drag with respect to v
-% dtaubydh  :  derivative of y component of basal drag with respect to h
+%   [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh] = ...
+%       BasalDrag(CtrlVar,Derivatives,He,delta,h,H,rho,rhow,g,ub,vb,C,m,q,muk,V0,uo,vo,Co,mo,ua,va,Ca,ma)
 %
-%   [ Delta tbx ] =  M    [Delta u]
-%   [ Delta tby ]         [Delta v]
-%                         [Delta h]
+% Derivatives : which derivatives to calculate
+%                 0 : none (only taubx and tauby)
+%                 1 : with respect to ub and vb
+%                 2 : with respect to ub, vb and h
+%               Derivatives that are not calculated are returned as zeros. All outputs are always defined.
 %
-% where
+% Outputs:
 %
-%  M = [ dtaubxdu   dtaubxdv   dtaubxdh ]
-%      [ dtaubydu   dtaubydv   dtaubydh ]
+%   taubx, tauby       : basal drag
+%   dtaubxdu, dtaubxdv : derivatives of taubx with respect to ub and vb
+%   dtaubydu, dtaubydv : derivatives of tauby with respect to ub and vb
+%   dtaubxdh, dtaubydh : derivatives of taubx and tauby with respect to h
 %
-%  Regularization parameters:
+%   [ Delta taubx ]  =  [ dtaubxdu   dtaubxdv   dtaubxdh ]  [ Delta ub ]
+%   [ Delta tauby ]     [ dtaubydu   dtaubydv   dtaubydh ]  [ Delta vb ]
+%                                                           [ Delta h  ]
 %
-%  CtrlVar.Czero
-%  CtrlVar.SpeedZero
-%  CtrlVar.HeZero
+% Inputs:
 %
+%   CtrlVar   : uses SlidingLaw (or SlidingLawCode, if present), Czero, SpeedZero, Nzero and IncludeMelangeModelPhysics
+%   He, delta : HeavisideApprox(kH,h-hf,Hh0) and DiracDelta(kH,h-hf,Hh0), hf=rhow H/rho
+%   h, H      : ice thickness, and H=S-B
+%   rho, rhow, g : ice and ocean densities, gravitational acceleration
+%   ub, vb    : basal velocities
+%   C, m      : slipperiness and stress exponent
+%   q, muk, V0 : parameters of some of the sliding laws (only used by those)
+%   uo, vo, Co, mo, ua, va, Ca, ma : ocean and air velocities and drag parameters of the melange terms (only used if
+%               CtrlVar.IncludeMelangeModelPhysics)
 %
+% The sliding laws are isotropic, taubx = beta ub, tauby = beta vb; the drag coefficient beta and its derivatives are calculated by
+% SlidingLawBeta.m for all sliding laws, and the derivatives of the drag follow from those in the same way for all of them.
+% If CtrlVar.IncludeMelangeModelPhysics, the drag of the ocean and of the air on the melange, (1-He) beta_o (ub-uo), (1-He) beta_a
+% (ub-ua), with Weertman-type drag coefficients, is added.
 %
-%      He = HeavisideApprox(kH,h-hf,CtrlVar.Hh0);
-%   delta = DiracDelta(kH,h-hf,CtrlVar.Hh0);
-%      hf = rhow*H./rho;
-%       H = S-B
+% The derivative of the drag with respect to C (inverse problem) is calculated by BasalDragdC.m.
 %
-% It also returns derivatives of the basal drag components with respect to C (required for the adjoint), if
+% Rewritten 26 Oct 2026. Differences from the earlier version of BasalDrag.m:
+%   - which derivatives are calculated is given explicitly (Derivatives), not by the number of output arguments or by
+%     CtrlVar.BasalDrag.CalculateDerivatives
+%   - the derivative with respect to C is a separate function (BasalDragdC.m), instead of being returned in taubx if
+%     CtrlVar.Inverse.dFuvdClambda=true
+%   - the names and aliases of the sliding laws are defined in SlidingLawCode.m only ("-W-", "-B-", "-C-"; "W", "B", "C" no longer)
+%   - MUA and B are not inputs, and the melange drag is not returned separately
 %
-% CtrlVar.Inverse.dFuvdClambda=true
+% Written so that it can be used by MATLAB Coder: element-wise operations only (arrays in the vectorised assembly, scalars in the
+% compiled kernel), all outputs defined on all paths, no string arrays.
 %
-% Several sliding laws are implemented, all of which are isotropic i.e.
+% See also: SlidingLawBeta, BasalDragdC, SlidingLawCode
 %
-%  -Taux = |Tau|  u/U,
-%  -Tauy = |Tau|  v/U,
-%
-%   where U is the speed.
-%
+% (26 Oct 2026)
 %%
 
-% rounding and internal element interpolation can make these negative.
-% If not made positive, some variables can be complex numbers on
-% return.
+% rounding and the interpolation to integration points can make these slightly negative
+He(He<0)=0;
 delta(delta<0)=0;
-He(He<0)=0 ;
 
-
-%% Basal drag term : ice
-% this drag term is zero if the velocities are zero.
-
-C0=CtrlVar.Czero;
-u0=CtrlVar.SpeedZero;
-
-if any((C+C0)<0)
-
-    fprintf("BasalDrag: C+CtrlVar.Czero is negative. min(C)=%g",min(C))
-    fprintf("BasalDrag: A possible solution might be to increase the value of CtrlVar.Czero. \n")
-
-end
-
-% --- defaults hoisted so the sliding law is known before the preamble ---
-if ~isfield(CtrlVar,"SlidingLaw") ; CtrlVar.SlidingLaw="Weertman" ; end
-if ~isfield(CtrlVar.Inverse,'dFuvdClambda') ; CtrlVar.Inverse.dFuvdClambda=false ; end
-
-speed=sqrt(ub.*ub+vb.*vb+u0^2);
-
-% beta2i and Dbeta2i are only used by Weertman, Budd and Tsai (which calls
-% Weertman), and by the dFuvdClambda branch.  The other laws build their own
-% Tau and never touch them, so for those this whole block is dead work.
-NeedBeta = ismember(string(CtrlVar.SlidingLaw), ...
-    ["W","Weertman","B","Budd","W-N0","Tsai","minCW-N0"]) || CtrlVar.Inverse.dFuvdClambda ;
-
-if NeedBeta
-    % One vector-exponent power instead of four.  With
-    %     t = (speed/(C+C0))^(1/m)
-    % and using (1-3m)/(2m) applied to speed^2 being speed^(1/m-3),
-    %     beta2i  = (C+C0)^(-1/m) speed^(1/m-1) = t/speed
-    %     Dbeta2i = (1/m-1)(C+C0)^(-1/m) speed^(1/m-3) = (1/m-1) t/speed^3
-    % Note the original rebuilt (ub^2+vb^2+u0^2) rather than reusing speed^2.
-    t=(speed./(C+C0)).^(1./m) ;
-    beta2i=t./speed ;
-    Dbeta2i=(1./m-1).*t./speed.^3 ;   % zero for m=1
+if isfield(CtrlVar,"SlidingLawCode")
+    Code=CtrlVar.SlidingLawCode;     % eg set once per assembly (compiled kernel)
 else
-    t=[] ; beta2i=[] ; Dbeta2i=[] ;
+    Code=SlidingLawCode(CtrlVar.SlidingLaw);
 end
 
-
-if ~isfield(CtrlVar,"SlidingLaw")
-    CtrlVar.SlidingLaw="Weertman";
-end
-
-if ~isfield(CtrlVar.Inverse,'dFuvdClambda')
-    CtrlVar.Inverse.dFuvdClambda=false;
-end
-
-if CtrlVar.Inverse.dFuvdClambda
-
-    % dF_x/dC and dF_y/dC
-    %
-    %  Just take the derivative of the tau term with respect to C.
-    %
-    %
-    %  Taux = |Tau|  u/U,
-    %  Tauy = |Tau|  v/U,
-    %   where U is the speed.
-    %
-    %
-    % So this is actually NOT the dF_x/dC or the dF_y/dC derivative, but those can be calculated as
-    %
-    % dF_x/dC = dFuvdC  u
-    % dF_y/dC = dFuvdC  v
-    %
-
-
-    switch CtrlVar.SlidingLaw
-        case {"W","Weertman"}
-
-            % tau = He * (C+CtrlVar.Czero).^(-1./m)   * U
-            %
-            % (U^(1/m - 1)*He(h - hf))/(m*(C + C0)^(1/m + 1))
-
-            dFuvdC = - He.*    (1./m).*t./(speed.*(C+C0));  % Um=speed.^(1./m-1) ;
-            %
-            % Note: The actual expression is
-            %
-            % dFxdC= - He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um.* u
-            % dFydC= - He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um.* v
-            %
-
-        case {"B","Budd","W-N0"}
-
-            %
-            %             dFuvdC= Nqm.*(1./m).*(C+C0).^(-1./m-1)  .*U;
-            %  just take the derivative with respect to C
-            %   tau = He.*Nqm.* beta2i
-            %       = He.*Nqm.* (C+C0.^(-1./m).*U ; %   with U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
-            %
-
-    
-          
-            N=N0(CtrlVar,h,H,rho,rhow,g) ;
-            qm=q./m;
-            Nqm=N.^(qm) ;
-
-
-            dFuvdC= -He.*Nqm.*(1./m).*t./(speed.*(C+C0));
-
-        case {"rpCW-N0","Cornford"}
-
-            U=speed;
-            N=N0(CtrlVar,h,H,rho,rhow,g) ;
-            dFuvdC=-(U.^(1./m-1).*muk.^(m+1).*N.^(m+1).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1./m)).^m).^(-1./m-1).*(C+C0).^(-1./m-1))./m;
-
-        case {"rCW-N0","Umbi"} % reciprocal Coulomb-Weertman with zeroth-order hydrology
-
-            U=speed;
-            N=N0(CtrlVar,h,H,rho,rhow,g) ;
-            dFuvdC=-(U.^(1./m).*muk.^2.*N.^2.*He.*1./(U.^(1./m).*He+muk.*N.*(C+C0).^(1./m)).^2.*(C+C0).^(1./m-1))./(U.*m) ;
-
-        case {"Tsai","minCW-N0"}
-
-            dFuvdC =  -He.*    (1./m).*t./(speed.*(C+C0));
-
-            N=N0(CtrlVar,h,H,rho,rhow,g);
-            [taubxi,taubyi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
-            [taubxiC,taubyiC] = Coulomb(CtrlVar,muk,ub,vb,N) ;
-
-            TauWeertman2=taubxi.*taubxi+taubyi.*taubyi ;
-            TauCoulomb2=taubxiC.*taubxiC+taubyiC.*taubyiC ;
-            isCoulomb=TauCoulomb2 <  TauWeertman2 ;
-
-            dFuvdC(isCoulomb)=0 ;
-
-
-        case {"Coulomb","-C-"}
-
-
-            fprintf("Inversion using Coulomb sliding law not implemented. \n")
-            error("BasalDrag:InvalidCase","Inversion using Coulumb sliding law not implemented.")
-
-        case {"Joughin","rCW-v0"}
-
-            U=speed;
-            dFuvdC=  -(U.^(1./m-1).*He.*(U+V0).^(-1./m).*(C+C0).^(-1./m-1))./m ;
-
-
-        otherwise
-
-            error("BasalDrag:InvalidCase","Unknown case.")
-
+if coder.target('MATLAB')
+    if any(C+CtrlVar.Czero<0,'all')
+        fprintf("BasalDrag: C+CtrlVar.Czero is negative, min(C)=%g. A possible solution might be to increase CtrlVar.Czero. \n",min(C,[],'all'))
     end
-    taubx=dFuvdC;
-    return
 end
 
+Need=[Derivatives>=1, Derivatives>=2, false];
+[beta,DbetaU,dbetadh]=SlidingLawBeta(Code,CtrlVar,Need,He,delta,h,H,rho,rhow,g,ub,vb,C,m,q,muk,V0);
 
-switch CtrlVar.SlidingLaw
+taubx=beta.*ub;
+tauby=beta.*vb;
 
-    case {"Weertman","W"}
+Z=zeros(size(taubx),'like',taubx);
+dtaubxdu=Z; dtaubxdv=Z; dtaubydu=Z; dtaubydv=Z; dtaubxdh=Z; dtaubydh=Z;
 
-        [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
-
-        % Weertman2 is done using symbolic toolbox, just did this out of curiosity, the
-        % results are exactly the same.
-        % [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] = Weertman2(C,CtrlVar.Czero,He,delta,m,ub,vb,CtrlVar.SpeedZero) ;
-
-
-    case {"Budd","W-N0"}
-
-        [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g);
-        [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,N,dNdh,beta2i,Dbeta2i,q,m) ;
-
-
-    case {"Coulomb","C"}
-
-
-        [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g);
-
-        hf=rhow.*H./rho; hf(hf<eps)=0;
-        Dh=h-hf; Dh(Dh<eps)=0;
-        [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Coulomb(CtrlVar,muk,ub,vb,N,dNdh,Dh) ;
-
-
-    case {"Tsai","minCW-N0"}
-
-        hf=rhow.*H./rho; hf(hf<eps)=0;
-        Dh=h-hf; Dh(Dh<eps)=0;
-
-
-        [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g);
-        [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
-        [taubxiC,taubyiC,dtaubxduiC,dtaubxdviC,dtaubyduiC,dtaubydviC,dtaubxdhiC,dtaubydhiC] = Coulomb(CtrlVar,muk,ub,vb,N,dNdh,Dh) ;
-
-        TauWeertman2=taubxi.*taubxi+taubyi.*taubyi ;
-        TauCoulomb2=taubxiC.*taubxiC+taubyiC.*taubyiC ;
-
-        % decide where to use Weertman and where Coulomb
-        isCoulomb=TauCoulomb2 <  TauWeertman2 ;
-
-        % and now replace where needed
-        taubxi(isCoulomb)=taubxiC(isCoulomb) ;
-        taubyi(isCoulomb)=taubyiC(isCoulomb) ;
-
-        if CtrlVar.BasalDrag.CalculateDerivatives
-
-            dtaubxdui(isCoulomb)=dtaubxduiC(isCoulomb);
-            dtaubydvi(isCoulomb)=dtaubydviC(isCoulomb);
-            dtaubxdvi(isCoulomb)=dtaubxdviC(isCoulomb);
-            dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulomb
-            dtaubxdhi(isCoulomb)=dtaubxdhiC(isCoulomb);
-            dtaubydhi(isCoulomb)=dtaubydhiC(isCoulomb);
-        end
-
-
-    case {"rpCW-N0","Cornford"}
-
-        [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
-%        [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rpCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
-        [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rpCWN0(CtrlVar,C,N,dNdh,He,delta,m,muk,ub,vb) ;
-
-    case {"rCW-N0","Umbi"} % reciprocal Coulomb-Weertman with zeroth-order hydrology
-
-        [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
-        [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rCWN0(CtrlVar,C,N,dNdh,He,delta,m,muk,ub,vb) ;
-
-    case {"Joughin","rCW-v0"}
-
-   
-
-        [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] = rCWV0(CtrlVar,C,V0,He,delta,m,ub,vb)   ;
-
-    
-
-    otherwise
-
-        error("BasalDrag:CaseNotFound","what sliding law?")
+if Derivatives>=1
+    dtaubxdu=beta+DbetaU.*ub.*ub;
+    dtaubydv=beta+DbetaU.*vb.*vb;
+    dtaubxdv=DbetaU.*ub.*vb;
+    dtaubydu=dtaubxdv;
 end
 
-
-%% Sea ice drag term : ocean
+if Derivatives>=2
+    dtaubxdh=dbetadh.*ub;
+    dtaubydh=dbetadh.*vb;
+end
 
 if CtrlVar.IncludeMelangeModelPhysics
-
-
-    U=ub-uo;
-    V=vb-vo;
-
-
-    beta2o=(Co+CtrlVar.Czero).^(-1./mo).*(sqrt(U.*U+V.*V+CtrlVar.SpeedZero^2)).^(1./mo-1) ;
-
-    taubxo=(1-He).*beta2o.*U;
-    taubyo=(1-He).*beta2o.*V;
-
-    if  CtrlVar.BasalDrag.CalculateDerivatives
-        Dbeta2o=(1./mo-1).*(Co+CtrlVar.Czero).^(-1./mo).*(U.^2+V.^2+CtrlVar.SpeedZero^2).^((1-3*mo)./(2*mo));
-
-        dtaubxduo=(1-He).*(beta2o+Dbeta2o.*U.*U);
-        dtaubxdvo=(1-He).*(Dbeta2o.*U.*V);
-
-        dtaubyduo=dtaubxdvo;
-        dtaubydvo=(1-He).*(beta2o+Dbeta2o.*V.*V);
-
-        dtaubxdho=-delta.*beta2o.*U ;
-        dtaubydho=-delta.*beta2o.*V ;
-
-    end
-
-
-    U=ub-ua;
-    V=vb-va;
-
-
-
-    beta2a=(Ca+CtrlVar.Czero).^(-1./ma).*(sqrt(U.*U+V.*V+CtrlVar.SpeedZero^2)).^(1./ma-1) ;
-
-    taubxa=(1-He).*beta2a.*U;
-    taubya=(1-He).*beta2a.*V;
-
-
-    if  CtrlVar.BasalDrag.CalculateDerivatives
-
-        Dbeta2a=(1./ma-1).*(Ca+CtrlVar.Czero).^(-1./ma).*(U.^2+V.^2+CtrlVar.SpeedZero^2).^((1-3*ma)./(2*ma));
-
-        dtaubxdua=(1-He).*(beta2a+Dbeta2a.*U.*U);
-        dtaubxdva=(1-He).*(Dbeta2a.*U.*V);
-
-        dtaubydua=dtaubxdva;
-        dtaubydva=(1-He).*(beta2a+Dbeta2a.*V.*V);
-
-        dtaubxdha=-delta.*beta2a.*U ;
-        dtaubydha=-delta.*beta2a.*V ;
-    else
-        dtaubxdua=nan ;
-        dtaubxdva=nan;
-
-        dtaubydua=dtaubxdva;
-        dtaubydva=nan;
-
-        dtaubxdha=nan;
-        dtaubydha=nan;
-
-    end
-
-else
-
-    taubxo=0;
-    taubyo=0;
-
-    dtaubxduo=0;
-    dtaubxdvo=0;
-
-    dtaubyduo=0;
-    dtaubydvo=0;
-
-    dtaubxdho=0;
-    dtaubydho=0;
-
-    taubxa=0;
-    taubya=0;
-
-    dtaubxdua=0;
-    dtaubxdva=0;
-
-    dtaubydua=0;
-    dtaubydva=0;
-
-    dtaubxdha=0;
-    dtaubydha=0;
+    % drag of the ocean (uo,vo) and of the air (ua,va) on the melange
+    [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh]=AddRelativeDrag(CtrlVar,Derivatives,He,delta,ub,vb,uo,vo,Co,mo, ...
+        taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh);
+    [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh]=AddRelativeDrag(CtrlVar,Derivatives,He,delta,ub,vb,ua,va,Ca,ma, ...
+        taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh);
 end
-
-
-%% Add up
-
-taubx=taubxi+taubxo+taubxa ;
-tauby=taubyi+taubyo+taubya ;
-
-if  CtrlVar.BasalDrag.CalculateDerivatives
-    dtaubxdu=dtaubxdui+dtaubxduo+dtaubxdua;
-    dtaubxdv=dtaubxdvi+dtaubxdvo+dtaubxdva;
-
-    dtaubydu=dtaubydui+dtaubyduo+dtaubydua;
-    dtaubydv=dtaubydvi+dtaubydvo+dtaubydva;
-
-    dtaubxdh=dtaubxdhi+dtaubxdho+dtaubxdha;
-    dtaubydh=dtaubydhi+dtaubydho+dtaubydha;
-else
-    dtaubxdu=[];
-    dtaubxdv=[];
-
-    dtaubydu=[];
-    dtaubydv=[];
-
-    dtaubxdh=[];
-    dtaubydh=[]; 
-end
-
-
 
 end
 
 %% local functions
-function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Coulomb(CtrlVar,muk,ub,vb,N,dNdh,Dh)
-% Coulomb
-% tx=muk rho g (h-hf)    u/speed
-% tv=muk rho g (h-hf)    v/speed
 
-Nouts=nargout ;
+function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh]=AddRelativeDrag(CtrlVar,Derivatives,He,delta,ub,vb,ur,vr,Cr,mr, ...
+    taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh)
 
-% Default values, so that all outputs are always assigned, also if CtrlVar.BasalDrag.CalculateDerivatives is false (for example in residual-only evaluations)
-dtaubxdui=[]; dtaubxdvi=[]; dtaubydui=[]; dtaubydvi=[]; dtaubxdhi=[]; dtaubydhi=[];
+% Adds the drag (1-He) beta_r (ub-ur, vb-vr) of a medium moving with velocity (ur,vr) (ocean or air acting on the melange), with
+% the Weertman-type drag coefficient beta_r = (Cr+C0)^(-1/mr) Ur^(1/mr-1), Ur = sqrt((ub-ur)^2+(vb-vr)^2+u0^2).
 
+U=ub-ur;
+V=vb-vr;
+Ur=sqrt(U.*U+V.*V+CtrlVar.SpeedZero^2);
+Crt=(Cr+CtrlVar.Czero).^(-1./mr);
+br=Crt.*Ur.^(1./mr-1);
+G=1-He;
 
-speed=sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2) ;
-Tau=muk.*N ;  % muk rho g (h-hf)
-taubxi=Tau.*ub./speed;
-taubyi=Tau.*vb./speed;
+taubx=taubx+G.*br.*U;
+tauby=tauby+G.*br.*V;
 
-if  CtrlVar.BasalDrag.CalculateDerivatives
-    if Nouts>2
-
-        temp=speed.^3 ; % (ub.*ub+vb.*vb+CtrlVar.SpeedZero^2).^{3/2) ;
-
-        dtaubxdui= Tau.*( 1./speed-ub.^2./temp) ;
-        dtaubydvi= Tau.*(1./speed-vb.^2./temp );
-        dtaubxdvi=-Tau.*ub.*vb./temp ;
-        dtaubydui=dtaubxdvi;  % just symmetry, always true,
-
-        % dN/dh = rho g
-        E=muk.*dNdh./speed ;
-        E(Dh<eps)=0;
-
-        dtaubxdhi =  E.*ub;
-        dtaubydhi =  E.*vb;
-
-    else
-
-        dtaubxdui=[];
-        dtaubxdvi=[];
-        dtaubydui=[];
-        dtaubydvi=[];
-        dtaubxdhi=[];
-        dtaubydhi=[];
-
-    end
-end
+if Derivatives>=1
+    Dbr=(1./mr-1).*Crt.*Ur.^(1./mr-3);
+    dtaubxdu=dtaubxdu+G.*(br+Dbr.*U.*U);
+    dtaubydv=dtaubydv+G.*(br+Dbr.*V.*V);
+    dtaubxdv=dtaubxdv+G.*Dbr.*U.*V;
+    dtaubydu=dtaubydu+G.*Dbr.*U.*V;
 end
 
-
-
-function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i)
-
-Nouts=nargout ;
-
-taubxi=He.*beta2i.*ub;
-taubyi=He.*beta2i.*vb;
-
-% Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
-
-
-
-if Nouts > 2   &&  CtrlVar.BasalDrag.CalculateDerivatives
-
-    dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
-    dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
-
-    dtaubxdvi=He.*Dbeta2i.*ub.*vb;
-    dtaubydui=dtaubxdvi;
-
-    dtaubxdhi=delta.*beta2i.*ub ;
-    dtaubydhi=delta.*beta2i.*vb ;
-
-else
-
-    dtaubxdui=[];
-    dtaubxdvi=[];
-    dtaubydui=[];
-    dtaubydvi=[];
-    dtaubxdhi=[];
-    dtaubydhi=[];
-
+if Derivatives>=2
+    dtaubxdh=dtaubxdh-delta.*br.*U;
+    dtaubydh=dtaubydh-delta.*br.*V;
 end
 
 end
-
-
-
-
-function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,N,dNdh,beta2i,Dbeta2i,q,m)
-
-% Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i)
-% taux = G  N^(q/m) beta2 u
-%
-% dtaux/du = G N^(q/m) (beta2 + u dbeta2/du)
-%
-% dtaux/dh= G (q/m) N^(q/m-1) dN/dh  beta2 u  + dG/dh  N^(q/m) beta2 u
-%
-
-Nouts=nargout ;
-
-qm=q./m;
-Nqm=N.^(qm) ;
-
-T=He.* Nqm.*beta2i ;
-taubxi=T.*ub ;
-taubyi=T.*vb ;
-
-if Nouts > 2   &&  CtrlVar.BasalDrag.CalculateDerivatives
-
-    dtaubxdui=He.*Nqm.*(beta2i+Dbeta2i.*ub.*ub);
-    dtaubydvi=He.*Nqm.*(beta2i+Dbeta2i.*vb.*vb);
-
-    dtaubxdvi=He.*Nqm.*Dbeta2i.*ub.*vb;
-    dtaubydui= dtaubxdvi ;
-
-    %
-    % E=qm.*N.^(qm-1).*rho.*g.*(delta.*Dh+He).*beta2i ;
-    %
-    %
-
-    E=delta.*Nqm.*beta2i+He.*qm.*N.^(qm-1).*dNdh.*beta2i ;
-
-    dtaubxdhi=  E.*ub;
-    dtaubydhi=  E.*vb;
-    %dtaubxdhi=Nqm.*qm.*beta2i.*ub./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*ub ;
-    %dtaubydhi=Nqm.*qm.*beta2i.*vb./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*vb ;
-
-else
-
-    dtaubxdui=[];
-    dtaubxdvi=[];
-    dtaubydui=[];
-    dtaubydvi=[];
-    dtaubxdhi=[];
-    dtaubydhi=[];
-
-end
-
-end
-
-function [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g)
-
-narginchk(6,6)
-
-hf=rhow.*H./rho;
-hf(hf<eps)=0;  % positive flotation thickness
-Dh=h-hf;
-I=Dh<eps;
-Dh(I)=0;
-
-N=rho.*g.*Dh+ CtrlVar.Nzero ;
-dNdh=rho.*g;
-dNdh(I)=0;
-
-% Testing
-%  N=rho.*g.*10;
-%  dNdh=dNdh*0;
-
-
-end
-
-
-
-function [N,dNdh]=NRosier()
-
-hf=rhow.*H./rho;
-hf(hf<eps)=0;
-Dh=h-hf;
-I=Dh<eps;
-Dh(I)=0;
-
-N=rho.*g.*Dh;
-dNdh=rho.*g;
-gammaw=CtrlVar.Hydrology.gammaw ;
-
-if gammaw< 1
-
-    NR=  gammaw*rho.*g.*h;
-    IR=NR<N ;  % when to use Rosier
-    N(IR)=NR;
-
-
-    dNdh(IR)=gammaw.*rho.*g;
-end
-
-dNdh(I)=0;   % h < hf
-
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

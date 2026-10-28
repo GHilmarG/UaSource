@@ -30,7 +30,7 @@ nargoutchk(1,1)
 % The sliding-family kernels b1 and b2 below are the second derivatives of the Weertman basal traction, and are
 % hard-coded as such. For the effective-pressure dependent laws they do not apply.
 
-if ~ismember(string(CtrlVar.SlidingLaw),["W","Weertman"])
+if SlidingLawCode(CtrlVar.SlidingLaw)~=1   % Weertman
     error("Fqq:SlidingLawNotImplemented",...
         "Fqq is implemented for the Weertman sliding law only, but CtrlVar.SlidingLaw=""%s"".",CtrlVar.SlidingLaw)
 end

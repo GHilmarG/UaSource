@@ -4,6 +4,7 @@ function ClearPersistentUaVariables()
 %% Clear any persistent variables
 clear AdaptiveTimeStepping
 clear AdaptMesh
+clear AdaptMesh2025
 clear BCs2MLC
 clear CostFunctionValueAndGradient
 clear EleAverageInterpolate

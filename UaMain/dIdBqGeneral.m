@@ -172,7 +172,6 @@ end
 
 T=zeros(MUA.Nele,MUA.nod);
 
-CtrlVar.BasalDrag.CalculateDerivatives=true;   % dtaubxdh and dtaubydh are needed below
 
 for Iint=1:MUA.nip
 
@@ -235,13 +234,7 @@ for Iint=1:MUA.nip
     etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
 
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = ...
-        BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,...
-        [],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
-
-    if isempty(dtaubxdh) || isempty(dtaubydh)
-        error("dIdBqGeneral:NoThicknessDerivatives",...
-            "BasalDrag.m did not return dtaubxdh/dtaubydh for the sliding law %s.\n",CtrlVar.SlidingLaw)
-    end
+        BasalDrag(CtrlVar,2,Heint,deltaint,hint,Hint,rhoint,F.rhow,F.g,uint,vint,Cint,mint,qint,mukint,V0int,[],[],[],[],[],[],[],[]);   % (26 Oct 2026)
 
     detJw=detJ*MUA.weights(Iint);
 

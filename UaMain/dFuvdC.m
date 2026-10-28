@@ -65,7 +65,7 @@ vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
 mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-if CtrlVar.SlidingLaw=="Budd"
+if SlidingLawCode(CtrlVar.SlidingLaw)==2   % Budd (all aliases)
     qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
 else
     qnod=mnod*0 ;  % just to avoid asking this again within a loop
@@ -119,10 +119,7 @@ for Iint=1:MUA.nip
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
 
 
-    CtrlVar.Inverse.dFuvdClambda=true;
-    dtaudC= ...
-        BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
-    CtrlVar.Inverse.dFuvdClambda=false;
+    dtaudC=BasalDragdC(CtrlVar,Heint,hint,Hint,rhoint,F.rhow,F.g,uint,vint,Cint,mint,qint,mukint,V0int);   % (26 Oct 2026) dbeta/dC at the integration points, see BasalDragdC.m
 
     dtaudC = dtaudC.*dCeffdC ;   % chain rule from the smooth floor: dCeff/dC, taking dtaudC from Ceff to nodal C
 

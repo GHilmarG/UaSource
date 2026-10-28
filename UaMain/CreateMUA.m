@@ -128,6 +128,13 @@ end
 % (17 Oct 2026) key of the mesh (see MeshKey.m), used by UpdateMUA.m to detect changes of the mesh
 MUA.MeshKey=MeshKey(MUA);
 
+% (26 Oct 2026) the key of the worker data, if built (see MuaWorkersKey.m and UpdateMUA.m)
+if isempty(MUA.workers)
+    MUA.workersKey=[];
+else
+    MUA.workersKey=MuaWorkersKey(MUA.MeshKey,MUA,numel(MUA.workers));
+end
+
 
 
 end

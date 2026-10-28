@@ -158,8 +158,11 @@ CtrlVar.alpha=0 ;
 %
 % *Tsai:*   Tau=min(TauC,TauW)
 %
-% *Conford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
+% *Cornford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
 %
+% *Umbi:*  1/Tau = 1/TauC + 1/TauW
+%
+% *Joughin:*  Tau = TauW (U/(U+V0))^(1/m), with a threshold speed V0
 %
 % The *Budd* sliding law is a simple extension of the Weertman sliding law where:
 %
@@ -168,8 +171,11 @@ CtrlVar.alpha=0 ;
 % The effective pressure is currently only calculated using a 'zeroth-order' hydrology
 % model, where N=rho g (h-h_f) where h_f is the flotation thickness. 
 %
+% Names and aliases (26 Oct 2026; defined in SlidingLawCode.m, which this list must match):
+%   "Weertman" ("-W-"), "Budd" ("-B-", "W-N0"), "Coulomb" ("-C-"), "Tsai" ("minCW-N0"), "Cornford" ("rpCW-N0"), "Umbi" ("rCW-N0"),
+%   "Joughin" ("rCW-v0"). The former aliases "W", "B" and "C" are no longer accepted.
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","Joughin","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0","rCW-V0"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","-W-","Budd","-B-","W-N0","Coulomb","-C-","Tsai","minCW-N0","Cornford","rpCW-N0","Umbi","rCW-N0","Joughin","rCW-v0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
 % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -697,14 +703,14 @@ CtrlVar.uvhTestJacobian.Iterations=[1 2 3];
 CtrlVar.uvhTestJacobian.RunSteps=[];
 
 %% (16 Oct 2026) Linear solver for the systems solved in ABfgPreEliminate.m (eg in the uv and uvh Newton-Raphson iterations)
-CtrlVar.LinearSolver.Type="PARDISO";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
-                                                          % pardisoMex (see UaPardisoSolve.m), usually much faster, but requires the MKL runtime library
+CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
+% pardisoMex (see UaPardisoSolve.m), usually much faster, but requires the MKL runtime library
 CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL runtime library mkl_rt (eg ...\Library\bin\mkl_rt.3.dll, as installed
                                                           % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
 CtrlVar.LinearSolver.PARDISO.ThreadingLayer="TBB";        % "TBB" (multithreaded) or "SEQUENTIAL"; the OpenMP layer of MKL can not be used within MATLAB
 CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10;     % if the relative residual of the solution is larger, the analysis is repeated, and if that
                                                           % does not help, decomposition is used instead
-CtrlVar.LinearSolver.PARDISO.MinimumSize=20000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
+CtrlVar.LinearSolver.PARDISO.MinimumSize=10000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
                                                           % more than it saves); diagonal systems are always solved directly
 CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sparsity pattern of the mesh (MUA.uvAssemblyPattern,
                                                           % MUA.uvhAssemblyPattern) as the fixed pattern: normally one analysis per mesh and type of system
@@ -1134,7 +1140,6 @@ CtrlVar.Inverse.Regularize.Multiplier=1;
 
 
 %
-CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 %%
 % [----------  The following parameters are only relevant if using the
 % UaOptimisation i.e. only if
@@ -1732,6 +1737,9 @@ CtrlVar.ThickMinWidthRelative=0.05;     % width of the smooth floor in units of 
 
 % active-set method, option 2
 CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).
+                                            % Note: A better name for this field might be: CtrlVar.ActiveSet.On
+
+
 CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set iterations.
                                             % if the maximum number of active-set
                                             % iterations is reached, a warning is given,
@@ -1780,6 +1788,20 @@ CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 
                                                                        %   "discrete" : sign of the discrete reaction L'*lambda at the node (recommended)
                                                                        %   "consistent-mass" : sign of the reaction mapped to a nodal field with the
                                                                        %      inverse of the consistent mass matrix (previous approach, prone to cycling).
+CtrlVar.ActiveSet.DeferReleases=false;                  % (25 Oct 2026) If true, an active-set update that only releases nodes (no activations) after a converged uvh
+                                                        % solve is not followed by a further solve within the time step. The solution of the last solve (with these
+                                                        % nodes still at ThickMin) is accepted, and the nodes are released at the start of the next time step.
+                                                        % Activations are always followed by a further solve, so h>=ThickMin is still enforced in each time step;
+                                                        % only the sign condition on the multipliers lags by one time step. Only used in uvhRootFinding.m (-uvh-).
+CtrlVar.ActiveSet.DeferReleasesMaxThickening=inf;       % (25 Oct 2026) Releases are only deferred if, for all released nodes, the estimated thickening within the time
+                                                        % step (-ah*dt, see ActiveSetUpdate.m) is less than DeferReleasesMaxThickening*ThickMin.
+
+% Note: A sensible paring of DeferRelease and DeferReleasesMaxThickening is 
+%
+% CtrlVar.ActiveSet.DeferReleases=true; 
+% CtrlVar.ActiveSet.DeferReleasesMaxThickening=1; 
+%
+% This is a candidate for a new default option
 
 
 % thickness penalty, option 3
@@ -2403,7 +2425,7 @@ CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geomet
 %   CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
 % 
 %
-% To enforc adapt meshing ahead of the first runs step only, set:
+% To enforce adapt meshing ahead of the first runs step only, set:
 %
 %   CtrlVar.AdaptMeshInitial=1 ; CtrlVar.AdaptMeshRunStepInterval=inf ;
 %
@@ -2941,6 +2963,11 @@ CtrlVar.MapOldToNew.Test=false;   %
 %%
 CtrlVar.uvhMatrixAssembly.ZeroFields=false;
 CtrlVar.uvhMatrixAssembly.Ronly=false;
+CtrlVar.uvhMatrixAssembly.CompiledKernel=false;   % (25 Oct 2026) If true, the uvh assembly (uvhMatrixAssembly.m) uses the compiled element-based kernel in
+                                                  % UaSource/UaCompiled (MEX files built with MATLAB Coder, parallelised over elements with OpenMP), provided the
+                                                  % options and the element type are supported; otherwise the vectorised assembly is used, and the reason is printed
+                                                  % once. Results are the same to round-off. Not used within spmd workers (CtrlVar.Parallel.uvhAssembly.spmd.isOn=true).
+                                                  % See UaCompiled/README.md.
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
 CtrlVar.DevelopmentVersion=false ; % Internal variable, always set to false
 % (unless you want to use some untried, untested and unfinished features....)

@@ -85,6 +85,7 @@ else
     V=struct() ;
     for f=Changing ; V.(f)=F1.(f) ; end
     UMA=CtrlVar.uvhMatrixAssembly ;
+    UMA.CompiledKernel=false ;   % (25 Oct 2026) the compiled kernel (CtrlVar.uvhMatrixAssembly.CompiledKernel) is not used within spmd workers, as its OpenMP threads would compete with the workers
     F0w=W.F0 ; F1w=W.F1 ; RIw=W.RunInfo ; CRw=W.CRw ; UVw=W.UVw ; BCw=W.BCw ;
 
     t0=tic ;

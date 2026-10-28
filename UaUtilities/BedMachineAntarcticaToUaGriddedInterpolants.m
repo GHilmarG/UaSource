@@ -1,4 +1,4 @@
-function [Fs,Fb,FB,Frho,Boundary]=BedMachineAntarcticaToUaGriddedInterpolants(filename,N,LakeVostok,BoundaryResolution,SaveOutputs) 
+function [Fs,Fb,FB,Frho,Fgeoid,Fmask,Boundary]=BedMachineAntarcticaToUaGriddedInterpolants(filename,N,LakeVostok,BoundaryResolution,SaveOutputs,OutputsID) 
 
 %%  
 % Reads BedMachine nc file and creates Ua gridded interpolants with s, b, B and rho.
@@ -47,12 +47,13 @@ function [Fs,Fb,FB,Frho,Boundary]=BedMachineAntarcticaToUaGriddedInterpolants(fi
 
 
 arguments
-    filename (1,1) string = "BedMachineAntarctica_2020-07-15_v02.nc" ;
+    filename (1,1) string = "NSIDC-0756_BedMachineAntarctica_19700101-20191001_V04.1.nc"
     N (1,1) double = 1
     LakeVostok (1,1) logical = false
-    BoundaryResolution (1,1) double = 2*N*500;      % this mush be larger than 500m, and preferably some integer multiple of that
-    SaveOutputs (1,1) logical = false ; 
-end
+    BoundaryResolution (1,1) double = 2*N*500;      % this should be larger than 500m, and preferably some integer multiple of that
+    SaveOutputs (1,1) logical = true ; 
+    OutputsID (1,1) string = "_V4k1" ; % Here version 4.1
+ end
 
 
 %% Read data
@@ -73,7 +74,7 @@ fprintf("...done.\n")
 %
 % To obtain height with respect to WGS84 add geod
 %
-% Rema= Surface + Firn + Geod
+% Rema= Surface + Firn + Geoid
 %
 %  ocean/ice/land mask
 %  0 = ocean
@@ -95,12 +96,12 @@ fprintf("...done.\n")
 %% Plot raw data, just to see if all is OK
 %
 fprintf(' Generating some figures of raw data...')
-figure(10) ; imagesc(x,y,bed); axis xy equal; caxis([-4000 1800]); title(' bed ' ) ; colorbar ; axis tight
-figure(20) ; imagesc(x,y,thickness); axis xy equal; caxis([0 4500]); title(' thickness ' ) ; colorbar ; axis tight
-figure(30) ; imagesc(x,y,firn); axis xy equal; caxis([0 50]); title(' firn ' ) ; colorbar ; axis tight 
-figure(40) ; imagesc(x,y,surface); axis xy equal; caxis([0 4800]); title(' surface ' ) ; colorbar ; axis tight
-figure(50) ; imagesc(x,y,geoid); axis xy equal; caxis([-100 100]); title(' geoid ' ) ; colorbar ; axis tight
-figure(60) ; imagesc(x,y,mask); axis xy equal; caxis([0 4]); title(' mask ' ) ; colorbar ; axis tight
+figure(10) ; imagesc(x,y,bed); axis xy equal; clim([-4000 1800]); title(' bed ' ) ; colorbar ; axis tight
+figure(20) ; imagesc(x,y,thickness); axis xy equal; clim([0 4500]); title(' thickness ' ) ; colorbar ; axis tight
+figure(30) ; imagesc(x,y,firn); axis xy equal; clim([0 50]); title(' firn ' ) ; colorbar ; axis tight 
+figure(40) ; imagesc(x,y,surface); axis xy equal; clim([0 4800]); title(' surface ' ) ; colorbar ; axis tight
+figure(50) ; imagesc(x,y,geoid); axis xy equal; clim([-100 100]); title(' geoid ' ) ; colorbar ; axis tight
+figure(60) ; imagesc(x,y,mask); axis xy equal; clim([0 4]); title(' mask ' ) ; colorbar ; axis tight
 drawnow ; fprintf('done.\n')
 
 
@@ -158,7 +159,7 @@ fprintf('Over glaciated areas %f%% of densities are smaller than %f kg/m^3 \n', 
 fprintf('These densities are set to %f kg/m^3\n',rhoMin)
 I=h>0 & rho<rhoMin ; rho(I)=rhoMin ; 
 
-rho(OceanMask)=rhoi;  % be careful here! To lessen the risk of potential extrapolation errors, I fill this with the ice dencities over the ocean.
+rho(OceanMask)=rhoi;  % be careful here! To lessen the risk of potential extrapolation errors, I fill this with the ice densities over the ocean.
 
 fprintf(' Plotting s, b, h, B and rho over the data grid')
 figure(200) ; imagesc(x,y,s); axis xy equal; clim([0 4000]); title(' s ' ) ; colorbar ; axis tight
@@ -175,6 +176,7 @@ s=s(1:N:end,1:N:end) ;
 rho=rho(1:N:end,1:N:end) ;
 b=b(1:N:end,1:N:end) ;
 B=B(1:N:end,1:N:end) ;
+geoid=geoid(1:N:end,1:N:end) ;
 mask=mask(1:N:end,1:N:end) ;
 
 %% create gridded interpolants
@@ -186,11 +188,14 @@ Fs=griddedInterpolant(X,Y,rot90(double(s),3));
 Fb=griddedInterpolant(X,Y,rot90(double(b),3)); 
 FB=griddedInterpolant(X,Y,rot90(double(B),3)); 
 Frho=griddedInterpolant(X,Y,rot90(double(rho),3)); 
+Fgeoid=griddedInterpolant(X,Y,rot90(double(geoid),3)); 
+Fmask=griddedInterpolant(X,Y,rot90(double(mask),3)); 
+
 fprintf('done.\n')
 
 if SaveOutputs
-    fprintf(' Saving BedMachineGriddedInterpolants with Fs, Fb, FB and Frho. \n')
-    save('BedMachineGriddedInterpolants','Fs','Fb','FB','Frho','-v7.3')
+    fprintf(' Saving BedMachineGriddedInterpolants with Fs, Fb, FB, Frho Fgeoid and Fmask \n')
+    save("BedMachineAntarcticaGriddedInterpolants"+OutputsID+".mat","Fs","Fb","FB","Frho","Fgeoid","Fmask","-v7.3")
 end
 
 %% Test gridded interpolants
@@ -205,31 +210,53 @@ sFE=Fs(xFE,yFE);
 bFE=Fb(xFE,yFE);
 BFE=FB(xFE,yFE);
 rhoFE=Frho(xFE,yFE);
-
+geoidFE=Fgeoid(xFE,yFE);
+F.s=sFE;
+F.b=bFE;
+F.B=BFE;
+F.rho=rhoFE;
+F.rhow=1027; 
+F.h=F.s-F.b; 
+F.S=F.s*0; 
 CtrlVar.PlotXYscale=1000;
  
-bfig=FindOrCreateFigure('b') ; 
-[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,bFE);
-xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b') ; title(cbar,'m a.s.l')
 
 
-sfig=FindOrCreateFigure('s') ; 
-[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,sFE);
-xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('s') ; title(cbar,'m a.s.l')
+cbar=UaPlots(CtrlVar,MUA,F,F.b,FigureTitle="b");
+colormap(othercolor("Mdarkterrain",25))  ;
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b') ; title(cbar,'m a.s.l') ; subtitle("")
+PlotLatLonGrid(); ScaleBar();  axis off
+
+cbar=UaPlots(CtrlVar,MUA,F,F.B,FigureTitle="B");
+colormap(othercolor("Mdarkterrain",25))  ;
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b') ; title(cbar,'m a.s.l') ; subtitle("")
+PlotLatLonGrid(); ScaleBar();  axis off
 
 
-Bfig=FindOrCreateFigure('B') ; 
-[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,BFE);
-xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('B') ; title(cbar,'m a.s.l')
+cbar=UaPlots(CtrlVar,MUA,F,F.s,FigureTitle="s");
+CM=cmocean('-ice',15) ; colormap(CM);
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('s') ; title(cbar,'m a.s.l') ; subtitle("")
+PlotLatLonGrid(); ScaleBar();  axis off
 
 
-rhofig=FindOrCreateFigure('rho') ; 
-[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,rhoFE); 
-xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('rho') ; title(cbar,'kg/m^3')
+cbar=UaPlots(CtrlVar,MUA,F,F.rho,FigureTitle="rho");
+%CM=cmocean('-ice',15) ; colormap(CM);
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('rho') ; title(cbar,'(kg/m^3)') ; subtitle("")
+PlotLatLonGrid(); ScaleBar();  axis off
 
-rhofig=FindOrCreateFigure('bFE-BFE') ; 
-[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,bFE-BFE); 
-xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b-B') ; title(cbar,'m')
+
+cbar=UaPlots(CtrlVar,MUA,F,F.b-F.B,FigureTitle="b-B");
+CM=cmocean('-ice',15) ; colormap(CM);
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b-B') ; title(cbar,'(m)') ; subtitle("")
+PlotLatLonGrid(); ScaleBar();  axis off
+
+
+cbar=UaPlots(CtrlVar,MUA,F,geoidFE,FigureTitle="geoid");
+CM=cmocean('balanced',50,'pivot',0) ; colormap(CM);
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('geoid') ; subtitle("")
+title(cbar,'(m)')
+PlotLatLonGrid(); ScaleBar();  axis off
+
 
 fprintf('done.\n')
 %% Meshboundary coordinates
@@ -258,7 +285,7 @@ fprintf('done.\n')
 if SaveOutputs
     
     fprintf('Saving MeshBoundaryCoordinates. \n ')
-    save('MeshBoundaryCoordinatesForAntarcticaBasedOnBedmachine','Boundary')
+    save("MeshBoundaryCoordinatesForAntarcticaBasedOnBedmachine"+OutputsID+".mat","Boundary")
 end
 
 
@@ -289,6 +316,7 @@ I=find(M(1,:)==level) ; [~,J]=max(M(2,I)) ;
 fprintf(' %i points in the longest contour line segment.\n',M(2,I(J)) );
 
 Ngl=2000 ;   % 2000 longest grounding lines
+Ngl=min(200,numel(iloc));
 for k=1:Ngl
     GLvector{k}=M(:,I(iloc(k))+1:I(iloc(k))+M(2,I(iloc(k)))) ;
 end
@@ -307,7 +335,7 @@ fprintf('done.\n')
 if SaveOutputs
     xGL=GL(:,1); yGL=GL(:,2);
     fprintf('Saving grounding line \n ')
-    save('GroundingLineForAntarcticaBasedOnBedmachine','xGL','yGL') ; 
+    save("GroundingLineForAntarcticaBasedOnBedmachine"+OutputsID+".mat","xGL","yGL") ; 
 end
 
 

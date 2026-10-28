@@ -80,19 +80,12 @@ while true
     % First check if iteration>1, and backstep small and rRatio
     % small. There could be a good reason for this. For example we have
     % already reached the NR minimum and no further reduction is
-    % possible due to rounding effect or becuase the cost function is
+    % possible due to rounding effect or because the cost function is
     % scaled in some ways that make further reduction irrelevant for
     % the solution.
 
 
-    if rRatio<0.01 && rWork>1e-20 % OK I'm hardwiring in here an option of addional iteration
-        % The argument being that we might most likely still be in the second-order convergence
-        % and not limited by numerical rounding errors. (Consider taking this out once
-        % all is fine.)
-
-        ResidualsCriteria=false; % If there was a significant reduction in last iteration, do continue.
-
-    elseif iteration>1 ...
+    if iteration>1 ...
             && (gamma < max(CtrlVar.LSFExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin) ...
             || rRatio>0.99)
 
@@ -186,7 +179,9 @@ while true
 
     Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl,BCs);
 
-    gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
+    % (25 Oct 2026) At gamma=0 the residual is the residual R assembled above, which is therefore passed on instead of being
+    % assembled again.
+    gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl,BCs,R);
     gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
 
     slope0=-2*r0 ;
@@ -198,7 +193,12 @@ while true
 
     CtrlVar.BacktrackingGammaMin=CtrlVar.LSFExitBackTrackingStepLength;
     [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
-    [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
+    if gamma==1
+        % (25 Oct 2026) the cost function has already been evaluated at gamma=1 (the full Newton step, the usual case)
+        r1Test=r1 ; rForce=rForce1 ; rWork=rWork1 ; D2=D21 ; %#ok<NASGU>
+    else
+        [r1Test,~,~,rForce,rWork,D2]=Func(gamma); %#ok<ASGLU>
+    end
 
 
 

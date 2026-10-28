@@ -3,6 +3,9 @@ function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 %  Performs some basic validity checks on CtrlVar
 
 
+% (26 Oct 2026) the sliding law first: SlidingLawCode.m gives an informative error for former aliases ("W", "B", "C")
+SlidingLawCode(CtrlVar.SlidingLaw);
+
 fn = fieldnames(CtrlVar.MustBe);
 for I=1:numel(fn)
     CheckUaCtrlVarFields(CtrlVar,fn{I})
@@ -69,7 +72,7 @@ if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and dia
 end
 
 
-if CtrlVar.InverseRun  && contains(CtrlVar.SlidingLaw,["Coulomb","-C-"])
+if CtrlVar.InverseRun  && SlidingLawCode(CtrlVar.SlidingLaw)==3   % Coulomb
     fprintf("Inversion using %s sliding law is not possible!\n",CtrlVar.SlidingLaw)
     error('Ua:CtrlVarValidityCheck:InverseAdapt','CtrlVar not valid')
 end

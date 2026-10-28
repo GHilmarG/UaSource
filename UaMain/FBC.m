@@ -55,7 +55,7 @@ if CtrlVar.Hh0~=0
     error("FBC:NonZeroHh0","A symmetrical Heaviside function is assumed, i.e. CtrlVar.Hh0=0, but CtrlVar.Hh0=%g \n",CtrlVar.Hh0)
 end
 
-if ~ismember(string(CtrlVar.SlidingLaw),["W","Weertman"])
+if SlidingLawCode(CtrlVar.SlidingLaw)~=1   % Weertman
     error("FBC:SlidingLawNotImplemented","FBC is implemented for the Weertman sliding law only, but CtrlVar.SlidingLaw=""%s""",string(CtrlVar.SlidingLaw))
 end
 

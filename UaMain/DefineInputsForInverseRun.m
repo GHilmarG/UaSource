@@ -68,9 +68,9 @@ Priors.n=F.n;
 
 % Here the priors are defined by a rough estimate of C based on the measured data, and assuming some typical basal drag value.
 % Depending on the situation better priors might be available.
-switch CtrlVar.SlidingLaw
+switch SlidingLawCode(CtrlVar.SlidingLaw)   % (26 Oct 2026) names and aliases, see SlidingLawCode.m
     
-    case {"Weertman","Tsai","Cornford","Umbi"}
+    case {1,4,5,6}   % Weertman, Tsai, Cornford, Umbi
         
         % u=C tau^m
         
@@ -81,7 +81,7 @@ switch CtrlVar.SlidingLaw
         Priors.C=C0;
         
         
-    case {"Budd","W-N0"}
+    case 2   % Budd
         
        % u=C tau^m / N^q
         hf=F.rhow.*(F.S-F.B)./F.rho;

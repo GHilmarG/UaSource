@@ -152,7 +152,7 @@ He = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);  % 1
 delta = DiracDelta(CtrlVar.kH,F.h-hf,CtrlVar.Hh0) ;
 
 [tbx,tby] = ...
-    BasalDrag(CtrlVar,MUA,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g,F.muk,F.V0);
+    BasalDrag(CtrlVar,0,He,delta,F.h,F.S-F.B,F.rho,F.rhow,F.g,F.ub,F.vb,F.C,F.m,F.q,F.muk,F.V0,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma);   % (26 Oct 2026)
 
 tb=sqrt(tbx.^2+tby.^2);
 
@@ -171,7 +171,7 @@ if nargin<7 || isempty(BCs1) || isnan(BCs1)
     BCs1=BoundaryConditions();
 end
 
-if nargin<6 || isempty(l1) || isnan(l)
+if nargin<6 || isempty(l1) || isnan(l1)
     l1=UaLagrangeVariables;
 end
 

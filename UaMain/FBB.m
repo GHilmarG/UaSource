@@ -139,7 +139,6 @@ if isempty(MUA.Deriv)
     [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
 end
 
-CtrlVar.BasalDrag.CalculateDerivatives=true;
 
 for Iint=1:MUA.nip
 
@@ -205,8 +204,7 @@ for Iint=1:MUA.nip
     etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
 
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = ...
-        BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,...
-        [],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
+        BasalDrag(CtrlVar,2,Heint,deltaint,hint,Hint,rhoint,F.rhow,F.g,uint,vint,Cint,mint,qint,mukint,V0int,[],[],[],[],[],[],[],[]);   % (26 Oct 2026)
 
     [d2taubxdh2,d2taubydh2]=WeertmanSecondOrderDerivatives(CtrlVar,Dhint,uint,vint,Cint,mint);
 

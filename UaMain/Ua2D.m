@@ -827,7 +827,7 @@ while 1
 
 
                 tCPUuvh=tic;
-                [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+                [UserVar,RunInfo,F,l,BCs]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
                 tCPUuvh=toc(tCPUuvh) ;
 
 
