@@ -264,11 +264,20 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
     T2=nexttile;
     cbar=UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
+
+    hgl=F.rhow*(F.S-InvStartValues.B)./F.rho;
+    gf=(F.s-F.b)-hgl ;
+
+    CtrlVar.DisplayName="Grounding lines at start";
+    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="m",LineWidth=1.5);
+    CtrlVar.DisplayName=[];
+
     title("$B$ at start of current inversion run",Interpreter="latex")
     subtitle("")
     title(cbar, '(m)')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(T2,othercolor("Mdarkterrain",32))
+    lg=legend();
 
     T3=nexttile ;
     cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-InvStartValues.B,CreateNewFigure=false);
@@ -276,6 +285,12 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    hgl=F.rhow*(F.S-InvStartValues.B)./F.rho;
+    gf=(F.s-F.b)-hgl ;
+    CtrlVar.DisplayName="Grounding lines at start";
+    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="m",LineWidth=1.5);
+    CtrlVar.DisplayName=[];
+    lg=legend();
 
     T4=nexttile;
     cbar=UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
