@@ -91,6 +91,7 @@ arguments
     options.MeshColor char="k"
     options.logColorbar=false;
     options.Plot string = ""
+    options.BalancedColorMap logical = false 
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -512,13 +513,12 @@ if options.PlotGroundingLines
 
     % New approach to plotting the grounding line (thanks to Deborah Rhee for this suggestion)
 
-    if ~isempty(F) && isfield(F,"rhow") && isfield(F,"S") && isfield(F,"B") && isfield(F,"rho") && isfield(F,"h") 
-        hgl=F.rhow*(F.S-F.B)./F.rho;
-        gf=F.h-hgl ;
-        CtrlVar.DisplayName="Grounding lines";
-        [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="r");
-        CtrlVar.DisplayName=[];
-    end
+
+    hgl=F.rhow*(F.S-F.B)./F.rho;
+    gf=(F.s-F.b)-hgl ;
+    CtrlVar.DisplayName="Grounding lines";
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="r");
+    CtrlVar.DisplayName=[];
 
 end
 
@@ -572,6 +572,13 @@ end
 
 axis tight
 subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
+
+
+if  options.BalancedColorMap
+    CM=cmocean('-balanced',25,'pivot',0) ; 
+    colormap(CM);
+end
+
 
 if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
     clearvars cbar
