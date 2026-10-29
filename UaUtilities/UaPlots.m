@@ -513,12 +513,21 @@ if options.PlotGroundingLines
 
     % New approach to plotting the grounding line (thanks to Deborah Rhee for this suggestion)
 
+    if isfield(F,"h") || isprop(F,"h") ...
+            && isfield(F,"S") || isprop(F,"S") ...
+            && isfield(F,"B") || isprop(F,"B") ...
+            && isfield(F,"rhow") || isprop(F,"rhow") ...
+            && isfield(F,"rho") || isprop(F,"rho")  ...
+            && ~isempty(F.h) && ~isempty(F.S) && ~isempty(F.B) && ~isempty(F.rho)
 
-    hgl=F.rhow*(F.S-F.B)./F.rho;
-    gf=(F.s-F.b)-hgl ;
-    CtrlVar.DisplayName="Grounding lines";
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="r");
-    CtrlVar.DisplayName=[];
+        hgl=F.rhow*(F.S-F.B)./F.rho;
+        gf=F.h-hgl ;
+        if numel(gf)==MUA.Nnodes
+            CtrlVar.DisplayName="Grounding lines";
+            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="r");
+            CtrlVar.DisplayName=[];
+        end
+    end
 
 end
 

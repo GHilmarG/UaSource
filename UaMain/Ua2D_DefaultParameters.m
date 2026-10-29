@@ -2999,6 +2999,19 @@ CtrlVar.Abort.Message="" ;
  
  CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
+
+% %% local
+% 
+% CtrlVar.LinearSolver.Type="PARDISO";  
+% CtrlVar.uvhMatrixAssembly.CompiledKernel=true;  
+% CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+% CtrlVar.Parallel.uvAssembly.spmd.isOn=true;         % assembly in parallel using spmd over sub-domain (domain decomposition)  
+% 
+% if isempty(gcp('nocreate'))
+%     parpool("Threads",4)
+% end
+% 
+
 end
 
 
