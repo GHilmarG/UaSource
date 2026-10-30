@@ -15,6 +15,10 @@
 % Results: 108 of 108 outputs equal to rounding errors (largest relative difference 2.7e-16). Greenland nx150 (110,976 elements):
 % full assembly 237 -> 173 ms, residual only 141 -> 128 ms. Greenland forward run (nx150, uv-h, 20 time steps): same iterations,
 % solution equal to 1e-15 relative; h assembly 62.1 -> 45.3 s, whole run 163.9 -> 149.1 s.
+% MassContinuityEquationNewtonRaphson.m now passes MUA.hAssemblyPattern to solveKApe.m as the structural pattern for PARDISO, as the
+% uv and uvh solvers do, so that the analysis is done once per mesh whatever the pattern of the individual matrices. (Before, the
+% learned pattern of the first matrix was used; for the Greenland run this also gave a single analysis.) Four h solves (Greenland
+% nx150): one analysis, four factorisations, no pattern extensions, thickness bit-identical to before.
 %
 % * Mass balance at integration points removed (31 October 2026):
 %

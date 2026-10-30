@@ -258,7 +258,10 @@ while true
         grhs=[];
     end
 
-    [dh,dl]=solveKApe(K,L,frhs,grhs,dh,dl,CtrlVar);
+    % (31 Oct 2026) the structural sparsity pattern of the mesh for PARDISO (see UaPardisoSolve.m), as in SSTREAM2dNR2.m and
+    % SSTREAM_TransientImplicit.m: one analysis per mesh, whatever the pattern of the individual matrices
+    if isfield(MUA,"hAssemblyPattern") ; hPattern=MUA.hAssemblyPattern ; else ; hPattern=[] ; end
+    [dh,dl]=solveKApe(K,L,frhs,grhs,dh,dl,CtrlVar,[],hPattern);
     dh=full(dh);
 
 

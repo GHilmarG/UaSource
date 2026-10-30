@@ -10,6 +10,7 @@ function BuildUaCompiled(Variants)
 %   Full, Ronly            : kernel, residual and Jacobian / residual only, any element type with nod<=10 and nip<=37 (bounded sizes)
 %   Full_n3i6, Ronly_n3i6  : the same for linear elements with 6 integration points only (fixed sizes, faster)
 %   uvFull, uvRonly, uvFull_n3i6, uvRonly_n3i6 : the same for the uv kernel (uvElementKernel.m, 30 Oct 2026)
+%   hFull, hRonly, hFull_n3i6, hRonly_n3i6     : the same for the h kernel (hElementKernel.m, 31 Oct 2026)
 %   Sparse                 : SparseFromCSC, creates the sparse matrix directly from its CSC arrays (hand-written C, built with mex)
 %
 % The MEX files are written to this folder, the intermediate files of the code generation to tempdir. The MATLAB release and
@@ -25,7 +26,7 @@ function BuildUaCompiled(Variants)
 %%
 
 if nargin<1 || isempty(Variants)
-    Variants=["Full","Ronly","Full_n3i6","Ronly_n3i6","uvFull","uvRonly","uvFull_n3i6","uvRonly_n3i6","Sparse"];
+    Variants=["Full","Ronly","Full_n3i6","Ronly_n3i6","uvFull","uvRonly","uvFull_n3i6","uvRonly_n3i6","hFull","hRonly","hFull_n3i6","hRonly_n3i6","Sparse"];
 end
 Variants=string(Variants);
 
@@ -87,7 +88,10 @@ for v=Variants
             Conn=coder.typeof(0,[Inf nod],[1 vs(1)]);
             % MUA, Deriv, DetJ, connectivity, b h u v AGlen n C m (8), q muk V0 (3), h0 u0 v0 as0 ab0 as1 ab1 dadh B S rho (11), LSFMask hBCsMask (2),
             % melange (8), R, rhow g ca sa dt, IntOut, invPtr, invIdx
-            if startsWith(v,"uv")   % uv kernel (uvElementKernel.m): 14 nodal fields, 8 melange fields, R, rhow, g, ca, sa, rPtr, rIdx, invPtr, invIdx, perm
+            if startsWith(v,"h")    % h kernel (hElementKernel.m, 31 Oct 2026): 12 nodal fields, R, rPtr, rIdx, invPtr, invIdx
+                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,12), {RT,U,U,U,U}];
+                Kernel="hKernel"; Base=extractAfter(v,1);
+            elseif startsWith(v,"uv")   % uv kernel (uvElementKernel.m): 14 nodal fields, 8 melange fields, R, rhow, g, ca, sa, rPtr, rIdx, invPtr, invIdx, perm
                 args=[{M,Deriv,DetJ,Conn}, repmat({V},1,14), repmat({V},1,8), {RT,0,0,0,0,U,U,U,U,U}];   % rPtr, rIdx, invPtr, invIdx, perm
                 Kernel="uvKernel"; Base=extractAfter(v,2);
             else                    % uvh kernel (uvhElementKernel.m)

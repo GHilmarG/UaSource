@@ -102,6 +102,8 @@ else
     % type of the kernel's parameter input). FindOrCreateFigure.m is only called by plotting that is excluded from compiled code.
     if startsWith(MexName,"uvKernel")   % uv kernel (30 Oct 2026)
         Entries={'uvKernelFull','uvKernelRonly'} ;
+    elseif startsWith(MexName,"hKernel")   % h kernel (31 Oct 2026)
+        Entries={'hKernelFull','hKernelRonly'} ;
     else
         Entries={'uvhKernelFull','uvhKernelRonly'} ;
     end
