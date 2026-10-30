@@ -100,7 +100,12 @@ if MexName=="SparseFromCSC"
 else
     % the kernel: the entry points and all UaSource functions they call, and MakeKernelParamsFlex.m (its list of fields fixes the
     % type of the kernel's parameter input). FindOrCreateFigure.m is only called by plotting that is excluded from compiled code.
-    Full=string(matlab.codetools.requiredFilesAndProducts({'uvhKernelFull','uvhKernelRonly'}))' ;
+    if startsWith(MexName,"uvKernel")   % uv kernel (30 Oct 2026)
+        Entries={'uvKernelFull','uvKernelRonly'} ;
+    else
+        Entries={'uvhKernelFull','uvhKernelRonly'} ;
+    end
+    Full=string(matlab.codetools.requiredFilesAndProducts(Entries))' ;
     Full=[Full ; string(which('MakeKernelParamsFlex'))] ;
     Full=Full(startsWith(Full,Root+filesep) & ~endsWith(Full,filesep+"FindOrCreateFigure.m")) ;
 end

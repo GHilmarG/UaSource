@@ -11,7 +11,6 @@ nargoutchk(1,4)
 
 
 
-if ~isfield(CtrlVar.uvAssembly,"SkipSymmetrisation") ; CtrlVar.uvAssembly.SkipSymmetrisation=false ; end
 
 
 
@@ -201,9 +200,6 @@ if any(F.h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
 if any(F.C<0) ; warning('MATLAB:KRTF:Cnegative',' C negative ') ; end
 
 
-if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
-    CtrlVar.TestForRealValues=false;
-end
 
 
 
@@ -517,11 +513,7 @@ if ~Ronly
 
     vs=accumarray(Cache.map,Xval,[Cache.nk 1]);
 
-    if CtrlVar.uvAssembly.SkipSymmetrisation
-        % diagnostic path only
-    else
-        vs=0.5*(vs+vs(Cache.perm));
-    end
+    vs=0.5*(vs+vs(Cache.perm));   % symmetrisation
 
     Kuv=sparse(Cache.i0,Cache.j0,vs,neq,neq);
 

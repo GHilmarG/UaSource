@@ -1,6 +1,6 @@
 function BuildUaCompiled(Variants)
 
-%% Builds the MEX files of the compiled uvh assembly (requires MATLAB Coder and a C compiler, preferably with OpenMP)
+%% Builds the MEX files of the compiled uv and uvh assembly (requires MATLAB Coder and a C compiler, preferably with OpenMP)
 %
 %   BuildUaCompiled                    % builds all MEX files
 %   BuildUaCompiled(["Full_n3i6","Sparse"])   % builds only the listed ones
@@ -9,6 +9,7 @@ function BuildUaCompiled(Variants)
 %
 %   Full, Ronly            : kernel, residual and Jacobian / residual only, any element type with nod<=10 and nip<=37 (bounded sizes)
 %   Full_n3i6, Ronly_n3i6  : the same for linear elements with 6 integration points only (fixed sizes, faster)
+%   uvFull, uvRonly, uvFull_n3i6, uvRonly_n3i6 : the same for the uv kernel (uvElementKernel.m, 30 Oct 2026)
 %   Sparse                 : SparseFromCSC, creates the sparse matrix directly from its CSC arrays (hand-written C, built with mex)
 %
 % The MEX files are written to this folder, the intermediate files of the code generation to tempdir. The MATLAB release and
@@ -24,7 +25,7 @@ function BuildUaCompiled(Variants)
 %%
 
 if nargin<1 || isempty(Variants)
-    Variants=["Full","Ronly","Full_n3i6","Ronly_n3i6","Sparse"];
+    Variants=["Full","Ronly","Full_n3i6","Ronly_n3i6","uvFull","uvRonly","uvFull_n3i6","uvRonly_n3i6","Sparse"];
 end
 Variants=string(Variants);
 
@@ -45,6 +46,7 @@ RT.Fields.uvh.Fields.SUPG.Fields.tau=coder.typeof('a',[1 Inf]);
 % Mesh structure (without Deriv and DetJ, which are passed as separate arrays), nodal vectors, index arrays
 MUAt=coder.typeof(struct('Nele',0,'nod',0,'nip',0,'points',zeros(6,2),'weights',zeros(1,6),'EleAreas',zeros(2,1)));
 MUAt.Fields.EleAreas=coder.typeof(0,[Inf 1],[1 0]);
+MUAuvt=coder.typeof(struct('Nele',0,'nod',0,'nip',0,'points',zeros(6,2),'weights',zeros(1,6)));   % uv kernel: without EleAreas
 V=coder.typeof(0,[Inf 1],[1 0]);   % nodal vectors, Nnodes x 1 (q, muk, V0 and the melange fields may be 0 x 1)
 U=coder.typeof(uint32(0),[Inf 1],[1 0]);   % invPtr, invIdx (see uvhCSCPattern.m)
 
@@ -77,7 +79,7 @@ for v=Variants
             else
                 nod=10; nip=37; vs=[1 1];    % upper bounds
             end
-            M=MUAt;
+            if startsWith(v,"uv") ; M=MUAuvt ; else ; M=MUAt ; end
             M.Fields.points=coder.typeof(0,[nip 2],[vs(2) 0]);
             M.Fields.weights=coder.typeof(0,[1 nip],[0 vs(2)]);
             Deriv=coder.typeof(0,[Inf 2 nod nip],[1 0 vs(1) vs(2)]);
@@ -85,9 +87,15 @@ for v=Variants
             Conn=coder.typeof(0,[Inf nod],[1 vs(1)]);
             % MUA, Deriv, DetJ, connectivity, b h u v AGlen n C m (8), q muk V0 (3), h0 u0 v0 as0 ab0 as1 ab1 dadh B S rho (11), LSFMask hBCsMask (2),
             % melange (8), R, rhow g ca sa dt, IntOut, invPtr, invIdx
-            args=[{M,Deriv,DetJ,Conn}, repmat({V},1,8), {V,V,V}, repmat({V},1,11), {V,V}, repmat({V},1,8), {RT,0,0,0,0,0,false,U,U}];
-            Entry="uvhKernel"+extractBefore(v+"_","_");
-            OutName="uvhKernel"+v+"_mex";
+            if startsWith(v,"uv")   % uv kernel (uvElementKernel.m): 14 nodal fields, 8 melange fields, R, rhow, g, ca, sa, invPtr, invIdx, perm
+                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,14), repmat({V},1,8), {RT,0,0,0,0,U,U,U}];
+                Kernel="uvKernel"; Base=extractAfter(v,2);
+            else                    % uvh kernel (uvhElementKernel.m)
+                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,8), {V,V,V}, repmat({V},1,11), {V,V}, repmat({V},1,8), {RT,0,0,0,0,0,false,U,U}];
+                Kernel="uvhKernel"; Base=v;
+            end
+            Entry=Kernel+extractBefore(Base+"_","_");
+            OutName=Kernel+Base+"_mex";
             fprintf('BuildUaCompiled: %s -> %s\n',Entry,OutName);
             codegen(char(Entry),'-config',cfg,'-args',args,'-o',char(fullfile(Folder,OutName)),'-d',char(fullfile(tempdir,'UaCompiledBuild',OutName)));
             Built(end+1)=OutName; %#ok<AGROW>
