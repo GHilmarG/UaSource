@@ -35,7 +35,7 @@ narginchk(6,7)
 nargoutchk(2,4)
 
 nOut=nargout;
-persistent WarnedNoPattern
+persistent WarnedNoPattern WarnedNoUaCompiled
 
 % Nodes with thickness boundary conditions or active thickness constraints (8 Oct 2026). These nodes are excluded from the
 % thickness penalty: with the integration-point penalty, elements containing such nodes are excluded, and with the nodal penalty
@@ -46,7 +46,6 @@ else
     hConstrainedNodes=[BCs1.hFixedNode(:);BCs1.hPosNode(:)];
 end
 PenaltyNodal=isfield(CtrlVar,"ThicknessPenaltyNodal") && CtrlVar.ThicknessPenaltyNodal ;
-PenaltyElementMask=~any(ismember(MUA.connectivity,hConstrainedNodes),2) ;   % Nele x 1, false for elements containing an h-constrained node
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
@@ -73,6 +72,47 @@ end
 a1=F1.as+F1.ab;
 a0=F0.as+F0.ab;
 
+%% (31 Oct 2026) Compiled element-based assembly (UaSource/UaCompiled)
+%
+% If CtrlVar.hMatrixAssembly.CompiledKernel=true, and the options, the element type and the cached assembly pattern allow it (see
+% CompiledAssemblyCheck.m), f0 and K are assembled by hMatrixAssemblyCompiled.m (compiled kernel, parallelised over elements), from the
+% quantities prepared above (mass balance, its derivative). The results are the same as those of the vectorised assembly below to
+% round-off. The lumped nodal thickness penalty at the end of this routine is added for both. Not used if dFdt is requested (nargout=4),
+% or if UaCompiled is not on the path. If the MEX files themselves fail (UaCompiled:KernelFailed), the compiled kernel is switched off
+% for the rest of the session (with a message), and the vectorised assembly is used. Other errors are passed on.
+UseCompiledKernel=false ;
+if nOut<=3 && isfield(CtrlVar,"hMatrixAssembly") && isfield(CtrlVar.hMatrixAssembly,"CompiledKernel") && CtrlVar.hMatrixAssembly.CompiledKernel
+    if exist("CompiledAssemblyCheck","file")==2
+        [UseCompiledKernel,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"h") ;
+    elseif isempty(WarnedNoUaCompiled)
+        WarnedNoUaCompiled=true ;
+        fprintf(CtrlVar.fidlog,"hMatrixAssembly: CtrlVar.hMatrixAssembly.CompiledKernel=true, but UaSource/UaCompiled is not on the path. The vectorised assembly is used instead.\n") ;
+    end
+    if UseCompiledKernel
+        if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+            if isempty(F1.LSFMask)
+                F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+            end
+            LSFMaskNodes=F1.LSFMask.NodesOut ;
+        else
+            LSFMaskNodes=zeros(0,1) ;
+        end
+        hBCsMask=zeros(MUA.Nnodes,1) ; hBCsMask(hConstrainedNodes)=1 ;
+        try
+            [f0,K]=hMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,a0,a1,dadh,LSFMaskNodes,hBCsMask,nOut<=2,RK,KernelFull,KernelRonly) ;
+        catch ME
+            if ~strcmp(ME.identifier,"UaCompiled:KernelFailed")
+                rethrow(ME) ;
+            end
+            CompiledAssemblyCheck(CtrlVar,MUA,"h",ME) ;   % reports the failure, and switches the compiled kernel off for this session
+            UseCompiledKernel=false ;
+        end
+    end
+end
+
+if ~UseCompiledKernel   % vectorised assembly
+
+PenaltyElementMask=~any(ismember(MUA.connectivity,hConstrainedNodes),2) ;   % Nele x 1, false for elements containing an h-constrained node
 
 h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -312,6 +352,8 @@ if nargout>2
     end
 
 end
+
+end   % vectorised assembly (~UseCompiledKernel)
 
 
 %% Lumped nodal thickness penalty (8 Oct 2026), done in the same way as in uvhMatrixAssembly (see comments there).

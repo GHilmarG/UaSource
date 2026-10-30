@@ -1,9 +1,10 @@
 function [ok,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,Assembly,Failure)
 
-%% Decides if the compiled assembly can be used, for the uv assembly (uvMatrixAssemblySSTREAM.m) or the uvh assembly (uvhMatrixAssembly.m)
+%% Decides if the compiled assembly can be used, for the uv assembly (uvMatrixAssemblySSTREAM.m), the uvh assembly (uvhMatrixAssembly.m) or the h assembly (MassContinuityEquationAssembly.m)
 %
 %   [ok,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"uv")     % CtrlVar.uvMatrixAssembly.CompiledKernel=true
 %   [ok,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"uvh")    % CtrlVar.uvhMatrixAssembly.CompiledKernel=true
+%   [ok,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"h")      % CtrlVar.hMatrixAssembly.CompiledKernel=true (31 Oct 2026)
 %
 % ok          : true if the compiled kernel can be used for these options and this element type
 % RK          : run-time parameters for the kernel (see MakeKernelParamsFlex.m)
@@ -11,7 +12,7 @@ function [ok,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,Assemb
 % KernelRonly : name of the MEX file for the residual only
 %
 % Requires: element type with at most 10 nodes and 37 integration points, the cached assembly pattern (MUA.uvAssemblyPattern or
-% MUA.uvhAssemblyPattern), the MEX files (kernel and SparseFromCSC), and options supported by the kernel (MakeKernelParamsFlex.m).
+% MUA.uvhAssemblyPattern or MUA.hAssemblyPattern), the MEX files (kernel and SparseFromCSC), and options supported by the kernel (MakeKernelParamsFlex.m).
 % Also checks, once per session and variant, that the MEX files are up to date: built with the MATLAB release that is running, and none
 % of their source files changed since (UaCompiledBuildInfo.m).
 % If ok=false, the vectorised assembly is used. The reason is printed once per MATLAB session.
@@ -21,7 +22,7 @@ function [ok,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,Assemb
 %
 %   CompiledAssemblyCheck(CtrlVar,MUA,"uv",ME)
 %
-% uv and uvh are checked, reported and switched off separately. To check again (eg after rebuilding the MEX files):
+% uv, uvh and h are checked, reported and switched off separately. To check again (eg after rebuilding the MEX files):
 %
 %   clear CompiledAssemblyCheck
 %
@@ -31,9 +32,9 @@ function [ok,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,Assemb
 %%
 
 persistent State
+S0=struct("Printed",strings(0),"MexFound",struct(),"UpToDate",struct(),"Failed","") ;
 if isempty(State)
-    S0=struct("Printed",strings(0),"MexFound",struct(),"UpToDate",struct(),"Failed","") ;
-    State=struct("uv",S0,"uvh",S0) ;
+    State=struct("uv",S0,"uvh",S0,"h",S0) ;
 end
 
 Assembly=string(Assembly) ;
@@ -42,9 +43,12 @@ switch Assembly
         Caller="uvMatrixAssembly" ; Kernel="uvKernel" ; PatternField="uvAssemblyPattern" ; PatternFields=["map","i0","j0","iR","perm","TopologyKey"] ;
     case "uvh"
         Caller="uvhMatrixAssembly" ; Kernel="uvhKernel" ; PatternField="uvhAssemblyPattern" ; PatternFields=["map","i0","j0","iR","TopologyKey"] ;
+    case "h"
+        Caller="hMatrixAssembly" ; Kernel="hKernel" ; PatternField="hAssemblyPattern" ; PatternFields=["map","i0","j0","iR","TopologyKey"] ;
     otherwise
-        error("CompiledAssemblyCheck:Assembly","Assembly must be ""uv"" or ""uvh"".")
+        error("CompiledAssemblyCheck:Assembly","Assembly must be ""uv"", ""uvh"" or ""h"".")
 end
+if ~isfield(State,Assembly) ; State.(Assembly)=S0 ; end
 S=State.(Assembly) ;
 
 ok=false ; RK=[] ; KernelFull="" ; KernelRonly="" ; Reason="" ;

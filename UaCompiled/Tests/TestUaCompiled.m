@@ -1,11 +1,11 @@
 classdef TestUaCompiled < matlab.unittest.TestCase
 
-    %% Regression test of the compiled assembly (UaSource/UaCompiled), uv and uvh, against the vectorised assembly
+    %% Regression test of the compiled assembly (UaSource/UaCompiled), uv, uvh and h, against the vectorised assembly
     %
-    %   results=runtests("TestUaCompiled")                                        % all tests, about 30 s
+    %   results=runtests("TestUaCompiled")                                        % all tests, about 35 s
     %   table(results)                                                            % one row per test
     %   results=runtests("TestUaCompiled","ProcedureName","testUvSlidingLaws")    % one group of tests
-    %   results=runtests("TestUaCompiled","ProcedureName","testUv*")              % the uv tests only (testUvh*: the uvh tests)
+    %   results=runtests("TestUaCompiled","ProcedureName","testUv*")              % the uv tests only (testUvh*: uvh, testH*: h)
     %
     % What it tests, on a small synthetic state built here (no files needed: grounded and floating ice with a grounding line, a
     % patch where the thickness goes down to about ThickMin, a level-set field crossing the domain, melange fields, and
@@ -31,19 +31,29 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     %   - one uv solve (uv.m, Newton-Raphson): the same number of iterations, and the same solution to rounding errors;
     %   - that complex-valued input is an error (not a fallback).
     %
-    % Both: that the MEX files are up to date (UaCompiledBuildInfo.m), testBuildInformation.
+    % h assembly (MassContinuityEquationAssembly.m, 31 Oct 2026), tests testH*:
+    %   - for each option (level-set feedback, thickness penalty at integration points and nodal, constrained nodes, mass-balance
+    %     geometry feedback), SUPG tau option, element type and quadrature rule, that the compiled path is actually used, and that f0
+    %     (a full vector) and K agree with the vectorised assembly to rounding errors, for the full and the residual-only assembly;
+    %   - the fallback outside the compiled range (42 points) and when dFdt is requested, with identical results;
+    %   - one h solve (MassContinuityEquationNewtonRaphson.m, with thickness penalty, so non-linear): the same number of iterations,
+    %     and the same solution to rounding errors;
+    %   - that complex-valued input is an error (not a fallback).
+    %
+    % All: that the MEX files are up to date (UaCompiledBuildInfo.m), testBuildInformation.
     %
     % What it does not test: changes to the physics made in the same way in both assemblies (the test checks that the two agree,
     % not that the physics is right).
     %
-    % Run it after any change to the kernels (uvElementKernel.m, uvhElementKernel.m) or the other files in UaCompiled, to the
+    % Run it after any change to the kernels (uvElementKernel.m, uvhElementKernel.m, hElementKernel.m) or the other files in UaCompiled, to the
     % functions the kernels compile (see UaCompiledBuildInfo.m, eg BasalDrag.m, SUPGtau.m), or to the vectorised assemblies
-    % (uvMatrixAssemblySSTREAM.m, uvhMatrixAssembly.m, uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m), and after
+    % (uvMatrixAssemblySSTREAM.m, uvhMatrixAssembly.m, uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m,
+    % MassContinuityEquationAssembly.m), and after
     % rebuilding the MEX files.
     %
     % See also: README.md in UaCompiled, BuildUaCompiled, CompiledAssemblyCheck
     %
-    % (26 Oct 2026; uv tests added 30 Oct 2026)
+    % (26 Oct 2026; uv tests added 30 Oct 2026, h tests 31 Oct 2026)
     %%
 
     properties (Constant)
@@ -57,6 +67,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
         TauOption = {"tau1","tau2","taus","taut","tau0"}
         PenaltyFunction = {"softplus","polynomial","exponential"}
         Option = {"LevelSetFeedback","ThicknessBarrier","ActiveSetConstraints","ResetThicknessToMinThickness","Enforce_bAboveB","MassBalanceGeometryFeedback"}
+        HOption = {"Base","LevelSetFeedback","PenaltyAtIntegrationPoints","PenaltyNodal","ConstrainedNodes","MassBalanceGeometryFeedback"}
         TriNodes = struct("linear",3,"quadratic",6,"cubic",10)
         QuadratureDegree = struct("degree1",1,"degree2",2,"degree4",4,"degree8",8,"degree12",12)
     end
@@ -68,7 +79,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     methods (TestClassSetup)
 
         function setupStateAndCheckMexFiles(testCase)
-            for m=[testCase.MexFiles("uvh"),testCase.MexFiles("uv"),"SparseFromCSC"]
+            for m=[testCase.MexFiles("uvh"),testCase.MexFiles("uv"),testCase.MexFiles("h"),"SparseFromCSC"]
                 testCase.assertEqual(exist(m,"file"),3, ...
                     "The MEX file "+m+" was not found. Build the MEX files with BuildUaCompiled.m (see README.md in UaCompiled).")
             end
@@ -81,7 +92,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     methods (Test)
 
         function testBuildInformation(testCase)
-            [ok,Reason,Note]=UaCompiledBuildInfo("check",[testCase.MexFiles("uvh"),testCase.MexFiles("uv"),"SparseFromCSC"]) ;
+            [ok,Reason,Note]=UaCompiledBuildInfo("check",[testCase.MexFiles("uvh"),testCase.MexFiles("uv"),testCase.MexFiles("h"),"SparseFromCSC"]) ;
             testCase.verifyTrue(ok,"MEX files not up to date: "+Reason)
             testCase.verifyEqual(Note,"","No build information: "+Note)
         end
@@ -271,14 +282,138 @@ classdef TestUaCompiled < matlab.unittest.TestCase
             testCase.verifyError(@() CallUvAssembly(C,S.MUA,F,S.BCs),"uvMatrixAssemblyCompiled:ComplexInput")
         end
 
+        %% h assembly
+
+        function testHOptions(testCase,HOption)
+            S=testCase.Base ;
+            switch HOption
+                case "LevelSetFeedback"
+                    S.CtrlVar.LevelSetMethod=true ;
+                    S.CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=true ;
+                    S.F1.LSFMask=[] ;   % computed from LSF by MassContinuityEquationAssembly
+                case "PenaltyAtIntegrationPoints"
+                    S.CtrlVar.ThicknessPenalty=true ; S.CtrlVar.ThicknessPenaltyNodal=false ;
+                case "PenaltyNodal"
+                    S.CtrlVar.ThicknessPenalty=true ; S.CtrlVar.ThicknessPenaltyNodal=true ;
+                case "ConstrainedNodes"   % no penalty in elements containing constrained nodes
+                    S.CtrlVar.ThicknessPenalty=true ; S.CtrlVar.ThicknessPenaltyNodal=false ;
+                    I=find(S.F1.h<2*S.CtrlVar.ThickMin) ;
+                    testCase.assertNotEmpty(I,"the synthetic state has no thin ice to constrain")
+                    S.BCs.hPosNode=I ; S.BCs.hPosValue=S.CtrlVar.ThickMin+zeros(numel(I),1) ;
+                case "MassBalanceGeometryFeedback"   % DefineMassBalance.m in a temporary working folder, as in testUvhOptions
+                    testCase.applyFixture(matlab.unittest.fixtures.WorkingFolderFixture) ;
+                    writelines(["function [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,F)" ; ...
+                        "as=0.3+0.001*F.h ; dasdh=0.001+0*F.h ;" ; "ab=-0.002*F.h ; dabdh=-0.002+0*F.h ;" ; "end"],"DefineMassBalance.m") ;
+                    rehash ;
+                    S.CtrlVar.MassBalanceGeometryFeedback=3 ;
+            end
+            testCase.verifySameHAssembly(S,"option "+HOption)
+        end
+
+        function testHTauOptions(testCase,TauOption)
+            S=testCase.Base ;
+            S.CtrlVar.uvh.SUPG.tau=TauOption ;   % the h assembly uses the uvh SUPG options
+            testCase.verifySameHAssembly(S,"SUPG tau option "+TauOption)
+        end
+
+        function testHElementTypes(testCase,TriNodes)
+            if TriNodes==3
+                S=testCase.Base ;
+            else
+                S=SyntheticUvhState(TriNodes,40,[]) ;
+            end
+            testCase.verifySameHAssembly(S,TriNodes+"-node elements, "+S.MUA.nip+" integration points")
+        end
+
+        function testHQuadratureRules(testCase,QuadratureDegree)
+            S=SyntheticUvhState(3,20,QuadratureDegree) ;
+            testCase.verifySameHAssembly(S,"linear elements, quadrature degree "+QuadratureDegree+" ("+S.MUA.nip+" points)")
+        end
+
+        function testHFallbackOutsideCompiledRange(testCase)
+            S=SyntheticUvhState(3,20,14) ;   % 42 integration points, beyond the compiled range of 37
+            C=S.CtrlVar ; C.hMatrixAssembly.CompiledKernel=true ;
+            [txt,ok]=evalc("CompiledAssemblyCheck(C,S.MUA,""h"")") ;
+            testCase.verifyFalse(ok,"the compiled path should not be used for "+S.MUA.nip+" integration points")
+            testCase.verifyTrue(contains(txt,"outside the compiled range") || txt=="", ...   % "" if the message was printed earlier in this session
+                "unexpected message: "+txt)
+            Ca=C ; Ca.hMatrixAssembly.CompiledKernel=false ;
+            [~,fa,Ka]=MassContinuityEquationAssembly(S.UserVar,S.RunInfo,Ca,S.MUA,S.F0,S.F1,S.BCs) ;
+            evalc("[~,fb,Kb]=MassContinuityEquationAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.BCs);") ;
+            testCase.verifyEqual(fb,fa,"after the fallback, f0 should be identical to the vectorised assembly")
+            testCase.verifyEqual(Kb,Ka,"after the fallback, K should be identical to the vectorised assembly")
+        end
+
+        function testHFallbackWithdFdt(testCase)
+            % if dFdt is requested (fourth output), the vectorised assembly is used, without a message
+            S=testCase.Base ;
+            C=S.CtrlVar ;
+            testCase.assertCompiledPathUsed(C,S.MUA,"h")
+            C.hMatrixAssembly.CompiledKernel=false ;
+            [~,fa,Ka,Da]=MassContinuityEquationAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.BCs) ;
+            C.hMatrixAssembly.CompiledKernel=true ;
+            [txt,~,fb,Kb,Db]=evalc("MassContinuityEquationAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.BCs)") ;
+            testCase.verifyEqual(fb,fa,"with dFdt requested, f0 should be identical to the vectorised assembly")
+            testCase.verifyEqual(Kb,Ka,"with dFdt requested, K should be identical to the vectorised assembly")
+            testCase.verifyEqual(Db,Da,"with dFdt requested, dFdt should be identical to the vectorised assembly")
+            testCase.verifyEqual(strtrim(string(txt)),"","no message expected")
+        end
+
+        function testHNewtonSolve(testCase)
+            % one h solve (MassContinuityEquationNewtonRaphson.m: Newton-Raphson with line search) with both assemblies; with the thickness
+            % penalty, so that the problem is non-linear and needs several iterations
+            S=SyntheticUvhState(3,20,[]) ;
+            C=S.CtrlVar ; C.ThicknessPenalty=true ;
+            F1=S.F1 ; F1.h=S.F0.h ;   % initial guess: the thickness at the beginning of the time step
+            testCase.assertCompiledPathUsed(C,S.MUA,"h")
+            h=cell(1,2) ; RI=cell(1,2) ;
+            for k=1:2
+                C.hMatrixAssembly.CompiledKernel=(k==2) ;
+                evalc("[~,RI{k},h{k},~,~]=MassContinuityEquationNewtonRaphson(S.UserVar,UaRunInfo,C,S.MUA,S.F0,F1,S.l,S.BCs);") ;   % (requires all five outputs)
+            end
+            it=cellfun(@(r) r.Forward.hIterations(C.CurrentRunStepNumber),RI) ;
+            testCase.verifyGreaterThan(it(1),1,"the h solve should need several Newton iterations (non-linear problem)")
+            testCase.verifyEqual(it(2),it(1),"number of Newton iterations")
+            testCase.verifyLessThanOrEqual(RelDiff(h{1},h{2}),testCase.ToleranceSolve,"h after the h solve")
+        end
+
+        function testHComplexInputIsError(testCase)
+            % complex-valued input is an error in the compiled h assembly (the kernel is compiled for real values), not a fallback
+            S=testCase.Base ;
+            C=S.CtrlVar ; C.hMatrixAssembly.CompiledKernel=true ;
+            testCase.assertCompiledPathUsed(C,S.MUA,"h")
+            F1=S.F1 ; F1.h=complex(F1.h,1e-30) ;
+            testCase.verifyError(@() CallHAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,F1,S.BCs),"hMatrixAssemblyCompiled:ComplexInput")
+        end
+
     end
 
     methods (Access=private)
+
+        function verifySameHAssembly(testCase,S,Label)
+            % compiled against vectorised h assembly: f0 and K, full and residual only
+            testCase.assertCompiledPathUsed(S.CtrlVar,S.MUA,"h")
+            C=S.CtrlVar ;
+            C.hMatrixAssembly.CompiledKernel=false ;
+            [~,fa,Ka]=MassContinuityEquationAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.BCs) ;
+            [~,far]=MassContinuityEquationAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.BCs) ;
+            C.hMatrixAssembly.CompiledKernel=true ;
+            [~,fb,Kb]=MassContinuityEquationAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.BCs) ;
+            [~,fbr]=MassContinuityEquationAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.BCs) ;
+            What="h, "+Label+": " ;
+            testCase.verifyFalse(issparse(fb),What+"f0 should be a full vector")
+            testCase.verifyFalse(any(isnan(fb)),What+"NaN in f0")
+            testCase.verifyLessThanOrEqual(RelDiff(fa,fb),testCase.Tolerance,What+"f0")
+            testCase.verifyLessThanOrEqual(RelDiff(far,fbr),testCase.Tolerance,What+"f0, residual only")
+            testCase.verifyLessThanOrEqual(RelDiff(Ka,Kb),testCase.Tolerance,What+"K")
+        end
+
 
         function assertCompiledPathUsed(testCase,CtrlVar,MUA,Assembly)
             switch Assembly
                 case "uv"  ; CtrlVar.uvMatrixAssembly.CompiledKernel=true ;
                 case "uvh" ; CtrlVar.uvhMatrixAssembly.CompiledKernel=true ;
+                case "h"   ; CtrlVar.hMatrixAssembly.CompiledKernel=true ;
             end
             [txt,ok]=evalc("CompiledAssemblyCheck(CtrlVar,MUA,Assembly)") ;
             testCase.assertTrue(ok,"the compiled "+Assembly+" assembly is not used, so the comparison would test nothing. "+strtrim(string(txt)))
@@ -359,6 +494,11 @@ function R=CallUvAssembly(C,MUA,F,BCs)
 R=uvMatrixAssemblySSTREAM(C,MUA,F,BCs) ;
 end
 
+function f0=CallHAssembly(U,RI,C,MUA,F0,F1,BCs)
+% (MassContinuityEquationAssembly.m requires at least two outputs)
+[~,f0]=MassContinuityEquationAssembly(U,RI,C,MUA,F0,F1,BCs) ;
+end
+
 function S=WithBoundaryVelocities(S)
 % velocities fixed (to their values in F1) on the upstream and the lateral boundaries: makes the uv problem well posed, and gives
 % non-zero velocities (and so non-zero internal forces) with ZeroFields
@@ -380,6 +520,7 @@ CtrlVar.dt=0.01 ; CtrlVar.time=0 ; CtrlVar.CurrentRunStepNumber=1 ;
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=false ; CtrlVar.Parallel.uvAssembly.spmd.isOn=false ;
 CtrlVar.uvhMatrixAssembly.ZeroFields=false ; CtrlVar.uvhMatrixAssembly.Ronly=false ; CtrlVar.uvhMatrixAssembly.CompiledKernel=false ;
 CtrlVar.uvAssembly.ZeroFields=false ; CtrlVar.uvMatrixAssembly.Ronly=false ; CtrlVar.uvMatrixAssembly.CompiledKernel=false ;
+CtrlVar.hMatrixAssembly.CompiledKernel=false ;
 CtrlVar.InfoLevel=0 ; CtrlVar.InfoLevelNonLinIt=0 ; CtrlVar.doplots=0 ;
 CtrlVar.MUA.DecomposeMassMatrix=false ;   % not needed for the assembly (and not possible with a 1-point quadrature rule)
 

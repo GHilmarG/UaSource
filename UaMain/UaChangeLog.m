@@ -4,6 +4,31 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Regression test of the compiled assembly: h tests added to the regression test (31 October 2026):
+%
+% UaCompiled/Tests/TestUaCompiled.m now also tests the compiled h assembly (tests testH*; 88 tests in all, about 27 s): f0 (a full
+% vector) and K compared with the vectorised h assembly for level-set feedback, thickness penalty (at integration points and nodal),
+% constrained nodes, mass-balance geometry feedback, all SUPG tau options, linear, quadratic and cubic elements and quadrature rules
+% with 1 to 33 points, full and residual only, each time first checking that the compiled path is used; the fallback outside the
+% compiled range and when dFdt is requested (identical results); one non-linear h solve with MassContinuityEquationNewtonRaphson.m
+% (same iterations and solution); complex-valued input is an error. testBuildInformation covers all 13 MEX files. All 88 pass. A
+% deliberate change of 1e-6 in the SUPG parameter of the vectorised h assembly only made 18 of the 23 h tests fail (all assembly
+% comparisons except tau0).
+%
+% * Compiled h assembly (31 October 2026):
+%
+% CtrlVar.hMatrixAssembly.CompiledKernel=true (default false; a third switch, besides those for the uv and uvh assembly) makes
+% MassContinuityEquationAssembly.m (the h assembly, used by the uv-h scheme and by MassContinuityEquation.m) assemble f0 and K with a
+% compiled element-based kernel (UaCompiled/hElementKernel.m, entry points hKernelFull.m and hKernelRonly.m, MATLAB side
+% hMatrixAssemblyCompiled.m), in the same way as the compiled uv and uvh assembly. The common preparation (mass-balance geometry
+% feedback, level-set mask, constrained nodes) and the lumped nodal thickness penalty stay in MassContinuityEquationAssembly.m and are
+% shared with the vectorised assembly. Not used if dFdt is requested (nargout=4). CompiledAssemblyCheck.m now also handles "h";
+% BuildUaCompiled.m builds the h variants (hFull, hRonly, hFull_n3i6, hRonly_n3i6) as well. Complex-valued input is an error.
+% Results equal to the vectorised assembly to rounding errors (at most 4e-13 relative; 2e-12 with SUPG tau1) for level-set feedback,
+% thickness penalty (at integration points and nodal), constrained nodes, mass-balance geometry feedback, all tau options, linear and
+% cubic elements; fallback with a message outside the compiled range and without an h assembly pattern. Greenland nx150: full
+% assembly 180 -> 19.8 ms, residual only 131 -> 7.2 ms; h solves (Greenland nx150) 0.9 -> 0.35-0.45 s each, thickness equal to 1e-12 m.
+%
 % * h assembly with a cached assembly pattern, residual as a full vector (31 October 2026):
 %
 % MassContinuityEquationAssembly.m (the h assembly, used by the uv-h scheme and MassContinuityEquation.m) now builds K (and dFdt) with a

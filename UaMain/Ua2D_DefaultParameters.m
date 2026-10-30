@@ -2976,6 +2976,10 @@ CtrlVar.uvMatrixAssembly.CompiledKernel=false;    % (30 Oct 2026) If true, the u
                                                   % UaSource/UaCompiled, in the same way as CtrlVar.uvhMatrixAssembly.CompiledKernel for the uvh assembly. This applies
                                                   % to all uv assemblies, including those of the inverse problem (adjoint). Results are the same to round-off.
                                                   % Not used within spmd workers (CtrlVar.Parallel.uvAssembly.spmd.isOn=true). See UaCompiled/README.md.
+CtrlVar.hMatrixAssembly.CompiledKernel=false;     % (31 Oct 2026) If true, the h assembly (MassContinuityEquationAssembly.m, used by the uv-h scheme and by
+                                                  % MassContinuityEquation.m) uses the compiled element-based kernel in UaSource/UaCompiled, in the same way as
+                                                  % CtrlVar.uvhMatrixAssembly.CompiledKernel for the uvh assembly. Results are the same to round-off. Not used if
+                                                  % the matrix dFdt is requested (stability analysis). See UaCompiled/README.md.
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
 CtrlVar.DevelopmentVersion=false ; % Internal variable, always set to false
 % (unless you want to use some untried, untested and unfinished features....)
