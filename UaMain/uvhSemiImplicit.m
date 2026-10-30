@@ -106,8 +106,10 @@ F1.h=max(F1.h,CtrlVar.ThickMin) ;
 %
 %%
 
+%% Infolevels: To reduce the level of printing in the command window, these info level settings are here hardwired
 
-
+CtrlVar.ThicknessConstraintsInfoLevel=0 ;
+CtrlVar.hInfoLevel=0;        
 
 %% If required, calculate uv at the beginning of the time step, ie at t=t0;
 if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
@@ -210,13 +212,16 @@ RunInfo.Forward.uvhConverged=false ; RunInfo.Forward.uvhStalled=false ; RunInfo.
 
 uvItMax=0;
 hItMax=0; 
-iteration=0; 
+uvItCumulative=0;
+hItCumulative=0; 
+uv_h_OuterIteration=0; 
+ActiveSetItCumulative=0;
 CtrlVar.InfoLevelNonLinIt=0; % here setting the info level to zero, as I give info on uv-h outer iteration and just the number of inner -uv- and -h- iterations
 
 
 while true
 
-    iteration=iteration+1 ;
+    uv_h_OuterIteration=uv_h_OuterIteration+1 ;
 
     %% 1) calculate new ice thickness implicitly with respect to h: h1=h(h0,uv0,uv1Est)
 
@@ -232,6 +237,8 @@ while true
     F1.h=h1;
 
     hItMax=max(RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),hItMax);
+    hItCumulative=hItCumulative+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber);
+    ActiveSetItCumulative= ActiveSetItCumulative+RunInfo.Forward.hActiveSetIterations(CtrlVar.CurrentRunStepNumber);
 
     %% 2)  Update s,h and GF
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
@@ -248,6 +255,7 @@ while true
     [UserVar,RunInfo,F1,l1,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F1,l1);
 
     uvItMax=max(RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),uvItMax);
+    uvItCumulative=uvItCumulative+RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber);
 
     du1=F1.ub-ub1Ahead ;
     dv1=F1.vb-vb1Ahead ;
@@ -260,7 +268,7 @@ while true
             F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
         end
 
-        I=F1.LSFMask.NodesOut ; 
+        I=F1.LSFMask.NodesOut ;
         du1(I)=0 ; dv1(I)=0 ; dh1(I)=0 ;
 
     end
@@ -269,11 +277,13 @@ while true
     dh1Norm=dh1'*MUA.M*dh1/MUA.Area;
 
 
-    duv1NormVector(iteration)=duv1Norm;
-    dh1NormVector(iteration)=dh1Norm;
-    fprintf("\t uv-h: Outer iteration %i \t |duv|^2 =%14g \t |dh|^2=%14g    \t inner uv iterations=%2i \t inner h iterations=%2i   \n",...
-        iteration,duv1Norm,dh1Norm,RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber))
+    duv1NormVector(uv_h_OuterIteration)=duv1Norm;
+    dh1NormVector(uv_h_OuterIteration)=dh1Norm;
 
+    if CtrlVar.InfoLevel>=2
+        fprintf("\t uv-h: Outer iteration %i \t |duv|^2 =%14g \t |dh|^2=%14g    \t inner uv iterations=%2i \t inner h iterations=%2i   \n",...
+            uv_h_OuterIteration,duv1Norm,dh1Norm,RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber))
+    end
 
     if CtrlVar.InfoLevelNonLinIt>= 5 && CtrlVar.doplots
 
@@ -296,37 +306,54 @@ while true
 
         Ti.Title.Interpreter="latex";
         Ti.Title.String=sprintf("$uv-h$ outer iteration %i at $t$=%g and $\\Delta t$=%g : total inner iterations: $h$=%i,  $uv$=%i",...
-            iteration,F1.time,F1.dt,RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)) ;
+            uv_h_OuterIteration,F1.time,F1.dt,RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)) ;
         Ti.Title.Color="blue";
 
     end
 
     %% Convergence test (8 Oct 2026): same cost function and same criteria as the implicit uvh solver
     [L,cuvh,luvh,l1]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);   % re-assembled here because the h solve may have changed the active set
-    dub=F1.ub-ub1Previous ; dvb=F1.vb-vb1Previous ; dh=F1.h-h1Previous ;     % changes over this outer iteration, used for rWork
-    if numel(luvhPrevious)==numel(luvh) ; dl=luvh-luvhPrevious ; else ; dl=zeros(numel(luvh),1) ; end
+    dub=F1.ub-ub1Previous ; 
+    dvb=F1.vb-vb1Previous ; 
+    dh=F1.h-h1Previous ;     % changes over this outer iteration, used for rWork
+    
+    if numel(luvhPrevious)==numel(luvh) 
+        dl=luvh-luvhPrevious ; 
+    else 
+        dl=zeros(numel(luvh),1) ; 
+    end
+    
     [~,UserVar,RunInfo,rForce,rWork]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVarR,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,0,Fext0);
-    rForceVector(iteration)=rForce ;
+    rForceVector(uv_h_OuterIteration)=rForce ;
     ub1Previous=F1.ub ; vb1Previous=F1.vb ; h1Previous=F1.h ; luvhPrevious=luvh ;
 
     SubSolvesConverged=RunInfo.Forward.uvConverged && RunInfo.Forward.hConverged ;
     rForceFloor=uvhResidualRoundOffFloor(CtrlVar,MUA,F1,Fext0) ;   % (8 Oct 2026) round-off floor of rForce, relevant for small time steps
-    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,false,rForceFloor) && SubSolvesConverged ;
-    fprintf("\t uv-h: Outer iteration %i \t rForce=%-14g \t rWork=%-14g \n",iteration,rForce,rWork)
+    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,uv_h_OuterIteration,false,rForceFloor) && SubSolvesConverged ;
+
+    if CtrlVar.InfoLevel>=1
+        fprintf("\t (uv-h) Outer iteration nr %i with inner itations: uv=%i \t h=%i \t active set=%i \t rForce=%-14g \t rWork=%-14g \n",...
+            uv_h_OuterIteration,...
+            RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),...
+            RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),...
+            RunInfo.Forward.hActiveSetIterations(CtrlVar.CurrentRunStepNumber),...
+            rForce,rWork)
+    end
 
     if ResidualsCriteria
         RunInfo.Forward.uvhConverged=true ; RunInfo.Forward.uvhrForce=rForce ;
         if InfoLevelNonLinItOnInput>=1
-            fprintf(" SSTREAM(uv-h) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i outer iterations \n",CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration)
+            fprintf(" SSTREAM(uv-h) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i outer iterations and uv=%2i, h=%2i, active set=%2i, cumulative iterations \n",...
+                F1.time,F1.dt,rForce,rWork,uv_h_OuterIteration,uvItCumulative,hItCumulative,ActiveSetItCumulative)
         end
         break
     end
 
-    if iteration>= CtrlVar.uv2h.MaxIterations
+    if uv_h_OuterIteration>= CtrlVar.uv2h.MaxIterations
         RunInfo.Forward.uvhConverged=false ; RunInfo.Forward.uvhStalled=true ; RunInfo.Forward.uvhrForce=rForce ;
         if InfoLevelNonLinItOnInput>=1
             fprintf(" SSTREAM(uv-h) (time|dt)=(%g|%g): Maximum number of outer uv-h iterations (%i) reached. uv-h iteration did not converge! rForce=%-g, rWork=%-g (uv solve converged: %i, h solve converged: %i) \n",...
-                CtrlVar.time,CtrlVar.dt,iteration,rForce,rWork,RunInfo.Forward.uvConverged,RunInfo.Forward.hConverged)
+                CtrlVar.time,CtrlVar.dt,uv_h_OuterIteration,rForce,rWork,RunInfo.Forward.uvConverged,RunInfo.Forward.hConverged)
         end
         break
     end
@@ -335,10 +362,12 @@ while true
 
 end
 
+
+
 % Here I return the max number of uv and h iterations during the outer uv-h iteration
 RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=uvItMax;
 RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=hItMax;
-RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber)=iteration;
+RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber)=uv_h_OuterIteration;
 
 if CtrlVar.InfoLevel>=10
 
@@ -347,6 +376,7 @@ if CtrlVar.InfoLevel>=10
 end
 
 if CtrlVar.InfoLevelNonLinIt>= 5 && CtrlVar.doplots
+    %%
     FindOrCreateFigure("uv-h outer iteration")
     yyaxis left
     semilogy(1:CtrlVar.uv2h.MaxIterations,duv1NormVector,DisplayName="$\|\Delta (uv)_1\|$",Marker="o")
@@ -358,6 +388,7 @@ if CtrlVar.InfoLevelNonLinIt>= 5 && CtrlVar.doplots
     title("$uv-h$ outer iteration residuals",Interpreter="latex")
     subtitle(sprintf("$t$=%g \\quad $\\Delta t$=%g",F1.time,F1.dt),Interpreter="latex")
     legend(Location="best",Interpreter="latex");
+    %%
 end
 
 end

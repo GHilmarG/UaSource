@@ -170,10 +170,14 @@ nActivated=numel(Activated);
 
 if nDeactivated==0   && nActivated==0
     isActiveSetModified=false;
-    fprintf("ActiveSetInitialisation: Active set not modified.\n")
+    if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.ThicknessConstraintsInfoLevel>1
+        fprintf("ActiveSetInitialisation: Active set not modified.\n")
+    end
 else
     isActiveSetModified=true;
-    fprintf("ActiveSetInitialisation: Active set modified.\n")
+    if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.ThicknessConstraintsInfoLevel>1
+        fprintf("ActiveSetInitialisation: Active set modified.\n")
+    end
 end
 
 

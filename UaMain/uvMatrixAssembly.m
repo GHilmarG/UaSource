@@ -75,11 +75,6 @@ switch lower(CtrlVar.FlowApproximation)
         end
 
 
-
-    case "sstream-rho"
-
-        [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMrho(CtrlVar,MUA,F,BCs) ;
-
     otherwise
 
         error("UA:uvMatrixAssemblyCaseNotFound","Case Not Found")

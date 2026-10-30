@@ -440,13 +440,17 @@ BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
 ChangeInActiveSet=setxor(BCs1.hPosNode,LastActiveSet) ;
 nChangeInActiveSet=numel(ChangeInActiveSet);
 %if nChangeInActiveSet == 0  ||  isActiveSetCyclical  % 1 Sept 2024: Decided that if active set changed, then
-%isActiveSetModified=true, even if the active set has become cyclical. 
-if nChangeInActiveSet == 0  
+%isActiveSetModified=true, even if the active set has become cyclical.
+if nChangeInActiveSet == 0
     isActiveSetModified=false;
-    fprintf("ActiveSetUpdate: Active set not modified.\n")
+    if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.ThicknessConstraintsInfoLevel>1
+        fprintf("ActiveSetUpdate: Active set not modified.\n")
+    end
 else
     isActiveSetModified=true;
-    fprintf("ActiveSetUpdate: Active set modified.\n")
+    if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.ThicknessConstraintsInfoLevel>1
+        fprintf("ActiveSetUpdate: Active set modified.\n")
+    end
 end
 
 

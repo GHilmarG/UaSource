@@ -6,7 +6,7 @@
 function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
 
-%% Solves: 
+%% Solves:
 %
 % $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  =  \rho \, a(h)$$
 %
@@ -14,13 +14,13 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 %
 % $\mathbf{v}$=(F.ub,F.vb)
 %
-% The approach use the active set to enforce $h>h_{\min}$, provided 
+% The approach use the active set to enforce $h>h_{\min}$, provided
 %
 %   CtrlVar.ThicknessConstraints=true
-% 
+%
 % If
 %
-%   CtrlVar.LevelSetMethod=true ; 
+%   CtrlVar.LevelSetMethod=true ;
 %
 %   CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=true;
 %
@@ -34,12 +34,12 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 % Further details are provided in Ua2D_DefaultParameters.m
 %
 % The assembly is identical to the Khh assembly in the -uvh- solve, and does include gradients in density.
-% 
-%% Solves: 
+%
+%% Solves:
 %
 % $$\rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  = \rho \,  a(h)$$
 %
-% subject to 
+% subject to
 %
 % $$h(x,y,t) > h_{\min}$$
 %
@@ -48,7 +48,7 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 % We can also write this as
 %
 % $$ \mathcal{M}(h) = 0 $$
-%   
+%
 % where
 %
 % $$ \mathcal{M}(h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
@@ -64,8 +64,8 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 %
 %
 % $$h(x,y) = \sum_{p=1}^n h_p \, \phi_p(x,y) $$
-% 
-% Here however the streamline-upwind Petrov-Galerkin method is used where 
+%
+% Here however the streamline-upwind Petrov-Galerkin method is used where
 %
 % $$ 0= \langle \mathcal{M}(h) \vert \phi_p + \tau \, \mathbf{v} \cdot \nabla \phi_p  \rangle $$
 %
@@ -73,24 +73,24 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 %
 % $$ 0= \left  \langle  \rho \, \partial_t h  + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)  \; |  \; \phi_p + \tau \, \mathbf{v} \cdot \nabla \phi_p  \right \rangle $$
 %
-% As can be seen, the SUPG-perturbation is applied to all terms. This is therefore a consistent formulation. 
+% As can be seen, the SUPG-perturbation is applied to all terms. This is therefore a consistent formulation.
 %
 % Time discretization for $t=t_0$ to $t=t_1$ is done using the $\Theta$-method, i.e
-% 
+%
 % $$\frac{\partial h}{\partial t} \approx \frac{1}{\Delta t} (h_1- h_0 ) $$
 %
 % with
 %
 % $$\Delta t= t_1-t_0 $$
 %
-% giving 
+% giving
 %
 % $$ \rho \, \frac{1}{\Delta t} (h_1- h_0 ) = (1-\Theta) \left (  \rho\, a(h_0) - \nabla \cdot ( \rho \, \mathbf{v}_0 h_0 ) \right ) + \Theta \left (  \rho\, a(h_1) - \nabla \cdot ( \rho \, \mathbf{v}_1 h_1 ) \right )  $$
 %
 % After discretization the non-linear forward model can be written on the form
 %
 %
-% $$ \mathbf{f}(\mathbf{h}) = \mathbf{0}  $$ 
+% $$ \mathbf{f}(\mathbf{h}) = \mathbf{0}  $$
 %
 % where
 %
@@ -112,19 +112,19 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 %
 % $$ h_i > h_{\min} $$ for $$i=1 \ldots n$$
 %
-% 
+%
 %
 % The multi-nodal (linear) constraints are enforced using the method of Lagrange multipliers. The positive thickness
 % constraints can be enforced using the active set method and/or by applying a penalty term whereby an additional implicit
 % mass balance term is added whenever $$a(h)< 0 $$. The resulting additional thickness constraints are internally added to
 % the matrix $$\mathbf{L}$$, and updated after each Newton-Raphson solve.
 %
-% The Newton-Raphson system is then: 
+% The Newton-Raphson system is then:
 %
 % $$
 % \left [ \begin{array}{cc}
 % \mathbf{K} & \mathbf{L}^T  \\
-% \mathbf{L} & \mathbf{0} 
+% \mathbf{L} & \mathbf{0}
 % \end{array} \right ]
 % \left [ \begin{array}{c}
 % \Delta \mathbf{h} \\
@@ -161,7 +161,7 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 %
 % where $k$ is the Newton-Raphson iteration step number.
 %
-% The iteration is continued until 
+% The iteration is continued until
 %
 % $$
 % \| \mathbf{f}(\mathbf{h}_k) + \mathbf{L}^T \mathbf{\lambda}_k \| < \epsilon
@@ -179,18 +179,19 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 narginchk(8,8)
 nargoutchk(3,5)
 
-MUA=UpdateMUA(CtrlVar,MUA);  
-
+MUA=UpdateMUA(CtrlVar,MUA);
+iActiveSetIteration=0;
+hIterationsCumulative=0;
 if CtrlVar.ThicknessConstraints
 
 
 
-    iActiveSetIteration=0;
+
     RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained for the rest of this time step, see ActiveSetUpdate
-RunInfo.Forward.ActiveSetNoFurtherReleases=false;
+    RunInfo.Forward.ActiveSetNoFurtherReleases=false;
     RunInfo.Forward.ActiveSetConverged=1;      % (9 Oct 2026) set to 0 below if the maximum number of active-set iterations is reached
 
-  
+
 
     [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
     LastReleased=Released;  % Maybe here I should consider the possibility that the mesh has not changed and that I can use again the previous LastReleased and LastActivated list?
@@ -200,15 +201,21 @@ RunInfo.Forward.ActiveSetNoFurtherReleases=false;
     while true
 
         iActiveSetIteration=iActiveSetIteration+1;
-        fprintf("h-Solve Nr. %i \n ",iActiveSetIteration)
+        if CtrlVar.InfoLevelNonLinIt>=10 
+            fprintf("h-Solve Nr. %i \n ",iActiveSetIteration)
+        end
         [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+
+        hIterationsCumulative=hIterationsCumulative+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber);
+
 
 
 
         F1.h=h1;
 
-
-        fprintf("Active set update Nr. %i \n ",iActiveSetIteration)
+        if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.ThicknessConstraintsInfoLevel>1 
+            fprintf("Active set update Nr. %i \n ",iActiveSetIteration)
+        end
 
         [UserVar,RunInfo,BCs1,lambdahpos,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVar,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
         LastReleased=Released;
@@ -218,18 +225,22 @@ RunInfo.Forward.ActiveSetNoFurtherReleases=false;
 
 
         if ~isActiveSetModified
-            fprintf(' Leaving active-set loop because active set unchanged in last active-set iteration. \n')
+            if CtrlVar.ThicknessConstraintsInfoLevel > 1
+                fprintf(' Leaving active-set loop because active set unchanged in last active-set iteration. \n')
+            end
             break
 
         end
 
         if isActiveSetCyclical
 
-            fprintf(" Leaving active-set pos. thickness loop because it has become cyclical\n");
+            if CtrlVar.ThicknessConstraintsInfoLevel > 1
+                fprintf(" Leaving active-set pos. thickness loop because it has become cyclical\n");
 
-            fprintf("h-Solve Nr. %i \n ",iActiveSetIteration+1)
+                fprintf("h-Solve Nr. %i \n ",iActiveSetIteration+1)
+            end
             [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-
+            hIterationsCumulative=hIterationsCumulative+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber);
             break
 
         end
@@ -237,23 +248,27 @@ RunInfo.Forward.ActiveSetNoFurtherReleases=false;
 
         if  iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
             RunInfo.Forward.ActiveSetConverged=0;
-            fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',iActiveSetIteration,CtrlVar.ThicknessConstraintsItMax)
+            if CtrlVar.ThicknessConstraintsInfoLevel > 1
+                fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',iActiveSetIteration,CtrlVar.ThicknessConstraintsItMax)
+            end
             break
         end
 
 
     end
 
-
-
-
 else
 
-
     [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
-
+    hIterationsCumulative=hIterationsCumulative+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber);
 
 end
+
+
+% Here I replace hIteration counter with the total accumulative h iterations
+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=hIterationsCumulative;
+
+RunInfo.Forward.hActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration;
 
 
 
