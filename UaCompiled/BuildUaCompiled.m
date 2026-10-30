@@ -87,11 +87,11 @@ for v=Variants
             Conn=coder.typeof(0,[Inf nod],[1 vs(1)]);
             % MUA, Deriv, DetJ, connectivity, b h u v AGlen n C m (8), q muk V0 (3), h0 u0 v0 as0 ab0 as1 ab1 dadh B S rho (11), LSFMask hBCsMask (2),
             % melange (8), R, rhow g ca sa dt, IntOut, invPtr, invIdx
-            if startsWith(v,"uv")   % uv kernel (uvElementKernel.m): 14 nodal fields, 8 melange fields, R, rhow, g, ca, sa, invPtr, invIdx, perm
-                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,14), repmat({V},1,8), {RT,0,0,0,0,U,U,U}];
+            if startsWith(v,"uv")   % uv kernel (uvElementKernel.m): 14 nodal fields, 8 melange fields, R, rhow, g, ca, sa, rPtr, rIdx, invPtr, invIdx, perm
+                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,14), repmat({V},1,8), {RT,0,0,0,0,U,U,U,U,U}];   % rPtr, rIdx, invPtr, invIdx, perm
                 Kernel="uvKernel"; Base=extractAfter(v,2);
             else                    % uvh kernel (uvhElementKernel.m)
-                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,8), {V,V,V}, repmat({V},1,11), {V,V}, repmat({V},1,8), {RT,0,0,0,0,0,false,U,U}];
+                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,8), {V,V,V}, repmat({V},1,11), {V,V}, repmat({V},1,8), {RT,0,0,0,0,0,false,U,U,U,U}];   % rPtr, rIdx, invPtr, invIdx
                 Kernel="uvhKernel"; Base=v;
             end
             Entry=Kernel+extractBefore(Base+"_","_");

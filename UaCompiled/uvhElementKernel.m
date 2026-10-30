@@ -1,9 +1,9 @@
-function [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=...
+function [Tint,Fext,vs,tauxInt,tauyInt,etaInt,HeInt]=...
     uvhElementKernel(MUA,Deriv,DetJ,conn,...
     bv,hv,uv,vv,AGlenv,nv,Cv,mv,qv,mukv,V0v,h0v,u0v,v0v,as0v,ab0v,as1v,ab1v,dadhv,Bv,Sv,rhov,...
     LSFMaskv,hBCsMaskv,...
     uov,vov,Cov,mov,uav,vav,Cav,mav,...
-    CtrlVar,rhow,g,Ronly,ca,sa,dt,IntOut,invPtr,invIdx)
+    CtrlVar,rhow,g,Ronly,ca,sa,dt,IntOut,rPtr,rIdx,invPtr,invIdx)
 
 %% Element-based uvh assembly kernel, compiled with MATLAB Coder (25 Oct 2026); see README.md in this folder
 %
@@ -21,10 +21,13 @@ function [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=...
 %                CtrlVar.EffectiveViscosity.CalculateDerivatives are set by the entry points
 %   Ronly      : compile-time constant (residual only)
 %   IntOut     : if true, basal drag, effective viscosity and floating mask at the integration points are returned
+%   rPtr, rIdx : from CompiledAssemblyPattern.m, for summing the element residuals into the nodal residual (31 Oct 2026)
 %   invPtr, invIdx : from CompiledAssemblyPattern.m, for summing the element-matrix values into the nonzeros
 %
 % Outputs:
-%   Tx, Fx, ... , Fh  : element residuals, Nele x nod
+%   Tint, Fext        : internal and external nodal forces, 3*Nnodes x 1 (R=Tint-Fext). The element residuals are kept internally
+%                       (Tmat, Fmat, element-major) and summed into the nodal vectors in parallel over the rows, in the order given
+%                       by rIdx, the same order as accumarray(P.iR,...) (31 Oct 2026; previously the element residuals were returned)
 %   vs                : the nonzero values of the Jacobian, in CSC order (empty if Ronly). The element-matrix values are kept internally
 %                       (Xmat, element-major) and summed into the nonzeros in parallel over the nonzeros, in the order given by invIdx
 %   tauxInt, ...      : Nele x nip if IntOut, otherwise 0 x nip
@@ -67,7 +70,7 @@ end
 weights=MUA.weights;
 
 % (outputs that are completely overwritten are not zero-filled)
-Tx=coder.nullcopy(zeros(Nele,nod)); Fx=coder.nullcopy(zeros(Nele,nod)); Ty=coder.nullcopy(zeros(Nele,nod)); Fy=coder.nullcopy(zeros(Nele,nod)); Th=coder.nullcopy(zeros(Nele,nod)); Fh=coder.nullcopy(zeros(Nele,nod));
+Tmat=coder.nullcopy(zeros(3*nod,Nele)); Fmat=coder.nullcopy(zeros(3*nod,Nele));   % element residuals, element-major: L = i + nod*(c-1)
 % All element-matrix values in one array, element-major: Xmat(L,e), L = j + nod*(i-1) + nod^2*(c-1), with the nine blocks c in
 % row-major order (u,v,h)x(u,v,h). The values are summed into the nonzeros of the sparse matrix in parallel over the nonzeros (see CompiledAssemblyPattern.m).
 if ~Ronly
@@ -281,13 +284,25 @@ parfor e=1:Nele
 
     end
 
-    Tx(e,:)=tx; Fx(e,:)=fx; Ty(e,:)=ty; Fy(e,:)=fy; Th(e,:)=th; Fh(e,:)=fh;
+    Tmat(:,e)=[tx ty th].'; Fmat(:,e)=[fx fy fh].';
     if ~Ronly
         Xmat(:,e)=[kxu(:);kxv(:);kxh(:);kyu(:);kyv(:);kyh(:);khu(:);khv(:);khh(:)];   % element-major (contiguous for each element)
     end
 
 end
 
+
+% Sum the element residuals into the nodal residual, in parallel over the rows (each written by one thread), in the order given by
+% rIdx (the same order as accumarray(P.iR,...), see CompiledAssemblyPattern.m). The element residuals stay inside the MEX file.
+neq=numel(rPtr)-1;
+Tint=coder.nullcopy(zeros(neq,1)); Fext=coder.nullcopy(zeros(neq,1));
+parfor r=1:neq
+    st=0; sf=0;
+    for p=rPtr(r)+1:rPtr(r+1)
+        st=st+Tmat(rIdx(p)); sf=sf+Fmat(rIdx(p));
+    end
+    Tint(r)=st; Fext(r)=sf;
+end
 
 % Sum the element-matrix values into the nonzeros of the sparse matrix, in parallel over the nonzeros (each written by one thread),
 % in the order given by invIdx (see CompiledAssemblyPattern.m). The element-matrix values Xmat stay inside the MEX file.

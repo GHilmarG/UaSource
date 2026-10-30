@@ -4,6 +4,25 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Compiled uv and uvh assembly: residual summed in the kernel (31 October 2026):
+%
+% The kernels (uvElementKernel.m, uvhElementKernel.m) now sum the element residuals into the nodal vectors Tint and Fext themselves,
+% in parallel over the rows, using the inverse of the assembly pattern's P.iR (rPtr, rIdx, computed once per mesh in
+% CompiledAssemblyPattern.m), instead of returning the element residuals for reordering and accumarray in uvMatrixAssemblyCompiled.m
+% and uvhMatrixAssemblyCompiled.m. The contributions are added in the same order as accumarray: all outputs are bit-identical to
+% before (112 of 112 compared, uv and uvh, all kernel variants). Greenland nx200: uv full 119 -> 100 ms, residual only 57 -> 38 ms;
+% uvh full 228 -> 186 ms, residual only 90 -> 58 ms. Regression test: 65 of 65 pass. All kernel MEX files rebuilt.
+%
+% * Regression test of the compiled assembly: uv tests added to the regression test (30 October 2026):
+%
+% UaCompiled/Tests/TestUaCompiled.m now covers both assemblies (results=runtests("TestUaCompiled"), 65 tests, about 22 s; the uvh
+% tests are now named testUvh*, the uv tests testUv*). The uv tests compare Ruv, Tint, Fext and Kuv of the compiled and the vectorised
+% uv assembly for all sliding laws (with and without melange), linear, quadratic and cubic elements and quadrature rules with 1 to 33
+% points, with and without ZeroFields, full and residual only (each time first checking that the compiled path is used, and that Ruv is
+% a full vector and Kuv exactly symmetric); further the fallback outside the compiled range, one uv solve with uv.m (same Newton
+% iterations and solution), and that complex-valued input is an error. All 65 pass. A deliberate change of 1e-6 in the effective
+% viscosity of the vectorised uv assembly only made 23 of the 25 uv tests fail (all but the fallback and complex-input tests).
+%
 % * Compiled uv assembly (30 October 2026):
 %
 % CtrlVar.uvMatrixAssembly.CompiledKernel=true (default false) makes uvMatrixAssemblySSTREAM.m assemble Ruv, Kuv, Tint and Fext with a
@@ -15,6 +34,17 @@
 % Greenland nx200 (197,204 elements): full assembly 1,494 -> 127 ms, residual only 806 -> 56 ms. Results equal to the vectorised
 % assembly to rounding errors for all sliding laws, with and without melange, linear, quadratic and cubic elements, with and without
 % ZeroFields; Thule run (0.01 yr, mesh adaptation): same uv and uvh Newton iterations, solution equal to 1e-15 relative.
+% Greenland inversion (nx100, A, B, C, 2 iterations) with the compiled uv assembly against the vectorised one (with spmd): identical
+% cost function history (J, I, R), estimates equal to 1e-16, gradients (adjoint) to 3e-14; wall time 42.3 -> 27.6 s. Greenland forward
+% run (nx150, 110,976 elements, uv-h scheme, 20 time steps): same iterations in all time steps, solution equal to 1e-15 relative; initial
+% uv solve 24.3 -> 10.0 s, whole run 307 -> 168 s.
+% Threads (OMP_NUM_THREADS), Greenland nx200, full / residual-only uv assembly: 1: 1,065 / 524 ms; 4: 361 / 172; 8: 204 / 108;
+% 16: 135 / 74; 32 (default): 112 / 55 ms (vectorised, serial: 1,494 / 806 ms).
+% Profiles: inversion nx100: uv assembly 16.3 s (spmd) -> 3.4 s, whole run 45.2 -> 29.2 s; the largest item is then
+% WriteAdjointRestartFile (10 s). Forward run nx150 (uv-h, 20 time steps): uv assembly (593 calls) 166.5 s (spmd, of which 133.6 s
+% spmd machinery) -> 29.8 s, whole run 313.6 -> 168.7 s; the largest item is then the (not compiled) h assembly
+% MassContinuityEquationAssembly (59 s). Of the 29.8 s, about 8 s are the summation of the residual on the MATLAB side
+% (uvMatrixAssemblyCompiled.m), which could be done in the kernel.
 %
 %   - CompiledAssemblyCheck.m (replaces uvhCompiledKernelCheck.m) decides for both assemblies (third input "uv" or "uvh") whether
 %     the compiled assembly can be used; messages, up-to-date check and switching off after a failure are separate for uv and uvh.

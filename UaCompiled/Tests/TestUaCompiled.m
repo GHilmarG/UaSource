@@ -1,15 +1,17 @@
 classdef TestUaCompiled < matlab.unittest.TestCase
 
-    %% Regression test of the compiled uvh assembly (UaSource/UaCompiled) against the vectorised assembly
+    %% Regression test of the compiled assembly (UaSource/UaCompiled), uv and uvh, against the vectorised assembly
     %
-    %   results=runtests("TestUaCompiled")                                   % all tests, about 1 minute
-    %   table(results)                                                       % one row per test
-    %   results=runtests("TestUaCompiled","ProcedureName","testSlidingLaws")  % one group of tests
+    %   results=runtests("TestUaCompiled")                                        % all tests, about 30 s
+    %   table(results)                                                            % one row per test
+    %   results=runtests("TestUaCompiled","ProcedureName","testUvSlidingLaws")    % one group of tests
+    %   results=runtests("TestUaCompiled","ProcedureName","testUv*")              % the uv tests only (testUvh*: the uvh tests)
     %
     % What it tests, on a small synthetic state built here (no files needed: grounded and floating ice with a grounding line, a
     % patch where the thickness goes down to about ThickMin, a level-set field crossing the domain, melange fields, and
     % velocities that are not a solution, so that the residuals are not small remainders of cancelling terms):
     %
+    % uvh assembly (uvhMatrixAssembly.m), tests testUvh*:
     %   - for each supported option (sliding laws with and without melange, SUPG tau options, thickness penalty functions, thickness
     %     barrier, active-set constraints, level-set and mass-balance geometry feedback, ResetThicknessToMinThickness,
     %     Enforce_bAboveB), element type (linear, quadratic, cubic) and quadrature rule (1 to 33 points), that
@@ -19,24 +21,34 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     %         rounding errors (Tolerance, relative to the largest value), for the full and the residual-only assembly;
     %   - the basal drag, effective viscosity and floating mask at the integration points (OnlyCalcBasalDragAndEffectiveViscosity);
     %   - that a quadrature rule outside the compiled range (42 points) falls back to the vectorised assembly, with identical results;
-    %   - one implicit uvh time step (uvh.m, Newton-Raphson): the same number of iterations, and the same solution to rounding errors;
-    %   - that the MEX files are up to date (UaCompiledBuildInfo.m).
+    %   - one implicit uvh time step (uvh.m, Newton-Raphson): the same number of iterations, and the same solution to rounding errors.
+    %
+    % uv assembly (uvMatrixAssemblySSTREAM.m), tests testUv*:
+    %   - for each sliding law with and without melange, element type and quadrature rule, that the compiled path is actually used, and
+    %     that Ruv, Tint, Fext and Kuv agree with the vectorised assembly to rounding errors, with and without ZeroFields, for the full
+    %     and the residual-only assembly; Ruv is a full vector and Kuv is exactly symmetric;
+    %   - the fallback outside the compiled range (42 points), with identical results;
+    %   - one uv solve (uv.m, Newton-Raphson): the same number of iterations, and the same solution to rounding errors;
+    %   - that complex-valued input is an error (not a fallback).
+    %
+    % Both: that the MEX files are up to date (UaCompiledBuildInfo.m), testBuildInformation.
     %
     % What it does not test: changes to the physics made in the same way in both assemblies (the test checks that the two agree,
     % not that the physics is right).
     %
-    % Run it after any change to uvhElementKernel.m or the other files in UaCompiled, to the functions the kernel compiles (see
-    % UaCompiledBuildInfo.m, eg BasalDrag.m, SUPGtau.m), or to the vectorised uvh assembly (uvhMatrixAssembly.m,
-    % uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m), and after rebuilding the MEX files.
+    % Run it after any change to the kernels (uvElementKernel.m, uvhElementKernel.m) or the other files in UaCompiled, to the
+    % functions the kernels compile (see UaCompiledBuildInfo.m, eg BasalDrag.m, SUPGtau.m), or to the vectorised assemblies
+    % (uvMatrixAssemblySSTREAM.m, uvhMatrixAssembly.m, uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m), and after
+    % rebuilding the MEX files.
     %
     % See also: README.md in UaCompiled, BuildUaCompiled, CompiledAssemblyCheck
     %
-    % (26 Oct 2026)
+    % (26 Oct 2026; uv tests added 30 Oct 2026)
     %%
 
     properties (Constant)
         Tolerance = 1e-11     % assembly: relative to the largest value of R (momentum and thickness rows separately) and of K
-        ToleranceSolve = 1e-9 % one uvh time step: relative difference of h, ub, vb
+        ToleranceSolve = 1e-9 % one uv solve or uvh time step: relative difference of h, ub, vb
     end
 
     properties (TestParameter)
@@ -56,7 +68,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     methods (TestClassSetup)
 
         function setupStateAndCheckMexFiles(testCase)
-            for m=["uvhKernelFull_mex","uvhKernelRonly_mex","uvhKernelFull_n3i6_mex","uvhKernelRonly_n3i6_mex","SparseFromCSC"]
+            for m=[testCase.MexFiles("uvh"),testCase.MexFiles("uv"),"SparseFromCSC"]
                 testCase.assertEqual(exist(m,"file"),3, ...
                     "The MEX file "+m+" was not found. Build the MEX files with BuildUaCompiled.m (see README.md in UaCompiled).")
             end
@@ -69,33 +81,35 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     methods (Test)
 
         function testBuildInformation(testCase)
-            [ok,Reason,Note]=UaCompiledBuildInfo("check",["uvhKernelFull_mex","uvhKernelRonly_mex","uvhKernelFull_n3i6_mex","uvhKernelRonly_n3i6_mex","SparseFromCSC"]) ;
+            [ok,Reason,Note]=UaCompiledBuildInfo("check",[testCase.MexFiles("uvh"),testCase.MexFiles("uv"),"SparseFromCSC"]) ;
             testCase.verifyTrue(ok,"MEX files not up to date: "+Reason)
             testCase.verifyEqual(Note,"","No build information: "+Note)
         end
 
-        function testSlidingLaws(testCase,SlidingLaw,Melange)
+        %% uvh assembly
+
+        function testUvhSlidingLaws(testCase,SlidingLaw,Melange)
             S=testCase.Base ;
             S.CtrlVar.SlidingLaw=SlidingLaw ;
             S.CtrlVar.IncludeMelangeModelPhysics=Melange ;
-            testCase.verifySameAssembly(S,"sliding law "+SlidingLaw+", melange "+Melange)
+            testCase.verifySameUvhAssembly(S,"sliding law "+SlidingLaw+", melange "+Melange)
         end
 
-        function testTauOptions(testCase,TauOption)
+        function testUvhTauOptions(testCase,TauOption)
             S=testCase.Base ;
             S.CtrlVar.uvh.SUPG.tau=TauOption ;
-            testCase.verifySameAssembly(S,"SUPG tau option "+TauOption)
+            testCase.verifySameUvhAssembly(S,"SUPG tau option "+TauOption)
         end
 
-        function testThicknessPenalty(testCase,PenaltyFunction)
+        function testUvhThicknessPenalty(testCase,PenaltyFunction)
             S=testCase.Base ;
             S.CtrlVar.ThicknessPenalty=true ;
             S.CtrlVar.ThicknessPenaltyNodal=false ;
             S.CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction=PenaltyFunction ;
-            testCase.verifySameAssembly(S,"thickness penalty "+PenaltyFunction)
+            testCase.verifySameUvhAssembly(S,"thickness penalty "+PenaltyFunction)
         end
 
-        function testOptions(testCase,Option)
+        function testUvhOptions(testCase,Option)
             S=testCase.Base ;
             switch Option
                 case "LevelSetFeedback"
@@ -125,28 +139,27 @@ classdef TestUaCompiled < matlab.unittest.TestCase
                     rehash ;
                     S.CtrlVar.MassBalanceGeometryFeedback=3 ;
             end
-            testCase.verifySameAssembly(S,"option "+Option)
+            testCase.verifySameUvhAssembly(S,"option "+Option)
         end
 
-        function testElementTypes(testCase,TriNodes)
+        function testUvhElementTypes(testCase,TriNodes)
             if TriNodes==3
                 S=testCase.Base ;
             else
                 S=SyntheticUvhState(TriNodes,40,[]) ;
             end
-            testCase.verifySameAssembly(S,TriNodes+"-node elements, "+S.MUA.nip+" integration points")
+            testCase.verifySameUvhAssembly(S,TriNodes+"-node elements, "+S.MUA.nip+" integration points")
         end
 
-        function testQuadratureRules(testCase,QuadratureDegree)
+        function testUvhQuadratureRules(testCase,QuadratureDegree)
             S=SyntheticUvhState(3,20,QuadratureDegree) ;
-            testCase.verifySameAssembly(S,"linear elements, quadrature degree "+QuadratureDegree+" ("+S.MUA.nip+" points)")
+            testCase.verifySameUvhAssembly(S,"linear elements, quadrature degree "+QuadratureDegree+" ("+S.MUA.nip+" points)")
         end
 
-        function testBasalDragAndViscosityOnly(testCase)
+        function testUvhBasalDragAndViscosityOnly(testCase)
             S=testCase.Base ;
             C=S.CtrlVar ; C.OnlyCalcBasalDragAndEffectiveViscosity=true ; C.MassBalanceGeometryFeedback=0 ;
-            C.uvhMatrixAssembly.CompiledKernel=true ;
-            testCase.assertCompiledPathUsed(C,S.MUA)
+            testCase.assertCompiledPathUsed(C,S.MUA,"uvh")
             out=cell(2,8) ;
             for k=1:2
                 C.uvhMatrixAssembly.CompiledKernel=(k==2) ;
@@ -159,7 +172,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
             end
         end
 
-        function testFallbackOutsideCompiledRange(testCase)
+        function testUvhFallbackOutsideCompiledRange(testCase)
             S=SyntheticUvhState(3,20,14) ;   % 42 integration points, beyond the compiled range of 37
             C=S.CtrlVar ; C.uvhMatrixAssembly.CompiledKernel=true ;
             [txt,ok]=evalc("CompiledAssemblyCheck(C,S.MUA,""uvh"")") ;
@@ -173,16 +186,13 @@ classdef TestUaCompiled < matlab.unittest.TestCase
             testCase.verifyEqual(Kb,Ka,"after the fallback, K should be identical to the vectorised assembly")
         end
 
-        function testNewtonSolve(testCase)
+        function testUvhNewtonSolve(testCase)
             % one implicit uvh time step (Newton-Raphson, line search, active set) with both assemblies, on a well-posed problem:
             % velocities fixed on the upstream and the lateral boundaries
-            S=SyntheticUvhState(3,20,[]) ;
+            S=WithBoundaryVelocities(SyntheticUvhState(3,20,[])) ;
             S.CtrlVar.dt=0.001 ;
-            x=S.MUA.coordinates(:,1) ; y=S.MUA.coordinates(:,2) ;
-            bn=find(x<1 | abs(abs(y)-25e3)<1) ;
-            S.BCs.ubFixedNode=bn ; S.BCs.ubFixedValue=S.F1.ub(bn) ; S.BCs.vbFixedNode=bn ; S.BCs.vbFixedValue=S.F1.vb(bn) ;
-            C=S.CtrlVar ; C.uvhMatrixAssembly.CompiledKernel=true ;
-            testCase.assertCompiledPathUsed(C,S.MUA)
+            C=S.CtrlVar ;
+            testCase.assertCompiledPathUsed(C,S.MUA,"uvh")
             F=cell(1,2) ; RI=cell(1,2) ;
             for k=1:2
                 C.uvhMatrixAssembly.CompiledKernel=(k==2) ;
@@ -195,19 +205,88 @@ classdef TestUaCompiled < matlab.unittest.TestCase
             end
         end
 
+        %% uv assembly
+
+        function testUvSlidingLaws(testCase,SlidingLaw,Melange)
+            S=WithBoundaryVelocities(testCase.Base) ;
+            S.CtrlVar.SlidingLaw=SlidingLaw ;
+            S.CtrlVar.IncludeMelangeModelPhysics=Melange ;
+            testCase.verifySameUvAssembly(S,"sliding law "+SlidingLaw+", melange "+Melange)
+        end
+
+        function testUvElementTypes(testCase,TriNodes)
+            if TriNodes==3
+                S=testCase.Base ;
+            else
+                S=SyntheticUvhState(TriNodes,40,[]) ;
+            end
+            testCase.verifySameUvAssembly(WithBoundaryVelocities(S),TriNodes+"-node elements, "+S.MUA.nip+" integration points")
+        end
+
+        function testUvQuadratureRules(testCase,QuadratureDegree)
+            S=WithBoundaryVelocities(SyntheticUvhState(3,20,QuadratureDegree)) ;
+            testCase.verifySameUvAssembly(S,"linear elements, quadrature degree "+QuadratureDegree+" ("+S.MUA.nip+" points)")
+        end
+
+        function testUvFallbackOutsideCompiledRange(testCase)
+            S=WithBoundaryVelocities(SyntheticUvhState(3,20,14)) ;   % 42 integration points, beyond the compiled range of 37
+            C=S.CtrlVar ; C.uvMatrixAssembly.CompiledKernel=true ; C.uvMatrixAssembly.Ronly=false ;
+            [txt,ok]=evalc("CompiledAssemblyCheck(C,S.MUA,""uv"")") ;
+            testCase.verifyFalse(ok,"the compiled path should not be used for "+S.MUA.nip+" integration points")
+            testCase.verifyTrue(contains(txt,"outside the compiled range") || txt=="", ...   % "" if the message was printed earlier in this session
+                "unexpected message: "+txt)
+            Ca=C ; Ca.uvMatrixAssembly.CompiledKernel=false ;
+            [Ra,Ka,Ta,Fa]=uvMatrixAssemblySSTREAM(Ca,S.MUA,S.F1,S.BCs) ;
+            evalc("[Rb,Kb,Tb,Fb]=uvMatrixAssemblySSTREAM(C,S.MUA,S.F1,S.BCs);") ;
+            testCase.verifyEqual(Rb,Ra,"after the fallback, Ruv should be identical to the vectorised assembly")
+            testCase.verifyEqual(Kb,Ka,"after the fallback, Kuv should be identical to the vectorised assembly")
+            testCase.verifyEqual(Tb,Ta,"after the fallback, Tint should be identical to the vectorised assembly")
+            testCase.verifyEqual(Fb,Fa,"after the fallback, Fext should be identical to the vectorised assembly")
+        end
+
+        function testUvNewtonSolve(testCase)
+            % one uv solve (Newton-Raphson with line search, SSTREAM2dNR2.m) with both assemblies, on a well-posed problem:
+            % velocities fixed on the upstream and the lateral boundaries
+            S=WithBoundaryVelocities(SyntheticUvhState(3,20,[])) ;
+            C=S.CtrlVar ;
+            testCase.assertCompiledPathUsed(C,S.MUA,"uv")
+            F=cell(1,2) ; RI=cell(1,2) ;
+            for k=1:2
+                C.uvMatrixAssembly.CompiledKernel=(k==2) ;
+                evalc("[~,RI{k},F{k},~]=uv(S.UserVar,UaRunInfo,C,S.MUA,S.BCs,S.F1,S.l);") ;   % (uv.m requires at least four outputs)
+            end
+            testCase.verifyTrue(all(RI{2}.Forward.uvConverged(1)==1),"the uv solve with the compiled assembly did not converge")
+            testCase.verifyEqual(RI{2}.Forward.uvIterations(1),RI{1}.Forward.uvIterations(1),"number of Newton iterations")
+            for q=["ub","vb"]
+                testCase.verifyLessThanOrEqual(RelDiff(F{1}.(q),F{2}.(q)),testCase.ToleranceSolve,q+" after the uv solve")
+            end
+        end
+
+        function testUvComplexInputIsError(testCase)
+            % complex-valued input is an error in the compiled uv assembly (the kernel is compiled for real values), not a fallback
+            S=testCase.Base ;
+            C=S.CtrlVar ; C.uvMatrixAssembly.CompiledKernel=true ; C.uvMatrixAssembly.Ronly=false ;
+            testCase.assertCompiledPathUsed(C,S.MUA,"uv")
+            F=S.F1 ; F.AGlen=complex(F.AGlen,1e-30) ;
+            testCase.verifyError(@() CallUvAssembly(C,S.MUA,F,S.BCs),"uvMatrixAssemblyCompiled:ComplexInput")
+        end
+
     end
 
     methods (Access=private)
 
-        function assertCompiledPathUsed(testCase,CtrlVar,MUA)
-            CtrlVar.uvhMatrixAssembly.CompiledKernel=true ;
-            [txt,ok]=evalc("CompiledAssemblyCheck(CtrlVar,MUA,""uvh"")") ;
-            testCase.assertTrue(ok,"the compiled path is not used, so the comparison would test nothing. "+strtrim(string(txt)))
+        function assertCompiledPathUsed(testCase,CtrlVar,MUA,Assembly)
+            switch Assembly
+                case "uv"  ; CtrlVar.uvMatrixAssembly.CompiledKernel=true ;
+                case "uvh" ; CtrlVar.uvhMatrixAssembly.CompiledKernel=true ;
+            end
+            [txt,ok]=evalc("CompiledAssemblyCheck(CtrlVar,MUA,Assembly)") ;
+            testCase.assertTrue(ok,"the compiled "+Assembly+" assembly is not used, so the comparison would test nothing. "+strtrim(string(txt)))
         end
 
-        function verifySameAssembly(testCase,S,Label)
-            % compiled against vectorised assembly, full and residual only
-            testCase.assertCompiledPathUsed(S.CtrlVar,S.MUA)
+        function verifySameUvhAssembly(testCase,S,Label)
+            % compiled against vectorised uvh assembly, full and residual only
+            testCase.assertCompiledPathUsed(S.CtrlVar,S.MUA,"uvh")
             n=S.MUA.Nnodes ;
             for Ronly=[false true]
                 C=S.CtrlVar ; C.uvhMatrixAssembly.Ronly=Ronly ;
@@ -215,7 +294,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
                 [~,~,Ra,Ka]=uvhMatrixAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.l,S.BCs) ;
                 C.uvhMatrixAssembly.CompiledKernel=true ;
                 [~,~,Rb,Kb]=uvhMatrixAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.l,S.BCs) ;
-                What=Label+", "+ternary(Ronly,"residual only","residual and Jacobian")+": " ;
+                What="uvh, "+Label+", "+ternary(Ronly,"residual only","residual and Jacobian")+": " ;
                 testCase.verifyFalse(any(isnan(Rb)),What+"NaN in R")
                 testCase.verifyLessThanOrEqual(RelDiff(Ra(1:2*n),Rb(1:2*n)),testCase.Tolerance,What+"R, momentum rows")
                 testCase.verifyLessThanOrEqual(RelDiff(Ra(2*n+1:end),Rb(2*n+1:end)),testCase.Tolerance,What+"R, thickness rows")
@@ -223,6 +302,41 @@ classdef TestUaCompiled < matlab.unittest.TestCase
                     testCase.verifyLessThanOrEqual(RelDiff(Ka,Kb),testCase.Tolerance,What+"K")
                 end
             end
+        end
+
+        function verifySameUvAssembly(testCase,S,Label)
+            % compiled against vectorised uv assembly: Ruv, Tint, Fext and Kuv, with and without ZeroFields, full and residual only
+            testCase.assertCompiledPathUsed(S.CtrlVar,S.MUA,"uv")
+            for ZeroFields=[false true]
+                for Ronly=[false true]
+                    C=S.CtrlVar ; C.uvAssembly.ZeroFields=ZeroFields ; C.uvMatrixAssembly.Ronly=Ronly ;
+                    C.uvMatrixAssembly.CompiledKernel=false ;
+                    [Ra,Ka,Ta,Fa]=uvMatrixAssemblySSTREAM(C,S.MUA,S.F1,S.BCs) ;
+                    C.uvMatrixAssembly.CompiledKernel=true ;
+                    [Rb,Kb,Tb,Fb]=uvMatrixAssemblySSTREAM(C,S.MUA,S.F1,S.BCs) ;
+                    What="uv, "+Label+", "+ternary(ZeroFields,"ZeroFields, ","")+ternary(Ronly,"residual only","residual and tangent matrix")+": " ;
+                    testCase.verifyFalse(issparse(Rb),What+"Ruv should be a full vector")
+                    testCase.verifyFalse(any(isnan(Rb)),What+"NaN in Ruv")
+                    testCase.verifyLessThanOrEqual(RelDiff(Ra,Rb),testCase.Tolerance,What+"Ruv")
+                    testCase.verifyLessThanOrEqual(RelDiff(Ta,Tb),testCase.Tolerance,What+"Tint")
+                    testCase.verifyLessThanOrEqual(RelDiff(Fa,Fb),testCase.Tolerance,What+"Fext")
+                    if Ronly
+                        testCase.verifyEmpty(Kb,What+"Kuv should be empty")
+                    else
+                        testCase.verifyLessThanOrEqual(RelDiff(Ka,Kb),testCase.Tolerance,What+"Kuv")
+                        testCase.verifyEqual(Kb,Kb.',What+"Kuv should be exactly symmetric")
+                    end
+                end
+            end
+        end
+
+    end
+
+    methods (Static, Access=private)
+
+        function m=MexFiles(Assembly)
+            K=Assembly+"Kernel" ;
+            m=[K+"Full_mex",K+"Ronly_mex",K+"Full_n3i6_mex",K+"Ronly_n3i6_mex"] ;
         end
 
     end
@@ -240,8 +354,22 @@ function s=ternary(c,a,b)
 if c ; s=a ; else ; s=b ; end
 end
 
+function R=CallUvAssembly(C,MUA,F,BCs)
+% (uvMatrixAssemblySSTREAM.m requires at least one output)
+R=uvMatrixAssemblySSTREAM(C,MUA,F,BCs) ;
+end
+
+function S=WithBoundaryVelocities(S)
+% velocities fixed (to their values in F1) on the upstream and the lateral boundaries: makes the uv problem well posed, and gives
+% non-zero velocities (and so non-zero internal forces) with ZeroFields
+x=S.MUA.coordinates(:,1) ; y=S.MUA.coordinates(:,2) ;
+bn=find(x<1 | abs(abs(y)-25e3)<1) ;
+S.BCs=BoundaryConditions() ;
+S.BCs.ubFixedNode=bn ; S.BCs.ubFixedValue=S.F1.ub(bn) ; S.BCs.vbFixedNode=bn ; S.BCs.vbFixedValue=S.F1.vb(bn) ;
+end
+
 function S=SyntheticUvhState(TriNodes,nx,QuadratureDegree)
-% Small synthetic state for testing the uvh assembly, on a 100 km x 50 km rectangle with nx x nx/2 cells (two triangles each):
+% Small synthetic state for testing the uv and uvh assembly, on a 100 km x 50 km rectangle with nx x nx/2 cells (two triangles each):
 % bed from +400 m to -800 m (grounded upstream, floating downstream), thickness from 1000 m to 200 m with a patch thinning to about
 % ThickMin, a level-set field crossing the domain near x=90 km, melange fields, and velocities that are not a solution. F0 differs
 % slightly from F1 (thickness, velocities, mass balance), as at a time step.
@@ -251,8 +379,9 @@ CtrlVar.QuadratureRuleDegree=QuadratureDegree ;
 CtrlVar.dt=0.01 ; CtrlVar.time=0 ; CtrlVar.CurrentRunStepNumber=1 ;
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=false ; CtrlVar.Parallel.uvAssembly.spmd.isOn=false ;
 CtrlVar.uvhMatrixAssembly.ZeroFields=false ; CtrlVar.uvhMatrixAssembly.Ronly=false ; CtrlVar.uvhMatrixAssembly.CompiledKernel=false ;
+CtrlVar.uvAssembly.ZeroFields=false ; CtrlVar.uvMatrixAssembly.Ronly=false ; CtrlVar.uvMatrixAssembly.CompiledKernel=false ;
 CtrlVar.InfoLevel=0 ; CtrlVar.InfoLevelNonLinIt=0 ; CtrlVar.doplots=0 ;
-CtrlVar.MUA.DecomposeMassMatrix=false ;   % not needed for the uvh assembly (and not possible with a 1-point quadrature rule)
+CtrlVar.MUA.DecomposeMassMatrix=false ;   % not needed for the assembly (and not possible with a 1-point quadrature rule)
 
 L=100e3 ; W=50e3 ; ny=nx/2 ;
 [X,Y]=ndgrid(linspace(0,L,nx+1),linspace(-W/2,W/2,ny+1)) ;

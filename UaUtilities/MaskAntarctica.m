@@ -1,6 +1,22 @@
 
 function ID=MaskAntarctica(xloc,yloc)
 
+%% Returns and number for each location over Antarctica:
+%
+%
+%  0 = ocean
+%  1 = ice-free land
+%  2 = grounded
+%  3 = floating ice
+%  4 = Lake Vostok
+%
+% xloc and yloc can be vectors
+%
+% This is based on finding the closes index 
+%
+%
+
+
 persistent mask x y
 
 

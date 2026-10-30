@@ -1,7 +1,7 @@
-function [Tx,Fx,Ty,Fy,vs]=uvElementKernel(MUA,Deriv,DetJ,conn,...
+function [Tint,Fext,vs]=uvElementKernel(MUA,Deriv,DetJ,conn,...
     sv,hv,uv,vv,AGlenv,nv,Cv,mv,qv,mukv,V0v,Bv,Sv,rhov,...
     uov,vov,Cov,mov,uav,vav,Cav,mav,...
-    CtrlVar,rhow,g,Ronly,ca,sa,invPtr,invIdx,perm)
+    CtrlVar,rhow,g,Ronly,ca,sa,rPtr,rIdx,invPtr,invIdx,perm)
 
 %% Element-based uv assembly kernel, compiled with MATLAB Coder (30 Oct 2026); see README.md in this folder
 %
@@ -17,11 +17,14 @@ function [Tx,Fx,Ty,Fy,vs]=uvElementKernel(MUA,Deriv,DetJ,conn,...
 %   CtrlVar    : run-time options and parameters (MakeKernelParamsFlex.m); CtrlVar.EffectiveViscosity.CalculateDerivatives is set by the
 %                entry points
 %   Ronly      : compile-time constant (residual only)
+%   rPtr, rIdx : from CompiledAssemblyPattern.m, for summing the element residuals into the nodal residual (31 Oct 2026)
 %   invPtr, invIdx : from CompiledAssemblyPattern.m, for summing the element-matrix values into the nonzeros
 %   perm       : from the assembly pattern (MUA.uvAssemblyPattern.perm), for the symmetrisation of the nonzeros
 %
 % Outputs:
-%   Tx, Fx, Ty, Fy : element residuals (internal and external forces), Nele x nod
+%   Tint, Fext     : internal and external nodal forces, 2*Nnodes x 1 (Ruv=Tint-Fext). The element residuals are kept internally
+%                    (Tmat, Fmat, element-major) and summed into the nodal vectors in parallel over the rows, in the order given by
+%                    rIdx, the same order as accumarray(P.iR,...) (31 Oct 2026; previously the element residuals were returned)
 %   vs             : the nonzero values of the tangent matrix, in CSC order, symmetrised as in uvMatrixAssemblySSTREAM.m (empty if Ronly).
 %                    The element-matrix values are kept internally (Xmat, element-major) and summed into the nonzeros in parallel over the
 %                    nonzeros, in the order given by invIdx
@@ -48,7 +51,7 @@ end
 weights=MUA.weights;
 
 % (outputs that are completely overwritten are not zero-filled)
-Tx=coder.nullcopy(zeros(Nele,nod)); Fx=coder.nullcopy(zeros(Nele,nod)); Ty=coder.nullcopy(zeros(Nele,nod)); Fy=coder.nullcopy(zeros(Nele,nod));
+Tmat=coder.nullcopy(zeros(2*nod,Nele)); Fmat=coder.nullcopy(zeros(2*nod,Nele));   % element residuals, element-major: L = i + nod*(c-1)
 % All element-matrix values in one array, element-major: Xmat(L,e), L = j + nod*(i-1) + nod^2*(c-1), with the four blocks c in the
 % order of uvMatrixAssemblySSTREAM.m: uu, vv, uv, vu (Xval=[d1d1(:);d2d2(:);d1d2(:);d2d1(:)]), on which the assembly pattern is based.
 if ~Ronly
@@ -156,13 +159,25 @@ parfor e=1:Nele
 
     end
 
-    Tx(e,:)=tx; Fx(e,:)=fx; Ty(e,:)=ty; Fy(e,:)=fy;
+    Tmat(:,e)=[tx ty].'; Fmat(:,e)=[fx fy].';
     if ~Ronly
         Xmat(:,e)=[kuu(:);kvv(:);kuv(:);kvu(:)];   % element-major (contiguous for each element), blocks as Xval in uvMatrixAssemblySSTREAM.m
     end
 
 end
 
+
+% Sum the element residuals into the nodal residual, in parallel over the rows (each written by one thread), in the order given by
+% rIdx (the same order as accumarray(P.iR,...), see CompiledAssemblyPattern.m). The element residuals stay inside the MEX file.
+neq=numel(rPtr)-1;
+Tint=coder.nullcopy(zeros(neq,1)); Fext=coder.nullcopy(zeros(neq,1));
+parfor r=1:neq
+    st=0; sf=0;
+    for p=rPtr(r)+1:rPtr(r+1)
+        st=st+Tmat(rIdx(p)); sf=sf+Fmat(rIdx(p));
+    end
+    Tint(r)=st; Fext(r)=sf;
+end
 
 % Sum the element-matrix values into the nonzeros of the sparse matrix, in parallel over the nonzeros (each written by one thread),
 % in the order given by invIdx (see CompiledAssemblyPattern.m), and symmetrise: vs=0.5*(vs+vs(perm)), as in uvMatrixAssemblySSTREAM.m.
