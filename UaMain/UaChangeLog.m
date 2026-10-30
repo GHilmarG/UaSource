@@ -28,6 +28,9 @@
 % thickness penalty (at integration points and nodal), constrained nodes, mass-balance geometry feedback, all tau options, linear and
 % cubic elements; fallback with a message outside the compiled range and without an h assembly pattern. Greenland nx150: full
 % assembly 180 -> 19.8 ms, residual only 131 -> 7.2 ms; h solves (Greenland nx150) 0.9 -> 0.35-0.45 s each, thickness equal to 1e-12 m.
+% Greenland forward run (nx150, uv-h, 20 time steps), with the compiled uv, uvh and h assembly: same iterations in all time steps
+% as with the vectorised h assembly, solution equal to 1e-15 relative; h assembly (332 calls) 45.3 -> 5.5 s, h solver 56.6 -> 16.9 s,
+% whole run 149.1 -> 108.2 s (profiled; 313.6 s with the vectorised uv assembly with spmd and the vectorised h assembly).
 %
 % * h assembly with a cached assembly pattern, residual as a full vector (31 October 2026):
 %
