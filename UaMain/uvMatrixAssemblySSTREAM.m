@@ -489,7 +489,6 @@ end
 Cache= MUA.uvAssemblyPattern;
 
 iR=Cache.iR;
-One=ones(1,1,"uint32");
 
 Tval=zeros(MUA.nod*MUA.Nele*2,1);
 Fval=zeros(MUA.nod*MUA.Nele*2,1);
@@ -507,8 +506,8 @@ for Inod=1:MUA.nod
 
 end
 
-Tint=sparse(iR,One,Tval,neq,1);
-Fext=sparse(iR,One,Fval,neq,1);
+Tint=accumarray(iR,Tval,[neq 1]);   % (30 Oct 2026) full: was sparse with density ~0.9 (as in uvhMatrixAssembly.m)
+Fext=accumarray(iR,Fval,[neq 1]);   % (30 Oct 2026) full: was sparse
 
 Ruv=Tint-Fext;
 

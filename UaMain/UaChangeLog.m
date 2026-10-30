@@ -4,6 +4,15 @@
 % 
 % *Change Log* _October 2026_
 %
+% * uvMatrixAssemblySSTREAM.m: the uv residual now full (30 October 2026):
+%
+% Tint and Fext, and so Ruv (and fext0 in SSTREAM2dNR2.m), are now full vectors (accumarray), as in uvhMatrixAssembly.m; they were
+% sparse vectors with almost all entries non-zero. No caller depends on them being sparse. The values change at the level of
+% rounding errors only (order of summation). Greenland nx200 (197,204 elements): full assembly 1,639 -> 1,457 ms, residual only
+% 914 -> 751 ms; Kuv bit-identical. Thule run (0.01 yr, with mesh adaptation): same uv and uvh Newton iterations in all time steps,
+% solution equal to 1e-15 relative. Greenland inversion (nx100, uv assembly with spmd): identical cost function history, estimates
+% of A, B and C bit-identical.
+%
 % * Regression test of the compiled uvh assembly: UaSource/UaCompiled/Tests/TestUaCompiled.m (26 October 2026):
 %
 % A matlab.unittest class, run with results=runtests("TestUaCompiled"). It builds a small synthetic state itself (grounded and
