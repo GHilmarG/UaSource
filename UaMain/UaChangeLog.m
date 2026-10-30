@@ -4,6 +4,17 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Mass balance at integration points removed (31 October 2026):
+%
+% CtrlVar.MassBalance.Evaluation="-int-" (evaluating the mass balance at integration points, by calling DefineMassBalance.m there) is
+% no longer available, and CtrlVar.MassBalance.Evaluation is no longer defined in Ua2D_DefaultParameters.m. The mass balance is
+% always evaluated at the nodes. The option was only implemented in the h assembly (MassContinuityEquationAssembly.m, used by the uv-h
+% scheme and MassContinuityEquation.m), not in the uvh assembly, and was not used in any example or test. CtrlVarValidityCheck.m gives an
+% informative error for "-int-"; "-node-" is accepted and has no effect. MassContinuityEquationAssembly.m no longer gathers s, b, the
+% coordinates and GF at the nodes of each element (only needed for "-int-"). Results with nodal evaluation are unchanged: 108 of 108
+% outputs (residual, K, dFdt; Thule and synthetic states, with level-set feedback, thickness penalty, constrained nodes and mass-balance
+% geometry feedback) bit-identical. Not affected: CtrlVar.CalvingLaw.Evaluation="-int-" (calving law at integration points).
+%
 % * Compiled uv and uvh assembly: residual summed in the kernel (31 October 2026):
 %
 % The kernels (uvElementKernel.m, uvhElementKernel.m) now sum the element residuals into the nodal vectors Tint and Fext themselves,

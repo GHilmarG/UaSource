@@ -56,10 +56,9 @@ dt=CtrlVar.dt;
 % time step, and the derivative of the mass balance with respect to thickness is included in K (and dFdt). The derivative is
 % treated as a nodal quantity: a_int=sum_k N_k a_k(h_k), so that d a_int/d h_j = N_j da_j/dh_j (see dadhnod below).
 % For CtrlVar.MassBalanceGeometryFeedback=0 the mass balance is used as given, and no derivative is included.
-% If the mass balance is evaluated at integration points ("-int-"), it is evaluated there directly as a function of the
-% integration-point thickness, and the derivative is then an integration-point quantity (da1dhint) and dadhnod is zero.
-MassBalanceAtIntPoints=contains(CtrlVar.MassBalance.Evaluation,"-int-");
-if CtrlVar.MassBalanceGeometryFeedback==3 && ~MassBalanceAtIntPoints
+% (31 Oct 2026) The mass balance is always evaluated at the nodes (evaluation at integration points, CtrlVar.MassBalance.Evaluation="-int-",
+% has been removed).
+if CtrlVar.MassBalanceGeometryFeedback==3
     CtrlVar.time=CtrlVar.time+CtrlVar.dt;
     [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
     CtrlVar.time=CtrlVar.time-CtrlVar.dt;
@@ -88,18 +87,6 @@ vb0nod=reshape(F0.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vb1nod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 rhonod=reshape(F1.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-s0nod=reshape(F0.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-s1nod=reshape(F1.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-b0nod=reshape(F0.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-b1nod=reshape(F1.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
-cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
-
-GF0node=reshape(F0.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);
-GF1node=reshape(F1.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -137,78 +124,11 @@ for Iint=1:MUA.nip  %Integration points
 
     
 
-    if  contains(CtrlVar.MassBalance.Evaluation,"-int-")
-
-
-        % This is not fully flexible as I have not implemented calculating the flotation mask at integration points
-        xint=coox*fun;  % coordinates of this integration point for all elements
-        yint=cooy*fun;
-
-        F0int.x=xint;  F0int.y=yint;
-        F1int.x=xint;  F1int.y=yint;
-
-        s0int=s0nod*fun;
-        s1int=s1nod*fun;
-
-        b0int=b0nod*fun;
-        b1int=b1nod*fun;
-
-
-        F0int.h=h0int;
-        F0int.s=s0int;
-        F0int.b=b0int;
-        F0int.rho=rhoint;
-        F0int.rhow=F0.rhow;
-        F0int.S=F0.S(1);
-
-        F1int.h=h1int;
-        F1int.s=s1int;
-        F1int.b=b1int;
-        F1int.rho=rhoint;
-        F1int.rhow=F1.rhow;
-        F1int.S=F1.S(1);
-
-        F0int.as=nan(size(F0int.h)) ;
-        F0int.ab=nan(size(F0int.h)) ;
-        F1int.as=nan(size(F1int.h)) ;
-        F1int.ab=nan(size(F1int.h)) ;
-
-        GF0nodInt=GF0node*fun;
-        GF1nodInt=GF1node*fun;
-
-        F0int.GF.node=GF0nodInt;
-        F1int.GF.node=GF1nodInt;
-
-        MUAint.Nnodes=numel(h0int);
-
-        if nargout("DefineMassBalance")==5
-            [UserVar,as1int,ab1int,dasdhint,dabdhint]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
-        else
-            [UserVar,as1int,ab1int]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
-            dasdhint=zeros(size(h1int)) ; dabdhint=zeros(size(h1int)) ;
-        end
-        if CtrlVar.MassBalanceGeometryFeedback~=3
-            dasdhint=zeros(size(h1int)) ; dabdhint=zeros(size(h1int)) ;
-        end
-        [UserVar,as0int,ab0int]=DefineMassBalance(UserVar,CtrlVar,MUAint,F0int) ;
-
-        a0int=as0int+ab0int ;
-        a1int=as1int+ab1int ;
-        da1dhint=dasdhint+dabdhint;
-
-        % a0intTest=a0nod*fun;
-        % a1intTest=a1nod*fun;
-        % da1dhintTest=da1dhnod*fun;
-        %
-        % [norm(a0int-a0intTest) norm(a1int-a1intTest) norm(da1dhintTest-da1dhint)]
-
-    else
-
-        a0int=a0nod*fun;
-        a1int=a1nod*fun;
-        da1dhint=zeros(MUA.Nele,1);   % the derivative of the user-defined mass balance is treated as a nodal quantity (dadhnod)
-
-    end
+    % (31 Oct 2026) The mass balance is always evaluated at the nodes (CtrlVar.MassBalance.Evaluation="-int-", evaluation at
+    % integration points by calling DefineMassBalance.m there, has been removed), as in the uvh assembly.
+    a0int=a0nod*fun;
+    a1int=a1nod*fun;
+    da1dhint=zeros(MUA.Nele,1);   % the derivative of the user-defined mass balance is treated as a nodal quantity (dadhnod)
 
     if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 

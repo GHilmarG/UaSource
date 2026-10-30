@@ -6,6 +6,14 @@ function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 % (26 Oct 2026) the sliding law first: SlidingLawCode.m gives an informative error for former aliases ("W", "B", "C")
 SlidingLawCode(CtrlVar.SlidingLaw);
 
+% (31 Oct 2026) Evaluation of the mass balance at integration points (CtrlVar.MassBalance.Evaluation="-int-") has been removed: the mass
+% balance is always evaluated at the nodes, in the uvh and in the h (uv-h) assembly. A setting of "-node-" is accepted and has no effect.
+if isfield(CtrlVar,"MassBalance") && isfield(CtrlVar.MassBalance,"Evaluation") && contains(string(CtrlVar.MassBalance.Evaluation),"-int-")
+    error("CtrlVarValidityCheck:MassBalanceEvaluation", ...
+        "CtrlVar.MassBalance.Evaluation=""%s"": evaluating the mass balance at integration points is no longer available. The mass balance is always evaluated at the nodes. Remove this setting (eg from DefineInitialInputs.m).", ...
+        string(CtrlVar.MassBalance.Evaluation))
+end
+
 fn = fieldnames(CtrlVar.MustBe);
 for I=1:numel(fn)
     CheckUaCtrlVarFields(CtrlVar,fn{I})

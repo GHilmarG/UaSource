@@ -2772,7 +2772,8 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         %  as doing so avoids calls to DefineMassBalance.m within the non-lin loop.
                                         %
 CtrlVar.MustBe.MassBalanceGeometryFeedback = [0 3] ;
-CtrlVar.MassBalance.Evaluation="-node-";      
+% (31 Oct 2026) CtrlVar.MassBalance.Evaluation has been removed: the mass balance is always evaluated at the nodes (evaluation at
+% integration points, "-int-", is no longer available; see CtrlVarValidityCheck.m).
 
 %% Sea ice/melange                                               
 %
