@@ -1,17 +1,18 @@
 
 
-function [uvAssemblyPattern,uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA)
+function [uvAssemblyPattern,uvhAssemblyPattern,hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA)
 
 %%
 % Precomputes, once per mesh, everything about the uv and/or the uvh
 % assembly that depends only on MUA.connectivity.
 %
-%   [uvAssemblyPattern,uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA)
+%   [uvAssemblyPattern,uvhAssemblyPattern,hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA)
 %
 % Which patterns are built is controlled by
 %
 %   CtrlVar.MUA.AssemblyPattern.uv  = true/false
 %   CtrlVar.MUA.AssemblyPattern.uvh = true/false
+%   CtrlVar.MUA.AssemblyPattern.h   = true/false   (31 Oct 2026: the h assembly, MassContinuityEquationAssembly.m)
 %
 % A scalar logical is also accepted for backwards compatibility and is
 % taken to mean uv only.  Patterns that are not requested are returned
@@ -30,6 +31,11 @@ function [uvAssemblyPattern,uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA
 %   Xval = [K11(:);K12(:);K13(:) ; K21(:);K22(:);K23(:) ; K31(:);K32(:);K33(:)];
 %   vs   = accumarray(P.map,Xval,[P.nk 1]);
 %   Kuvh = sparse(P.i0,P.j0,vs,P.neq,P.neq);
+%
+% and for h (one field, one block, no symmetrisation):
+%
+%   K    = sparse(P.i0,P.j0,accumarray(P.map,Khh(:),[P.nk 1]),P.neq,P.neq);
+%   f0   = accumarray(P.iR,Rh(:),[P.neq 1]);       % residual, Rh(e,Inod)
 %
 % Why this is faster
 % ------------------
@@ -81,12 +87,13 @@ function [uvAssemblyPattern,uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA
 
 narginchk(2,2)
 
-[doUV,doUVH]=ParseRequest(CtrlVar);
+[doUV,doUVH,doH]=ParseRequest(CtrlVar);
 
 uvAssemblyPattern=[];
 uvhAssemblyPattern=[];
+hAssemblyPattern=[];
 
-if ~doUV && ~doUVH
+if ~doUV && ~doUVH && ~doH
     return
 end
 
@@ -144,10 +151,16 @@ if doUVH
     uvhAssemblyPattern.Nodal=Nodal;
 end
 
+if doH   % (31 Oct 2026) one field, one block, K(e,j,i) as in the uv and uvh assemblies
+    hAssemblyPattern=BuildPattern(conn,i1,j1,map1,nk1,Nnodes,Nele,nod,1,[1 1],false);
+    hAssemblyPattern.Nodal=Nodal;
+end
+
 % (17 Oct 2026) topology key of the mesh the patterns were built for (see MeshKey.m)
 Key=MeshKey(MUA) ;
 if doUV  ; uvAssemblyPattern.TopologyKey=Key.Topology  ; end
 if doUVH ; uvhAssemblyPattern.TopologyKey=Key.Topology ; end
+if doH   ; hAssemblyPattern.TopologyKey=Key.Topology   ; end
 
 end
 
@@ -254,9 +267,9 @@ end
 
 
 
-function [doUV,doUVH]=ParseRequest(CtrlVar)
+function [doUV,doUVH,doH]=ParseRequest(CtrlVar)
 
-doUV=false; doUVH=false;
+doUV=false; doUVH=false; doH=false;
 
 if ~isfield(CtrlVar,'MUA') || ~isfield(CtrlVar.MUA,'AssemblyPattern')
     return
@@ -267,6 +280,7 @@ A=CtrlVar.MUA.AssemblyPattern;
 if isstruct(A)
     if isfield(A,'uv')  ; doUV =logical(A.uv)  ; end
     if isfield(A,'uvh') ; doUVH=logical(A.uvh) ; end
+    if isfield(A,'h')   ; doH  =logical(A.h)   ; end
 else
     % backwards compatibility: a scalar logical means uv only
     doUV=logical(A);

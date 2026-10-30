@@ -4,6 +4,18 @@
 % 
 % *Change Log* _October 2026_
 %
+% * h assembly with a cached assembly pattern, residual as a full vector (31 October 2026):
+%
+% MassContinuityEquationAssembly.m (the h assembly, used by the uv-h scheme and MassContinuityEquation.m) now builds K (and dFdt) with a
+% cached assembly pattern, MUA.hAssemblyPattern, as the uv and uvh assemblies do, and returns the residual f0 as a full vector
+% (accumarray) instead of a sparse one (no caller depends on it being sparse). The element matrices are accumulated as K(e,j,i), as the
+% pattern expects. AssemblyPatternCache.m has a third output, hAssemblyPattern (one field, one block; switched by
+% CtrlVar.MUA.AssemblyPattern.h, default true); CreateMUA.m and UpdateMUA.m create and update it like the other two, including for
+% meshes read from files written before it existed. If MUA has no h pattern, the assembly creates it in each call, with a warning.
+% Results: 108 of 108 outputs equal to rounding errors (largest relative difference 2.7e-16). Greenland nx150 (110,976 elements):
+% full assembly 237 -> 173 ms, residual only 141 -> 128 ms. Greenland forward run (nx150, uv-h, 20 time steps): same iterations,
+% solution equal to 1e-15 relative; h assembly 62.1 -> 45.3 s, whole run 163.9 -> 149.1 s.
+%
 % * Mass balance at integration points removed (31 October 2026):
 %
 % CtrlVar.MassBalance.Evaluation="-int-" (evaluating the mass balance at integration points, by calling DefineMassBalance.m there) is

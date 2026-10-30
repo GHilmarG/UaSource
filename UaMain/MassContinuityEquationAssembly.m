@@ -23,6 +23,8 @@ function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,Ctrl
 %
 %   K dh =-f0
 %
+% f0 is a full vector, K a sparse matrix built with the cached assembly pattern MUA.hAssemblyPattern (31 Oct 2026).
+%
 % dFdt is the matrix F in d deltah/dt = F deltah This matrix can be used to assess (linear) stability, from eigenvalues of
 % M\dFdt
 %
@@ -33,6 +35,7 @@ narginchk(6,7)
 nargoutchk(2,4)
 
 nOut=nargout;
+persistent WarnedNoPattern
 
 % Nodes with thickness boundary conditions or active thickness constraints (8 Oct 2026). These nodes are excluded from the
 % thickness penalty: with the integration-point penalty, elements containing such nodes are excluded, and with the nodal penalty
@@ -89,7 +92,7 @@ vb1nod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F1.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
+Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);    % (31 Oct 2026) Khh(e,j,i) and dFdt(e,j,i): element, column node j, row node i, as the assembly pattern expects
 dFdt=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Rh=zeros(MUA.Nele,MUA.nod);
 
@@ -226,7 +229,7 @@ for Iint=1:MUA.nip  %Integration points
         if nOut>2
             for Jnod=1:MUA.nod
 
-                Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
+                Khh(:,Jnod,Inod)=Khh(:,Jnod,Inod)...
                     +(rhoint.*fun(Jnod)...
                     -dt*theta*rhoint.*(da1dhint+dadhnod(:,Jnod)).*fun(Jnod)...
                     +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
@@ -240,7 +243,7 @@ for Iint=1:MUA.nip  %Integration points
         if nOut>3
             for Jnod=1:MUA.nod
 
-                dFdt(:,Inod,Jnod)=dFdt(:,Inod,Jnod)...
+                dFdt(:,Jnod,Inod)=dFdt(:,Jnod,Inod)...
                     +(...
                     +rhoint.*(da1dhint+dadhnod(:,Jnod)).*fun(Jnod)...  % no theta for continuous time derivative, theta is an averaging ratio of two discrete time steps, 
                     -...                            % but does not appear in the continuous formulation of the equations 
@@ -283,11 +286,18 @@ for Iint=1:MUA.nip  %Integration points
 end
 %% assemble right-hand side
 
-f0=sparse(neq,1);
-
-for Inod=1:MUA.nod
-    f0=f0+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Rh(:,Inod),neq,1);
+% (31 Oct 2026) with the cached h assembly pattern (see AssemblyPatternCache.m): f0 as a full vector, K (and dFdt) from the pattern
+if ~isfield(MUA,"hAssemblyPattern") || isempty(MUA.hAssemblyPattern)
+    CtrlVarP=CtrlVar ; CtrlVarP.MUA.AssemblyPattern=struct("uv",false,"uvh",false,"h",true) ;
+    [~,~,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVarP,MUA) ;
+    if isempty(WarnedNoPattern)
+        WarnedNoPattern=true ;
+        warning("MassContinuityEquationAssembly:NoAssemblyPattern","MUA has no h assembly pattern (MUA.hAssemblyPattern), so it is created in each call. It is normally created by CreateMUA.m and UpdateMUA.m.")
+    end
 end
+P=MUA.hAssemblyPattern ;
+
+f0=accumarray(P.iR,Rh(:),[neq 1]) ;   % Rh(e,Inod): the same order as P.iR
 %%
 
 
@@ -295,32 +305,10 @@ end
 
 if nargout>2
 
-    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-    Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-    Kval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-
-    istak=0;
-    for Inod=1:MUA.nod
-        for Jnod=1:MUA.nod
-            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
-            Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
-            Kval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
-            istak=istak+MUA.Nele;
-        end
-    end
-
-    K=sparse(Iind,Jind,Kval,neq,neq);
+    K=sparse(P.i0,P.j0,accumarray(P.map,Khh(:),[P.nk 1]),neq,neq) ;
 
     if nargout>3
-        dFdtVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-        istak=0;
-        for Inod=1:MUA.nod
-            for Jnod=1:MUA.nod
-                dFdtVal(istak+1:istak+MUA.Nele)=dFdt(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-            end
-        end
-        dFdt=sparse(Iind,Jind,dFdtVal,neq,neq);
+        dFdt=sparse(P.i0,P.j0,accumarray(P.map,dFdt(:),[P.nk 1]),neq,neq) ;
     end
 
 end
@@ -346,7 +334,7 @@ if isfield(CtrlVar,"ThicknessPenalty") && CtrlVar.ThicknessPenalty && PenaltyNod
     wPen=ones(MUA.Nnodes,1) ; wPen(hConstrainedNodes)=0 ;
     [aPen,daPendh]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,F1.h) ;
     mw=mLump.*wPen ;
-    f0=f0-sparse(dt*theta*F1.rho(:).*mw.*aPen) ;
+    f0=f0-dt*theta*F1.rho(:).*mw.*aPen ;
     if nargout>2
         K=K+spdiags(-dt*theta*F1.rho(:).*mw.*daPendh,0,neq,neq) ;
     end

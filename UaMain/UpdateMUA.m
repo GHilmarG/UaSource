@@ -198,9 +198,12 @@ if MeshHasChanged
     if ~isfield(MUA,"uvhAssemblyPattern")
         MUA.uvhAssemblyPattern=[];
     end
+    if ~isfield(MUA,"hAssemblyPattern")
+        MUA.hAssemblyPattern=[];
+    end
 
-    if (CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh) && TopologyHasChanged   % (17 Oct 2026) the patterns only depend on the connectivity
-        [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+    if (CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh || (isfield(CtrlVar.MUA.AssemblyPattern,"h") && CtrlVar.MUA.AssemblyPattern.h)) && TopologyHasChanged   % (17 Oct 2026) the patterns only depend on the connectivity
+        [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);   % (31 Oct 2026) and the h pattern
     end
 
 
@@ -297,6 +300,9 @@ end
 if ~isfield(MUA,"uvhAssemblyPattern")
     MUA.uvhAssemblyPattern=[];
 end
+if ~isfield(MUA,"hAssemblyPattern")
+    MUA.hAssemblyPattern=[];
+end
 
 if ~isfield(CtrlVar,"MUA")  || ~isfield(CtrlVar.MUA,"AssemblyPattern")
     CtrlVar.MUA.AssemblyPattern.uv=true;
@@ -311,11 +317,15 @@ if ~isfield(CtrlVar.MUA.AssemblyPattern,"uvh")
     CtrlVar.MUA.AssemblyPattern.uvh=true;
 end
 
+if ~isfield(CtrlVar.MUA.AssemblyPattern,"h")
+    CtrlVar.MUA.AssemblyPattern.h=true;
+end
+
 
 
 if CtrlVar.MUA.AssemblyPattern.uv && CtrlVar.MUA.AssemblyPattern.uvh
     if isempty(MUA.uvAssemblyPattern)  &&  isempty(MUA.uvhAssemblyPattern)
-        [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+        [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
     end
 end
 
@@ -327,6 +337,10 @@ end
 
 if CtrlVar.MUA.AssemblyPattern.uvh && isempty(MUA.uvhAssemblyPattern)
     [~,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+end
+
+if CtrlVar.MUA.AssemblyPattern.h && isempty(MUA.hAssemblyPattern)   % (31 Oct 2026), eg a mesh from a file written before the h pattern existed
+    [~,~,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
 end
 
 
@@ -343,6 +357,10 @@ if CtrlVar.MUA.AssemblyPattern.uvh  && MUA.uvhAssemblyPattern.neq ~= 3* MUA.Nnod
   
     [~,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
 
+end
+
+if CtrlVar.MUA.AssemblyPattern.h  && MUA.hAssemblyPattern.neq ~= MUA.Nnodes
+    [~,~,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
 end
 
 %% It is possible that the decomposition object has somehow become invalid. Not sure how, but if, for example a mesh is re-read then possibly the decomposition object is still there but invalid

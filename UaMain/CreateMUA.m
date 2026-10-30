@@ -65,8 +65,8 @@ else
 end
 
 
-if CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh
-    [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);
+if CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh || (isfield(CtrlVar.MUA.AssemblyPattern,"h") && CtrlVar.MUA.AssemblyPattern.h)
+    [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);   % (31 Oct 2026) and the h pattern
 end
 
 

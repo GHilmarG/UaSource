@@ -1702,6 +1702,7 @@ CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 CtrlVar.MUA.AssemblyPattern.uv=true;
 CtrlVar.MUA.AssemblyPattern.uvh=true; 
+CtrlVar.MUA.AssemblyPattern.h=true;     % (31 Oct 2026) assembly pattern for the h assembly (MassContinuityEquationAssembly.m), see AssemblyPatternCache.m
 %% Pos. thickness constraints,          (-active set-)
 % A minimum ice thickness can be enforced in different ways using the following methods:
 %  1) `reset method' : simply resetting the thickness to min thickness at node where thickness is less than a prescribed value.
