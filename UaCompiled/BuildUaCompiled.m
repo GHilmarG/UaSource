@@ -48,7 +48,7 @@ MUAt=coder.typeof(struct('Nele',0,'nod',0,'nip',0,'points',zeros(6,2),'weights',
 MUAt.Fields.EleAreas=coder.typeof(0,[Inf 1],[1 0]);
 MUAuvt=coder.typeof(struct('Nele',0,'nod',0,'nip',0,'points',zeros(6,2),'weights',zeros(1,6)));   % uv kernel: without EleAreas
 V=coder.typeof(0,[Inf 1],[1 0]);   % nodal vectors, Nnodes x 1 (q, muk, V0 and the melange fields may be 0 x 1)
-U=coder.typeof(uint32(0),[Inf 1],[1 0]);   % invPtr, invIdx (see uvhCSCPattern.m)
+U=coder.typeof(uint32(0),[Inf 1],[1 0]);   % invPtr, invIdx, perm (see CompiledAssemblyPattern.m)
 
 Built=strings(0);   % the MEX files built, for the build information (UaCompiledBuildInfo.m)
 
@@ -104,7 +104,7 @@ for v=Variants
 end
 
 % (26 Oct 2026) record the MATLAB release and the checksums of the source files of the MEX files just built, so that
-% uvhCompiledKernelCheck.m can detect outdated MEX files (see UaCompiledBuildInfo.m)
+% CompiledAssemblyCheck.m can detect outdated MEX files (see UaCompiledBuildInfo.m)
 if ~isempty(Built)
     UaCompiledBuildInfo("record",Built);
     fprintf('BuildUaCompiled: build information recorded in UaCompiledBuildInfo_%s.mat\n',mexext);

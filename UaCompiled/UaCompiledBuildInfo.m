@@ -3,7 +3,7 @@ function [ok,Reason,Note]=UaCompiledBuildInfo(Action,MexNames)
 %% Build information of the MEX files in UaCompiled: records it when building, and checks it before use
 %
 %   UaCompiledBuildInfo("record",MexNames)                   % called by BuildUaCompiled.m after building the MEX files MexNames
-%   [ok,Reason,Note]=UaCompiledBuildInfo("check",MexNames)   % called by uvhCompiledKernelCheck.m (once per session and variant)
+%   [ok,Reason,Note]=UaCompiledBuildInfo("check",MexNames)   % called by CompiledAssemblyCheck.m (once per session and variant)
 %
 % For each MEX file, the MATLAB release it was built with, and a checksum of each source file compiled into it, are kept in
 % UaCompiledBuildInfo_<mexext>.mat in this folder (one file per platform, eg UaCompiledBuildInfo_mexw64.mat).
@@ -18,7 +18,7 @@ function [ok,Reason,Note]=UaCompiledBuildInfo(Action,MexNames)
 % The checksums (ArrayChecksum.m) are of the file contents with carriage returns removed, so that a checkout with other line endings
 % (git core.autocrlf) does not count as a change. Source files are recorded relative to the UaSource folder.
 %
-% See also: BuildUaCompiled, uvhCompiledKernelCheck
+% See also: BuildUaCompiled, CompiledAssemblyCheck
 %
 % (26 Oct 2026)
 %%

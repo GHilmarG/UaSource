@@ -2968,6 +2968,12 @@ CtrlVar.uvhMatrixAssembly.CompiledKernel=false;   % (25 Oct 2026) If true, the u
                                                   % options and the element type are supported; otherwise the vectorised assembly is used, and the reason is printed
                                                   % once. Results are the same to round-off. Not used within spmd workers (CtrlVar.Parallel.uvhAssembly.spmd.isOn=true).
                                                   % See UaCompiled/README.md.
+CtrlVar.uvAssembly.ZeroFields=false;
+CtrlVar.uvMatrixAssembly.Ronly=false;
+CtrlVar.uvMatrixAssembly.CompiledKernel=false;    % (30 Oct 2026) If true, the uv assembly (uvMatrixAssemblySSTREAM.m) uses the compiled element-based kernel in
+                                                  % UaSource/UaCompiled, in the same way as CtrlVar.uvhMatrixAssembly.CompiledKernel for the uvh assembly. This applies
+                                                  % to all uv assemblies, including those of the inverse problem (adjoint). Results are the same to round-off.
+                                                  % Not used within spmd workers (CtrlVar.Parallel.uvAssembly.spmd.isOn=true). See UaCompiled/README.md.
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
 CtrlVar.DevelopmentVersion=false ; % Internal variable, always set to false
 % (unless you want to use some untried, untested and unfinished features....)

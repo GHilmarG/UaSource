@@ -2,12 +2,12 @@ function [R,K,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssemblyCompiled(CtrlVar,MU
 
 %% uvh assembly with the compiled element-based kernel
 %
-% Called from uvhMatrixAssembly.m if CtrlVar.uvhMatrixAssembly.CompiledKernel=true and uvhCompiledKernelCheck.m allows it (RK, KernelFull
+% Called from uvhMatrixAssembly.m if CtrlVar.uvhMatrixAssembly.CompiledKernel=true and CompiledAssemblyCheck.m allows it (RK, KernelFull
 % and KernelRonly come from there). Returns the residual R (=Tint-Fext) and, unless Ronly, the Jacobian K, as uvhMatrixAssembly.m does.
 % Basal drag, effective viscosity and floating mask at the integration points are only calculated if requested (nargout>2).
 %
 % The kernel (uvhElementKernel.m) gathers the nodal values itself from the nodal vectors and the connectivity, and sums the element-matrix
-% values directly into the nonzeros of K (in CSC order, see uvhCSCPattern.m); K is then created directly from its CSC arrays
+% values directly into the nonzeros of K (in CSC order, see CompiledAssemblyPattern.m); K is then created directly from its CSC arrays
 % (SparseFromCSC). The residual is summed with the precomputed indices of the assembly pattern (P.iR). See README.md in this folder.
 % (25 Oct 2026)
 %%
@@ -24,7 +24,7 @@ end
 if Ronly
     Cp=[]; invPtr=zeros(0,1,'uint32'); invIdx=zeros(0,1,'uint32');
 else
-    Cp=uvhCSCPattern(P); invPtr=Cp.invPtr; invIdx=Cp.invIdx;
+    Cp=CompiledAssemblyPattern(P); invPtr=Cp.invPtr; invIdx=Cp.invIdx;
 end
 % Deriv and DetJ are passed as separate arrays: fields of a structure input would be copied into the MEX file, arrays are not
 MUAk=struct("Nele",MUA.Nele,"nod",MUA.nod,"nip",MUA.nip,"points",MUA.points,"weights",MUA.weights(:).',"EleAreas",MUA.EleAreas(:));

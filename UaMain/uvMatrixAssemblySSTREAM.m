@@ -222,6 +222,38 @@ g=F.g;
 %Nnodes=max(connectivity(:)); [Nele,nod]=size(connectivity);
 ndim=2; dof=2; neq=dof*MUA.Nnodes;
 
+%% (30 Oct 2026) Compiled element-based assembly (UaSource/UaCompiled)
+%
+% If CtrlVar.uvMatrixAssembly.CompiledKernel=true, and the options, the element type and the cached assembly pattern allow it (see
+% CompiledAssemblyCheck.m), Ruv, Kuv, Tint and Fext are assembled by uvMatrixAssemblyCompiled.m (compiled kernel, parallelised over
+% elements). The results are the same as those of the vectorised assembly below to round-off. Otherwise, or if UaCompiled is not on the
+% path, the vectorised assembly is used. If the MEX files themselves fail (UaCompiled:KernelFailed, eg built for another MATLAB release),
+% the compiled kernel is switched off for the rest of the session (with a message), and the vectorised assembly is used. Other errors
+% are passed on.
+%
+persistent WarnedNoUaCompiled
+if isfield(CtrlVar,"uvMatrixAssembly") && isfield(CtrlVar.uvMatrixAssembly,"CompiledKernel") && CtrlVar.uvMatrixAssembly.CompiledKernel
+    UseCompiledKernel=false ;
+    if exist("CompiledAssemblyCheck","file")==2
+        [UseCompiledKernel,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"uv") ;
+    elseif isempty(WarnedNoUaCompiled)
+        WarnedNoUaCompiled=true ;
+        fprintf(CtrlVar.fidlog,"uvMatrixAssembly: CtrlVar.uvMatrixAssembly.CompiledKernel=true, but UaSource/UaCompiled is not on the path. The vectorised assembly is used instead.\n") ;
+    end
+    if UseCompiledKernel
+        try
+            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblyCompiled(CtrlVar,MUA,F,Ronly,RK,KernelFull,KernelRonly) ;
+            return
+        catch ME
+            if ~strcmp(ME.identifier,"UaCompiled:KernelFailed")
+                rethrow(ME) ;
+            end
+            CompiledAssemblyCheck(CtrlVar,MUA,"uv",ME) ;   % reports the failure, and switches the compiled kernel off for this session
+        end
+    end
+end
+
+
 %[b,s]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar);
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod

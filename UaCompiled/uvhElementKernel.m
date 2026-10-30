@@ -21,7 +21,7 @@ function [Tx,Fx,Ty,Fy,Th,Fh,vs,tauxInt,tauyInt,etaInt,HeInt]=...
 %                CtrlVar.EffectiveViscosity.CalculateDerivatives are set by the entry points
 %   Ronly      : compile-time constant (residual only)
 %   IntOut     : if true, basal drag, effective viscosity and floating mask at the integration points are returned
-%   invPtr, invIdx : from uvhCSCPattern.m, for summing the element-matrix values into the nonzeros
+%   invPtr, invIdx : from CompiledAssemblyPattern.m, for summing the element-matrix values into the nonzeros
 %
 % Outputs:
 %   Tx, Fx, ... , Fh  : element residuals, Nele x nod
@@ -69,7 +69,7 @@ weights=MUA.weights;
 % (outputs that are completely overwritten are not zero-filled)
 Tx=coder.nullcopy(zeros(Nele,nod)); Fx=coder.nullcopy(zeros(Nele,nod)); Ty=coder.nullcopy(zeros(Nele,nod)); Fy=coder.nullcopy(zeros(Nele,nod)); Th=coder.nullcopy(zeros(Nele,nod)); Fh=coder.nullcopy(zeros(Nele,nod));
 % All element-matrix values in one array, element-major: Xmat(L,e), L = j + nod*(i-1) + nod^2*(c-1), with the nine blocks c in
-% row-major order (u,v,h)x(u,v,h). The values are summed into the nonzeros of the sparse matrix with GatherSumCSC (see uvhCSCPattern.m).
+% row-major order (u,v,h)x(u,v,h). The values are summed into the nonzeros of the sparse matrix in parallel over the nonzeros (see CompiledAssemblyPattern.m).
 if ~Ronly
     Xmat=coder.nullcopy(zeros(9*nod*nod,Nele));
 else
@@ -290,7 +290,7 @@ end
 
 
 % Sum the element-matrix values into the nonzeros of the sparse matrix, in parallel over the nonzeros (each written by one thread),
-% in the order given by invIdx (see uvhCSCPattern.m). The element-matrix values Xmat stay inside the MEX file.
+% in the order given by invIdx (see CompiledAssemblyPattern.m). The element-matrix values Xmat stay inside the MEX file.
 if ~Ronly
     nk=numel(invPtr)-1;
     vs=coder.nullcopy(zeros(nk,1));

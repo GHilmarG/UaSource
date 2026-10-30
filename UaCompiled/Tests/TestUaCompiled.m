@@ -13,7 +13,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     %   - for each supported option (sliding laws with and without melange, SUPG tau options, thickness penalty functions, thickness
     %     barrier, active-set constraints, level-set and mass-balance geometry feedback, ResetThicknessToMinThickness,
     %     Enforce_bAboveB), element type (linear, quadratic, cubic) and quadrature rule (1 to 33 points), that
-    %       * the compiled path is actually used (uvhCompiledKernelCheck.m returns ok=true; a silent fallback to the vectorised
+    %       * the compiled path is actually used (CompiledAssemblyCheck.m returns ok=true; a silent fallback to the vectorised
     %         assembly would otherwise make every comparison pass), and
     %       * the residual (momentum and thickness rows separately) and the Jacobian agree with the vectorised assembly to
     %         rounding errors (Tolerance, relative to the largest value), for the full and the residual-only assembly;
@@ -29,7 +29,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
     % UaCompiledBuildInfo.m, eg BasalDrag.m, SUPGtau.m), or to the vectorised uvh assembly (uvhMatrixAssembly.m,
     % uvhAssemblyIntPointImplicitSUPG_v2.m, uvhNodalLoopSSTREAM_v2.m), and after rebuilding the MEX files.
     %
-    % See also: README.md in UaCompiled, BuildUaCompiled, uvhCompiledKernelCheck
+    % See also: README.md in UaCompiled, BuildUaCompiled, CompiledAssemblyCheck
     %
     % (26 Oct 2026)
     %%
@@ -60,7 +60,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
                 testCase.assertEqual(exist(m,"file"),3, ...
                     "The MEX file "+m+" was not found. Build the MEX files with BuildUaCompiled.m (see README.md in UaCompiled).")
             end
-            clear uvhCompiledKernelCheck   % start from a fresh state (eg after an earlier failure)
+            clear CompiledAssemblyCheck   % start from a fresh state (eg after an earlier failure)
             testCase.Base=SyntheticUvhState(3,40,[]) ;
         end
 
@@ -162,7 +162,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
         function testFallbackOutsideCompiledRange(testCase)
             S=SyntheticUvhState(3,20,14) ;   % 42 integration points, beyond the compiled range of 37
             C=S.CtrlVar ; C.uvhMatrixAssembly.CompiledKernel=true ;
-            [txt,ok]=evalc("uvhCompiledKernelCheck(C,S.MUA)") ;
+            [txt,ok]=evalc("CompiledAssemblyCheck(C,S.MUA,""uvh"")") ;
             testCase.verifyFalse(ok,"the compiled path should not be used for "+S.MUA.nip+" integration points")
             testCase.verifyTrue(contains(txt,"outside the compiled range") || txt=="", ...   % "" if the message was printed earlier in this session
                 "unexpected message: "+txt)
@@ -201,7 +201,7 @@ classdef TestUaCompiled < matlab.unittest.TestCase
 
         function assertCompiledPathUsed(testCase,CtrlVar,MUA)
             CtrlVar.uvhMatrixAssembly.CompiledKernel=true ;
-            [txt,ok]=evalc("uvhCompiledKernelCheck(CtrlVar,MUA)") ;
+            [txt,ok]=evalc("CompiledAssemblyCheck(CtrlVar,MUA,""uvh"")") ;
             testCase.assertTrue(ok,"the compiled path is not used, so the comparison would test nothing. "+strtrim(string(txt)))
         end
 

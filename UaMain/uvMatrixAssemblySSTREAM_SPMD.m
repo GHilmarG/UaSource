@@ -82,6 +82,7 @@ else
     CtrlVarRest=rmfield(CtrlVar,cellstr(PerCall)) ;
     PC=struct() ;
     for f=PerCall ; PC.(f)=CtrlVar.(f) ; end
+    if isfield(PC,"uvMatrixAssembly") ; PC.uvMatrixAssembly.CompiledKernel=false ; end   % (30 Oct 2026) the compiled kernel is not used within spmd workers, as its OpenMP threads would compete with the workers
     if SendAll || ~isfield(W,"CtrlVarRest") || ~isequaln(W.CtrlVarRest,CtrlVarRest)
         spmd (nW) ; CRw=CtrlVarRest ; end
         W.CRw=CRw ; W.CtrlVarRest=CtrlVarRest ;

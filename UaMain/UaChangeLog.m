@@ -4,6 +4,28 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Compiled uv assembly (30 October 2026):
+%
+% CtrlVar.uvMatrixAssembly.CompiledKernel=true (default false) makes uvMatrixAssemblySSTREAM.m assemble Ruv, Kuv, Tint and Fext with a
+% compiled element-based kernel (UaCompiled/uvElementKernel.m, entry points uvKernelFull.m and uvKernelRonly.m, MATLAB side
+% uvMatrixAssemblyCompiled.m), in the same way as the compiled uvh assembly (CtrlVar.uvhMatrixAssembly.CompiledKernel). As the switch is
+% in uvMatrixAssemblySSTREAM.m, it applies to all uv assemblies, including those called directly by the inverse code (adjoint). The
+% element matrices are summed into the nonzeros and symmetrised inside the MEX file. Not used within spmd workers
+% (uvMatrixAssemblySSTREAM_SPMD.m switches it off there). Complex-valued inputs are errors.
+% Greenland nx200 (197,204 elements): full assembly 1,494 -> 127 ms, residual only 806 -> 56 ms. Results equal to the vectorised
+% assembly to rounding errors for all sliding laws, with and without melange, linear, quadratic and cubic elements, with and without
+% ZeroFields; Thule run (0.01 yr, mesh adaptation): same uv and uvh Newton iterations, solution equal to 1e-15 relative.
+%
+%   - CompiledAssemblyCheck.m (replaces uvhCompiledKernelCheck.m) decides for both assemblies (third input "uv" or "uvh") whether
+%     the compiled assembly can be used; messages, up-to-date check and switching off after a failure are separate for uv and uvh.
+%   - CompiledAssemblyPattern.m (replaces uvhCSCPattern.m) gives the per-mesh data for both, with one cache entry per assembly.
+%   - BuildUaCompiled.m builds the uv variants (uvFull, uvRonly, uvFull_n3i6, uvRonly_n3i6) as well; UaCompiledBuildInfo.m records
+%     the source files per kernel.
+%   - Ua2D_DefaultParameters.m: CtrlVar.uvMatrixAssembly.CompiledKernel, CtrlVar.uvMatrixAssembly.Ronly and
+%     CtrlVar.uvAssembly.ZeroFields now have defaults (the latter two were always set by the callers).
+%   - uvMatrixAssemblySSTREAM.m: CtrlVar.uvAssembly.SkipSymmetrisation and the special case for complex-step differentiation removed;
+%     the tangent matrix is always symmetrised.
+%
 % * uvMatrixAssemblySSTREAM.m: the uv residual now full (30 October 2026):
 %
 % Tint and Fext, and so Ruv (and fext0 in SSTREAM2dNR2.m), are now full vectors (accumarray), as in uvhMatrixAssembly.m; they were
