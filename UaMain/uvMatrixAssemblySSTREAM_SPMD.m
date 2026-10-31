@@ -104,22 +104,27 @@ else
         CtrlVarLoc=CRw ;
         fn=fieldnames(PC) ;
         for i=1:numel(fn) ; CtrlVarLoc.(fn{i})=PC.(fn{i}) ; end
+        % (31 Oct 2026) The three residual vectors are summed in a single spmdPlus (instead of three), the sparse matrices as before,
+        % and worker 1 packs the results into one structure, so that the client fetches them in a single access. (Summing the matrix
+        % values as a dense vector on the global pattern, with one spmdPlus for everything, was tried and was slower: the dense vector
+        % carries the whole pattern, and building the sparse matrix on the client costs more than it saves.)
         [rr,kk,tt,ff]=uvMatrixAssemblySSTREAM(CtrlVarLoc,MUAworkers,Floc,BCw) ;
-        rrsum=spmdPlus(rr,1) ;
-        kksum=spmdPlus(kk,1) ;
-        ttsum=spmdPlus(tt,1) ;
-        ffsum=spmdPlus(ff,1) ;
+        Xsum=spmdPlus([rr;tt;ff],1) ;
+        if ~isempty(kk) ; Ksum=spmdPlus(kk,1) ; else ; Ksum=[] ; end
+        if spmdIndex==1
+            Out=struct("X",Xsum,"K",Ksum) ;
+        else
+            Out=[] ;
+        end
         tw=toc(tw0) ;
     end
     Timing.Spmd=toc(t0) ;
     if nargout>=5 ; Timing.Workers=max([tw{:}]) ; end
     t0=tic ;
-
-    % rrsum, kksum, ttsum and ffsum are composites; the results are on the first worker
-    Ruv=rrsum{1} ;
-    Kuv=kksum{1} ;
-    Tint=ttsum{1} ;
-    Fext=ffsum{1} ;
+    O=Out{1} ;   % (31 Oct 2026) a single access to the Composite (each access costs about 5 ms)
+    neq=2*MUA.Nnodes ;
+    Ruv=O.X(1:neq) ; Tint=O.X(neq+1:2*neq) ; Fext=O.X(2*neq+1:3*neq) ;
+    Kuv=O.K ;
     Timing.Fetch=toc(t0) ;
 
 end

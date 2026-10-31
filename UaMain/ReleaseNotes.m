@@ -4,26 +4,36 @@
 % 
 % *Release Notes* _October 2026_
 %
-% * Support for compiled uvh matrix assembly 
+% * Support for compiled uvh, uv and h  matrix assemblies. 
 % 
-% Users can now use a complied version of the uvh assembly routine. 
+% Users can now use a complied version of the uvh, uv and h assembly routines. 
 %
 % Details are provided in : |UaCompiledUserGuide.pdf| 
 % 
-% MEX files for 64-bit Windows with MATLAB2026b are included in the distribution, and to use this option set:
-%
-%   CtrlVar.uvhMatrixAssembly.CompiledKernel=true;
-%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=false; % the compiled assembly is parallel already
-%
-% For other platforms consult  |UaCompiledUserGuide.pdf| 
-%
-%
+% MEX files for 64-bit Windows with MATLAB2026b are included in the distribution. 
 % 
+% To use this option set:
+%
+%   CtrlVar.uvhMatrixAssembly.CompiledKernel=true; 
+%   CtrlVar.uvMatrixAssembly.CompiledKernel=true; 
+%   CtrlVar.hMatrixAssembly.CompiledKernel=true; 
+%
+% and also set:
+%
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=false;    % the compiled uv-assembly is parallel already
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;   % the compiled uvh-assembly is parallel already
+%
+% For other platforms than Windows, consult  |UaCompiledUserGuide.pdf| 
+%
 %  * Support for the PARDISO direct sparse solver:
 % 
 %  Users can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
-%  CHOLMOD of the uv system).
+%  uvh and CHOLMOD for the uv system).
 %
+% To use this option set:
+%
+%   CtrlVar.LinearSolver.Type="PARDISO";  
+% 
 % The advantage of PARIDISO over the default MATLAB solvers is that PARDISO allows for reuse of the analysis phase of the
 % solution. This is particularly interesting when a linear system with the same sparsity structure is solved repeatedly. While
 % PARDISO is not faster than the MATLAB solvers, the MATLAB solvers do not allow for this reuse of the analysis phase. In
@@ -138,12 +148,16 @@
 %
 % *Release Notes* _September 2026_
 %
-% * The conj grad Ua optimisation completely rewritten, and now competitive with the MATLAB lBFGS approach. Gradients used in
-% optimisation are Sobolov gradients with respect to a metric defined by the explicit Hessians of the regularization part.
-% Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and simplified. This may
-% possibly require some changes in input files. Box constraints in inversion can be implemented using two-sided variable
-% transform. 
+% * The conjugate gradient method used in  Ua optimisation has been completely rewritten, and is now competitive with the MATLAB lBFGS
+% approach. This is the approach used when setting:
 % 
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-GradientBased-" ;
+% 
+% Using this approach, the gradients are Sobolov gradients with respect to a metric defined by the explicit Hessians of the
+% regularization part. Box constraints are implemented using two-sided variable transform.
+% 
+% Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and
+% simplified. This may possibly require some changes in input files. 
 % Hessian solver now calculates the exact and full Hessian using the Direct-Adjoint method. This is very memory intensive and
 % the Hessian option can only be used for small meshes (10,000 nodes or less). 
 %

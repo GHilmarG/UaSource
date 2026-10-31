@@ -9,7 +9,7 @@ To make changes, update the MATLAB code and republish this document.
 <title>dhdtExplicit</title>
 <meta name="generator" content="MATLAB 26.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2026-04-20">
+<meta name="DC.date" content="2026-08-25">
 <meta name="DC.source" content="dhdtExplicit.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -92,13 +92,13 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 </pre>
 <p>Calculates dh/dt from flux divergence as</p>
 <p>
-<img src="dhdtExplicit_eq17612408397514367881.png" alt="$$ \rho \, \dot{h}  = \rho \, a -  \nabla \cdot \mathbf{q} $$" style="width:102px;height:18px;"></p>
+<img src="dhdtExplicit_eq06036682537482860843.png" alt="$$ \rho \, \dot{h}  = \rho \, a -  \partial_x (\rho u h ) - \partial_y (\rho v h ) $$" style="width:176px;height:19px;"></p>
 <p>or</p>
 <p>
-<img src="dhdtExplicit_eq08518174394821555690.png" alt="$$ \dot{h}  = a -  \frac{1}{\rho} \nabla \cdot \mathbf{q} $$" style="width:90px;height:31px;"></p>
+<img src="dhdtExplicit_eq08518174394821555690.png" alt="$$ \dot{h}  = a -  \frac{1}{\rho} \nabla \cdot \mathbf{q} $$" style="width:89px;height:31px;"></p>
 <p>where</p>
 <p>
-<img src="dhdtExplicit_eq04700056972749755846.png" alt="$$\nabla \cdot \mathbf{q} = \partial_x (\rho h u ) + \partial_y (\rho h v) $$" style="width:154px;height:15px;"></p>
+<img src="dhdtExplicit_eq04700056972749755846.png" alt="$$\nabla \cdot \mathbf{q} = \partial_x (\rho h u ) + \partial_y (\rho h v) $$" style="width:152px;height:15px;"></p>
 <pre class="language-matlab">[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
 </pre>
 <p>uses u=F.ub, and hence only correct for plug flow, e.g. SSA</p>
@@ -106,22 +106,22 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <p>see also : ProjectFintOntoNodes</p>
 <p>Note: Homogenized thickness (h) boundary conditions are applied to the dh/dt solve. So if thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if thickness links/ties are defined between nodes, those same times will be applied to dh/dt.</p>
 <p>
-<img src="dhdtExplicit_eq17678371695159911508.png" alt="$$&#10;F_{\dot{h}} =\rho \, \dot{h}+\partial_x (\rho u h) + \partial_y (\rho v h) - \rho \, a = 0&#10;$$" style="width:235px;height:20px;"></p>
-<p>Solve for <img src="dhdtExplicit_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> as:</p>
+<img src="dhdtExplicit_eq17678371695159911508.png" alt="$$&#10;F_{\dot{h}} =\rho \, \dot{h}+\partial_x (\rho u h) + \partial_y (\rho v h) - \rho \, a = 0&#10;$$" style="width:233px;height:19px;"></p>
+<p>Solve for <img src="dhdtExplicit_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> as:</p>
 <p>
-<img src="dhdtExplicit_eq11521166655178050388.png" alt="$$ \delta_{\dot{h}} F_h + F_h(h_0) = 0 $$" style="width:106px;height:16px;"></p>
+<img src="dhdtExplicit_eq11521166655178050388.png" alt="$$ \delta_{\dot{h}} F_h + F_h(h_0) = 0 $$" style="width:104px;height:15px;"></p>
 <p>leading to</p>
 <p>
-<img src="dhdtExplicit_eq14540062364522912465.png" alt="$$ \partial_{\dot{h}} F_{\dot{h}} \, \Delta h = -F(h_0) $$" style="width:108px;height:16px;"></p>
+<img src="dhdtExplicit_eq14540062364522912465.png" alt="$$ \partial_{\dot{h}} F_{\dot{h}} \, \Delta h = -F(h_0) $$" style="width:107px;height:15px;"></p>
 <p>
-<img src="dhdtExplicit_eq13652079158836056282.png" alt="$$&#10;\langle \rho \phi_i \, | \phi_j \rangle \, \Delta \dot{h}_i   =  \langle \rho \, a \, | \phi_j \rangle&#10;- \langle \partial_x (\rho u h ) \, | \phi_j \rangle&#10;- \langle \partial_y (\rho v h ) \, | \phi_j \rangle&#10;$$" style="width:334px;height:19px;"></p>
+<img src="dhdtExplicit_eq13652079158836056282.png" alt="$$&#10;\langle \rho \phi_i \, | \phi_j \rangle \, \Delta \dot{h}_i   =  \langle \rho \, a \, | \phi_j \rangle&#10;- \langle \partial_x (\rho u h ) \, | \phi_j \rangle&#10;- \langle \partial_y (\rho v h ) \, | \phi_j \rangle&#10;$$" style="width:330px;height:19px;"></p>
 <p>The NR-system to solve</p>
 <p>
-<img src="dhdtExplicit_eq06025639390171426369.png" alt="$$&#10;\langle \phi_i \, | \phi_k \rangle \, \Delta \dot{h}_i = -   \langle F_{\dot{h}} \, | \, \phi_j \rangle&#10;$$" style="width:146px;height:20px;"></p>
+<img src="dhdtExplicit_eq06025639390171426369.png" alt="$$&#10;\langle \phi_i \, | \phi_k \rangle \, \Delta \dot{h}_i = -   \langle F_{\dot{h}} \, | \, \phi_j \rangle&#10;$$" style="width:143px;height:19px;"></p>
 <p>where</p>
 <p>
-<img src="dhdtExplicit_eq03455788307115638391.png" alt="$$ \dot{h} \to \dot{h} + \Delta \dot{h} $$" style="width:72px;height:15px;"></p>
-<p>until right-hand side small enough. However, as the equation is linear, in effect <img src="dhdtExplicit_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> it is solved directly, or in just one iteration.</p>
+<img src="dhdtExplicit_eq03455788307115638391.png" alt="$$ \dot{h} \to \dot{h} + \Delta \dot{h} $$" style="width:71px;height:15px;"></p>
+<p>until right-hand side small enough. However, as the equation is linear, in effect <img src="dhdtExplicit_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> it is solved directly, or in just one iteration.</p>
 <pre class="codeinput">narginchk(5,5)
 
 <span class="keyword">if</span> nargin&lt;5
@@ -224,12 +224,14 @@ b=zeros(MUA.Nele,MUA.nod);
 </pre>
 <h2 id="6">Solve system</h2>
 <pre class="codeinput">    <span class="comment">%CtrlVar.SymmSolver='AugmentedLagrangian';</span>
-    x0=[] ; y0=hRhs*0;
+
 
     <span class="keyword">if</span> isempty(MUA.M)
         MUA.M=MassMatrix2D1dof(MUA);
     <span class="keyword">end</span>
 
+
+    x0=[] ; y0=hRhs*0;
     [dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
     dhdt=full(dhdt);
 
@@ -254,7 +256,7 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %%
 % Calculates dh/dt from flux divergence as
 %
-% $$ \rho \, \dot{h}  = \rho \, a -  \nabla \cdot \mathbf{q} $$
+% $$ \rho \, \dot{h}  = \rho \, a -  \partial_x (\rho u h ) - \partial_y (\rho v h ) $$
 %
 % or
 %
@@ -420,12 +422,14 @@ for Iint=1:MUA.nip
 
     %% Solve system
     %CtrlVar.SymmSolver='AugmentedLagrangian';
-    x0=[] ; y0=hRhs*0;
+
 
     if isempty(MUA.M)
         MUA.M=MassMatrix2D1dof(MUA);
     end
 
+    
+    x0=[] ; y0=hRhs*0;
     [dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
     dhdt=full(dhdt);
 

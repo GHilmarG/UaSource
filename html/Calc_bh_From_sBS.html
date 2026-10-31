@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>Calc_bh_From_sBS</title>
-<meta name="generator" content="MATLAB 24.2">
+<meta name="generator" content="MATLAB 26.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2025-02-02">
+<meta name="DC.date" content="2026-10-04">
 <meta name="DC.source" content="Calc_bh_From_sBS.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -76,29 +76,89 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 </head>
 <body>
 <div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#3">Geometrical closure: calculates b and h from s, B, S, rho and rhow</a>
+</li>
+<li>
+<a href="#4">The closure</a>
+</li>
+<li>
+<a href="#5">Minimum thickness</a>
+</li>
+<li>
+<a href="#6">Relation to Calc_bs_From_hBS.m</a>
+</li>
+<li>
+<a href="#7">Inputs</a>
+</li>
+</ul>
+</div>
 <pre class="codeinput">
-<span class="keyword">function</span> [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+<span class="keyword">function</span> [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,G0)
 </pre>
-<pre class="codeinput">narginchk(7,7)
+<pre class="codeinput">narginchk(7,8)
 nargoutchk(1,3)
+
+<span class="keyword">if</span> nargin &lt; 8 || isempty(G0)
+    G0=nan;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> isstruct(G0)
+    <span class="keyword">if</span> isfield(G0,<span class="string">"node"</span>)
+        G0=G0.node;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
 </pre>
+<h2 id="3">Geometrical closure: calculates b and h from s, B, S, rho and rhow</h2>
+<pre class="language-matlab">[b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+[b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,G0)
+</pre>
+<p>The upper ice surface, <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;">, the ocean surface, <img src="Calc_bh_From_sBS_eq05206992062289802237.png" alt="$S$" style="width:8px;height:11px;">, the bedrock, <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;">, and the densities, <img src="Calc_bh_From_sBS_eq17454244308657937853.png" alt="$\rho$" style="width:8px;height:10px;"> and <img src="Calc_bh_From_sBS_eq01458543488542231963.png" alt="$\rho_o$" style="width:13px;height:10px;"> (rhow), are given, and are held fixed. The lower ice surface, <img src="Calc_bh_From_sBS_eq03210107377657008384.png" alt="$b$" style="width:7px;height:11px;">, and the ice thickness, <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;">, are calculated. This is the geometrical closure used when <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;">, <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> and <img src="Calc_bh_From_sBS_eq05206992062289802237.png" alt="$S$" style="width:8px;height:11px;"> are the independent geometrical variables, as in a <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> inversion (CtrlVar.Calculate.Geometry="bh-FROM-sBS"). It is the counterpart of Calc_bs_From_hBS.m, where <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;">, <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> and <img src="Calc_bh_From_sBS_eq05206992062289802237.png" alt="$S$" style="width:8px;height:11px;"> are the independent variables.</p>
+<h2 id="4">The closure</h2>
+<p>Define the flotation thickness</p>
 <p>
-<b>Calculates b and h from s, B, S and rho and rhow.</b>
-</p>
-<p>Sets</p>
+<img src="Calc_bh_From_sBS_eq07466012135332555647.png" alt="$$ h_f = \frac{\rho_o}{\rho} \, (S-B) , $$" style="width:95px;height:29px;"></p>
+<p>and the base of freely floating ice with upper surface <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;"></p>
 <p>
-<img src="Calc_bh_From_sBS_eq03555466634269285732.png" alt="$b=B$" style="width:37px;height:11px;"></p>
-<p>over grounded areas, and</p>
+<img src="Calc_bh_From_sBS_eq08714058847751835830.png" alt="$$ b_s = \frac{\rho s - \rho_o S}{\rho-\rho_o} . $$" style="width:86px;height:33px;"></p>
+<p>The solution of the closure, <img src="Calc_bh_From_sBS_eq02305475160545020129.png" alt="$b_c$" style="width:12px;height:13px;"> and <img src="Calc_bh_From_sBS_eq14909592443819207790.png" alt="$h_c$" style="width:13px;height:13px;">, is then</p>
 <p>
-<img src="Calc_bh_From_sBS_eq03526872743409998660.png" alt="$b=(\rho s-\rho_w S)/(\rho-\rho_w)$" style="width:153px;height:15px;"></p>
-<p>over floating areas.</p>
-<p>On return <img src="Calc_bh_From_sBS_eq08761110559472478606.png" alt="$s=b+h$" style="width:59px;height:12px;">.</p>
-<p>Note: This will not conserve thickness.</p>
-<p>Because the floating mask depends on b through h, this is a non-linear problem.</p>
-<p>Solved using the NR method. Usually only one single NR iteration is required.</p>
+<img src="Calc_bh_From_sBS_eq13776056164136766094.png" alt="$$ b_c = \mathcal{G} \, B + (1-\mathcal{G}) \, b_s , \qquad h_c = s - b_c , \qquad \mathcal{G} = \mathcal{H}(h_c - h_f) , $$" style="width:359px;height:15px;"></p>
+<p>where <img src="Calc_bh_From_sBS_eq11797507246274464710.png" alt="$\mathcal{H}$" style="width:14px;height:11px;"> is the smoothed Heaviside function (HeavisideApprox.m). Hence <img src="Calc_bh_From_sBS_eq11309772456024152403.png" alt="$b_c=B$" style="width:40px;height:13px;"> where grounded (<img src="Calc_bh_From_sBS_eq02848575776012962396.png" alt="$\mathcal{G}=1$" style="width:35px;height:11px;">), and <img src="Calc_bh_From_sBS_eq06824358758225552171.png" alt="$b_c=b_s$" style="width:42px;height:13px;"> where floating (<img src="Calc_bh_From_sBS_eq01760179437237568130.png" alt="$\mathcal{G}=0$" style="width:36px;height:11px;">). Equivalently</p>
+<p>
+<img src="Calc_bh_From_sBS_eq05682939681258505042.png" alt="$$ h_c = \mathcal{G} \, (s-B) + (1-\mathcal{G}) \, (s-b_s) . $$" style="width:197px;height:13px;"></p>
+<p>Because the floating mask depends on <img src="Calc_bh_From_sBS_eq14909592443819207790.png" alt="$h_c$" style="width:13px;height:13px;">, and hence on <img src="Calc_bh_From_sBS_eq02305475160545020129.png" alt="$b_c$" style="width:12px;height:13px;">, this is a non-linear equation for <img src="Calc_bh_From_sBS_eq02305475160545020129.png" alt="$b_c$" style="width:12px;height:13px;">. It is solved using the Newton-Raphson method applied to</p>
+<p>
+<img src="Calc_bh_From_sBS_eq04447707670843228331.png" alt="$$ F_0(b) = b - \mathcal{G} \, B - (1-\mathcal{G}) \, b_s , \qquad \frac{\partial F_0}{\partial b} = 1 + \delta \, (B-b_s) , $$" style="width:332px;height:30px;"></p>
+<p>where <img src="Calc_bh_From_sBS_eq03711117924125366215.png" alt="$\delta = \mathcal{H}^{\prime}(h-h_f)$" style="width:91px;height:15px;"> is the derivative of the smoothed Heaviside function. Usually only one single iteration is required.</p>
+<p>Note: This does not conserve thickness.</p>
+<h2 id="5">Minimum thickness</h2>
+<p>With <img src="Calc_bh_From_sBS_eq09428285608074728387.png" alt="$h_{\min}$" style="width:23px;height:13px;">=CtrlVar.ThickMin the thickness returned is not <img src="Calc_bh_From_sBS_eq14909592443819207790.png" alt="$h_c$" style="width:13px;height:13px;">, but</p>
+<p>
+<img src="Calc_bh_From_sBS_eq08440015467783643534.png" alt="$$ h = \Phi(h_c) = h_{\min} + w \, \ln \left( 1 + \exp \left( \frac{h_c-h_{\min}}{w} \right) \right) , \qquad b = s - h , \qquad \mathcal{G}_{\mathrm{out}} = \mathcal{H}(h-h_f) $$" style="width:515px;height:37px;"></p>
+<p>where the width, <img src="Calc_bh_From_sBS_eq03039127099350162778.png" alt="$w$" style="width:10px;height:7px;">, is CtrlVar.ThickMinWidthRelative times <img src="Calc_bh_From_sBS_eq09428285608074728387.png" alt="$h_{\min}$" style="width:23px;height:13px;"> (default 0.05). This is a smooth floor: <img src="Calc_bh_From_sBS_eq00738383438037721652.png" alt="$h>h_{\min}$" style="width:49px;height:13px;"> everywhere, and <img src="Calc_bh_From_sBS_eq12517360422990331395.png" alt="$h=h_c$" style="width:38px;height:13px;"> to machine precision where <img src="Calc_bh_From_sBS_eq13776695480771478294.png" alt="$h_c>h_{\min}+40 w$" style="width:95px;height:13px;">. At <img src="Calc_bh_From_sBS_eq13329792625235126894.png" alt="$h_c=h_{\min}$" style="width:54px;height:13px;"> the thickness is increased by <img src="Calc_bh_From_sBS_eq00057885063384653410.png" alt="$w \ln 2$" style="width:33px;height:11px;"> (0.035 m by default). The floor is defined, and its inverse and derivatives are calculated, in ThicknessFloor.m.</p>
+<p>The upper surface <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;"> is held fixed, so <img src="Calc_bh_From_sBS_eq04867650362002426523.png" alt="$b+h=s$" style="width:55px;height:11px;"> also where the floor is active. At those nodes <img src="Calc_bh_From_sBS_eq03210107377657008384.png" alt="$b$" style="width:7px;height:11px;"> is therefore no longer the solution of the closure above. Because <img src="Calc_bh_From_sBS_eq00738383438037721652.png" alt="$h>h_{\min}$" style="width:49px;height:13px;">, geometry calculated here never triggers the reset of thicknesses below ThickMin in uv.m, which otherwise rebuilds <img src="Calc_bh_From_sBS_eq03210107377657008384.png" alt="$b$" style="width:7px;height:11px;"> and <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;"> at ALL nodes (using Calc_bs_From_hBS.m), a rebuild that is not consistent with the closure within the grounding-line transition zone.</p>
+<p>The derivatives of <img src="Calc_bh_From_sBS_eq03210107377657008384.png" alt="$b$" style="width:7px;height:11px;"> and <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;"> with respect to <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> are those of the closure, scaled by <img src="Calc_bh_From_sBS_eq07366115069492539235.png" alt="$\Phi^{\prime}$" style="width:13px;height:10px;"> (see dGeometrydB.m)</p>
+<p>
+<img src="Calc_bh_From_sBS_eq00094405952772537464.png" alt="$$ \frac{dh}{dB} = \Phi^{\prime}(h_c) \, \frac{dh_c}{dB} , \qquad \frac{db}{dB} = - \frac{dh}{dB} , \qquad \frac{d^2 h}{dB^2} = \Phi^{\prime\prime}(h_c) \left ( \frac{dh_c}{dB} \right )^2 + \Phi^{\prime}(h_c) \, \frac{d^2 h_c}{dB^2} $$" style="width:445px;height:39px;"></p>
+<p>The floor is switched off by setting CtrlVar.ThickMinWidthRelative=0, in which case the closure above is returned unchanged.</p>
+<h2 id="6">Relation to Calc_bs_From_hBS.m</h2>
+<p>In a forward run the thickness, <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;">, is the prognostic variable, <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> is fixed, and <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;"> evolves. The geometry is then calculated from <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;"> and <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> by Calc_bs_From_hBS.m, in which the floating base is calculated from the thickness,</p>
+<p>
+<img src="Calc_bh_From_sBS_eq03850538837732000776.png" alt="$$ b = \mathcal{G} \, B + (1-\mathcal{G}) \, ( S - \rho h/\rho_o ) , \qquad s = b + h , \qquad \mathcal{G} = \mathcal{H}(h-h_f) $$" style="width:393px;height:15px;"></p>
+<p>This leaves <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;"> unchanged, and therefore conserves thickness.</p>
+<p>In a <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> inversion, <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;"> is data and <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> is the parameter. A change in <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> must then change <img src="Calc_bh_From_sBS_eq03210107377657008384.png" alt="$b$" style="width:7px;height:11px;"> and <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;"> at fixed <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;">, so there is no thickness to conserve, and the closure above, in which the floating base, <img src="Calc_bh_From_sBS_eq06565786419616284548.png" alt="$b_s$" style="width:11px;height:13px;">, is calculated from <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;">, is the appropriate one.</p>
+<p>The two closures agree where <img src="Calc_bh_From_sBS_eq01760179437237568130.png" alt="$\mathcal{G}=0$" style="width:36px;height:11px;"> and <img src="Calc_bh_From_sBS_eq02848575776012962396.png" alt="$\mathcal{G}=1$" style="width:35px;height:11px;">, but they differ within the grounding-line transition zone, <img src="Calc_bh_From_sBS_eq15079517776894272543.png" alt="$0<\mathcal{G}<1$" style="width:61px;height:11px;"> (by about 1 m in thickness for CtrlVar.kH=1 when the geometry from one is passed through the other). This function is therefore not the exact inverse of Calc_bs_From_hBS.m within the transition zone. When geometry from a <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> inversion is used in a forward run, <img src="Calc_bh_From_sBS_eq03210107377657008384.png" alt="$b$" style="width:7px;height:11px;"> and <img src="Calc_bh_From_sBS_eq04799535687386240985.png" alt="$s$" style="width:6px;height:7px;"> are recalculated from <img src="Calc_bh_From_sBS_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;"> and <img src="Calc_bh_From_sBS_eq10348488793466917580.png" alt="$B$" style="width:9px;height:10px;"> using Calc_bs_From_hBS.m, and differ slightly, at the nodes within the transition zone, from those used in the inversion.</p>
+<h2 id="7">Inputs</h2>
+<p>G0 can be either an initial guess for the nodal grounded/floating mask itself, e.g. GF.node or F.GF.node. But it can also be GF where GF.node is the grounded/floating mask.</p>
+<p>G0 is just an initial guess, and simply omitting it as an input is perfectly fine.</p>
 <p>MUA : also optional and not currently used.</p>
 <p>Example:</p>
 <pre>     b=Calc_bh_From_sBS(CtrlVar,[],s,B,S,rho,rhow)</pre>
+<pre>see also: ThicknessFloor.m, dGeometrydB.m, Calc_bs_From_hBS.m, p2F.m</pre>
 <pre class="codeinput">
 <span class="comment">% get a rough and a reasonable initial estimate for b</span>
 <span class="comment">% The lower surface b is</span>
@@ -110,6 +170,10 @@ nargoutchk(1,3)
 <span class="comment">%  h_f = rhow (S-B) / rho</span>
 <span class="comment">%</span>
 <span class="comment">%  b=s-h_f</span>
+
+
+
+
 
 
 hf=rhow*(S-B)./rho ;
@@ -127,8 +191,14 @@ JVector=zeros(ItMax,1)+NaN ;
 <span class="keyword">while</span> I &lt; ItMax &amp;&amp; J &gt; tol
     I=I+1;
 
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  <span class="comment">% 1</span>
-    dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
+    <span class="keyword">if</span> isnan(G0)
+        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  <span class="comment">% 1</span>
+        dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
+    <span class="keyword">else</span>
+        G=G0;
+        dGdb=0;
+
+    <span class="keyword">end</span>
 
     F0=    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
     dFdb = 1 - dGdb.* (B -  (rho.*s-rhow.*S)./(rho-rhow)) ;
@@ -141,7 +211,9 @@ JVector=zeros(ItMax,1)+NaN ;
     F1 =    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
 
     JLast=J ;
-    J=sum(F1.^2)/2 ;
+<span class="comment">%    J=sum(F1.^2)/2 ;</span>
+    J=norm(F1)^2/2/numel(F1) ;
+
     <span class="keyword">if</span> CtrlVar.MapOldToNew.Test
         fprintf(<span class="string">'\t %i : \t %g \t %g \t %g \n '</span>,I,max(abs(db)),J,J/JLast)
     <span class="keyword">end</span>
@@ -154,6 +226,13 @@ JVector=zeros(ItMax,1)+NaN ;
 
 <span class="keyword">end</span>
 
+
+<span class="comment">% smooth floor on the thickness, h&gt;=ThickMin, with s fixed (see the header)</span>
+[hFloor,~,~,~,FloorIsActive]=ThicknessFloor(CtrlVar,h,<span class="string">"forward"</span>) ;
+<span class="keyword">if</span> FloorIsActive
+    h=hFloor ;
+    b=s-h ;
+<span class="keyword">end</span>
 
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
@@ -175,7 +254,7 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
     <span class="comment">% hand this over the matlab opt.</span>
     <span class="comment">% Why not do so right away? Because the above options is based on</span>
     <span class="comment">% my experience always faster if it converges (fminunc is very reluctant to take</span>
-    <span class="comment">% large steps, and apparantly does not take a full NR step...?!)</span>
+    <span class="comment">% large steps, and apparently does not take a full NR step...?!)</span>
 
     warning(<span class="string">"Calc_bh_From_SBS:NoConvergence"</span>,<span class="string">"Calc_bh_from_sBS did not converge! \n"</span>)
 
@@ -188,6 +267,11 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
     func=@(b) bFunc(b,CtrlVar,s,B,S,rho,rhow) ;
     b  = fminunc(func,b0,options) ;
     h=s-b;
+    [hFloor,~,~,~,FloorIsActive]=ThicknessFloor(CtrlVar,h,<span class="string">"forward"</span>) ;
+    <span class="keyword">if</span> FloorIsActive
+        h=hFloor ;
+        b=s-h ;
+    <span class="keyword">end</span>
     GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 <span class="keyword">end</span>
 </pre>
@@ -196,7 +280,7 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 </pre>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2026a</a>
 <br>
 </p>
 </div>
@@ -208,39 +292,104 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
 
 
-function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,G0)
 
 
-narginchk(7,7)
+narginchk(7,8)
 nargoutchk(1,3)
 
+if nargin < 8 || isempty(G0)
+    G0=nan;
+end
 
-%% 
+if isstruct(G0)
+    if isfield(G0,"node")
+        G0=G0.node;
+    end
+end
+
+
+%% Geometrical closure: calculates b and h from s, B, S, rho and rhow
 %
-% *Calculates b and h from s, B, S and rho and rhow.*
+%   [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+%   [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,G0)
 %
+% The upper ice surface, $s$, the ocean surface, $S$, the bedrock, $B$, and the densities, $\rho$ and $\rho_o$ (rhow), are given, and are held fixed.
+% The lower ice surface, $b$, and the ice thickness, $h$, are calculated. This is the geometrical closure used when $s$, $B$ and $S$ are the
+% independent geometrical variables, as in a $B$ inversion (CtrlVar.Calculate.Geometry="bh-FROM-sBS"). It is the counterpart of
+% Calc_bs_From_hBS.m, where $h$, $B$ and $S$ are the independent variables.
 %
-% Sets 
+%% The closure
 %
-% $b=B$
+% Define the flotation thickness
 %
-% over grounded areas, and 
+% $$ h_f = \frac{\rho_o}{\rho} \, (S-B) , $$
 %
-% $b=(\rho s-\rho_w S)/(\rho-\rho_w)$  
+% and the base of freely floating ice with upper surface $s$
 %
-% over floating areas. 
+% $$ b_s = \frac{\rho s - \rho_o S}{\rho-\rho_o} . $$
 %
-% On return $s=b+h$.
+% The solution of the closure, $b_c$ and $h_c$, is then
 %
-% Note: This will not conserve thickness.
+% $$ b_c = \mathcal{G} \, B + (1-\mathcal{G}) \, b_s , \qquad h_c = s - b_c , \qquad \mathcal{G} = \mathcal{H}(h_c - h_f) , $$
 %
-% Because the floating mask depends on b through h, this is a non-linear
-% problem.
+% where $\mathcal{H}$ is the smoothed Heaviside function (HeavisideApprox.m). Hence $b_c=B$ where grounded ($\mathcal{G}=1$), and $b_c=b_s$ where
+% floating ($\mathcal{G}=0$). Equivalently
 %
-% Solved using the NR method. Usually only one single NR iteration is
-% required.
+% $$ h_c = \mathcal{G} \, (s-B) + (1-\mathcal{G}) \, (s-b_s) . $$
 %
+% Because the floating mask depends on $h_c$, and hence on $b_c$, this is a non-linear equation for $b_c$. It is solved using the Newton-Raphson
+% method applied to
 %
+% $$ F_0(b) = b - \mathcal{G} \, B - (1-\mathcal{G}) \, b_s , \qquad \frac{\partial F_0}{\partial b} = 1 + \delta \, (B-b_s) , $$
+%
+% where $\delta = \mathcal{H}^{\prime}(h-h_f)$ is the derivative of the smoothed Heaviside function. Usually only one single iteration is required.
+%
+% Note: This does not conserve thickness.
+%
+%% Minimum thickness
+%
+% With $h_{\min}$=CtrlVar.ThickMin the thickness returned is not $h_c$, but
+%
+% $$ h = \Phi(h_c) = h_{\min} + w \, \ln \left( 1 + \exp \left( \frac{h_c-h_{\min}}{w} \right) \right) , \qquad b = s - h , \qquad \mathcal{G}_{\mathrm{out}} = \mathcal{H}(h-h_f) $$
+%
+% where the width, $w$, is CtrlVar.ThickMinWidthRelative times $h_{\min}$ (default 0.05). This is a smooth floor: $h>h_{\min}$ everywhere, and
+% $h=h_c$ to machine precision where $h_c>h_{\min}+40 w$. At $h_c=h_{\min}$ the thickness is increased by $w \ln 2$ (0.035 m by default). The
+% floor is defined, and its inverse and derivatives are calculated, in ThicknessFloor.m.
+%
+% The upper surface $s$ is held fixed, so $b+h=s$ also where the floor is active. At those nodes $b$ is therefore no longer the solution of the closure
+% above. Because $h>h_{\min}$, geometry calculated here never triggers the reset of thicknesses below ThickMin in uv.m, which otherwise rebuilds $b$ and $s$
+% at ALL nodes (using Calc_bs_From_hBS.m), a rebuild that is not consistent with the closure within the grounding-line transition zone.
+%
+% The derivatives of $b$ and $h$ with respect to $B$ are those of the closure, scaled by $\Phi^{\prime}$ (see dGeometrydB.m)
+%
+% $$ \frac{dh}{dB} = \Phi^{\prime}(h_c) \, \frac{dh_c}{dB} , \qquad \frac{db}{dB} = - \frac{dh}{dB} , \qquad \frac{d^2 h}{dB^2} = \Phi^{\prime\prime}(h_c) \left ( \frac{dh_c}{dB} \right )^2 + \Phi^{\prime}(h_c) \, \frac{d^2 h_c}{dB^2} $$
+%
+% The floor is switched off by setting CtrlVar.ThickMinWidthRelative=0, in which case the closure above is returned unchanged.
+%
+%% Relation to Calc_bs_From_hBS.m
+%
+% In a forward run the thickness, $h$, is the prognostic variable, $B$ is fixed, and $s$ evolves. The geometry is then calculated from $h$ and $B$ by
+% Calc_bs_From_hBS.m, in which the floating base is calculated from the thickness,
+%
+% $$ b = \mathcal{G} \, B + (1-\mathcal{G}) \, ( S - \rho h/\rho_o ) , \qquad s = b + h , \qquad \mathcal{G} = \mathcal{H}(h-h_f) $$
+%
+% This leaves $h$ unchanged, and therefore conserves thickness.
+%
+% In a $B$ inversion, $s$ is data and $B$ is the parameter. A change in $B$ must then change $b$ and $h$ at fixed $s$, so there is no thickness to conserve, and the
+% closure above, in which the floating base, $b_s$, is calculated from $s$, is the appropriate one.
+%
+% The two closures agree where $\mathcal{G}=0$ and $\mathcal{G}=1$, but they differ within the grounding-line transition zone, $0<\mathcal{G}<1$ (by about 1 m in
+% thickness for CtrlVar.kH=1 when the geometry from one is passed through the other). This function is therefore not the exact inverse of Calc_bs_From_hBS.m within the
+% transition zone. When geometry from a $B$ inversion is used in a forward run, $b$ and $s$ are recalculated from $h$ and $B$ using Calc_bs_From_hBS.m, and differ
+% slightly, at the nodes within the transition zone, from those used in the inversion.
+%
+%% Inputs
+%
+% G0 can be either an initial guess for the nodal grounded/floating mask itself, e.g. GF.node or F.GF.node. But it can also be GF where GF.node is
+% the grounded/floating mask.
+%
+% G0 is just an initial guess, and simply omitting it as an input is perfectly fine.
 %
 % MUA         : also optional and not currently used.
 %
@@ -248,6 +397,7 @@ nargoutchk(1,3)
 %
 %       b=Calc_bh_From_sBS(CtrlVar,[],s,B,S,rho,rhow)
 %
+%  see also: ThicknessFloor.m, dGeometrydB.m, Calc_bs_From_hBS.m, p2F.m
 %
 %%
 
@@ -261,6 +411,10 @@ nargoutchk(1,3)
 %  h_f = rhow (S-B) / rho
 %
 %  b=s-h_f 
+
+
+
+
 
 
 hf=rhow*(S-B)./rho ;
@@ -277,10 +431,16 @@ JVector=zeros(ItMax,1)+NaN ;
 
 while I < ItMax && J > tol
     I=I+1;
-    
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
-    dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
-    
+
+    if isnan(G0)
+        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
+        dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
+    else
+        G=G0;
+        dGdb=0;
+
+    end
+
     F0=    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
     dFdb = 1 - dGdb.* (B -  (rho.*s-rhow.*S)./(rho-rhow)) ;
     
@@ -292,7 +452,9 @@ while I < ItMax && J > tol
     F1 =    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
     
     JLast=J ;
-    J=sum(F1.^2)/2 ;
+%    J=sum(F1.^2)/2 ;
+    J=norm(F1)^2/2/numel(F1) ;
+
     if CtrlVar.MapOldToNew.Test
         fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),J,J/JLast)
     end
@@ -305,6 +467,13 @@ while I < ItMax && J > tol
     
 end
 
+
+% smooth floor on the thickness, h>=ThickMin, with s fixed (see the header)
+[hFloor,~,~,~,FloorIsActive]=ThicknessFloor(CtrlVar,h,"forward") ;
+if FloorIsActive
+    h=hFloor ;
+    b=s-h ;
+end
 
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
@@ -326,7 +495,7 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     % hand this over the matlab opt.
     % Why not do so right away? Because the above options is based on
     % my experience always faster if it converges (fminunc is very reluctant to take
-    % large steps, and apparantly does not take a full NR step...?!)
+    % large steps, and apparently does not take a full NR step...?!)
     
     warning("Calc_bh_From_SBS:NoConvergence","Calc_bh_from_sBS did not converge! \n")
 
@@ -339,6 +508,11 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     func=@(b) bFunc(b,CtrlVar,s,B,S,rho,rhow) ;
     b  = fminunc(func,b0,options) ;
     h=s-b;
+    [hFloor,~,~,~,FloorIsActive]=ThicknessFloor(CtrlVar,h,"forward") ;
+    if FloorIsActive
+        h=hFloor ;
+        b=s-h ;
+    end
     GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 end
 %%

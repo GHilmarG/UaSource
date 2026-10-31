@@ -1,7 +1,7 @@
 
-function ID=MaskAntarctica(xloc,yloc)
+function ID=MaskAntarctica(xloc,yloc,filename)
 
-%% Returns and number for each location over Antarctica:
+%% For each location over Antarctica, returns:
 %
 %
 %  0 = ocean
@@ -12,9 +12,15 @@ function ID=MaskAntarctica(xloc,yloc)
 %
 % xloc and yloc can be vectors
 %
-% This is based on finding the closes index 
+% This is based on finding the closest (x,y) location in the mask array to the (xloc,yloc). 
 %
+% There is no interpolation used, therefore the returned values are always the integer values of the mask.
 %
+% The mask here is that used by Bedmachine, but it would be easy to adapt this for any other mask.
+%
+% filename : file with mask, for example "NSIDC-0756_BedMachineAntarctica_19700101-20191001_V04.1.nc"
+%
+%%
 
 
 persistent mask x y
@@ -22,8 +28,9 @@ persistent mask x y
 
 if isempty(mask)
 
-
-    filename="NSIDC-0756_BedMachineAntarctica_19700101-20191001_V04.1.nc";
+    if nargin < 3 || isempty(filename)
+        filename="NSIDC-0756_BedMachineAntarctica_19700101-20191001_V04.1.nc";
+    end
 
 
     %% Read data

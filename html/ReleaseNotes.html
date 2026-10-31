@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>ReleaseNotes</title>
-<meta name="generator" content="MATLAB 26.1">
+<meta name="generator" content="MATLAB 26.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2026-09-02">
+<meta name="DC.date" content="2026-10-31">
 <meta name="DC.source" content="ReleaseNotes.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -80,6 +80,125 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <!--introduction-->
 <!--/introduction-->
 <p>
+<b>Release Notes</b> <i>October 2026</i>
+</p>
+<div>
+<ul>
+<li>Support for compiled uvh, uv and h matrix assemblies.</li>
+</ul>
+</div>
+<p>Users can now use a complied version of the uvh, uv and h assembly routines.</p>
+<p>Details are provided in : <tt>UaCompiledUserGuide.pdf</tt>
+</p>
+<p>MEX files for 64-bit Windows with MATLAB2026b are included in the distribution.</p>
+<p>To use this option set:</p>
+<pre class="language-matlab">CtrlVar.uvhMatrixAssembly.CompiledKernel=true;
+CtrlVar.uvMatrixAssembly.CompiledKernel=true;
+CtrlVar.hMatrixAssembly.CompiledKernel=true;
+</pre>
+<p>and also set:</p>
+<pre class="language-matlab">CtrlVar.Parallel.uvAssembly.spmd.isOn=false;    <span class="comment">% the compiled uv-assembly is parallel already</span>
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;   <span class="comment">% the compiled uvh-assembly is parallel already</span>
+</pre>
+<p>For other platforms than Windows, consult  <tt>UaCompiledUserGuide.pdf</tt>
+</p>
+<pre>* Support for the PARDISO direct sparse solver:</pre>
+<pre>Users can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
+uvh and CHOLMOD for the uv system).</pre>
+<p>To use this option set:</p>
+<pre class="language-matlab">CtrlVar.LinearSolver.Type=<span class="string">"PARDISO"</span>;
+</pre>
+<p>The advantage of PARIDISO over the default MATLAB solvers is that PARDISO allows for reuse of the analysis phase of the solution. This is particularly interesting when a linear system with the same sparsity structure is solved repeatedly. While PARDISO is not faster than the MATLAB solvers, the MATLAB solvers do not allow for this reuse of the analysis phase. In practice this analysis phase is quite expensive and a big part of the overall solve. Using PARIDSO can therefore significantly speed up the solve (factor of 5 to 10) and lead to reduction in overall run times of maybe 30 to 50%, although the exact numbers are situation dependent. Information about the sparsity pattern is now stored as part of the MUA structure and recalculated when the mesh changes. Some re-analyses phases may be required when using dynamical boundary conditions, but this has been optimized within &Uacute;a and is now only occasionally required.</p>
+<p>Installation guide is found in</p>
+<pre class="language-matlab">UaPardisoGuide.pdf
+</pre>
+<div>
+<ul>
+<li>Grounding-line plots now based on <img src="ReleaseNotes_eq11194795245018359699.png" alt="$h-h_{gl}$" style="width:39px;height:15px;">, ie thickness minus grounding line thickness, rather than the flotation mask. Thanks to Deborah Rhee for this suggestion. The grounding lines may now look a bit smoother. (Note that the grounding line position itself is never used in the code when finding the solutions.)</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>Default for the positive-thickness constraints: active set on, and thickness penalty off.</li>
+</ul>
+</div>
+<pre class="language-matlab">CtrlVar.ThicknessConstraints=true;
+CtrlVar.ThicknessPenalty=false;
+</pre>
+<div>
+<ul>
+<li>Active-set method:</li>
+</ul>
+</div>
+<p>Various changes were made to the active-set iteration to make it less prone to cycling and unnecessary and temporary release and activation of constraints. The active-set is not considerably more likely to converge in 1 to 3 iterations and often no updates are required.</p>
+<div>
+<ul>
+<li>Explicit estimate:</li>
+</ul>
+</div>
+<p>Explicit estimate is now, by default, only done for h. Boundary behavior related to level-set and min ice thickness are more robust.</p>
+<div>
+<ul>
+<li>Reactions of the thickness constraints as an output:</li>
+</ul>
+</div>
+<p>The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time step from the discrete reactions of the constraints, and includes all thickness constraints: the active set (h&gt;=ThickMin), the level-set constraints downstream of calving fronts, and user-defined thickness boundary conditions. In addition, the total rates at which mass is added and removed by the constraints (units of mass per time, eg kg/yr) are stored for each time step in RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by the constraints (tested to round-off in the Thule example).</p>
+<div>
+<ul>
+<li>Active-set method: predictive activation and release threshold, new defaults (14 October 2026):</li>
+</ul>
+</div>
+<p>Two changes to the active-set method are now the default:</p>
+<pre class="language-matlab">CtrlVar.ActiveSet.PredictiveActivation=true;   <span class="comment">% (previously not available)</span>
+CtrlVar.ActiveSet.ReleaseAlpha=1e-3;            <span class="comment">% (previously 0)</span>
+</pre>
+<p>With predictive activation, nodes where the explicit estimate of the ice thickness at the end of the time step is at or below ThickMin (while the thickness at the start of the time step is above ThickMin) are added to the active set at the start of the time step. Previously, such nodes were only activated after the first uvh solve of the time step, which then always required a further solve. An optional margin can be set through CtrlVar.ActiveSet.PredictiveActivationMargin (default 0).</p>
+<p>With ReleaseAlpha&gt;0, a constrained node is only released if the ice there would, without the constraint, thicken by more than ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0, nodes were released as soon as their multiplier had the wrong sign. In some applications (eg Greenland) many of these releases are of nodes in ice-free areas whose multipliers are only negative at round-off level (relative thickness gains of order 1e-8), and many of these nodes immediately fell below ThickMin again, requiring further active-set iterations.</p>
+<div>
+<ul>
+<li>The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter will therefore generally use larger time steps than before. To obtain the previous behaviour, set CtrlVar.ATSTargetIterations=4.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>Estimate of the time-discretisation error of the ice thickness (10 October 2026):</li>
+</ul>
+</div>
+<p>If CtrlVar.TimeDiscretisationErrorEstimate.Use=true, the local time-discretisation error of h is estimated in each time step (TimeDiscretisationErrorEstimate.m). This is a predictor-corrector estimate, comparing the second-order explicit estimate of h with the computed (implicit, theta=0.5) solution, and is only available for theta=0.5. The estimate is in units of h (ie m), and is the error committed in that time step. It is stored as a nodal field in F.hTimeDiscretisationErrorEstimate, and norms of it are stored as time series in RunInfo.Forward (hTimeDiscretisationErrorRMS, ..Max, ..Volume, ..ValidArea, etc.). Norms are calculated as sqrt(x'*M*x/A) with the consistent mass matrix M, where A is the area over which the estimate is defined. Optionally, the estimate can be accumulated over a run (CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=true, see F.hTimeDiscretisationErrorAccumulated). The accumulated estimate is an "error budget", ie the sum of the local errors, and not the global error, as errors are transported and may decay.</p>
+<p>AdaptiveTimeStepping.m is now a driver that selects between two approaches, depending on CtrlVar.AdaptiveTimeSteppingMethod:</p>
+<pre class="language-matlab">
+<span class="string">"iteration-based"</span> : the time <span class="string">step</span> <span class="string">is</span> <span class="string">based</span> <span class="string">on</span> <span class="string">the</span> <span class="string">number</span> <span class="string">of</span> <span class="string">non-linear</span> <span class="string">iterations</span> <span class="string">(AdaptiveTimeSteppingIterationBased.m).</span> <span class="string">This</span> <span class="string">is</span> <span class="string">the</span>
+                    previous <span class="string">approach</span>, unchanged, and <span class="string">is</span> <span class="string">the</span> <span class="string">default.</span>
+<span class="string">"error-estimate"</span>  : in addition <span class="string">based</span> <span class="string">on</span> <span class="string">the</span> <span class="string">estimated</span> <span class="string">time-discretisation</span> <span class="string">error</span> <span class="string">of</span> <span class="string">h</span> <span class="string">(AdaptiveTimeSteppingWithErrorEstimate.m).</span>
+</pre>
+<p>With "error-estimate", the time step is chosen such that the estimated local error of h per unit time, scaled by atol+rtol*|h|, is about one, ie dt_new = Safety*dt*q^(-1/2), where q is the scaled error per unit time in the last time step (ATSTimeDiscretisationErrorLimit.m). The time step may then also be increased up to this accuracy-based time step, provided the convergence of the non-linear iterations is acceptable (number of iterations at most CtrlVar.ATSTargetIterations over the last few time steps); otherwise the minimum of the accuracy-based time step and the time step based on the non-linear iterations is used. Integrated over a run of length T, the accumulated local error is then approximately bounded by T*atol (for rtol=0), and the actual error at the end of a run decreases with atol (approximately as atol^0.7 in tests). The time-discretisation error estimate is switched on automatically. Settings, with default values:</p>
+<pre class="language-matlab">CtrlVar.AdaptiveTimeSteppingMethod=<span class="string">"iteration-based"</span>;      <span class="comment">% or "error-estimate"</span>
+CtrlVar.ATSTimeDiscretisationError.atol=0.01;               <span class="comment">% m/yr; values of about 0.0005 to 0.003 have given good results in tests</span>
+CtrlVar.ATSTimeDiscretisationError.rtol=0;                  <span class="comment">% 1/yr</span>
+CtrlVar.ATSTimeDiscretisationError.StartTime=-inf;          <span class="comment">% the accuracy-based time step is only used from this time onwards</span>
+CtrlVar.ATSTimeDiscretisationError.Safety=0.85; <span class="keyword">...</span><span class="comment">MaxIncrease=2; ...MaxDecrease=5; ...MinValidArea=0.1;</span>
+CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true; <span class="keyword">...</span><span class="comment">ConvergenceCheckSteps=2;</span>
+</pre>
+<p>Recommendations: With "error-estimate", CtrlVar.ATSTargetIterations can be set to about 7 to 10, as the accuracy is then controlled separately.</p>
+<p>
+<b>Release Notes</b> <i>September 2026</i>
+</p>
+<div>
+<ul>
+<li>The conjugate gradient method used in Ua optimisation has been completely rewritten, and is now competitive with the MATLAB lBFGS approach. This is the approach used when setting:</li>
+</ul>
+</div>
+<pre class="language-matlab">CtrlVar.Inverse.MinimisationMethod=<span class="string">"-UaOptimisation-GradientBased-"</span> ;
+</pre>
+<p>Using this approach, the gradients are Sobolov gradients with respect to a metric defined by the explicit Hessians of the regularization part. Box constraints are implemented using two-sided variable transform.</p>
+<p>Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and simplified. This may possibly require some changes in input files. Hessian solver now calculates the exact and full Hessian using the Direct-Adjoint method. This is very memory intensive and the Hessian option can only be used for small meshes (10,000 nodes or less).</p>
+<p>UaHessian inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.</p>
+<div>
+<ul>
+<li>UK spelling used for `Optimisation'</li>
+</ul>
+</div>
+<p>
 <b>Release Notes</b> <i>August 2026</i>
 </p>
 <div>
@@ -87,11 +206,11 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <li>For the -uvh- solve, two normalization of the residuals are now available, selected by</li>
 </ul>
 </div>
-<pre>  CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
-                                   = "blockwise"</pre>
-<p>The new blockwise normalization option is seleted by setting</p>
+<pre>  CtrlVar.uvhResidualNormalisation = "pooled"    (older approach)
+                                   = "blockwise" (new default approach)</pre>
+<p>The new blockwise normalization option is selected by setting</p>
 <pre>  CtrlVar.uvhResidualNormalisation="blockwise";</pre>
-<p>It scales the uv and the h blocks of the residual vector separately. This should give a better measure of the residual and be less affected by relative differences in the uv and h residual blocks.</p>
+<p>It scales the uv and the h blocks of the uvh residual vector separately. This should give a better measure of the residual and be less affected by relative differences in the uv and h residual blocks.</p>
 <div>
 <ul>
 <li>There is a new "softplus" positive ice-thickness penalty formulation. It can be used in connection with the active-set iteration enforcing the min ice thickness constraint. It adds an implicit penalty term to the uvh system. The penalty term is a "soft" i.e. smooth function of the thickness violation. It has two parameters:</li>
@@ -101,41 +220,41 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l
 </pre>
 <p>
-<img src="ReleaseNotes_eq14155762934034653800.png" alt="$K$" style="width:12px;height:10px;"> is the slope of the linear term and l is a smoothness parameter. Note that <img src="ReleaseNotes_eq17216086743898025322.png" alt="$l$" style="width:4px;height:10px;"> has the units of ice thickness and should be selected to be somewhat smaller than CtrlVar.ThickMin</p>
+<img src="ReleaseNotes_eq14155762934034653800.png" alt="$K$" style="width:11px;height:10px;"> is the slope of the linear term and l is a smoothness parameter. Note that <img src="ReleaseNotes_eq17216086743898025322.png" alt="$l$" style="width:4px;height:11px;"> has the units of ice thickness and should be selected to be somewhat smaller than CtrlVar.ThickMin</p>
 <p>Typical values might be</p>
 <pre class="language-matlab">CtrlVar.ThicknessPenalty=true;
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction=<span class="string">"softplus"</span>;
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=100;
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
 </pre>
-<p>(Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)</p>
+<p>(Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.) (No longer the case since 9 October 2026, K is again a rate. See the October 2026 release notes.)</p>
 <p>
 <b>Release Notes</b> <i>July 2026</i>
 </p>
 <p>An option added to use Mat&eacute;rn covariance matrices in an inversion. The resulting precision matrices are either:</p>
 <p>
-<img src="ReleaseNotes_eq09770266689793418644.png" alt="$$ Q_{\alpha=1} = \tau^2\left(\kappa^2 M + D\right) $$" style="width:122px;height:16px;"></p>
+<img src="ReleaseNotes_eq09770266689793418644.png" alt="$$ Q_{\alpha=1} = \tau^2\left(\kappa^2 M + D\right) $$" style="width:121px;height:16px;"></p>
 <p>
-<img src="ReleaseNotes_eq02806432307676200260.png" alt="$$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$" style="width:228px;height:20px;"></p>
+<img src="ReleaseNotes_eq02806432307676200260.png" alt="$$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$" style="width:225px;height:19px;"></p>
 <p>or</p>
 <p>
-<img src="ReleaseNotes_eq01849406194307136264.png" alt="$$Q_{\alpha=3} = \tau^2\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)$$" style="width:312px;height:20px;"></p>
-<p>where <img src="ReleaseNotes_eq09319732146067371049.png" alt="$M$" style="width:14px;height:10px;"> is the mass matrix, <img src="ReleaseNotes_eq15667561282149361655.png" alt="$\tilde{M}$" style="width:14px;height:15px;"> the lumped mass matrix, <img src="ReleaseNotes_eq11414838477267473978.png" alt="$D$" style="width:11px;height:10px;"> the stiffness matrix, and <img src="ReleaseNotes_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:6px;">, <img src="ReleaseNotes_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> and <img src="ReleaseNotes_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:6px;"> are (hyper) parameters. This option is activated by setting:</p>
+<img src="ReleaseNotes_eq01849406194307136264.png" alt="$$Q_{\alpha=3} = \tau^2\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)$$" style="width:309px;height:19px;"></p>
+<p>where <img src="ReleaseNotes_eq09319732146067371049.png" alt="$M$" style="width:14px;height:10px;"> is the mass matrix, <img src="ReleaseNotes_eq15667561282149361655.png" alt="$\tilde{M}$" style="width:14px;height:15px;"> the lumped mass matrix, <img src="ReleaseNotes_eq11414838477267473978.png" alt="$D$" style="width:11px;height:10px;"> the stiffness matrix, and <img src="ReleaseNotes_eq00988259845630519888.png" alt="$\alpha$" style="width:9px;height:7px;">, <img src="ReleaseNotes_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> and <img src="ReleaseNotes_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:7px;"> are (hyper) parameters. This option is activated by setting:</p>
 <pre>CtrlVar.Inverse.Methodology="-Matern-" ;</pre>
 <p>and there is extensive description of this approach in the UaCompendium. The Mat&eacute;rn covariance function is:</p>
 <p>
-<img src="ReleaseNotes_eq04363232538738320206.png" alt="$$\left(C_M\right)_{ij} = C(r_{ij}) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}\left(\kappa r_{ij}\right)^{\nu}\, K_{\nu}\!\left(\kappa r_{ij}\right) $$" style="width:234px;height:36px;"></p>
+<img src="ReleaseNotes_eq04363232538738320206.png" alt="$$\left(C_M\right)_{ij} = C(r_{ij}) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}\left(\kappa r_{ij}\right)^{\nu}\, K_{\nu}\!\left(\kappa r_{ij}\right) $$" style="width:231px;height:35px;"></p>
 <p>where</p>
 <p>
-<img src="ReleaseNotes_eq05532860277977473609.png" alt="$$ r_{ij}=\|\mathbf{x}_i-\mathbf{y}_j\| $$" style="width:83px;height:16px;"></p>
-<p>Previously only the <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:10px;"> option was implemented, through</p>
+<img src="ReleaseNotes_eq05532860277977473609.png" alt="$$ r_{ij}=\|\mathbf{x}_i-\mathbf{y}_j\| $$" style="width:82px;height:15px;"></p>
+<p>Previously only the <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:11px;"> option was implemented, through</p>
 <pre class="language-matlab">CtrlVar.Inverse.Methodology=<span class="string">"-Tikhonov-"</span>
 </pre>
 <p>which still is the default option.</p>
 <p>When using the "-Tikhonov-" option, the parameters are entered as <img src="ReleaseNotes_eq04266825596800189285.png" alt="$\gamma_s$" style="width:10px;height:10px;"> and <img src="ReleaseNotes_eq10299851224723179983.png" alt="$\gamma_a$" style="width:11px;height:10px;"> in</p>
 <p>
-<img src="ReleaseNotes_eq10357830834230388680.png" alt="$$ Q_{\alpha=1} =  \gamma_a M + \gamma_s D  $$" style="width:110px;height:14px;"></p>
-<p>When using the new "-Matern-" option for <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:10px;"> you can get the same behavior by selecting <img src="ReleaseNotes_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:6px;"> and <img src="ReleaseNotes_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> in terms of <img src="ReleaseNotes_eq04266825596800189285.png" alt="$\gamma_s$" style="width:10px;height:10px;"> and <img src="ReleaseNotes_eq10299851224723179983.png" alt="$\gamma_a$" style="width:11px;height:10px;"> for <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:10px;">. You can find the formulas in the UaCompendium or use the function:</p>
+<img src="ReleaseNotes_eq10357830834230388680.png" alt="$$ Q_{\alpha=1} =  \gamma_a M + \gamma_s D  $$" style="width:109px;height:13px;"></p>
+<p>When using the new "-Matern-" option for <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:11px;"> you can get the same behavior by selecting <img src="ReleaseNotes_eq00761495372935892241.png" alt="$\tau$" style="width:7px;height:7px;"> and <img src="ReleaseNotes_eq15898738225830852514.png" alt="$\kappa$" style="width:7px;height:7px;"> in terms of <img src="ReleaseNotes_eq04266825596800189285.png" alt="$\gamma_s$" style="width:10px;height:10px;"> and <img src="ReleaseNotes_eq10299851224723179983.png" alt="$\gamma_a$" style="width:11px;height:10px;"> for <img src="ReleaseNotes_eq05699047269584607509.png" alt="$\alpha=1$" style="width:33px;height:11px;">. You can find the formulas in the UaCompendium or use the function:</p>
 <pre class="language-matlab">[alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)
 </pre>
 <p>Note that the relationship depends on the area of the computational domain.</p>
@@ -149,8 +268,8 @@ CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
 </div>
 <p>Internally, the boundary conditions are represented as a constraint matrix</p>
 <p>
-<img src="ReleaseNotes_eq03744485538172999651.png" alt="$$A_{\mathrm{eq}} \; x = b \quad ,  \quad A_{\mathrm{eq}} \in R^{m\times n} $$" style="width:158px;height:17px;"></p>
-<p>where <img src="ReleaseNotes_eq18216620034067401164.png" alt="$m$" style="width:11px;height:6px;"> is the number of constraints, and <img src="ReleaseNotes_eq17555110721583917243.png" alt="$n$" style="width:8px;height:6px;"> the number of degrees of freedom.</p>
+<img src="ReleaseNotes_eq03744485538172999651.png" alt="$$A_{\mathrm{eq}} \; x = b \quad ,  \quad A_{\mathrm{eq}} \in R^{m\times n} $$" style="width:157px;height:17px;"></p>
+<p>where <img src="ReleaseNotes_eq18216620034067401164.png" alt="$m$" style="width:11px;height:7px;"> is the number of constraints, and <img src="ReleaseNotes_eq17555110721583917243.png" alt="$n$" style="width:7px;height:7px;"> the number of degrees of freedom.</p>
 <p>The matrix <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;"> should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent. However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.</p>
 <p>By setting</p>
 <pre class="language-matlab">CtrlVar.BCsRowSubsetSelection=true;
@@ -166,7 +285,7 @@ CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
 <p>and this was used if the user used the default option</p>
 <pre>  CtrlVar.SymmSolver='Auto';</pre>
 <p>This symmetrical solver preserves the symmetry of the reduced KKT system, whereas the 'EliminateBCsSolveSystemDirectly' did not. Additionally, the new Null-Space solver solves (n-m) x (n-m) system where n is the degrees of freedom and m is the number of constraints. Typically n is twice the number of nodes (uv solve) and m is the number of boundary conditions. The 'EliminateBCsSolveSystemDirectly', on the other hand, always solves an n times n system. The new solver is always faster. How much faster depends on the problem but one can expect it always to be at least twice as fact. Note that this only applies to the solution of the KKT system. If there are no boundary conditions, the same default backslash solver is used before.</p>
-<p>For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other hand, the constraint matrix <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;"> does not fulfill <img src="ReleaseNotes_eq12362932922569311798.png" alt="$A_{\mathrm{eq}} \, A_{\mathrm{eq}}^T = I_m$" style="width:74px;height:20px;">, a new unsymmetrical Null-Space solver is now used instead of the previous Augmented Lagrangian solver.</p>
+<p>For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other hand, the constraint matrix <img src="ReleaseNotes_eq05039716430408945947.png" alt="$A_{\mathrm{eq}}$" style="width:20px;height:15px;"> does not fulfill <img src="ReleaseNotes_eq12362932922569311798.png" alt="$A_{\mathrm{eq}} \, A_{\mathrm{eq}}^T = I_m$" style="width:73px;height:20px;">, a new unsymmetrical Null-Space solver is now used instead of the previous Augmented Lagrangian solver.</p>
 <p>One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will, typically, be no difference in performance, even with BCs. It is possible that if one has a large number of BCs, manually setting</p>
 <pre class="language-matlab">CtrlVar.AsymmSolver=<span class="string">"NullSpace"</span>;
 </pre>
@@ -189,13 +308,13 @@ CtrlVar.UaSquareMesh.nx=100;
 <p>
 <b>Release Notes</b> <i>January 2026</i>
 </p>
-<p>When calculating <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> explicitly, homogenized thickness (<img src="ReleaseNotes_eq16410644637423230129.png" alt="$h$" style="width:8px;height:10px;">) boundary conditions are applied to the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> solve. So if thickness is set to some prescribed value at some nodes, <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> at those nodes will be forced to be equal to zero. And if thickness links/ties are defined between nodes, those same ties will be applied to <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;">. This has no effect on <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> values obtained in transient runs. But this will affect calculated/modeled <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> values used in an inversion when compared against measured <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> values, in combination with thickness boundary conditions.</p>
+<p>When calculating <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> explicitly, homogenized thickness (<img src="ReleaseNotes_eq16410644637423230129.png" alt="$h$" style="width:7px;height:11px;">) boundary conditions are applied to the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> solve. So if thickness is set to some prescribed value at some nodes, <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> at those nodes will be forced to be equal to zero. And if thickness links/ties are defined between nodes, those same ties will be applied to <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;">. This has no effect on <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> values obtained in transient runs. But this will affect calculated/modeled <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> values used in an inversion when compared against measured <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> values, in combination with thickness boundary conditions.</p>
 <p>
 <b>Release Notes</b> <i>December 2025</i>
 </p>
 <div>
 <ul>
-<li>When using <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> measurements in with boundary conditions applied to h, the adjoint now uses the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> calculated explicitly using those BCs. Previously, when evaluating the sensitivities of the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;">-cost function term at integration points as part of the adjoint approach, this was not the case.</li>
+<li>When using <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> measurements in with boundary conditions applied to h, the adjoint now uses the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;"> calculated explicitly using those BCs. Previously, when evaluating the sensitivities of the <img src="ReleaseNotes_eq06208703435412521533.png" alt="$\dot{h}$" style="width:7px;height:14px;">-cost function term at integration points as part of the adjoint approach, this was not the case.</li>
 </ul>
 </div>
 <p>
@@ -218,12 +337,12 @@ CtrlVar.UaSquareMesh.nx=100;
 </div>
 <div>
 <ul>
-<li>MATLAB seems to have been busy working on their optimization functions, and the performance of using</li>
+<li>MATLAB seems to have been busy working on their Optimisation functions, and the performance of using</li>
 </ul>
 </div>
-<pre>  CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";</pre>
+<pre>  CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";</pre>
 <p>now appears improved. This option actually stop working in Matlab 2021b and 2022a, and this may have been due to a bug in the optimisation toolbox. From at least 2024a onward this now works again, and based on some numerical tests, appears much improved. This is currently not the default option, but users might consider setting</p>
-<pre>  CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";</pre>
+<pre>  CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";</pre>
 <p>in their DefineInitialInputs.m files, to benefit from these improvements. (The old default setting using a Hessian guestimate still works as before.)</p>
 <div>
 <ul>
@@ -251,15 +370,15 @@ CtrlVar.UaSquareMesh.nx=100;
 <pre>  CtrlVar.ThicknessPenalty=1;</pre>
 <p>This causes an additional implicit mass-balance term to be added</p>
 <p>
-<img src="ReleaseNotes_eq10662714216991378782.png" alt="$$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$" style="width:287px;height:16px;"></p>
+<img src="ReleaseNotes_eq10662714216991378782.png" alt="$$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$" style="width:285px;height:16px;"></p>
 <p>where</p>
 <p>
-<img src="ReleaseNotes_eq07689733156841144414.png" alt="$$h < h_{\min}$$" style="width:50px;height:13px;"></p>
+<img src="ReleaseNotes_eq07689733156841144414.png" alt="$$h < h_{\min}$$" style="width:49px;height:13px;"></p>
 <p>and where:</p>
 <pre>a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin
 a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad;
 a_3 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;</pre>
-<p>Note: <img src="ReleaseNotes_eq03340046386025214237.png" alt="$a_1$" style="width:12px;height:10px;"> and <img src="ReleaseNotes_eq04501319792892868238.png" alt="$a_3$" style="width:13px;height:10px;"> need to be negative and <img src="ReleaseNotes_eq05038974766009111163.png" alt="$a_2$" style="width:13px;height:10px;"> positive, however, this is check internally so actually the sign on input is immaterial.</p>
+<p>Note: <img src="ReleaseNotes_eq03340046386025214237.png" alt="$a_1$" style="width:12px;height:9px;"> and <img src="ReleaseNotes_eq04501319792892868238.png" alt="$a_3$" style="width:13px;height:9px;"> need to be negative and <img src="ReleaseNotes_eq05038974766009111163.png" alt="$a_2$" style="width:13px;height:9px;"> positive, however, this is check internally so actually the sign on input is immaterial.</p>
 <div>
 <ul>
 <li>By setting:</li>
@@ -706,7 +825,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 <p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2026a</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2026b</a>
 <br>
 </p>
 </div>
@@ -715,20 +834,184 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 
 
 %%
+% 
+% *Release Notes* _October 2026_
+%
+% * Support for compiled uvh, uv and h  matrix assemblies. 
+% 
+% Users can now use a complied version of the uvh, uv and h assembly routines. 
+%
+% Details are provided in : |UaCompiledUserGuide.pdf| 
+% 
+% MEX files for 64-bit Windows with MATLAB2026b are included in the distribution. 
+% 
+% To use this option set:
+%
+%   CtrlVar.uvhMatrixAssembly.CompiledKernel=true; 
+%   CtrlVar.uvMatrixAssembly.CompiledKernel=true; 
+%   CtrlVar.hMatrixAssembly.CompiledKernel=true; 
+%
+% and also set:
+%
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=false;    % the compiled uv-assembly is parallel already
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;   % the compiled uvh-assembly is parallel already
+%
+% For other platforms than Windows, consult  |UaCompiledUserGuide.pdf| 
+%
+%  * Support for the PARDISO direct sparse solver:
+% 
+%  Users can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
+%  uvh and CHOLMOD for the uv system).
+%
+% To use this option set:
+%
+%   CtrlVar.LinearSolver.Type="PARDISO";  
+% 
+% The advantage of PARIDISO over the default MATLAB solvers is that PARDISO allows for reuse of the analysis phase of the
+% solution. This is particularly interesting when a linear system with the same sparsity structure is solved repeatedly. While
+% PARDISO is not faster than the MATLAB solvers, the MATLAB solvers do not allow for this reuse of the analysis phase. In
+% practice this analysis phase is quite expensive and a big part of the overall solve. Using PARIDSO can therefore
+% significantly speed up the solve (factor of 5 to 10) and lead to reduction in overall run times of maybe 30 to 50%,
+% although the exact numbers are situation dependent. Information about the sparsity pattern is now stored as part of the MUA
+% structure and recalculated when the mesh changes. Some re-analyses phases may be required when using dynamical boundary conditions, but
+% this has been optimized within Úa and is now only occasionally required. 
+% 
+% Installation guide is found in 
+% 
+%   UaPardisoGuide.pdf
+%
+%
+%
+% * Grounding-line plots now based on $h-h_{gl}$, ie thickness minus grounding line thickness, rather than the flotation mask.
+% Thanks to Deborah Rhee for this suggestion. The grounding lines may now look a bit smoother. (Note that the grounding line
+% position itself is never used in the code when finding the solutions.)
+%
+% * Default for the positive-thickness constraints: active set on, and thickness penalty off.
+%
+%   CtrlVar.ThicknessConstraints=true;
+%   CtrlVar.ThicknessPenalty=false;
+%
+%
+% * Active-set method:
+% 
+% Various changes were made to the active-set iteration to make it less prone to cycling and unnecessary and temporary
+% release and activation of constraints. The active-set is not considerably more likely to converge in 1 to 3 iterations and
+% often no updates are required. 
+%
+%
+% * Explicit estimate:
+%
+% Explicit estimate is now, by default, only done for h. Boundary behavior related to level-set and min ice thickness are
+% more robust. 
+%
+%
+% * Reactions of the thickness constraints as an output:
+%
+% The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per
+% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time
+% step from the discrete reactions of the constraints, and includes all thickness constraints: the active set (h>=ThickMin), the
+% level-set constraints downstream of calving fronts, and user-defined thickness boundary conditions. In addition, the total rates at
+% which mass is added and removed by the constraints (units of mass per time, eg kg/yr) are stored for each time step in
+% RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for
+% example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to
+% the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by
+% the constraints (tested to round-off in the Thule example). 
+%
+%
+% * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):
+%
+% Two changes to the active-set method are now the default:
+%
+%   CtrlVar.ActiveSet.PredictiveActivation=true;   % (previously not available)
+%   CtrlVar.ActiveSet.ReleaseAlpha=1e-3;            % (previously 0)
+%
+% With predictive activation, nodes where the explicit estimate of the ice thickness at the end of the time step is at or below ThickMin
+% (while the thickness at the start of the time step is above ThickMin) are added to the active set at the start of the time step.
+% Previously, such nodes were only activated after the first uvh solve of the time step, which then always required a further solve. An
+% optional margin can be set through CtrlVar.ActiveSet.PredictiveActivationMargin (default 0).
+%
+% With ReleaseAlpha>0, a constrained node is only released if the ice there would, without the constraint, thicken by more than
+% ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0, nodes were released as soon as their multiplier had the wrong sign. In
+% some applications (eg Greenland) many of these releases are of nodes in ice-free areas whose multipliers are only negative at round-off
+% level (relative thickness gains of order 1e-8), and many of these nodes immediately fell below ThickMin again, requiring further
+% active-set iterations. 
+%
+%
+% * The default value of CtrlVar.ATSTargetIterations has been changed from 4 to 7 (10 October 2026). Runs that do not set this parameter
+% will therefore generally use larger time steps than before. To obtain the previous behaviour, set
+% CtrlVar.ATSTargetIterations=4.
+%
+%
+% * Estimate of the time-discretisation error of the ice thickness (10 October 2026):
+%
+% If CtrlVar.TimeDiscretisationErrorEstimate.Use=true, the local time-discretisation error of h is estimated in each time step
+% (TimeDiscretisationErrorEstimate.m). This is a predictor-corrector estimate, comparing the second-order explicit estimate of h with the
+% computed (implicit, theta=0.5) solution, and is only available for theta=0.5. The estimate is in units of h (ie m), and is the error
+% committed in that time step. It is stored as a nodal field in F.hTimeDiscretisationErrorEstimate, and norms of it are stored as time series
+% in RunInfo.Forward (hTimeDiscretisationErrorRMS, ..Max, ..Volume, ..ValidArea, etc.). Norms are calculated as sqrt(x'*M*x/A) with the
+% consistent mass matrix M, where A is the area over which the estimate is defined.  Optionally, the estimate can be accumulated over a run
+% (CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=true, see F.hTimeDiscretisationErrorAccumulated). The accumulated estimate is an
+% "error budget", ie the sum of the local errors, and not the global error, as errors are transported and may decay.
+%
+%
+% AdaptiveTimeStepping.m is now a driver that selects between two approaches, depending on CtrlVar.AdaptiveTimeSteppingMethod:
+%
+%   "iteration-based" : the time step is based on the number of non-linear iterations (AdaptiveTimeSteppingIterationBased.m). This is the
+%                       previous approach, unchanged, and is the default.
+%   "error-estimate"  : in addition based on the estimated time-discretisation error of h (AdaptiveTimeSteppingWithErrorEstimate.m).
+%
+% With "error-estimate", the time step is chosen such that the estimated local error of h per unit time, scaled by atol+rtol*|h|, is about
+% one, ie dt_new = Safety*dt*q^(-1/2), where q is the scaled error per unit time in the last time step (ATSTimeDiscretisationErrorLimit.m).
+% The time step may then also be increased up to this accuracy-based time step, provided the convergence of the non-linear iterations is
+% acceptable (number of iterations at most CtrlVar.ATSTargetIterations over the last few time steps); otherwise the minimum of the
+% accuracy-based time step and the time step based on the non-linear iterations is used. Integrated over a run of length T, the accumulated
+% local error is then approximately bounded by T*atol (for rtol=0), and the actual error at the end of a run decreases with atol
+% (approximately as atol^0.7 in tests). The time-discretisation error estimate is switched on automatically. Settings, with default values:
+%
+%   CtrlVar.AdaptiveTimeSteppingMethod="iteration-based";      % or "error-estimate"
+%   CtrlVar.ATSTimeDiscretisationError.atol=0.01;               % m/yr; values of about 0.0005 to 0.003 have given good results in tests
+%   CtrlVar.ATSTimeDiscretisationError.rtol=0;                  % 1/yr
+%   CtrlVar.ATSTimeDiscretisationError.StartTime=-inf;          % the accuracy-based time step is only used from this time onwards
+%   CtrlVar.ATSTimeDiscretisationError.Safety=0.85; ...MaxIncrease=2; ...MaxDecrease=5; ...MinValidArea=0.1;
+%   CtrlVar.ATSTimeDiscretisationError.GovernIncreases=true; ...ConvergenceCheckSteps=2;
+%
+% Recommendations: With "error-estimate", CtrlVar.ATSTargetIterations can be set to about 7 to 10, as the accuracy is then controlled
+% separately.
+%
+%
+% *Release Notes* _September 2026_
+%
+% * The conjugate gradient method used in  Ua optimisation has been completely rewritten, and is now competitive with the MATLAB lBFGS
+% approach. This is the approach used when setting:
+% 
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-GradientBased-" ;
+% 
+% Using this approach, the gradients are Sobolov gradients with respect to a metric defined by the explicit Hessians of the
+% regularization part. Box constraints are implemented using two-sided variable transform.
+% 
+% Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and
+% simplified. This may possibly require some changes in input files. 
+% Hessian solver now calculates the exact and full Hessian using the Direct-Adjoint method. This is very memory intensive and
+% the Hessian option can only be used for small meshes (10,000 nodes or less). 
+%
+% UaHessian inverse-solver uses trust-region approach with a 2D exact sub-space minimisation.
+%
+%
+% *  UK spelling used for `Optimisation' 
 %
 % *Release Notes* _August 2026_
 %
 %
 % * For the -uvh- solve, two normalization of the residuals are now available, selected by
 %
-%    CtrlVar.uvhResidualNormalisation = "pooled"    (default, historical)
-%                                     = "blockwise"
+%    CtrlVar.uvhResidualNormalisation = "pooled"    (older approach)
+%                                     = "blockwise" (new default approach)
 %
-% The new blockwise normalization option is seleted by setting 
+% The new blockwise normalization option is selected by setting 
 %
 %    CtrlVar.uvhResidualNormalisation="blockwise";
 %
-% It scales the uv and the h blocks of the residual vector separately. This should give a better measure of the residual and
+% It scales the uv and the h blocks of the uvh residual vector separately. This should give a better measure of the residual and
 % be less affected by relative differences in the uv and h residual blocks. 
 %
 % * There is a new "softplus" positive ice-thickness penalty formulation. It can be used in connection with the active-set iteration
@@ -749,6 +1032,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %   CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=0.1*CtrlVar.ThickMin ;
 %
 % (Note that internally K is divided by the time step, dt. As a result added mass amplitude per uvh Newton iteration is independent of dt.)
+% (No longer the case since 9 October 2026, K is again a rate. See the October 2026 release notes.)
 %
 % *Release Notes* _July 2026_
 %
@@ -902,15 +1186,15 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %
 % * SuiteSparse folder deleted, as it is now part of core MATLAB functionality (since R2024a)
 %
-% * MATLAB seems to have been busy working on their optimization functions, and the performance of using
+% * MATLAB seems to have been busy working on their Optimisation functions, and the performance of using
 %
-%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";  
 %
 % now appears improved. This option actually stop working in Matlab 2021b and 2022a, and this may have been due to
 % a bug in the optimisation toolbox. From at least 2024a onward this now works again, and based on some numerical tests,
 % appears much improved. This is currently not the default option, but users might consider setting
 %
-%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimisation-GradientBased";  
 % 
 % in their DefineInitialInputs.m files, to benefit from these improvements. (The old default setting using a Hessian guestimate still works as before.) 
 %

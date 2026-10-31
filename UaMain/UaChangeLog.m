@@ -4,6 +4,23 @@
 % 
 % *Change Log* _October 2026_
 %
+% * spmd versions of the uv and uvh assembly: less overhead per call (31 October 2026):
+%
+% Measured on Greenland nx150 (111,000 elements, 4 workers), one uv assembly with spmd took 320-334 ms (serial: 589 ms), of which
+% about half was the workers' assembly and half overhead: computing the fingerprint of the fields (16-18 ms; uvh 29-32 ms), fetching
+% the results (18 ms), waiting for the slowest worker (up to 27 ms), summing the sparse matrices (about 20 ms), and starting,
+% synchronising and ending the spmd block (45-54 ms). Changes:
+%   - SPMDFieldsFingerprint.m: the weights are kept between calls and the weighted sums are dot products (the careful treatment of
+%     non-finite values only where needed): 16-18 -> 4-6 ms (uv), 29-32 -> 7-8 ms (uvh, F0 and F1).
+%   - uvMatrixAssemblySSTREAM_SPMD.m, uvhMatrixAssemblySSTREAM_SPMD.m: worker 1 packs all summed results into one structure, which
+%     the client fetches in a single access of the Composite (each access costs about 5 ms): 9-18 -> 6 ms. The three residual vectors
+%     of the uv assembly are summed in a single spmdPlus.
+% Saving about 25 ms per call (uv full 334 -> 300 ms, residual only 195 -> 176 ms). Results unchanged (spmd against serial: to
+% rounding errors, also with ZeroFields and the lumped nodal penalty; Thule run with spmd: same iterations as serial). Tried and not
+% kept: summing the matrix values as one dense vector on the global pattern (one spmdPlus for everything); slower, as the dense vector
+% carries the whole pattern and building the sparse matrix on the client (sparse) costs 30-50 ms. With the compiled assembly, spmd is
+% not needed (and not used); these changes matter only where the compiled assembly is not available.
+%
 % * Regression test of the compiled assembly: h tests added to the regression test (31 October 2026):
 %
 % UaCompiled/Tests/TestUaCompiled.m now also tests the compiled h assembly (tests testH*; 88 tests in all, about 27 s): f0 (a full

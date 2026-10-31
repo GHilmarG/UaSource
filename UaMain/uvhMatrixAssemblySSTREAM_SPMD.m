@@ -95,20 +95,26 @@ else
         fn=fieldnames(V) ;
         for i=1:numel(fn) ; F1loc.(fn{i})=V.(fn{i}) ; end
         CtrlVarLoc=CRw ; CtrlVarLoc.uvhMatrixAssembly=UMA ;
+        % (31 Oct 2026) Worker 1 packs the summed results into one structure, so that the client fetches them in a single access.
+        % (Summing the matrix values as a dense vector on the global pattern, with one spmdPlus for everything, was tried and was
+        % slower: the dense vector carries the whole pattern, and building the sparse matrix on the client costs more than it saves.)
         [~,~,rr,kk]=uvhMatrixAssembly(UVw,RIw,CtrlVarLoc,MUAworkers,F0w,F1loc,[],BCw);   % l1 is not used in the assembly
-        rrsum = spmdPlus(rr,1);
-        kksum = spmdPlus(kk,1);
+        Xsum=spmdPlus(rr,1) ;
+        if ~isempty(kk) ; Ksum=spmdPlus(kk,1) ; else ; Ksum=[] ; end
+        if spmdIndex==1
+            Out=struct("X",Xsum,"K",Ksum) ;
+        else
+            Out=[] ;
+        end
         tw=toc(tw0) ;
     end
     Timing.Spmd=toc(t0) ;
     if nargout>=5 ; Timing.Workers=max([tw{:}]) ; end
     t0=tic ;
-
-    % rrsum and kksum are composites
-    % Ruvh and Kuvh are double sparse
-
-    Ruvh=rrsum{1};
-    Kuvh=kksum{1};
+    O=Out{1} ;   % (31 Oct 2026) a single access to the Composite (each access costs about 5 ms)
+    neq=3*MUA.Nnodes ;
+    Ruvh=O.X(1:neq) ;
+    Kuvh=O.K ;
     Timing.Fetch=toc(t0) ;
 
 end
