@@ -21,6 +21,7 @@ RunInfo.Forward.ActiveSetConverged=1;
 iActiveSetIteration=0;
 RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained for the rest of this time step, see ActiveSetUpdate
 RunInfo.Forward.ActiveSetNoFurtherReleases=false;
+RunInfo.Forward.ActiveSetah=[];   % (31 Oct 2026) nodal rates of the thickness constraints from the last active-set update of this time step, see ActiveSetUpdate.m
 isActiveSetCyclical=NaN;
 nlIt=nan(CtrlVar.NRitmax,1);
 BCsLastSolve=[] ; lLastSolve=[] ;   % (15 Oct 2026) boundary conditions and multipliers of the last uvh solve, used to calculate F1.ah

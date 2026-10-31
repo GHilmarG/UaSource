@@ -765,6 +765,7 @@ while 1
             % Recalculating geometry based on flotation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+            F=UpdateSuppressedThickening(CtrlVar,MUA,F,BCs,RunInfo) ;   % (31 Oct 2026) once per accepted time step, for the cumulative release criterion
             % (10 Oct 2026) Estimate of the time-discretisation error of h (if CtrlVar.TimeDiscretisationErrorEstimate.Use). This must be done
             % before F0 and Fm1 are updated. Not done if the uvh solve only converged through WTSHTF.
             if isConvergedWithoutWTSHTF
@@ -818,6 +819,7 @@ while 1
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; 
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            F=UpdateSuppressedThickening(CtrlVar,MUA,F,BCs,RunInfo) ;   % (31 Oct 2026) once per accepted time step (not in each h solve of the uv-h iteration)
             if RunInfo.Forward.uvhConverged   % (10 Oct 2026) estimate of the time-discretisation error of h, see above
                 [RunInfo,F]=TimeDiscretisationErrorEstimate(CtrlVar,RunInfo,MUA,F0,F,Fm1,BCs,hPosNodeStartOfStep);
             end

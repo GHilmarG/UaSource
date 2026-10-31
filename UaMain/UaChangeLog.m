@@ -4,6 +4,36 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Active-set method: cumulative release criterion for thickness constraints (31 October 2026):
+%
+% A node constrained to the minimum thickness (h>=ThickMin) was released only if, without the constraint, the ice there would thicken
+% by more than ReleaseAlpha*ThickMin within one time step. As a rate, this threshold is ReleaseAlpha*ThickMin/dt, so that slow
+% accumulation on ice-free ground was suppressed, the more so the smaller the time step: with ReleaseAlpha=1e-3 and ThickMin=1 m, all
+% accumulation below 1 m/yr was suppressed at dt=0.001. (Greenland, nx150, MAR mass balance: 84% of the ice-free nodes with positive
+% mass balance were held at ThickMin at dt=0.001, against 54% at dt=0.01.)
+%
+% The default is now a cumulative criterion, CtrlVar.ActiveSet.ReleaseRule="cumulative": for each constrained node, the net thickening
+% that the constraint has suppressed since the node became constrained is accumulated over time steps, as the new nodal field
+% F.hSuppressedThickening (S, units of distance; S <- max(0, S-ah*dt) once per accepted time step, with ah the equivalent mass-balance
+% rate of the constraint, see UpdateSuppressedThickening.m), and the node is released once max(0,S-ah*dt) > ReleaseAlpha*ThickMin. This
+% does not depend on the time step: accumulation, however small, always leads to the release of the node eventually (after the ice
+% would have grown by ReleaseAlpha*ThickMin, ie 1 mm with the defaults), while round-off contributions of alternating sign, the reason
+% for ReleaseAlpha>0, do not accumulate. S is capped at the release threshold, is saved in restart files, and is mapped onto new meshes
+% (MapFbetweenMeshes.m). The default value of ReleaseAlpha (1e-3) is unchanged; its exact value is much less important now. The previous
+% rule can be selected with CtrlVar.ActiveSet.ReleaseRule="per-step".
+%
+% Greenland, nx150, MAR mass balance, -uvh-: with the cumulative rule, 42.5% of the ice-free nodes with positive mass balance are held at
+% ThickMin at both dt=0.01 and dt=0.001 (the remainder lose more ice by outflow than they gain), and the ice thickness at t=0.5 differs
+% by at most 7 mm between the two time steps, and by at most 4 mm from runs without any release threshold (ReleaseAlpha=0), which,
+% however, release many nodes in ablation areas on round-off (25% of them, against 8% with the cumulative rule) at a much higher cost.
+% Files: UaFields.m (new property hSuppressedThickening), UpdateSuppressedThickening.m (new), ActiveSetUpdate.m (release rule; the nodal
+% rates ah of the last active-set update of each time step are kept in RunInfo.Forward.ActiveSetah, as BCs and l need not match at the
+% end of a time step with deferred releases), uvhRootFinding.m and MassContinuityEquationNewtonRaphsonThicknessContraints.m (reset of
+% ActiveSetah per time step), Ua2D.m (update once per accepted time step, -uvh- and -uv-h-), MapFbetweenMeshes.m (mapping, with a message
+% for InfoLevelAdaptiveMeshing>=1), Ua2D_DefaultParameters.m. Tested: Greenland dt=0.01 and 0.001 (-uvh-), dt=0.01 (-uv-h-), a uniform
+% mass balance of 1 m/yr at dt=0.001 (ice-free ground now thickens as at dt=0.0025), restart at t=0.25 (equal to round-off), Thule with
+% deferred releases, mesh adaptation and adaptive time stepping.
+%
 % * ABfgPreEliminate.m: fast path for constraints that each fix one unknown (31 October 2026):
 %
 % The constrained system is solved as Atilde x = btilde, with Atilde=Q*A+B'B, Q=I-B'B (after scaling A). In the usual case, each row

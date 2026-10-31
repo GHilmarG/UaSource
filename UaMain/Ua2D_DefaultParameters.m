@@ -1777,12 +1777,18 @@ CtrlVar.ActiveSet.ActivationTolerance=1e-3;             % (14 Oct 2026) Free nod
                                                         % this tolerance are accepted as they are. This is the tolerance on primal feasibility (the constraint
                                                         % h>=ThickMin), and the counterpart of ReleaseAlpha, which is the tolerance on dual feasibility (the sign of
                                                         % the multipliers). Both are expressed as a fraction of ThickMin, and have the same default value.
-CtrlVar.ActiveSet.ReleaseAlpha=1e-3;                    % (14 Oct 2026) A constrained node is only released if, without the constraint, the ice there would
-                                                        % thicken by more than ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0 (the previous
+CtrlVar.ActiveSet.ReleaseAlpha=1e-3;                    % (14 Oct 2026; 31 Oct 2026: see ReleaseRule) A constrained node is only released once, without the constraint,
+                                                        % the ice there would have thickened by more than ReleaseAlpha*ThickMin since it became constrained (ReleaseRule="cumulative"),
+                                                        % or within the time step (ReleaseRule="per-step"). With ReleaseAlpha=0 (the previous
                                                         % default) nodes are released as soon as the multiplier has the wrong sign, which in some
                                                         % applications (eg Greenland) leads to many releases of nodes whose multipliers are only
                                                         % negative at round-off level, and that then immediately fall below ThickMin again.
                                                         % PredictiveActivation should only be used together with ReleaseAlpha>0.
+CtrlVar.ActiveSet.ReleaseRule="cumulative";             % (31 Oct 2026) "cumulative": the thickening suppressed by the constraint is accumulated over time steps
+                                                        % (F.hSuppressedThickening, see UpdateSuppressedThickening.m), and the node is released once it exceeds
+                                                        % ReleaseAlpha*ThickMin. This does not depend on the time step, and ice-free areas grow under any positive
+                                                        % accumulation. "per-step": the previous rule (thickening within one time step), which suppresses
+                                                        % accumulation rates below ReleaseAlpha*ThickMin/dt, increasingly so for small time steps.
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
                                                                     % thickness is usually prescribed directly.
 CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 2026) Criterion for releasing active thickness constraints:

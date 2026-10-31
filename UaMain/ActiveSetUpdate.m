@@ -95,12 +95,17 @@ if ~CtrlVar.LinFEbasis
         if ReleaseCriterion=="consistent-mass"
             Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
             ah=-Reactions.h./(F1.rho.*F1.dt) ; % nodal array
+            RunInfo.Forward.ActiveSetah=ah ;   % (31 Oct 2026) for UpdateSuppressedThickening.m, see below
             ah=ah(BCs1.hPosNode)             ; % array equal in size to number of hPos constraints
             lambdahpos=Reactions.h(BCs1.hPosNode);  %
         else
             % (15 Oct 2026) The calculation of the reactions and the equivalent mass-balance rates has been moved to
             % ThicknessConstraintReactions.m, so that it can also be used to provide the reactions as an output (F.ah).
             [ahNodal,rh]=ThicknessConstraintReactions(CtrlVar,MUA,F1,BCs1,l1) ;
+            % (31 Oct 2026) The nodal rates of this (the last) update of the time step are kept for UpdateSuppressedThickening.m: they are
+            % computed here from the active set and multipliers of the same solve, before the active set is changed (eg by deferred releases,
+            % which remove nodes without a further solve, so that BCs and l no longer match at the end of the time step).
+            RunInfo.Forward.ActiveSetah=ahNodal ;
             ah=ahNodal(BCs1.hPosNode) ;
             lambdahpos=rh(BCs1.hPosNode) ;
         end
@@ -212,7 +217,23 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
         fprintf(CtrlVar.fidlog,' Active-set: %i nodes released in the previous iteration are again below ThickMin. They are kept constrained, and no further nodes are released for the rest of this time step. \n',numel(NewlyLocked));
     end
 
-    isNegavtiveMassFluxSmall=ah < -alpha*hScaleRelease/F1.dt ;
+    % (31 Oct 2026) Release rule (CtrlVar.ActiveSet.ReleaseRule):
+    %   "cumulative" (default): release a node once the net thickening that the constraint has suppressed since the node became
+    %       constrained, including that of this time step, exceeds alpha*hScaleRelease: max(0,S-ah*dt) > alpha*hScaleRelease, with
+    %       S=F1.hSuppressedThickening at the start of the time step (updated once per accepted time step, see
+    %       UpdateSuppressedThickening.m). This does not depend on the time step: real accumulation, however small, always leads to the
+    %       release of the node, while round-off contributions of alternating sign do not accumulate.
+    %   "per-step": the previous rule, release if ah < -alpha*hScaleRelease/dt, ie if the thickening within this time step alone
+    %       exceeds alpha*hScaleRelease. This suppresses accumulation rates below alpha*hScaleRelease/dt, more so the smaller dt.
+    ReleaseRule="cumulative" ;
+    if isfield(CtrlVar,"ActiveSet") && isfield(CtrlVar.ActiveSet,"ReleaseRule") ; ReleaseRule=string(CtrlVar.ActiveSet.ReleaseRule) ; end
+    if ReleaseRule=="per-step"
+        isNegavtiveMassFluxSmall=ah < -alpha*hScaleRelease/F1.dt ;
+    else
+        S=F1.hSuppressedThickening ;
+        if numel(S)~=MUA.Nnodes ; S=zeros(MUA.Nnodes,1) ; end
+        isNegavtiveMassFluxSmall=max(0,S(BCs1.hPosNode(:))-ah(:)*F1.dt) > alpha*hScaleRelease ;
+    end
     if ~isempty(Locked)
         isNegavtiveMassFluxSmall=isNegavtiveMassFluxSmall & ~ismember(BCs1.hPosNode(:),Locked) ;   % locked nodes are not released
     end

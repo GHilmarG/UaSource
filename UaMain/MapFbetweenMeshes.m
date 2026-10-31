@@ -323,6 +323,22 @@ switch lower(CtrlVar.FlowApproximation)
         error("MapFbetweenMeshes:CaseNotFound","case not found")
 end
 
+% (31 Oct 2026) The net thickening suppressed by the thickness constraints (cumulative release criterion, see UpdateSuppressedThickening.m)
+% is mapped onto the new mesh, so that the progress towards the release of a node is kept across mesh changes. Values at nodes that are
+% not constrained on the new mesh are ignored, and set to zero after the next time step (UpdateSuppressedThickening.m). (They are not set
+% to zero here based on the new thickness: with the level-set method, the thickness in the ice-free area is only set later.)
+if numel(Fold.hSuppressedThickening)==MUAold.Nnodes && any(Fold.hSuppressedThickening>0)
+    [RunInfo,Snew]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,0,Fold.hSuppressedThickening) ;
+    Snew=max(Snew,0) ;
+    Fnew.hSuppressedThickening=Snew ;
+    if isfield(CtrlVar,"InfoLevelAdaptiveMeshing") && CtrlVar.InfoLevelAdaptiveMeshing>=1
+        fprintf(CtrlVar.fidlog,'MapFbetweenMeshes: hSuppressedThickening mapped onto the new mesh: %i nodes with S>0 (max %g) on the old mesh, %i (max %g) on the new mesh.\n', ...
+            nnz(Fold.hSuppressedThickening>0),max(Fold.hSuppressedThickening),nnz(Snew>0),max([Snew;0])) ;
+    end
+else
+    Fnew.hSuppressedThickening=zeros(MUAnew.Nnodes,1) ;
+end
+
 
 
 
