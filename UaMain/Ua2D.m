@@ -301,7 +301,6 @@ if CtrlVar.doInverseStep   % -inverse
 
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
 
-    CtrlVar.Parallel.BuildWorkers=true;
     MUA=UpdateMUA(CtrlVar,MUA);
 
     RunInfo.CPU.Inversion=tic;
@@ -546,7 +545,6 @@ while 1
         RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for velocities.";
         CtrlVar.RunInfoMessage=RunInfo.Message;
 
-        CtrlVar.Parallel.BuildWorkers=true;
         MUA=UpdateMUA(CtrlVar,MUA);
 
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
@@ -606,7 +604,6 @@ while 1
                 fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
 
 
-                CtrlVar.Parallel.BuildWorkers=true;
                 MUA=UpdateMUA(CtrlVar,MUA);
 
                 [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
@@ -734,7 +731,6 @@ while 1
 
 
 
-            CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
 
        
@@ -811,31 +807,7 @@ while 1
 
 
 
-            CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
-
-
-      
-            if  CtrlVar.Compare_uvh_uv2h_CPUtimes
-
-                % Comparing CPU times between -uvh- and -uv-h- solves. Note that I here use F=F0 as initial "guess" for F in both cases.
-                %
-
-                tCPUuv2h=tic;
-                [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
-                tCPUuv2h=toc(tCPUuv2h) ;
-
-
-                tCPUuvh=tic;
-                [UserVar,RunInfo,F,l,BCs]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
-                tCPUuvh=toc(tCPUuvh) ;
-
-
-                fprintf("\n\n======> Comparing -uh-h- and -uyvh- CPU times : \n")
-                fprintf("\t \t uv-h in %f sec \n",tCPUuv2h)
-                fprintf("\t \t  uvh in %f sec \n",tCPUuvh)
-
-            end
 
 
 

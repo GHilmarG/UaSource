@@ -4,6 +4,36 @@
 % 
 % *Change Log* _October 2026_
 %
+% * ABfgPreEliminate.m: fast path for constraints that each fix one unknown (31 October 2026):
+%
+% The constrained system is solved as Atilde x = btilde, with Atilde=Q*A+B'B, Q=I-B'B (after scaling A). In the usual case, each row
+% of B has a single entry (+-1), ie each constraint fixes one unknown (fixed values, active thickness constraints); then Q is
+% diagonal, and Q*A only sets the rows of the constrained unknowns to zero. With PARDISO, and without a decomposition being reused,
+% Atilde and btilde are now formed directly (elementwise multiplication with a 0/1 vector, plus a diagonal), without scaling A, and
+% with the scale of the identity rows taken from the diagonal entries of the constrained rows only. Otherwise (eg ties between
+% unknowns, MATLAB's decomposition, distributed arrays) the previous general path is used unchanged.
+% Greenland nx150 uvh system (168,210 unknowns, 3.5 million nonzeros, 409 constraints): forming Atilde and btilde 110 -> 54 ms per
+% call; x and y equal to the previous version to rounding errors (6e-16, 2e-16); general path and MATLAB solver bit-identical.
+% Greenland run with -uvh- (nx150, dt=0.01, 50 steps): time steps 118.8 -> 111.0 s, results equal to 6e-12 m. -uv-h-: no measurable
+% change (the h systems are smaller). Regression test: 88 of 88 pass.
+%
+% * CtrlVar.Parallel.BuildWorkers now true by default (31 October 2026):
+%
+% BuildMuaWorkers.m builds the worker data for the spmd assembly (MUA.workers) only if CtrlVar.Parallel.BuildWorkers=true. The default
+% was false, and Ua2D.m set it to true ahead of each uv and uvh solve (five places), so that the worker data were not built for every
+% mesh. Since 26 October 2026, UpdateMUA.m only builds them when needed (spmd on, a pool open, and the mesh, element type or pool
+% changed; see MuaWorkersKey.m), so this is no longer necessary. Changes:
+%   - Ua2D_DefaultParameters.m: CtrlVar.Parallel.BuildWorkers=true.
+%   - Ua2D.m: the five lines setting it to true removed. (AdaptMesh.m and AdaptMesh2025.m still set it to false locally, so that no
+%     worker data are built for the intermediate meshes.)
+%   - BuildMuaWorkers.m: uses gcp('nocreate') and builds nothing if no pool is open (gcp would have created one, eg when called from
+%     CreateMUA.m).
+%   - uvhMatrixAssemblySSTREAM_SPMD.m: if there are no worker data, the assembly is done serially, as in uvMatrixAssemblySSTREAM_SPMD.m,
+%     instead of failing (eg when spmd is used outside Ua2D.m without the worker data having been built).
+% Thule (0.01 yr, initial mesh adaptation, level set) with spmd for uv and uvh: results bit-identical to the previous code, same
+% iterations as serial; the worker data are now also built once for the initial mesh ahead of the mesh adaptation (one extra build
+% per run, about 0.9 s here).
+%
 % * spmd versions of the uv and uvh assembly: less overhead per call (31 October 2026):
 %
 % Measured on Greenland nx150 (111,000 elements, 4 workers), one uv assembly with spmd took 320-334 ms (serial: 589 ms), of which

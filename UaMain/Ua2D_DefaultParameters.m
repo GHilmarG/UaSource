@@ -2867,7 +2867,10 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 
 CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
 
-CtrlVar.Parallel.BuildWorkers=false;   % this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.
+CtrlVar.Parallel.BuildWorkers=true;    % internal flag: the worker data for the spmd assembly (MUA.workers) may be built by UpdateMUA.m and CreateMUA.m.
+                                       % (31 Oct 2026, previously false, and set to true in Ua2D.m ahead of each uv and uvh solve.) UpdateMUA.m only builds them
+                                       % when needed (spmd on, a pool open, and the mesh, element type or pool changed, see MuaWorkersKey.m). AdaptMesh.m sets it
+                                       % to false locally, so that no worker data are built for the intermediate meshes.
                                        % Note: is you call the uv/uvh solvers in your own code, you most likely will need to set this flag to true when using parallel assembly. 
                                    
 

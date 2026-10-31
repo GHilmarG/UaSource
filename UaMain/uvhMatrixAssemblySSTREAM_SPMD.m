@@ -39,7 +39,18 @@ persistent W   % data kept on the workers between calls (Composites), with the f
 
 ParPool = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
 
-if isempty(ParPool)
+% (31 Oct 2026) as in uvMatrixAssemblySSTREAM_SPMD.m: on how many workers are there worker data (MUA.workers)? Without any (eg spmd
+% switched on without the worker data having been built), the assembly is done serially instead of failing.
+nBuilt=0 ;
+if ~isempty(ParPool) && isfield(MUA,"workers") && ~isempty(MUA.workers)
+    try
+        nBuilt=nnz(exist(MUA.workers)) ;   %#ok<EXIST> exist of a Composite: which workers hold data
+    catch
+        nBuilt=0 ;
+    end
+end
+
+if isempty(ParPool) || nBuilt==0
 
     [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
 
@@ -49,6 +60,7 @@ else
         CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
     end
     nW=CtrlVar.Parallel.uvhAssembly.spmd.nWorkers;
+    if nW~=nBuilt ; nW=nBuilt ; end    % the workers hold the sub-domains of MUA.workers
     MUAworkers=MUA.workers;
 
     % fields that change within a uvh solve, and are sent in each call

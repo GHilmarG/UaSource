@@ -6,9 +6,8 @@
 function MUAworkers=BuildMuaWorkers(CtrlVar,MUA,MUAworkers)
 
 
-if ~CtrlVar.Parallel.BuildWorkers  % Sometimes building workers is suppressed.
-                                   % For example when adapting the mesh repeatedly, there is no need to build workers for each
-                                   % mesh. Generally, only build workers ahead of a uv of uvh solve
+if ~CtrlVar.Parallel.BuildWorkers  % Building the worker data can be suppressed: AdaptMesh.m does so for the intermediate meshes.
+                                   % (31 Oct 2026) The default is now true; UpdateMUA.m only calls this function when needed.
 
     
     return
@@ -17,8 +16,11 @@ end
 
 
 
+poolobj = gcp('nocreate') ;   % (31 Oct 2026) never create a pool here (gcp would): without a pool, no worker data are built
+if isempty(poolobj)
+    return
+end
 if isempty(CtrlVar.Parallel.uvhAssembly.spmd.nWorkers)
-    poolobj = gcp ;
     CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
 end
 

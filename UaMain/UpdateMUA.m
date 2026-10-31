@@ -435,7 +435,7 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.
 
         if ~WorkersValid
             MUA.workers=BuildMuaWorkers(CtrlVar,MUA,[]) ;
-            if isempty(MUA.workers)        % not built (CtrlVar.Parallel.BuildWorkers=false)
+            if isempty(MUA.workers)       
                 MUA.workersKey=[] ;
             else
                 MUA.workersKey=Key ;
