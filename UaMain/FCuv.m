@@ -5,6 +5,8 @@
 
 function [KFCu,KFCv]=FCuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (1 Nov 2026) kH for the grounding-line mask at the integration points, consistent with the uv assembly (element-wise kH, ElementWisekH.m)
+
 narginchk(7,7)
 
 %%
@@ -147,7 +149,7 @@ for Iint=1:MUA.nip
     Psix=Psixnod*fun;
     Psiy=Psiynod*fun;
 
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0); % This is sometimes also referred to has He in other parts of the code base
+    G = HeavisideApprox(kHe,h-hf,CtrlVar.Hh0); % This is sometimes also referred to has He in other parts of the code base
 
     detJw=detJ*MUA.weights(Iint);
 

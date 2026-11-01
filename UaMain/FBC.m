@@ -1,5 +1,7 @@
 function KFBC=FBC(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)  %#ok<INUSD>
 
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (1 Nov 2026) kH for the grounding-line mask at the integration points, consistent with the uv assembly (element-wise kH, ElementWisekH.m)
+
 narginchk(7,7)
 nargoutchk(1,1)
 
@@ -96,7 +98,7 @@ for Iint=1:nip
     m=m_node*fun ;
     Psix=Psi_x_node*fun ; Psiy=Psi_y_node*fun ;
 
-    delta=DiracDelta(CtrlVar.kH,h-hfint,CtrlVar.Hh0) ;     % d G / d (h-hf)
+    delta=DiracDelta(kHe,h-hfint,CtrlVar.Hh0) ;     % d G / d (h-hf)
 
     CC=C+C0 ;
     tBeta=(u_e./CC).^(1./m) ;

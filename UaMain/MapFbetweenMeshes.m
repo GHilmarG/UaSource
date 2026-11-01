@@ -337,6 +337,7 @@ if numel(Fold.hSuppressedThickening)==MUAold.Nnodes && any(Fold.hSuppressedThick
     end
 else
     Fnew.hSuppressedThickening=zeros(MUAnew.Nnodes,1) ;
+    Fnew.kHElement=[] ;   % (1 Nov 2026) element-wise kH, recalculated on the new mesh
 end
 
 

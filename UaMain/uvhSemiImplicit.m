@@ -109,6 +109,10 @@ F1.h=max(F1.h,CtrlVar.ThickMin) ;
 %% Infolevels: To reduce the level of printing in the command window, these info level settings are here hardwired
 
 CtrlVar.ThicknessConstraintsInfoLevel=0 ;
+
+% (1 Nov 2026) element-wise kH from the state at the start of the time step, used in all uv solves of this time step ([] if
+% CtrlVar.kHElementAlpha=0), see ElementWisekH.m
+F0.kHElement=ElementWisekH(CtrlVar,MUA,F0) ; F1.kHElement=F0.kHElement ;
 CtrlVar.hInfoLevel=0;        
 
 %% If required, calculate uv at the beginning of the time step, ie at t=t0;

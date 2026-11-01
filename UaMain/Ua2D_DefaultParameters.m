@@ -2612,6 +2612,22 @@ CtrlVar.MeshAdapt.CFrange=[];   % Example (see description above):  CtrlVar.Mesh
 %% Parameters affecting the floating mask
 
 CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
+%
+% (1 Nov 2026) Element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m):
+% If the range of h-hf over a grounding-line element is much larger than the transition width 2/kH, the integration points practically
+% never lie within the transition, the grounding-line mask is effectively a step function of the thickness at the integration points, and
+% the discrete problem may have no root near the current iterate: the Newton iteration of the uvh solver then stagnates (Thule example:
+% h-hf varies by about 1300 m over a grounding-line element, against a transition width of 2 m for kH=1). The transition width is
+% therefore increased, element by element, to at least kHElementAlpha times the range of h-hf over the element:
+%
+%   kH_e = min(kH, 2/(kHElementAlpha*range of h-hf over the element))
+%
+% Where the range is less than 2/(kHElementAlpha*kH) (100 m with the defaults), kH_e=kH. The mask is only changed near flotation, and where
+% h-hf varies smoothly kH_e approaches kH under mesh refinement. kH_e is evaluated once per time step from the state at its start, stored in
+% F.kHElement, and used by both the uvh and the uv assemblies (vectorised and compiled), so that -uvh- and -uv-h- solve the same discrete
+% problem. The nodal mask (Calc_bs_From_hBS.m) keeps the scalar kH. In inversions, kH_e is evaluated at the start of the inversion and
+% kept fixed (InvertForModelParameters.m). CtrlVar.kHElementAlpha=0 gives the scalar kH everywhere (as before 1 Nov 2026).
+CtrlVar.kHElementAlpha=0.02;
                 % kH=1 implies a grounding line "width" of 1 m up and down from floating condition
                 % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
                 % Note: This variable has UNITS!!!  The units are those of an inverse distance.

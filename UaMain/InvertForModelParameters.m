@@ -4,6 +4,13 @@ function [UserVar,F,l,InvFinalValues,RunInfo]=...
 
 narginchk(11,11)
 
+% (1 Nov 2026) Element-wise kH (CtrlVar.kHElementAlpha>0, see ElementWisekH.m): evaluated once, from the thickness and bed at the start of
+% the inversion, and kept fixed ("frozen") during the inversion. The forward uv solves and the gradient and Hessian calculations
+% (IntegrationPointkH.m) then all use the same kH_e, so the gradients are consistent. In B inversions kH_e is not updated as B, and with
+% it h over grounded areas, changes (it is not differentiable with respect to B); after the inversion, kH_e is recalculated from the
+% final geometry before the next uv solve (Ua2D.m).
+F.kHElement=ElementWisekH(CtrlVar,MUA,F) ;
+
 %%
 %
 %

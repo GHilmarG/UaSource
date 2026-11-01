@@ -159,6 +159,8 @@ arguments
     Options.Seed (1,1) double = 1
     Options.MaxNodes (1,1) double {mustBePositive} = 1500
     Options.Verbose (1,1) logical = true
+    Options.kHElementAlpha (1,1) double = NaN   % (1 Nov 2026) element-wise kH (ElementWisekH.m): NaN keeps the value in CtrlVar
+    Options.kH (1,1) double = NaN               % (1 Nov 2026) scalar kH of the synthetic problem: NaN keeps the default (1)
 end
 
 tStart=tic ;
@@ -193,6 +195,12 @@ if CtrlVar.Hh0~=0
 end
 
 N=MUA.Nnodes ;
+% (1 Nov 2026) element-wise kH, evaluated once and kept fixed during the test, as during an inversion (InvertForModelParameters.m)
+if ~isnan(Options.kHElementAlpha) ; CtrlVar.kHElementAlpha=Options.kHElementAlpha ; end
+F.kHElement=ElementWisekH(CtrlVar,MUA,F) ;
+if Options.Verbose && ~isempty(F.kHElement)
+    fprintf(" Element-wise kH (kHElementAlpha=%g): kH_e<kH in %i of %i elements, min kH_e=%.3g\n",CtrlVar.kHElementAlpha,nnz(F.kHElement<CtrlVar.kH),MUA.Nele,min(F.kHElement)) ;
+end
 if N>Options.MaxNodes
     error("TestInverseHessianEndToEnd:TooManyNodes",...
         "The mesh has %i nodes. The Hessian is a full matrix, and the test is limited to %i nodes. Use the option MaxNodes to change this limit.",N,Options.MaxNodes)
@@ -702,7 +710,7 @@ CtrlVar.UaSquareMesh.Refine=true ;
 CtrlVar.CalcMUA_Derivatives=true ;
 CtrlVar.MUA.MassMatrix=true ;
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.kH=1 ;
+CtrlVar.kH=1 ; if ~isnan(Options.kH) ; CtrlVar.kH=Options.kH ; end
 CtrlVar.Hh0=0 ;
 CtrlVar.GroundingFloatingMaskContains="GF nodes" ;
 CtrlVar.InfoLevel=0 ;

@@ -314,6 +314,7 @@ if CtrlVar.doInverseStep   % -inverse
     F.n=InvFinalValues.n ;
 
 
+    F.kHElement=[] ;   % (1 Nov 2026) element-wise kH from the current state (ElementWisekH.m)
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
@@ -547,6 +548,7 @@ while 1
 
         MUA=UpdateMUA(CtrlVar,MUA);
 
+        F.kHElement=[] ;   % (1 Nov 2026) element-wise kH from the current state (ElementWisekH.m)
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
@@ -606,6 +608,7 @@ while 1
 
                 MUA=UpdateMUA(CtrlVar,MUA);
 
+                F.kHElement=[] ;   % (1 Nov 2026) element-wise kH from the current state (ElementWisekH.m)
                 [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 % F0 : F calculated at current time step t=t0
                 %  F : Here F is the initial guess for F at time step t1=t0+ dt

@@ -1,7 +1,7 @@
 function [Tint,Fext,vs]=uvElementKernel(MUA,Deriv,DetJ,conn,...
     sv,hv,uv,vv,AGlenv,nv,Cv,mv,qv,mukv,V0v,Bv,Sv,rhov,...
     uov,vov,Cov,mov,uav,vav,Cav,mav,...
-    CtrlVar,rhow,g,Ronly,ca,sa,rPtr,rIdx,invPtr,invIdx,perm)
+    CtrlVar,rhow,g,Ronly,ca,sa,rPtr,rIdx,invPtr,invIdx,perm,kHv)
 
 %% Element-based uv assembly kernel, compiled with MATLAB Coder (30 Oct 2026); see README.md in this folder
 %
@@ -102,9 +102,10 @@ parfor e=1:Nele
 
         % flotation thickness, Heaviside and Dirac functions, and d, at the integration point (as in uvMatrixAssemblySSTREAM.m)
         hfint=rhow*Hint/rhoint;
-        Heint=HeavisideApprox(kH,hint-hfint,Hh0);
-        HEint=HeavisideApprox(kH,hfint-hint,Hh0);
-        deltaint=DiracDelta(kH,hint-hfint,Hh0);
+        kHe=kHv(e);   % (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m); kHv(e)=kH if not used
+        Heint=HeavisideApprox(kHe,hint-hfint,Hh0);
+        HEint=HeavisideApprox(kHe,hfint-hint,Hh0);
+        deltaint=DiracDelta(kHe,hint-hfint,Hh0);
         Hposint=HeavisideApprox(kH,Hint,Hh0)*Hint;
         dint=HEint*rhoint*hint/rhow+Heint*Hposint;
 

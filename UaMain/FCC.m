@@ -1,5 +1,7 @@
 function KFCC=FCC(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (1 Nov 2026) kH for the grounding-line mask at the integration points, consistent with the uv assembly (element-wise kH, ElementWisekH.m)
+
 narginchk(7,7)
 
 %%
@@ -67,7 +69,7 @@ for Iint=1:nip
     Psix=Psi_x_node*fun;
     Psiy=Psi_y_node*fun;
 
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % this is an external function
+    G = HeavisideApprox(kHe,h-hf,CtrlVar.Hh0);  % this is an external function
 
     % single vector-exponent power:
     %   (C+C0)^(-1/m-2) u_e^(1/m-1) = (u_e/(C+C0))^(1/m) / ( (C+C0)^2 u_e )

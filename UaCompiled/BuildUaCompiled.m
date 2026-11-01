@@ -92,10 +92,10 @@ for v=Variants
                 args=[{M,Deriv,DetJ,Conn}, repmat({V},1,12), {RT,U,U,U,U}];
                 Kernel="hKernel"; Base=extractAfter(v,1);
             elseif startsWith(v,"uv")   % uv kernel (uvElementKernel.m): 14 nodal fields, 8 melange fields, R, rhow, g, ca, sa, rPtr, rIdx, invPtr, invIdx, perm
-                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,14), repmat({V},1,8), {RT,0,0,0,0,U,U,U,U,U}];   % rPtr, rIdx, invPtr, invIdx, perm
+                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,14), repmat({V},1,8), {RT,0,0,0,0,U,U,U,U,U,V}];   % rPtr, rIdx, invPtr, invIdx, perm, kHv (element-wise kH, Nele x 1, 1 Nov 2026)
                 Kernel="uvKernel"; Base=extractAfter(v,2);
             else                    % uvh kernel (uvhElementKernel.m)
-                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,8), {V,V,V}, repmat({V},1,11), {V,V}, repmat({V},1,8), {RT,0,0,0,0,0,false,U,U,U,U}];   % rPtr, rIdx, invPtr, invIdx
+                args=[{M,Deriv,DetJ,Conn}, repmat({V},1,8), {V,V,V}, repmat({V},1,11), {V,V}, repmat({V},1,8), {RT,0,0,0,0,0,false,U,U,U,U,V}];   % rPtr, rIdx, invPtr, invIdx, kHv (element-wise kH, Nele x 1, 1 Nov 2026)
                 Kernel="uvhKernel"; Base=v;
             end
             Entry=Kernel+extractBefore(Base+"_","_");

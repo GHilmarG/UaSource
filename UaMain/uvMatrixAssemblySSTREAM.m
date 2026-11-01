@@ -317,6 +317,11 @@ Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+% (1 Nov 2026) Element-wise kH for the grounding-line mask at the integration points (CtrlVar.kHElementAlpha>0, see ElementWisekH.m). In
+% transient runs F.kHElement is set at the start of each time step from the thickness at its start, so that the uv solves of -uv-h- use
+% the same mask as -uvh-. Otherwise (eg a diagnostic uv solve) it is calculated from the current thickness.
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;
+
 ca=cos(F.alpha); sa=sin(F.alpha);
 
 
@@ -412,10 +417,10 @@ for Iint=1:MUA.nip
     % It is linear in S and B, but not in rho, so this is not the same as interpolating a nodal hf if rho varies horizontally.
     % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
     hfint=F.rhow*Hint./rhoint;
-    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
-    HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+    Heint = 0.5+0.5*tanh(kHe.*(hint-hfint-CtrlVar.Hh0));   % HeavisideApprox, with kHe scalar or element-wise (1 Nov 2026); important to calculate Heint and deltaint in a consistent manner
+    HEint = 0.5+0.5*tanh(kHe.*(hfint-hint-CtrlVar.Hh0));
 
-    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
+    deltaint=0.5*kHe.*sech(kHe.*(hint-hfint-CtrlVar.Hh0)).^2;  % DiracDelta, i.e. deltaint must be the exact derivative of Heint
 
     Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
 

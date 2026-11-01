@@ -3,7 +3,7 @@ function [Tint,Fext,vs,tauxInt,tauyInt,etaInt,HeInt]=...
     bv,hv,uv,vv,AGlenv,nv,Cv,mv,qv,mukv,V0v,h0v,u0v,v0v,as0v,ab0v,as1v,ab1v,dadhv,Bv,Sv,rhov,...
     LSFMaskv,hBCsMaskv,...
     uov,vov,Cov,mov,uav,vav,Cav,mav,...
-    CtrlVar,rhow,g,Ronly,ca,sa,dt,IntOut,rPtr,rIdx,invPtr,invIdx)
+    CtrlVar,rhow,g,Ronly,ca,sa,dt,IntOut,rPtr,rIdx,invPtr,invIdx,kHv)
 
 %% Element-based uvh assembly kernel, compiled with MATLAB Coder (25 Oct 2026); see README.md in this folder
 %
@@ -171,10 +171,11 @@ parfor e=1:Nele
         Hint=Sint-Bint;
         hfint=rhow*Hint/rhoint;
 
-        Heint=HeavisideApprox(kH,hint-hfint,Hh0);
-        HEint=HeavisideApprox(kH,hfint-hint,Hh0);
-        deltaint=DiracDelta(kH,hint-hfint,Hh0);
-        Deltaint=DiracDelta(kH,hfint-hint,Hh0);
+        kHe=kHv(e);   % (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m); kHv(e)=kH if not used
+        Heint=HeavisideApprox(kHe,hint-hfint,Hh0);
+        HEint=HeavisideApprox(kHe,hfint-hint,Hh0);
+        deltaint=DiracDelta(kHe,hint-hfint,Hh0);
+        Deltaint=DiracDelta(kHe,hfint-hint,Hh0);
         Hposint=HeavisideApprox(kH,Hint,Hh0)*Hint;
         dint=HEint*rhoint*hint/rhow+Heint*Hposint;
         Dddhint=HEint*rhoint/rhow-Deltaint*hint*rhoint/rhow+deltaint*Hposint;

@@ -3,6 +3,8 @@
 
 function dIdB=dIdBqGeneral(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (1 Nov 2026) kH for the grounding-line mask at the integration points, consistent with the uv assembly (element-wise kH, ElementWisekH.m)
+
 %% Calculates the vector quantity:
 %
 % $$ \langle  \delta_{B_i} F^x \phi_i | \Psi_x \rangle + \langle  \delta_{B_i} F^y \phi_i| \Psi_y \rangle $$
@@ -210,8 +212,8 @@ for Iint=1:MUA.nip
     % Masks. Because the Heaviside is symmetrical, the complementary mask is 1-Heint and the complementary delta is
     % deltaint, so neither needs to be formed separately.
     hfint=F.rhow*Hint./rhoint;
-    Heint    = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-    deltaint = DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+    Heint    = HeavisideApprox(kHe,hint-hfint,CtrlVar.Hh0);
+    deltaint = DiracDelta(kHe,hint-hfint,CtrlVar.Hh0);
 
     HeHint    = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0);
     deltaHint = DiracDelta(CtrlVar.kH,Hint,CtrlVar.Hh0);

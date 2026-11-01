@@ -1,5 +1,14 @@
 function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 
+%% (1 Nov 2026) element-wise kH, see ElementWisekH.m
+if isfield(CtrlVar,"kHElementAlpha")
+    if ~isscalar(CtrlVar.kHElementAlpha) || ~isfinite(CtrlVar.kHElementAlpha) || CtrlVar.kHElementAlpha<0
+        error("CtrlVarValidityCheck:kHElementAlpha","CtrlVar.kHElementAlpha must be a finite, non-negative scalar.")
+    elseif CtrlVar.kHElementAlpha>0.5
+        warning("CtrlVarValidityCheck:kHElementAlpha","CtrlVar.kHElementAlpha=%g is unusually large: the grounding-line transition then covers more than half of the range of h-hf over an element.",CtrlVar.kHElementAlpha)
+    end
+end
+
 %  Performs some basic validity checks on CtrlVar
 
 

@@ -272,17 +272,29 @@ Hint=Sint-Bint;
 % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
 hfint=rhow*Hint./rhoint;
 
+% (1 Nov 2026) Element-wise kH for the grounding-line mask at the integration points (CtrlVar.kHElementAlpha>0, default 0.02, see
+% ElementWisekH.m). If the range of h-hf over an element is much larger than the
+% transition width 2/kH, the integration points practically never lie within the transition, the mask is effectively a step function
+% of the thickness at the integration points, and the discrete problem may have no root near the current iterate (Thule example). The
+% transition width is then increased to at least kHElementAlpha times the range of h-hf over the element. The range is taken from the
+% thickness at the start of the time step (h0), so that kH is fixed during the Newton solve. The nodal mask used for the lower surface
+% (GFn, deln below, consistent with Calc_bs_From_hBS) keeps the scalar kH.
+kHe=CtrlVar.kH ;
+if isfield(CtrlVar,"kHElementAlpha") && CtrlVar.kHElementAlpha>0
+    kHe=ElementWisekHFromNodal(CtrlVar,h0nod-rhow*max(Snod-Bnod,0)./rhonod,CtrlVar.kHElementAlpha) ;   % from the thickness at the start of the time step, identical to F0.kHElement (ElementWisekH.m)
+end
+
 
 
 
 % calculate He and DiracDelta from integration point values of thickness
 
 
-Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
-HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+Heint = 0.5+0.5*tanh(kHe.*(hint-hfint-CtrlVar.Hh0));   % HeavisideApprox, with kHe scalar or element-wise (1 Nov 2026); important to calculate Heint and deltaint in a consistent manner
+HEint = 0.5+0.5*tanh(kHe.*(hfint-hint-CtrlVar.Hh0));
 
-deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
-Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+deltaint=0.5*kHe.*sech(kHe.*(hint-hfint-CtrlVar.Hh0)).^2;  % DiracDelta, i.e. deltaint must be the exact derivative of Heint
+Deltaint=0.5*kHe.*sech(kHe.*(hfint-hint-CtrlVar.Hh0)).^2;  %  although delta is an even function...
 
 Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
 
