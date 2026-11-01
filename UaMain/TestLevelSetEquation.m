@@ -84,11 +84,11 @@ CtrlVar.LevelSetFAB=str2double(replace(extractBetween(RunType,"FAB","-"),"k","."
 CtrlVar.LevelSetFABCostFunction=extractBetween(RunType,"CF","-") ;
 
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1e-6];
-CtrlVar.LSFDesiredWorkOrForceTolerances=[100 1e-6];
+CtrlVar.LSFDesiredForceTolerance=1e-6;      % (1 Nov 2026) previously CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1e-6]
+% (1 Nov 2026) CtrlVar.LSFDesiredWorkOrForceTolerances is no longer used
 CtrlVar.LSFExitBackTrackingStepLength=1e-4;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-3];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-3];
+CtrlVar.LSFAcceptableForceTolerance=1e-3;   % (1 Nov 2026) previously CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-3]
+% (1 Nov 2026) CtrlVar.LSFAcceptableWorkOrForceTolerances is no longer used
 
 
 

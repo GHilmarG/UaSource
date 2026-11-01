@@ -550,19 +550,18 @@ CtrlVar.AGlenminWidthRelative = 1e-10 ;
 CtrlVar.uvhSolver="Root-Finding Newton";  %  {"Root-Finding Newton","uvh_GaussNewton_fsolve"}
 
 
-% The non-linear uvh/uv loops are considered to have converged if:
+% The non-linear uvh loop (and the outer uv-h iteration) is considered to have converged if (see uvhResidualsCriteria.m):
 %
-%  1) Work and Force tolerances are both less than: 
-CtrlVar.uvhDesiredWorkAndForceTolerances=[inf 1e-15];
-% and, furthermore, at least one of Work and Force tolerances are less than:
-CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
-%Note: The default uvh tolerances set limits on the Force tolerance only. 
+%  1) the force residual (rForce) is below:
+CtrlVar.uvhDesiredForceTolerance=1e-15;
+% (1 Nov 2026) The uvh convergence criteria depend on rForce only. The previous fields CtrlVar.uvhDesiredWorkAndForceTolerances,
+% CtrlVar.uvhDesiredWorkOrForceTolerances, CtrlVar.uvhAcceptableWorkAndForceTolerances and CtrlVar.uvhAcceptableWorkOrForceTolerances are
+% no longer used (if set, their force entries are taken over, with a warning, see CtrlVarValidityCheck.m).
 
-% 2) If the step length in the backtracking becomes smaller than
+% 2) If the iteration stagnates, or the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-3;
-% while at the same time these Work and Force tolerances also fulfilled:
-CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  % both of those must be fulfilled
-CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one of those
+% while at the same time rForce is below:
+CtrlVar.uvhAcceptableForceTolerance=1e-6;
 
 % 3) If the uvh iteration has stalled (stagnation, failed backtracking or too many iterations) with rForce above the desired force
 % tolerance, but below this value, then the time step is not reduced. If thickness constraints are used, the active set is
@@ -571,22 +570,23 @@ CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one 
 CtrlVar.uvhStalledForceTolerance=1e-6;
 
 
-CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
-CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
+% (1 Nov 2026) The convergence criteria of the uv solve depend on rForce only (the previous fields CtrlVar.uv*WorkAndForceTolerances
+% and CtrlVar.uv*WorkOrForceTolerances are no longer used, see CtrlVarValidityCheck.m). The acceptable tolerance is used after a very short
+% backtracking step, failed backtracking or stagnation, as in the uvh solver:
+CtrlVar.uvDesiredForceTolerance=1e-15;
 CtrlVar.uvExitBackTrackingStepLength=1e-10;
-CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-15];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-15];
+CtrlVar.uvAcceptableForceTolerance=1e-15;   % (kept strict, unlike uvh: uv solves are also used in inverse runs, where the adjoint requires a converged forward solution)
 
-CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
-CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
+% (1 Nov 2026) The convergence criteria of the h solve depend on rForce only (previously also on rWork; the previous fields
+% CtrlVar.h*WorkAndForceTolerances and CtrlVar.h*WorkOrForceTolerances are no longer used, see CtrlVarValidityCheck.m):
+CtrlVar.hDesiredForceTolerance=1e-10;
 CtrlVar.hExitBackTrackingStepLength=1e-4;
-CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hAcceptableForceTolerance=1e-6;
 CtrlVar.hSolverMaxIterations=50;
 
 % (8 Oct 2026) The convergence of the outer iteration of the semi-implicit -uv-h- solver (CtrlVar.ForwardTimeIntegration="-uv-h-")
 % is judged using the same cost function and the same tolerances as for the implicit -uvh- solver, ie
-% CtrlVar.uvhDesiredWorkAndForceTolerances and CtrlVar.uvhDesiredWorkOrForceTolerances (see uvhResidualsCriteria.m).
+% CtrlVar.uvhDesiredForceTolerance (see uvhResidualsCriteria.m).
 % The previous parameter CtrlVar.uv2h.uvTolerance is no longer used.
 
 CtrlVar.uv2h.MaxIterations=15;
@@ -595,11 +595,11 @@ CtrlVar.uv2h.DivergenceFactor=1e3;   % (31 Oct 2026) the uv-h outer iteration is
                                % to as "inner" iterations, and the repeated solve of uv and h as the outer iteration. 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-15 1e-15]; 
-CtrlVar.LSFDesiredWorkOrForceTolerances=[inf 1e-15];
+% (1 Nov 2026) The convergence criteria of the level-set solve depend on rForce only (previously also on rWork; the previous
+% fields CtrlVar.LSF*WorkAndForceTolerances and CtrlVar.LSF*WorkOrForceTolerances are no longer used, see CtrlVarValidityCheck.m):
+CtrlVar.LSFDesiredForceTolerance=1e-12;     % (1 Nov 2026) desired tolerance in the normal case (rForce after one Newton iteration is about 1e-13)
 CtrlVar.LSFExitBackTrackingStepLength=1e-3;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[1e-10 1e-12];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
+CtrlVar.LSFAcceptableForceTolerance=1e-10;  % (1 Nov 2026) acceptable tolerance with poor progress (as in the uvh solver)
 
 
 
@@ -655,7 +655,7 @@ CtrlVar.uvhFsolve.Display="iter";
 CtrlVar.uvhFsolve.MaxIterations=150;
 CtrlVar.uvhFsolve.StepTolerance=1e-12 ;
 CtrlVar.uvhFsolve.OptimalityTolerance=1e-20;          % fsolve's first-order optimality is absolute and depends on the scaling of J, so it is not used as the main stopping criterion
-CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhDesiredWorkAndForceTolerances(2). Convergence if norm(f)^2 is below this value
+CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhDesiredForceTolerance. Convergence if norm(f)^2 is below this value
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
 % When solving the non-linear system (forward model) the recommended option is is

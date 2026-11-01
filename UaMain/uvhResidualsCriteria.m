@@ -1,23 +1,32 @@
-function ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,Acceptable,rForceFloor)
+function ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,Acceptable,rForceFloor) %#ok<INUSL>
 %%
 % ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,iteration,Acceptable,rForceFloor)
 %
 % Convergence test for the uvh system. Used both by the implicit uvh solver (SSTREAM_TransientImplicit) and by the semi-implicit
 % uv-h solver (uvhSemiImplicit), so that both solvers use exactly the same convergence criterion.
 %
-%   rForce, rWork : as returned by CalcCostFunctionNRuvh
+%   rForce        : as returned by CalcCostFunctionNRuvh
+%   rWork         : not used (see below); kept in the argument list so that the calls need not change
 %   iteration     : (outer) iteration number, compared with CtrlVar.NRitmin
-%   Acceptable    : if true, the 'acceptable' tolerances are used, otherwise the 'desired' tolerances:
+%   Acceptable    : if true, the 'acceptable' tolerance is used, otherwise the 'desired' tolerance:
 %
-%       CtrlVar.uvhDesiredWorkAndForceTolerances,    CtrlVar.uvhDesiredWorkOrForceTolerances
-%       CtrlVar.uvhAcceptableWorkAndForceTolerances, CtrlVar.uvhAcceptableWorkOrForceTolerances
+%       CtrlVar.uvhDesiredForceTolerance     (default 1e-15)
+%       CtrlVar.uvhAcceptableForceTolerance  (default 1e-6)
 %
-%   In SSTREAM_TransientImplicit the acceptable tolerances are used if the last backtracking step was short.
-%   If rWork is nan (rWork has no meaning for some minimisation approaches) it is not used, ie set to zero.
-%   rForceFloor   : (optional, default 0) estimate of the round-off floor of rForce (see uvhResidualRoundOffFloor). The force
-%                   tolerances are replaced by max(tolerance,rForceFloor), so that convergence can be reached for small time steps.
+%   In SSTREAM_TransientImplicit the acceptable tolerance is used if the iteration has stagnated or the last backtracking step was
+%   short.
+%   rForceFloor   : (optional, default 0) estimate of the round-off floor of rForce (see uvhResidualRoundOffFloor). The tolerances are
+%                   replaced by max(tolerance,rForceFloor), so that convergence can be reached for small time steps.
 %
 % (8 Oct 2026) Moved here from SSTREAM_TransientImplicit.
+%
+% (1 Nov 2026) The criterion depends on rForce only. Previously, rWork also entered (CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8]
+% required rWork<1 or rForce<1e-8 for acceptance, in addition to rForce<1e-6). rWork contains the Newton step, which becomes very large
+% at nearly singular modes of the Jacobian (eg weakly determined velocities of floating, nearly ice-free areas), and is returned as NaN
+% (and then set to zero) by the line search whenever the accepted step is not a Newton step. The acceptance of a stalled solve therefore
+% depended on which line-search branch produced the last step (Thule: a solve stalled at rForce=3e-7 after a Newton step was rejected,
+% one stalled at rForce=5e-7 after a fallback step was accepted). The previous fields CtrlVar.uvh*WorkAndForceTolerances and
+% CtrlVar.uvh*WorkOrForceTolerances are no longer used (see CtrlVarValidityCheck.m).
 %
 %%
 
@@ -27,22 +36,10 @@ if nargin<6 || isempty(rForceFloor)
     rForceFloor=0;
 end
 
-if isnan(rWork)
-    rWork=0;
-end
-
 if ~Acceptable
-
-    ResidualsCriteria=(rWork<CtrlVar.uvhDesiredWorkAndForceTolerances(1)  && rForce<max(CtrlVar.uvhDesiredWorkAndForceTolerances(2),rForceFloor))...
-        && (rWork<CtrlVar.uvhDesiredWorkOrForceTolerances(1)  || rForce<max(CtrlVar.uvhDesiredWorkOrForceTolerances(2),rForceFloor))...
-        && iteration >= CtrlVar.NRitmin;
-
+    ResidualsCriteria = rForce < max(CtrlVar.uvhDesiredForceTolerance,rForceFloor) && iteration >= CtrlVar.NRitmin ;
 else
-
-    ResidualsCriteria=(rWork<CtrlVar.uvhAcceptableWorkAndForceTolerances(1)  && rForce<max(CtrlVar.uvhAcceptableWorkAndForceTolerances(2),rForceFloor))...
-        && (rWork<CtrlVar.uvhAcceptableWorkOrForceTolerances(1)  || rForce<max(CtrlVar.uvhAcceptableWorkOrForceTolerances(2),rForceFloor))...
-        && iteration >= CtrlVar.NRitmin;
-
+    ResidualsCriteria = rForce < max(CtrlVar.uvhAcceptableForceTolerance,rForceFloor) && iteration >= CtrlVar.NRitmin ;
 end
 
 end

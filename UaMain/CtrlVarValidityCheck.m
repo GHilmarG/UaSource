@@ -6,6 +6,25 @@ function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 % (26 Oct 2026) the sliding law first: SlidingLawCode.m gives an informative error for former aliases ("W", "B", "C")
 SlidingLawCode(CtrlVar.SlidingLaw);
 
+% (1 Nov 2026) The uvh convergence criteria depend on rForce only (uvhResidualsCriteria.m). The previous fields are no longer in the
+% defaults, so if they are present they were set by the user: the force entries of the *WorkAndForceTolerances fields are then taken over
+% into CtrlVar.uvhDesiredForceTolerance and CtrlVar.uvhAcceptableForceTolerance, and the *WorkOrForceTolerances fields are ignored.
+OldUvhTol=["uvhDesiredWorkAndForceTolerances","uvhDesiredForceTolerance";"uvhAcceptableWorkAndForceTolerances","uvhAcceptableForceTolerance";
+           "hDesiredWorkAndForceTolerances","hDesiredForceTolerance";"hAcceptableWorkAndForceTolerances","hAcceptableForceTolerance";
+           "LSFDesiredWorkAndForceTolerances","LSFDesiredForceTolerance";"LSFAcceptableWorkAndForceTolerances","LSFAcceptableForceTolerance";
+           "uvDesiredWorkAndForceTolerances","uvDesiredForceTolerance";"uvAcceptableWorkAndForceTolerances","uvAcceptableForceTolerance"] ;   % (1 Nov 2026) also h, level set and uv
+for iOld=1:size(OldUvhTol,1)
+    if isfield(CtrlVar,OldUvhTol(iOld,1))
+        CtrlVar.(OldUvhTol(iOld,2))=CtrlVar.(OldUvhTol(iOld,1))(2) ;
+        warning("CtrlVarValidityCheck:uvhWorkTolerances","CtrlVar.%s is no longer used (1 Nov 2026): the convergence criteria depend on rForce only. Its force entry is used, ie CtrlVar.%s=%g. Set CtrlVar.%s instead.",OldUvhTol(iOld,1),OldUvhTol(iOld,2),CtrlVar.(OldUvhTol(iOld,2)),OldUvhTol(iOld,2))
+    end
+end
+for OldField=["uvhDesiredWorkOrForceTolerances","uvhAcceptableWorkOrForceTolerances","hDesiredWorkOrForceTolerances","hAcceptableWorkOrForceTolerances","LSFDesiredWorkOrForceTolerances","LSFAcceptableWorkOrForceTolerances","uvDesiredWorkOrForceTolerances","uvAcceptableWorkOrForceTolerances"]
+    if isfield(CtrlVar,OldField)
+        warning("CtrlVarValidityCheck:uvhWorkTolerances","CtrlVar.%s is no longer used (1 Nov 2026) and is ignored: the convergence criteria depend on rForce only (CtrlVar.*DesiredForceTolerance, CtrlVar.*AcceptableForceTolerance).",OldField)
+    end
+end
+
 % (31 Oct 2026) Evaluation of the mass balance at integration points (CtrlVar.MassBalance.Evaluation="-int-") has been removed: the mass
 % balance is always evaluated at the nodes, in the uvh and in the h (uv-h) assembly. A setting of "-node-" is accepted and has no effect.
 if isfield(CtrlVar,"MassBalance") && isfield(CtrlVar.MassBalance,"Evaluation") && contains(string(CtrlVar.MassBalance.Evaluation),"-int-")

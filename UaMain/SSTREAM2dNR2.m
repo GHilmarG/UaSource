@@ -261,7 +261,7 @@ gamma=0 ; [r,UserVar,RunInfo,rForce]=Func(gamma);
 rWork=0 ; % I set rWork to zero to disable it as initial criterion
 gamma=1;
 
-iteration=0;  ResidualReduction=1e10;
+iteration=0;  ResidualReduction=1e10;  rRatioVector=zeros(3,1);   % (1 Nov 2026) for the stagnation test below
 
 BackTrackInfo.iarm=nan;
 while true
@@ -449,10 +449,36 @@ while true
 
 
 
+    % (1 Nov 2026) Failed backtracking, and stagnation (r/r0>0.98 in three successive iterations): as in the uvh solver
+    % (SSTREAM_TransientImplicit.m), the solution is accepted if rForce is below the acceptable tolerance (uvResidualsCriteria with gamma=0),
+    % otherwise the uv iteration has not converged. Previously, failed backtracking always meant non-convergence, and stagnation was not
+    % detected (the iteration continued up to CtrlVar.NRitmax).
     if BackTrackInfo.Converged==0
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
-        warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
-        RunInfo.Forward.uvConverged=0;
+        if uvResidualsCriteria(CtrlVar,rForce,rWork,iteration,0)
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uv) (time|dt)=(%g|%g): Backtracking did not converge, but rForce=%-g is below the acceptable tolerance. Solution accepted. \n',CtrlVar.time,CtrlVar.dt,rForce) ;
+            end
+            RunInfo.Forward.uvConverged=1;
+        else
+            fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
+            warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
+            RunInfo.Forward.uvConverged=0;
+        end
+        break
+    end
+    rRatioVector(mod(iteration,3)+1)=r/max(r0,realmin) ;
+    if all(rRatioVector>0.98)
+        if uvResidualsCriteria(CtrlVar,rForce,rWork,iteration,0)
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uv) (time|dt)=(%g|%g): Stagnated, but rForce=%-g is below the acceptable tolerance. Solution accepted. \n',CtrlVar.time,CtrlVar.dt,rForce) ;
+            end
+            RunInfo.Forward.uvConverged=1;
+        else
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uv) (time|dt)=(%g|%g): uv iteration stagnated! r/r0>0.98 in three successive iterations. Exiting uv iteration after %-i iterations with rForce=%-g \n',CtrlVar.time,CtrlVar.dt,iteration,rForce) ;
+            end
+            RunInfo.Forward.uvConverged=0;
+        end
         break
     end
 

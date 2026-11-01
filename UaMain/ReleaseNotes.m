@@ -85,6 +85,46 @@
 % the constraints (tested to round-off in the Thule example). 
 %
 %
+% * Convergence criteria of the uvh, uv, h and level-set solvers depend on rForce only, with the same logic (1 November 2026):
+%
+% uvhResidualsCriteria.m, used by the implicit uvh solver and for the outer uv-h iteration, now decides on the force residual rForce alone:
+%
+%   CtrlVar.uvhDesiredForceTolerance=1e-15;     % convergence
+%   CtrlVar.uvhAcceptableForceTolerance=1e-6;   % acceptance of a stagnated solve, or of one ended by a short backtracking step
+%
+% Previously, the work residual rWork also entered: CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8] required rWork<1 or rForce<1e-8
+% for acceptance, in addition to rForce<1e-6. rWork contains the Newton step, which becomes very large at nearly singular modes of the
+% Jacobian (eg weakly determined velocities of floating, nearly ice-free areas behind a calving front), and is returned as NaN (and then
+% set to zero) by the line search whenever the accepted step is not a Newton step. Whether a stalled solve was accepted, or the time step
+% halved, therefore depended on which line-search branch produced the last step (Thule example: a solve stalled at rForce=3e-7 after a
+% Newton step was rejected and the time step halved; one stalled at rForce=5e-7 after a fallback step was accepted, and its solution was
+% as accurate as that obtained with two half-steps). The acceptable tolerance 1e-6 is now the same as CtrlVar.uvhStalledForceTolerance in
+% uvhRootFinding.m. The fields CtrlVar.uvhDesiredWorkAndForceTolerances, CtrlVar.uvhDesiredWorkOrForceTolerances,
+% CtrlVar.uvhAcceptableWorkAndForceTolerances and CtrlVar.uvhAcceptableWorkOrForceTolerances are no longer used; if a run sets them, the
+% force entries of the *WorkAndForceTolerances fields are taken over, with a warning (CtrlVarValidityCheck.m). The corresponding criteria
+% for the h and level-set equations were changed in the same way, see below.
+%
+% The same change for the h equation (MassContinuityEquationNewtonRaphson.m, SSHEET_TransientImplicit.m), the level-set equation
+% (LevelSetEquationNewtonRaphson.m) and the uv equations (uvResidualsCriteria.m, SSTREAM2dNR2.m): the criteria depend on rForce only, with
+% new tolerances CtrlVar.hDesiredForceTolerance=1e-10, CtrlVar.hAcceptableForceTolerance=1e-6, CtrlVar.LSFDesiredForceTolerance=1e-12,
+% CtrlVar.LSFAcceptableForceTolerance=1e-10, CtrlVar.uvDesiredForceTolerance=1e-15 and CtrlVar.uvAcceptableForceTolerance=1e-15, and the
+% previous fields taken over with a warning if set. All solvers now follow the same logic as the uvh solver: the desired tolerance is
+% required while the Newton iteration makes normal progress, and the acceptable tolerance is used if it makes poor progress (short or
+% failed backtracking step, stagnation). In MassContinuityEquationNewtonRaphson.m and LevelSetEquationNewtonRaphson.m this was the other way
+% round (the stricter tolerance with poor progress, contrary to the comments in the code). In the h solver, the hard-wired test for
+% continuing while still converging quadratically uses rForce>1e-15 instead of rWork>1e-20. The uv solver (SSTREAM2dNR2.m) now, as the uvh
+% solver, accepts a solution after failed backtracking if rForce is below the acceptable tolerance (previously always non-convergence),
+% and detects stagnation (r/r0>0.98 in three successive iterations; previously the iteration continued to CtrlVar.NRitmax). The uv
+% acceptable tolerance is kept at 1e-15 (unlike uvh), since uv solves are also used in inverse runs, where the adjoint requires a converged
+% forward solution.
+%
+% Tests: h equation, replaying all 936 convergence checks of the h solves in three uv-h runs (Greenland with uniform and with inverted A
+% and C, Thule), the new criteria make identical decisions; Greenland -uvh- and -uv-h- runs (dt=0.1) are bit-identical. Level-set equation:
+% after the first Newton iteration rForce is about 1e-13; whether a second iteration followed was previously decided by rWork alone (in
+% 177 of 206 solves of a Thule run with a moving calving front). Now all level-set solves converge after one iteration. Thule example,
+% t=0 to 0.1: level-set iterations 77 -> 51; time steps, uvh Newton iterations and uvh residuals unchanged.
+%
+%
 % * Active-set method: cumulative release criterion for thickness constraints (31 October 2026):
 %
 % A node constrained to the minimum thickness (h>=ThickMin) was released only if, without the constraint, the ice there would thicken

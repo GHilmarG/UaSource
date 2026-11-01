@@ -361,8 +361,9 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
         bubblechart(Bx(iPosResiduals)/CtrlVar.PlotXYscale,By(iPosResiduals)/CtrlVar.PlotXYscale,BResiduals(iPosResiduals),color="r")
         hold on
         bubblechart(Bx(~iPosResiduals)/CtrlVar.PlotXYscale,By(~iPosResiduals)/CtrlVar.PlotXYscale,-BResiduals(~iPosResiduals),color="b")
-        maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
-        bubblesize([maxBubbleSize/100 maxBubbleSize]);    
+       % maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
+       % bubblesize([maxBubbleSize/100 maxBubbleSize]);    
+        bubblesize([1 20]) ; % 
         blg=bubblelegend("$B_{\mathrm{obs}}$ Misfit",Location="northeast",Interpreter="latex");
         lg=legend("Positive","Negative",Location="northwest") ;
         xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
