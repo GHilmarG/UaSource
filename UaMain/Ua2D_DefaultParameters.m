@@ -589,7 +589,8 @@ CtrlVar.hSolverMaxIterations=50;
 % CtrlVar.uvhDesiredWorkAndForceTolerances and CtrlVar.uvhDesiredWorkOrForceTolerances (see uvhResidualsCriteria.m).
 % The previous parameter CtrlVar.uv2h.uvTolerance is no longer used.
 
-CtrlVar.uv2h.MaxIterations=15; % The maximum number of (outer) iterations in the semi-implicit -uv-h- solver
+CtrlVar.uv2h.MaxIterations=15;
+CtrlVar.uv2h.DivergenceFactor=1e3;   % (31 Oct 2026) the uv-h outer iteration is stopped as diverged if its residual grows by more than this factor above its smallest value (uvhSemiImplicit.m) % The maximum number of (outer) iterations in the semi-implicit -uv-h- solver
                                % The  -uv-h- solver solves for uv and h repeatedly. The iterations required for the uv solve and the h solver are referred
                                % to as "inner" iterations, and the repeated solve of uv and h as the outer iteration. 
 

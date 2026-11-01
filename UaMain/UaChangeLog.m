@@ -4,6 +4,18 @@
 % 
 % *Change Log* _October 2026_
 %
+% * uv-h outer iteration: divergence detection, and multipliers that match the active set (31 October 2026):
+%
+% uvhSemiImplicit.m: (1) The multipliers of the thickness constraints returned by the h solve belong to the active set of its last
+% solve. If the active set was changed after that solve (the active-set loop of the h solve left at its maximum number of iterations,
+% ActiveSetConverged=0, or deferred releases), they did not match BCs1, and the convergence test failed with an error in
+% CalcCostFunctionNRuvh.m ("Incorrect dimensions for matrix multiplication"). They are now reset (solved for again in the next h
+% solve), and such an outer iteration is not counted as converged. (2) If the residual of the outer iteration is not finite or grows by
+% more than CtrlVar.uv2h.DivergenceFactor (new, default 1e3) above its smallest value (from the third outer iteration on), the outer
+% iteration is stopped as diverged, and the iterate with the smallest residual is returned as not converged (RunInfo.Forward.uvhDiverged
+% =true). Greenland nx150 with the inverted A and C, dt=1: the uv-h iteration diverges (rForce from 13 to 1e22, h down to -3675 m) and
+% previously ended with the error above after 420 s; now stopped after 5 outer iterations. Converging runs are unchanged (bit-identical).
+%
 % * Active-set method: cumulative release criterion for thickness constraints (31 October 2026):
 %
 % A node constrained to the minimum thickness (h>=ThickMin) was released only if, without the constraint, the ice there would thicken

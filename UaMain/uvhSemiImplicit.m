@@ -173,7 +173,7 @@ end
 
 
 if CtrlVar.uv2h.MaxIterations==Inf
-    duv1NormVector=nan(10000,1) ;
+    duv1NormVector=nan(10000,1) ;  % well we hope we never have this many uv-h outer iterations...
     dh1NormVector=nan(10000,1) ;
 else
     duv1NormVector=nan(CtrlVar.uv2h.MaxIterations,1) ;
@@ -188,7 +188,10 @@ end
 if isprop(l1,"dth") && isfinite(l1.dth) && l1.dth>0 && l1.dth~=CtrlVar.dt && ~isempty(l1.h)
     l1.h=l1.h*CtrlVar.dt/l1.dth;
 end
-if isprop(l1,"dth") ; l1.dth=CtrlVar.dt ; end
+
+if isprop(l1,"dth") 
+    l1.dth=CtrlVar.dt ; 
+end
 
 %% Convergence of the outer uv-h iteration (8 Oct 2026)
 % The convergence of the outer uv-h iteration is judged using the same cost function (CalcCostFunctionNRuvh) and the same
@@ -206,9 +209,27 @@ CtrlVarR.uvhMatrixAssembly.ZeroFields=false;
 CtrlVarR.uvhMatrixAssembly.Ronly=true;
 
 InfoLevelNonLinItOnInput=CtrlVar.InfoLevelNonLinIt;
-ub1Previous=F1.ub ; vb1Previous=F1.vb ; h1Previous=F1.h ; luvhPrevious=[] ;
+ub1Previous=F1.ub ; 
+vb1Previous=F1.vb ; 
+h1Previous=F1.h ; 
+luvhPrevious=[] ;
 rForceVector=nan(size(duv1NormVector)) ;
-RunInfo.Forward.uvhConverged=false ; RunInfo.Forward.uvhStalled=false ; RunInfo.Forward.uvhrForce=NaN ;
+
+RunInfo.Forward.uvhConverged=false ; 
+RunInfo.Forward.uvhStalled=false ; 
+RunInfo.Forward.uvhrForce=NaN ;
+RunInfo.Forward.uvhDiverged=false ;   % (31 Oct 2026) set if the outer iteration diverges, see below
+DivergenceFactor=1e3 ; 
+
+if isfield(CtrlVar,"uv2h") && isfield(CtrlVar.uv2h,"DivergenceFactor") 
+    DivergenceFactor=CtrlVar.uv2h.DivergenceFactor ; 
+end
+
+rForceBest=inf ; 
+F1Best=F1 ; 
+l1Best=l1 ; 
+BCs1Best=BCs1 ; 
+itBest=0 ;
 
 uvItMax=0;
 hItMax=0; 
@@ -235,6 +256,14 @@ while true
     % now solve for the thickness at t=t1. this may involve iterating over h, and these are the "inner" h-iterations. 
     [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
     F1.h=h1;
+
+    % (31 Oct 2026) The multipliers of the thickness constraints returned by the h solve belong to the active set of its last solve. If
+    % the active set was changed after that solve (the active-set loop left at its maximum number of iterations, ActiveSetConverged=0,
+    % or deferred releases), they do not match BCs1, and the convergence test below would fail. They are then reset to zero (they are
+    % solved for again in the next h solve), and this outer iteration is not counted as converged.
+    MLCh=BCs2MLC(CtrlVar,MUA,BCs1) ; nhConstraints=size(MLCh.hL,1) ;
+    hMultipliersValid = numel(l1.h)==nhConstraints && ~isequal(RunInfo.Forward.ActiveSetConverged,0) ;
+    if numel(l1.h)~=nhConstraints ; l1.h=zeros(nhConstraints,1) ; end
 
     hItMax=max(RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),hItMax);
     hItCumulative=hItCumulative+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber);
@@ -325,11 +354,18 @@ while true
     
     [~,UserVar,RunInfo,rForce,rWork]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVarR,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,0,Fext0);
     rForceVector(uv_h_OuterIteration)=rForce ;
-    ub1Previous=F1.ub ; vb1Previous=F1.vb ; h1Previous=F1.h ; luvhPrevious=luvh ;
+    ub1Previous=F1.ub ; 
+    vb1Previous=F1.vb ; 
+    h1Previous=F1.h ; 
+    luvhPrevious=luvh ;
 
     SubSolvesConverged=RunInfo.Forward.uvConverged && RunInfo.Forward.hConverged ;
     rForceFloor=uvhResidualRoundOffFloor(CtrlVar,MUA,F1,Fext0) ;   % (8 Oct 2026) round-off floor of rForce, relevant for small time steps
-    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,uv_h_OuterIteration,false,rForceFloor) && SubSolvesConverged ;
+    ResidualsCriteria=uvhResidualsCriteria(CtrlVar,rForce,rWork,uv_h_OuterIteration,false,rForceFloor) && SubSolvesConverged && hMultipliersValid ;
+   
+    if isfinite(rForce) && rForce<rForceBest   % (31 Oct 2026) the iterate with the smallest residual, returned if the iteration diverges
+        rForceBest=rForce ; F1Best=F1 ; l1Best=l1 ; BCs1Best=BCs1 ; itBest=uv_h_OuterIteration ;
+    end
 
     if CtrlVar.InfoLevel>=1
         fprintf("\t (uv-h) Outer iteration nr %i with inner itations: uv=%i \t h=%i \t active set=%i \t rForce=%-14g \t rWork=%-14g \n",...
@@ -346,6 +382,18 @@ while true
             fprintf(" SSTREAM(uv-h) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i outer iterations and uv=%2i, h=%2i, active set=%2i, cumulative iterations \n",...
                 F1.time,F1.dt,rForce,rWork,uv_h_OuterIteration,uvItCumulative,hItCumulative,ActiveSetItCumulative)
         end
+        break
+    end
+
+    % (31 Oct 2026) Divergence: the residual is not finite, or has grown by more than CtrlVar.uv2h.DivergenceFactor above its smallest value
+    % so far (from the third outer iteration on). The outer iteration is then stopped, and the iterate with the smallest residual is
+    % returned, as not converged (RunInfo.Forward.uvhDiverged=true). Without this, a diverging iteration continued to the maximum number of
+    % outer iterations, with unphysical thicknesses (eg Greenland, dt=1: rForce from 13 to 1e22, h down to -3675 m).
+    if ~isfinite(rForce) || (uv_h_OuterIteration>=3 && rForce>DivergenceFactor*rForceBest)
+        RunInfo.Forward.uvhConverged=false ; RunInfo.Forward.uvhStalled=false ; RunInfo.Forward.uvhDiverged=true ; RunInfo.Forward.uvhrForce=rForceBest ;
+        F1=F1Best ; l1=l1Best ; BCs1=BCs1Best ;
+        fprintf(" SSTREAM(uv-h) (time|dt)=(%g|%g): uv-h iteration diverged (rForce=%-g in outer iteration %i, %g times its smallest value %-g in outer iteration %i). The iterate with the smallest residual is returned, as not converged.\n", ...
+            CtrlVar.time,CtrlVar.dt,rForce,uv_h_OuterIteration,rForce/rForceBest,rForceBest,itBest)
         break
     end
 
