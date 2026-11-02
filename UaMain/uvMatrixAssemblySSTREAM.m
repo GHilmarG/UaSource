@@ -317,9 +317,8 @@ Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-% (1 Nov 2026) Element-wise kH for the grounding-line mask at the integration points (CtrlVar.kHElementAlpha>0, see ElementWisekH.m). In
-% transient runs F.kHElement is set at the start of each time step from the thickness at its start, so that the uv solves of -uv-h- use
-% the same mask as -uvh-. Otherwise (eg a diagnostic uv solve) it is calculated from the current thickness.
+% (2 Nov 2026) kH=1/l for the grounding-line mask at the integration points (IntegrationPointkH.m): from the nodal transition length
+% F.lGL, set at the start of each time step (so that the uv solves of -uv-h- use the same mask as -uvh-), or the scalar 1/lmin.
 kHe=IntegrationPointkH(CtrlVar,MUA,F) ;
 
 ca=cos(F.alpha); sa=sin(F.alpha);
@@ -417,12 +416,12 @@ for Iint=1:MUA.nip
     % It is linear in S and B, but not in rho, so this is not the same as interpolating a nodal hf if rho varies horizontally.
     % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
     hfint=F.rhow*Hint./rhoint;
-    Heint = 0.5+0.5*tanh(kHe.*(hint-hfint-CtrlVar.Hh0));   % HeavisideApprox, with kHe scalar or element-wise (1 Nov 2026); important to calculate Heint and deltaint in a consistent manner
-    HEint = 0.5+0.5*tanh(kHe.*(hfint-hint-CtrlVar.Hh0));
+    Heint = 0.5+0.5*tanh(kHe(:,min(Iint,end)).*(hint-hfint-CtrlVar.Hh0));   % HeavisideApprox, with kHe(:,min(Iint,end)) scalar or element-wise (1 Nov 2026); important to calculate Heint and deltaint in a consistent manner
+    HEint = 0.5+0.5*tanh(kHe(:,min(Iint,end)).*(hfint-hint-CtrlVar.Hh0));
 
-    deltaint=0.5*kHe.*sech(kHe.*(hint-hfint-CtrlVar.Hh0)).^2;  % DiracDelta, i.e. deltaint must be the exact derivative of Heint
+    deltaint=0.5*kHe(:,min(Iint,end)).*sech(kHe(:,min(Iint,end)).*(hint-hfint-CtrlVar.Hh0)).^2;  % DiracDelta, i.e. deltaint must be the exact derivative of Heint
 
-    Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+    Hposint = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),Hint,CtrlVar.Hh0).*Hint;
 
     dint=HEint.*rhoint.*hint/F.rhow + Heint.*Hposint ;  % definition of d, applied directly at integration points
 

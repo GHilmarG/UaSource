@@ -2611,26 +2611,20 @@ CtrlVar.MeshAdapt.GLrange=[];   % Example (see description above):  CtrlVar.Mesh
 CtrlVar.MeshAdapt.CFrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.CFrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 %% Parameters affecting the floating mask
 
-CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
+% (2 Nov 2026) Grounding-line transition. The grounding-line mask is G=(1+tanh((h-hf)/l))/2, where hf is the flotation thickness and l
+% is the transition length, in units of thickness (m). (Previously the mask was written in terms of kH=1/l, CtrlVar.kH; that field is no
+% longer used, and defining it gives an error.) In transient uvh and uv-h runs, l is a nodal field (F.lGL), evaluated once per time step
+% from the state at its start,
 %
-% (1 Nov 2026) Element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m):
-% If the range of h-hf over a grounding-line element is much larger than the transition width 2/kH, the integration points practically
-% never lie within the transition, the grounding-line mask is effectively a step function of the thickness at the integration points, and
-% the discrete problem may have no root near the current iterate: the Newton iteration of the uvh solver then stagnates (Thule example:
-% h-hf varies by about 1300 m over a grounding-line element, against a transition width of 2 m for kH=1). The transition width is
-% therefore increased, element by element, to at least kHElementAlpha times the range of h-hf over the element:
+%   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
 %
-%   kH_e = min(kH, 2/(kHElementAlpha*range of h-hf over the element))
-%
-% Where the range is less than 2/(kHElementAlpha*kH) (100 m with the defaults), kH_e=kH. The mask is only changed near flotation, and where
-% h-hf varies smoothly kH_e approaches kH under mesh refinement. kH_e is evaluated once per time step from the state at its start, stored in
-% F.kHElement, and used by both the uvh and the uv assemblies (vectorised and compiled), so that -uvh- and -uv-h- solve the same discrete
-% problem. The nodal mask (Calc_bs_From_hBS.m) keeps the scalar kH. In inversions, kH_e is evaluated at the start of the inversion and
-% kept fixed (InvertForModelParameters.m). CtrlVar.kHElementAlpha=0 gives the scalar kH everywhere (as before 1 Nov 2026).
-CtrlVar.kHElementAlpha=0.02;
-                % kH=1 implies a grounding line "width" of 1 m up and down from floating condition
-                % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
-                % Note: This variable has UNITS!!!  The units are those of an inverse distance.
+% where dh/dt is the rate of thickness change of the previous time step and dt the current time step: the transition is made wide compared
+% with the change of thickness over the time step, so that the uvh Newton iteration does not stagnate when the grounding line moves through
+% the mesh (see GroundingLineTransitionLength.m). In diagnostic solves and inversions, l=lmin. lmin is also used for the water-depth mask
+% and for the nodal mask of the lower surface (Calc_bs_From_hBS.m).
+CtrlVar.GroundingLineTransition.lmin=1;     % (m) smallest transition length (replaces 1/CtrlVar.kH)
+CtrlVar.GroundingLineTransition.lmax=25;    % (m) largest transition length
+CtrlVar.GroundingLineTransition.c=0.5;      % (dimensionless) factor on dt*|dh/dt|; c=0 gives l=lmin everywhere
                 %       So if your distance units is meters, the unit of hH is 1/meters.
                 %       You must make sure that kH is sufficiently large so that 1/kH corresponds to a (vertical) distance
                 %       that is small compared to other distances of interest.

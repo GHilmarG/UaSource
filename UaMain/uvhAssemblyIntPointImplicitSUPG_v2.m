@@ -12,7 +12,7 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     LSFMasknod,hBCsMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
-    CtrlVar,rhow,g,Ronly,ca,sa,dt,...
+    CtrlVar,rhow,g,Ronly,ca,sa,dt,kHint,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
 %%
@@ -45,7 +45,7 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
 
 % Keep the names exactly as in call, apparently then MATLAB does perfect inlining with no loss in performance 
 
-narginchk(57,57)
+narginchk(58,58)   % (2 Nov 2026) +1 for kHint
 nargoutchk(15,19)
 
 
@@ -272,17 +272,10 @@ Hint=Sint-Bint;
 % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
 hfint=rhow*Hint./rhoint;
 
-% (1 Nov 2026) Element-wise kH for the grounding-line mask at the integration points (CtrlVar.kHElementAlpha>0, default 0.02, see
-% ElementWisekH.m). If the range of h-hf over an element is much larger than the
-% transition width 2/kH, the integration points practically never lie within the transition, the mask is effectively a step function
-% of the thickness at the integration points, and the discrete problem may have no root near the current iterate (Thule example). The
-% transition width is then increased to at least kHElementAlpha times the range of h-hf over the element. The range is taken from the
-% thickness at the start of the time step (h0), so that kH is fixed during the Newton solve. The nodal mask used for the lower surface
-% (GFn, deln below, consistent with Calc_bs_From_hBS) keeps the scalar kH.
-kHe=CtrlVar.kH ;
-if isfield(CtrlVar,"kHElementAlpha") && CtrlVar.kHElementAlpha>0
-    kHe=ElementWisekHFromNodal(CtrlVar,h0nod-rhow*max(Snod-Bnod,0)./rhonod,CtrlVar.kHElementAlpha) ;   % from the thickness at the start of the time step, identical to F0.kHElement (ElementWisekH.m)
-end
+% (2 Nov 2026) kH=1/l at this integration point (kHint, from IntegrationPointkH.m via uvhMatrixAssembly.m): the scalar 1/lmin, or one value
+% per element from the nodal transition length F0.lGL (GroundingLineTransitionLength.m). The nodal mask used for the lower surface (GFn,
+% deln below, consistent with Calc_bs_From_hBS) and the water-depth mask (Hposint) use the scalar 1/lmin.
+kHe=kHint ;
 
 
 
@@ -296,7 +289,7 @@ HEint = 0.5+0.5*tanh(kHe.*(hfint-hint-CtrlVar.Hh0));
 deltaint=0.5*kHe.*sech(kHe.*(hint-hfint-CtrlVar.Hh0)).^2;  % DiracDelta, i.e. deltaint must be the exact derivative of Heint
 Deltaint=0.5*kHe.*sech(kHe.*(hfint-hint-CtrlVar.Hh0)).^2;  %  although delta is an even function...
 
-Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+Hposint = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),Hint,CtrlVar.Hh0).*Hint;
 
 dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
 Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
@@ -467,8 +460,8 @@ if ~Ronly
     if CtrlVar.ResetThicknessToMinThickness ; hrn(hnod<CtrlVar.ThickMin)=CtrlVar.ThickMin ; end
 
     hfn=rhow*(Snod-Bnod)./rhonod ;
-    GFn=HeavisideApprox(CtrlVar.kH,hrn-hfn,CtrlVar.Hh0) ;
-    deln=DiracDelta(CtrlVar.kH,hrn-hfn,CtrlVar.Hh0) ;
+    GFn=HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),hrn-hfn,CtrlVar.Hh0) ;
+    deln=DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),hrn-hfn,CtrlVar.Hh0) ;
     bfn=Snod-rhonod.*hrn/rhow ;
 
     bpn=deln.*(Bnod-bfn)-(1-GFn).*rhonod/rhow ;                     % db/dh, Nele x nod

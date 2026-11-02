@@ -284,32 +284,24 @@ classdef TestUaCompiled < matlab.unittest.TestCase
 
         %% h assembly
 
-        function testUvhElementWisekH(testCase)
-            % (1 Nov 2026) element-wise kH for the grounding-line mask (ElementWisekH.m): compiled against vectorised uvh assembly, with kH_e
-            % calculated from F0, and taken from F0.kHElement. alpha=0.2, so that kH_e differs from kH in the grounding-line elements of this mesh.
-            S=SyntheticUvhState(3,20,[]) ; S.CtrlVar.kHElementAlpha=0.2 ;
-            kHe=ElementWisekH(S.CtrlVar,S.MUA,S.F0) ;
-            testCase.assertLessThan(min(kHe),0.5*S.CtrlVar.kH,"kH_e should differ from kH in some elements, otherwise the test would test nothing")
-            testCase.verifySameUvhAssembly(S,"element-wise kH from F0")
-            S.F0.kHElement=kHe ; S.F1.kHElement=kHe ;
-            testCase.verifySameUvhAssembly(S,"element-wise kH from F0.kHElement")
+        function testUvhNodalTransitionLength(testCase)
+            % (2 Nov 2026) nodal transition length of the grounding-line mask (F.lGL, GroundingLineTransitionLength.m): compiled against
+            % vectorised uvh assembly, with a spatially varying F0.lGL, and the check that it changes the residual.
+            S=SyntheticUvhState(3,20,[]) ; lGL=NodalTestLength(S) ; S.F0.lGL=lGL ; S.F1.lGL=lGL ;
+            testCase.verifySameUvhAssembly(S,"nodal transition length")
             C=S.CtrlVar ; C.uvhMatrixAssembly.CompiledKernel=false ; C.uvhMatrixAssembly.Ronly=true ;
             [~,~,Ra,~]=uvhMatrixAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.l,S.BCs) ;
-            C.kHElementAlpha=0 ; [~,~,R0,~]=uvhMatrixAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.l,S.BCs) ;
-            testCase.verifyGreaterThan(RelDiff(Ra,R0),1e-6,"the element-wise kH should change the uvh residual")
+            S.F0.lGL=[] ; S.F1.lGL=[] ; [~,~,R0,~]=uvhMatrixAssembly(S.UserVar,S.RunInfo,C,S.MUA,S.F0,S.F1,S.l,S.BCs) ;
+            testCase.verifyGreaterThan(RelDiff(Ra,R0),1e-6,"the nodal transition length should change the uvh residual")
         end
 
-        function testUvElementWisekH(testCase)
-            % (1 Nov 2026) element-wise kH (ElementWisekH.m): compiled against vectorised uv assembly, with kH_e calculated from the current
-            % thickness (F1), and taken from F1.kHElement (here calculated from F0, as in a time step).
-            S=SyntheticUvhState(3,20,[]) ; S.CtrlVar.kHElementAlpha=0.2 ;
-            testCase.assertLessThan(min(ElementWisekH(S.CtrlVar,S.MUA,S.F1)),0.5*S.CtrlVar.kH,"kH_e should differ from kH in some elements, otherwise the test would test nothing")
-            testCase.verifySameUvAssembly(S,"element-wise kH from the current thickness")
-            S.F1.kHElement=ElementWisekH(S.CtrlVar,S.MUA,S.F0) ;
-            testCase.verifySameUvAssembly(S,"element-wise kH from F1.kHElement")
+        function testUvNodalTransitionLength(testCase)
+            % (2 Nov 2026) nodal transition length (F.lGL): compiled against vectorised uv assembly, and the check that it changes the residual.
+            S=SyntheticUvhState(3,20,[]) ; S.F1.lGL=NodalTestLength(S) ;
+            testCase.verifySameUvAssembly(S,"nodal transition length")
             C=S.CtrlVar ; C.uvMatrixAssembly.CompiledKernel=false ; C.uvMatrixAssembly.Ronly=true ;
-            Ra=uvMatrixAssemblySSTREAM(C,S.MUA,S.F1,S.BCs) ; C.kHElementAlpha=0 ; R0=uvMatrixAssemblySSTREAM(C,S.MUA,S.F1,S.BCs) ;
-            testCase.verifyGreaterThan(RelDiff(Ra,R0),1e-6,"the element-wise kH should change the uv residual")
+            Ra=uvMatrixAssemblySSTREAM(C,S.MUA,S.F1,S.BCs) ; S.F1.lGL=[] ; R0=uvMatrixAssemblySSTREAM(C,S.MUA,S.F1,S.BCs) ;
+            testCase.verifyGreaterThan(RelDiff(Ra,R0),1e-6,"the nodal transition length should change the uv residual")
         end
 
         function testHOptions(testCase,HOption)
@@ -583,4 +575,11 @@ F0=F1 ; F0.h=F1.h.*(1-0.01*cos(pi*xi)) ; F0.ub=0.98*F1.ub ; F0.vb=0.97*F1.vb ; F
 evalc("CtrlVar=SetSmoothFloorWidths(CtrlVar,F1);") ;
 
 S=struct("UserVar",[],"RunInfo",UaRunInfo,"CtrlVar",CtrlVar,"MUA",MUA,"F0",F0,"F1",F1,"l",UaLagrangeVariables,"BCs",BoundaryConditions()) ;
+end
+
+
+function lGL=NodalTestLength(S)
+% (2 Nov 2026) a smooth, spatially varying nodal transition length for the tests: lmin to lmin+20 m
+x=S.MUA.coordinates(:,1) ; y=S.MUA.coordinates(:,2) ; xn=(x-min(x))/(max(x)-min(x)) ; yn=(y-min(y))/(max(y)-min(y)) ;
+lGL=S.CtrlVar.GroundingLineTransition.lmin+20*(0.5+0.5*sin(2*pi*xn).*cos(2*pi*yn)) ;
 end

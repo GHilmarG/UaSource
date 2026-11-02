@@ -2,7 +2,7 @@
 
 function [KFBu,KFBv]=FBuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)  %#ok<INUSD>
 
-kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (1 Nov 2026) kH for the grounding-line mask at the integration points, consistent with the uv assembly (element-wise kH, ElementWisekH.m)
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (2 Nov 2026) kH=1/l at the integration points (Nele x nip, or the scalar 1/lmin), consistent with the uv assembly
 
 %% Builds the mixed Hessian term
 %
@@ -165,7 +165,7 @@ for Iint=1:MUA.nip
 
     % mixed thickness-velocity derivatives of the basal traction
     [~,~,d2txdhdu,d2txdhdv,d2tydhdu,d2tydhdv]=...
-        WeertmanSecondOrderDerivatives(CtrlVar,Dhint,uint,vint,Cint,mint,kHe);
+        WeertmanSecondOrderDerivatives(CtrlVar,Dhint,uint,vint,Cint,mint,kHe(:,min(Iint,end)));
 
     detJw=detJ*MUA.weights(Iint);
 

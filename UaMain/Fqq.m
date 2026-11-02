@@ -6,7 +6,7 @@
 
 function KFqq=Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
-kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (1 Nov 2026) kH for the grounding-line mask at the integration points, consistent with the uv assembly (element-wise kH, ElementWisekH.m)
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (2 Nov 2026) kH=1/l at the integration points (Nele x nip, or the scalar 1/lmin), consistent with the uv assembly
 
 %%
 %
@@ -108,7 +108,7 @@ for Iint=1:MUA.nip
     rho=rhonod*fun;
 
     hf=F.rhow*H./rho;
-    He=HeavisideApprox(kHe,h-hf,CtrlVar.Hh0);
+    He=HeavisideApprox(kHe(:,min(Iint,end)),h-hf,CtrlVar.Hh0);
     G=He;
 
     % --- gradients at the integration point -----------------------------

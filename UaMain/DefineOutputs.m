@@ -76,7 +76,7 @@ if contains(plots,'-save-')
   
         
         FileName=sprintf('%s/%07i-Nodes%i-Ele%i-Tri%i-kH%i-%s.mat',...
-            CtrlVar.Outputsdirectory,round(100*F.time),MUA.Nnodes,MUA.Nele,MUA.nod,1000*CtrlVar.kH,CtrlVar.Experiment);
+            CtrlVar.Outputsdirectory,round(100*F.time),MUA.Nnodes,MUA.Nele,MUA.nod,1000*(1/CtrlVar.GroundingLineTransition.lmin),CtrlVar.Experiment);
         fprintf(' Saving data in %s \n',FileName)
         save(FileName,'UserVar','CtrlVar','MUA','F')
         

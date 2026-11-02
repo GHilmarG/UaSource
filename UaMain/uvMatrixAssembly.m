@@ -63,7 +63,7 @@ switch lower(CtrlVar.FlowApproximation)
     case "sstream"
 
 
-        if CtrlVar.Parallel.uvAssembly.spmd.isOn && ~(isfield(CtrlVar,"kHElementAlpha") && CtrlVar.kHElementAlpha>0)   % (1 Nov 2026) with the element-wise kH (ElementWisekH.m) the sequential assembly is used
+        if CtrlVar.Parallel.uvAssembly.spmd.isOn && ~(((isobject(F) && isprop(F,"lGL")) || (isstruct(F) && isfield(F,"lGL"))) && ~isempty(F.lGL))   % (2 Nov 2026) with a nodal transition length (F.lGL) the sequential assembly is used
 
 
             [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,BCs);

@@ -314,7 +314,7 @@ if CtrlVar.doInverseStep   % -inverse
     F.n=InvFinalValues.n ;
 
 
-    F.kHElement=[] ;   % (1 Nov 2026) element-wise kH from the current state (ElementWisekH.m)
+    F.lGL=[] ;   % (2 Nov 2026) diagnostic uv solve: scalar transition length lmin of the grounding-line mask
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
@@ -548,7 +548,7 @@ while 1
 
         MUA=UpdateMUA(CtrlVar,MUA);
 
-        F.kHElement=[] ;   % (1 Nov 2026) element-wise kH from the current state (ElementWisekH.m)
+        F.lGL=[] ;   % (2 Nov 2026) diagnostic uv solve: scalar transition length lmin of the grounding-line mask
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
@@ -608,7 +608,7 @@ while 1
 
                 MUA=UpdateMUA(CtrlVar,MUA);
 
-                F.kHElement=[] ;   % (1 Nov 2026) element-wise kH from the current state (ElementWisekH.m)
+                F.lGL=[] ;   % (2 Nov 2026) diagnostic uv solve: scalar transition length lmin of the grounding-line mask
                 [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 % F0 : F calculated at current time step t=t0
                 %  F : Here F is the initial guess for F at time step t1=t0+ dt
@@ -752,6 +752,8 @@ while 1
                 fprintf(" The uvh solve did not converge with the original time step. The time step was reduced from dt=%g to dt=%g. \n",dtBeforeUvhSolve,F.dt) ;
             end
             RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=F.dt ;    % record the time step that was actually used
+            [RunInfo.Forward.GLCourantMedian(CtrlVar.CurrentRunStepNumber,1),RunInfo.Forward.GLCourantP90(CtrlVar.CurrentRunStepNumber,1),RunInfo.Forward.GLCourantMax(CtrlVar.CurrentRunStepNumber,1)]=...
+                GroundingLineCourantNumber(CtrlVar,MUA,F0,F) ;   % (2 Nov 2026) grounding-line Courant number of the time step
           
 
             isConvergedWithoutWTSHTF=RunInfo.Forward.uvhConverged;   % (10 Oct 2026)
@@ -817,6 +819,8 @@ while 1
 
             hPosNodeStartOfStep=BCs.hPosNode;   % (10 Oct 2026) active set at the start of the time step, see TimeDiscretisationErrorEstimate.m
             [UserVar,RunInfo,F,F0,l,BCs]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+            [RunInfo.Forward.GLCourantMedian(CtrlVar.CurrentRunStepNumber,1),RunInfo.Forward.GLCourantP90(CtrlVar.CurrentRunStepNumber,1),RunInfo.Forward.GLCourantMax(CtrlVar.CurrentRunStepNumber,1)]=...
+                GroundingLineCourantNumber(CtrlVar,MUA,F0,F) ;   % (2 Nov 2026) grounding-line Courant number of the time step
 
             CtrlVar.InitialDiagnosticStep=0;
 

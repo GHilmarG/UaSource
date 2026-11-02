@@ -110,9 +110,9 @@ F1.h=max(F1.h,CtrlVar.ThickMin) ;
 
 CtrlVar.ThicknessConstraintsInfoLevel=0 ;
 
-% (1 Nov 2026) element-wise kH from the state at the start of the time step, used in all uv solves of this time step ([] if
-% CtrlVar.kHElementAlpha=0), see ElementWisekH.m
-F0.kHElement=ElementWisekH(CtrlVar,MUA,F0) ; F1.kHElement=F0.kHElement ;
+% (2 Nov 2026) transition length of the grounding-line mask from the state at the start of the time step, used in all uv solves of this
+% time step, as in -uvh- (GroundingLineTransitionLength.m)
+F0.lGL=GroundingLineTransitionLength(CtrlVar,MUA,F0) ; F1.lGL=F0.lGL ;
 CtrlVar.hInfoLevel=0;        
 
 %% If required, calculate uv at the beginning of the time step, ie at t=t0;

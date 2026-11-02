@@ -3,7 +3,7 @@
 
 function dIdC=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
-kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (1 Nov 2026) kH for the grounding-line mask at the integration points, consistent with the uv assembly (element-wise kH, ElementWisekH.m)
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (2 Nov 2026) kH=1/l at the integration points (Nele x nip, or the scalar 1/lmin), consistent with the uv assembly
 
 narginchk(7,7)
 
@@ -301,7 +301,7 @@ for Iint=1:MUA.nip
     % interpolating a nodal h_f, which differs when the density varies horizontally.
     hfint=F.rhow*Hint./rhoint;
     %hfint=(Sint-Bint)*F.rhow./rhoint;
-    Heint = HeavisideApprox(kHe,hint-hfint,CtrlVar.Hh0);
+    Heint = HeavisideApprox(kHe(:,min(Iint,end)),hint-hfint,CtrlVar.Hh0);
     %
     % dF/dC=dtaux/dC uAdjoint + dtauy/dC vAdjoint
     %

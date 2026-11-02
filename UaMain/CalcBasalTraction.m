@@ -148,8 +148,8 @@ narginchk(4,4)
 
 
 hf=F.rhow*(F.S-F.B)./F.rho ;
-He = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);  % 1
-delta = DiracDelta(CtrlVar.kH,F.h-hf,CtrlVar.Hh0) ;
+He = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),F.h-hf,CtrlVar.Hh0);  % 1
+delta = DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),F.h-hf,CtrlVar.Hh0) ;
 
 [tbx,tby] = ...
     BasalDrag(CtrlVar,0,He,delta,F.h,F.S-F.B,F.rho,F.rhow,F.g,F.ub,F.vb,F.C,F.m,F.q,F.muk,F.V0,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma);   % (26 Oct 2026)

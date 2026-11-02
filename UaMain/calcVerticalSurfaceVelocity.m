@@ -1,4 +1,4 @@
-function [wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,B,b,ub,vb,as,ab,exx,eyy,xint,yint,coordinates,connectivity,nip,CtrlVar)
+function [wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,B,b,ub,vb,as,ab,exx,eyy,xint,yint,coordinates,connectivity,nip,CtrlVar,lGL)
       
     if nargin~=18 ; error(' number of input arguments incorrect ') ; end
     
@@ -28,11 +28,9 @@ function [wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,
     
     wBedInt=zeros(Nele,nip); wSurfInt=zeros(Nele,nip);
     
-    % (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m), from the nodal values
-    kHe=CtrlVar.kH ;
-    if isfield(CtrlVar,"kHElementAlpha") && CtrlVar.kHElementAlpha>0
-        dTemp=h-rhow*max(S-B,0)./rho ; kHe=ElementWisekHFromNodal(CtrlVar,reshape(dTemp(connectivity),size(connectivity,1),size(connectivity,2)),CtrlVar.kHElementAlpha) ;
-    end
+    % (2 Nov 2026) transition length of the grounding-line mask: the nodal lGL (optional input, as F.lGL) interpolated to the integration points, otherwise lmin
+    kHe=(1/CtrlVar.GroundingLineTransition.lmin) ; lGLnod=[] ;
+    if nargin>=19 && numel(lGL)==size(coordinates,1) ; lGLnod=reshape(lGL(connectivity),size(connectivity,1),size(connectivity,2)) ; end
     for Iint=1:nip                           % loop over integration points
         fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
         
@@ -47,7 +45,8 @@ function [wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,
         abint=abnod*fun;
         
         hfint=rhow*(Sint-Bint)./rhoint;
-        Heint = HeavisideApprox(kHe,hint-hfint,CtrlVar.Hh0);   % (1 Nov 2026) element-wise kH, as in the uv assembly
+        kHi=kHe ; if ~isempty(lGLnod) ; kHi=1./(lGLnod*fun) ; end
+        Heint = HeavisideApprox(kHi,hint-hfint,CtrlVar.Hh0);   % (2 Nov 2026) as in the uv assembly
         
         
         [Deriv]=derivVector(coordinates,connectivity,nip,Iint); % Nele x dof x nod

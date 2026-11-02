@@ -23,13 +23,13 @@ else
 end
 Cp=CompiledAssemblyPattern(P);   % per mesh, cached: for the summation of the residual (and, unless Ronly, of the matrix) in the kernel
 % Deriv and DetJ are passed as separate arrays: fields of a structure input would be copied into the MEX file, arrays are not
-% (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m), as in the vectorised assembly:
-% from F0.kHElement if set, otherwise calculated from F0; kH for all elements if CtrlVar.kHElementAlpha=0.
-kHv=IntegrationPointkH(CtrlVar,MUA,F0) ; kHv=kHv+zeros(MUA.Nele,1) ;   % kH for all elements if scalar
+% (2 Nov 2026) nodal transition length of the grounding-line mask (F0.lGL, set at the start of the time step), interpolated to the
+% integration points in the kernel; empty for the scalar 1/lmin
+lGLv=zeros(0,1) ; if (isobject(F0) && isprop(F0,"lGL")) || (isstruct(F0) && isfield(F0,"lGL")) ; if numel(F0.lGL)==MUA.Nnodes ; lGLv=F0.lGL(:) ; end ; end
 MUAk=struct("Nele",MUA.Nele,"nod",MUA.nod,"nip",MUA.nip,"points",MUA.points,"weights",MUA.weights(:).',"EleAreas",MUA.EleAreas(:));
 args={MUAk,MUA.Deriv,MUA.DetJ,MUA.connectivity,col(F1.b),col(F1.h),col(F1.ub),col(F1.vb),col(F1.AGlen),col(F1.n),col(F1.C),col(F1.m), ...
       col(F1.q),col(F1.muk),col(F1.V0),col(F0.h),col(F0.ub),col(F0.vb),col(F0.as),col(F0.ab),col(F1.as),col(F1.ab),col(dadh),col(F1.B),col(F1.S), ...
-      col(F1.rho),col(LSFMask),hBCsMask,uo,vo,Co,mo,ua,va,Ca,ma,RK,F1.rhow,F1.g,cos(F1.alpha),sin(F1.alpha),CtrlVar.dt,IntOut,Cp.rPtr,Cp.rIdx,Cp.invPtr,Cp.invIdx,kHv};
+      col(F1.rho),col(LSFMask),hBCsMask,uo,vo,Co,mo,ua,va,Ca,ma,RK,F1.rhow,F1.g,cos(F1.alpha),sin(F1.alpha),CtrlVar.dt,IntOut,Cp.rPtr,Cp.rIdx,Cp.invPtr,Cp.invIdx,lGLv};
 % (26 Oct 2026) A failure of the MEX file itself (eg built for another MATLAB release or another platform, or with an outdated
 % interface) is reported as UaCompiled:KernelFailed: uvhMatrixAssembly.m then uses the vectorised assembly instead.
 try

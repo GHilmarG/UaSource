@@ -4,6 +4,65 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
+%
+% Cause of the non-convergence of the uvh Newton iteration in strongly transient phases with significant grounding-line migration (Thule
+% example): the grounding-line mask GF=HeavisideApprox(kH,h-hf) is evaluated at the integration points. If the range of h-hf over a
+% grounding-line element is much larger than the transition width 2/kH (Thule, 50 km mesh: about 1300 m against 2 m for kH=1), the
+% integration points practically never lie within the transition, and the mask is effectively a step function of the thickness at the
+% integration points. The residual is then nearly piecewise constant, with steep (smooth, but over about 1 m of thickness) transitions
+% where an integration point passes through the transition. When a few integration points lie within the transition, the discrete
+% problem may have no root near the iterate, only a local minimum of the residual norm (shown with fsolve: first-order optimality to
+% 5e-6 at |f|^2=2e-7). Newton, kH continuation, linear rheology in ice-free areas, a regularised Jacobian and fsolve all stalled at the
+% same residual level. The Jacobian is exact (Taylor test), the linear solves are exact, and there is no round-off floor.
+%
+% The grounding-line mask is now G=(1+tanh((h-hf)/l))/2 with a transition length l (in units of thickness, m) that is a nodal field in
+% transient runs, F.lGL, evaluated once per time step from the state at its start (GroundingLineTransitionLength.m):
+%
+%   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
+%
+% with dh/dt the rate of thickness change of the previous time step and dt the current time step. The transition is thus made wide
+% compared with the change of thickness over the time step, which removes the limitation of the time step by the mask: the uvh Newton
+% iteration converges at grounding-line Courant numbers of order one (Thule: Co_GL~1 at dt=0.5), where with lmin=1 m it stagnated from
+% Co_GL~0.01. The smoothing is proportional to dt (like the error of the implicit time stepping) and vanishes as dt->0; lmax limits it
+% where |dh/dt| is large far from flotation (eg near calving fronts). New options:
+%
+%   CtrlVar.GroundingLineTransition.lmin=1;    % (m) replaces 1/CtrlVar.kH; defining CtrlVar.kH now gives an error
+%   CtrlVar.GroundingLineTransition.lmax=25;   % (m)
+%   CtrlVar.GroundingLineTransition.c=0.5;     % (dimensionless); c=0 gives l=lmin everywhere (the previous behaviour with kH=1/lmin)
+%
+% l is kept fixed during the Newton iterations (no additional Jacobian terms), recalculated if the time step is reduced (uvh2NotConvergent.m),
+% and reset on mesh changes. It is used, through IntegrationPointkH.m (kH=1/l at the integration points), by the uvh and uv assemblies
+% (vectorised and compiled: the kernels take the nodal l and interpolate it), so that -uvh- and -uv-h- solve the same discrete problem, and
+% by the gradient and Hessian calculations of the inverse problem. Diagnostic solves and inversions use l=lmin (no time step). The nodal
+% mask of the lower surface (Calc_bs_From_hBS.m) and the water-depth mask use lmin. The element-wise kH of 1 November 2026
+% (CtrlVar.kHElementAlpha, F.kHElement, ElementWisekH.m) has been removed; defining CtrlVar.kHElementAlpha gives an error.
+%
+% New diagnostic: GroundingLineCourantNumber.m, the grounding-line Courant number of each time step (median, 90th percentile, maximum over
+% the grounding-line elements of the change of h-hf over the time step relative to its range over the element), printed at InfoLevel>=1
+% and stored in RunInfo.Forward.GLCourantMedian, GLCourantP90 and GLCourantMax.
+%
+% Tests (Thule, fixed calving front, meshes refined to 5.8 km at the grounding line; t=0.5 to 2.5): with fixed time steps of 0.25 and 0.5 yr
+% no time-step reductions (with the element-wise kH, alpha=0.02: 1 and 2; with alpha=0.05: 0 and 1); the remaining error against dt=0.01 is
+% the time-discretisation error (thickness about as with alpha=0.05 at the same time step, velocities considerably better). With adaptive
+% time stepping (ATSTargetIterations=25, t=0 to 5) 88 time steps and 606 Newton iterations, against 662 with alpha=0.02. Greenland (real A
+% and C, dt=0.1): differences from the element-wise kH of 2 mm rms in thickness, same run time; -uvh- and -uv-h- agree to 0.6 mm rms.
+% Regression tests: TestUaCompiled.m (new tests testUvhNodalTransitionLength, testUvNodalTransitionLength), TestInverseNodalTransitionLength.m
+% (replaces TestInverseElementWisekH.m; adjoint gradient and Hessian consistent with a spatially varying, frozen F.lGL): 92 of 92 passed.
+%
+% * Time-step reduction after a failed uvh solve starts from the active set at the start of the time step (2 November 2026):
+%
+% When a uvh solve did not converge, uvh2NotConvergent.m reduced the time step and solved again from the velocities, thickness and
+% multipliers at the start of the time step, but with the active set of thickness constraints left by the failed attempt. In a failed
+% attempt with a large time step, many nodes can become (deeply) negative and are added to the active set (in addition to any predictive
+% activation based on the explicit estimate for the large time step). Keeping these constraints for the smaller time step held nodes at the
+% minimum thickness that would otherwise have kept their ice, and the cumulative release criterion (CtrlVar.ActiveSet.ReleaseAlpha)
+% releases them only gradually. Thule (refined mesh, t=0.5 to 1.5): a run whose first step was halved from dt=1 to dt=0.5 differed from a
+% run with dt=0.5 from the start by 107 m rms in thickness, with up to 2276 m of ice lost at individual nodes. uvhRootFinding.m now stores
+% the boundary conditions at the start of the time step and passes them to uvh2NotConvergent.m (new optional last input), which resets the
+% active set (and the related RunInfo.Forward.ActiveSetLockedNodes, ActiveSetNoFurtherReleases and ActiveSetah) to them before each new
+% attempt. The two runs above now agree to round-off. This affected all runs in which a time step was reduced after a failed uvh solve.
+%
 % * Local mesh refinement with CtrlVar.MeshSizeMax=NaN (2 November 2026):
 %
 % NewDesiredEleSizesAndElementsToRefineOrCoarsen2.m: with CtrlVar.MeshSizeMax=NaN (as in the Thule example), nodes outside the refinement
@@ -21,7 +80,7 @@
 % Thule: the 50 km mesh is refined exactly as before (12052 elements, 6081 nodes); the 25 km mesh is now refined with MeshSizeMax=NaN, and
 % identically to a run with MeshSizeMax=MeshSize (29810 elements, 15005 nodes).
 %
-% * Inverse problem with the element-wise kH (1 November 2026):
+% * Inverse problem with the element-wise kH (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
 %
 % The gradient and Hessian calculations of the inverse problem now use the same grounding-line mask at the integration points as the
 % forward uv assembly, ie the element-wise kH (CtrlVar.kHElementAlpha>0, default 0.02), so that they are consistent with it:
@@ -50,7 +109,7 @@
 % varies strongly in curvature over changes of about 0.1% in A or C, which the default steps do not resolve. (With a scalar kH of
 % comparable size, 0.26, all cases pass with the default steps; the origin of this non-linearity is not yet understood.)
 %
-% * Element-wise kH is the default, CtrlVar.kHElementAlpha=0.02 (1 November 2026):
+% * Element-wise kH is the default, CtrlVar.kHElementAlpha=0.02 (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
 %
 % Cause of the non-convergence of the uvh Newton iteration in strongly transient phases with significant grounding-line migration (Thule
 % example): the grounding-line mask GF=HeavisideApprox(kH,h-hf) is evaluated at the integration points. If the range of h-hf over a
@@ -74,7 +133,7 @@
 % steps in which the solve with the scalar kH stagnates, CtrlVar.uvhGLFallback), implemented earlier the same day, has been removed again:
 % with the element-wise kH as the default it is not needed. If a uvh solve does not converge, the time step is reduced as before.
 %
-% * Compiled uv and uvh kernels with the element-wise kH (1 November 2026):
+% * Compiled uv and uvh kernels with the element-wise kH (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
 %
 % The compiled uv and uvh kernels (uvElementKernel.m, uvhElementKernel.m and their entry points uvKernelFull/Ronly.m and
 % uvhKernelFull/Ronly.m) take the element-wise kH as a new last input, kHv (Nele x 1), used for the grounding-line mask at the
@@ -89,7 +148,7 @@
 % against 139.5 s (results identical to round-off), Greenland (56070 nodes, dt=1, t=0-6) 138.3 s against 476.7 s. Both are now faster
 % than with the scalar kH (113.0 s and 169.4 s), owing to fewer Newton iterations and no time-step reductions.
 %
-% * Element-wise kH in the uv solver, computed once per time step (1 November 2026):
+% * Element-wise kH in the uv solver, computed once per time step (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
 %
 % The element-wise kH (CtrlVar.kHElementAlpha>0) is now defined in one place, ElementWisekH.m (from a state F) and ElementWisekHFromNodal.m
 % (from the nodal values of h-hf of each element), and used by both the uvh and the uv assemblies:

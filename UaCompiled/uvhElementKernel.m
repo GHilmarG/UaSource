@@ -3,7 +3,7 @@ function [Tint,Fext,vs,tauxInt,tauyInt,etaInt,HeInt]=...
     bv,hv,uv,vv,AGlenv,nv,Cv,mv,qv,mukv,V0v,h0v,u0v,v0v,as0v,ab0v,as1v,ab1v,dadhv,Bv,Sv,rhov,...
     LSFMaskv,hBCsMaskv,...
     uov,vov,Cov,mov,uav,vav,Cav,mav,...
-    CtrlVar,rhow,g,Ronly,ca,sa,dt,IntOut,rPtr,rIdx,invPtr,invIdx,kHv)
+    CtrlVar,rhow,g,Ronly,ca,sa,dt,IntOut,rPtr,rIdx,invPtr,invIdx,lGLv)
 
 %% Element-based uvh assembly kernel, compiled with MATLAB Coder (25 Oct 2026); see README.md in this folder
 %
@@ -93,6 +93,7 @@ parfor e=1:Nele
 
     % nodal values of this element, 1 x nod
     hn=hv(idx).'; un=uv(idx).'; vn=vv(idx).'; bn=bv(idx).'; Bn=Bv(idx).'; Sn=Sv(idx).'; rhon=rhov(idx).';
+    ln=zeros(1,numel(idx)) ; if ~isempty(lGLv) ; ln=lGLv(idx).' ; end   % (2 Nov 2026) nodal transition length of the grounding-line mask
     h0n=h0v(idx).'; u0n=u0v(idx).'; v0n=v0v(idx).';
 
     ConstrainedElement=any(hBCsMaskv(idx).'>0);   % element contains a node with h BCs or an active thickness constraint
@@ -171,7 +172,7 @@ parfor e=1:Nele
         Hint=Sint-Bint;
         hfint=rhow*Hint/rhoint;
 
-        kHe=kHv(e);   % (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m); kHv(e)=kH if not used
+        if isempty(lGLv) ; kHe=kH ; else ; kHe=1/(ln*fun) ; end   % (2 Nov 2026) kH=1/l, l interpolated from the nodal transition length (F.lGL); kH=1/lmin if lGLv is empty
         Heint=HeavisideApprox(kHe,hint-hfint,Hh0);
         HEint=HeavisideApprox(kHe,hfint-hint,Hh0);
         deltaint=DiracDelta(kHe,hint-hfint,Hh0);

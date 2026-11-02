@@ -71,7 +71,7 @@ function [d2taubxdhdh,d2taubydhdh,d2taubxdhdu,d2taubxdhdv,d2taubydhdu,d2taubydhd
 %             SmoothFloor.m by the caller, as is done everywhere else.
 %
 %   kHe       (optional, 1 Nov 2026) kH for the grounding-line mask at the integration points: a scalar, or a column vector with
-%             one value per element (element-wise kH, see IntegrationPointkH.m). Default: CtrlVar.kH.
+%             one value per element (element-wise kH, see IntegrationPointkH.m). Default: 1/CtrlVar.GroundingLineTransition.lmin.
 %
 %  see also: BasalDrag.m, FBB.m, FBuv.m, dGeometrydB.m
 %
@@ -101,7 +101,7 @@ t  = (U./(C+C0)).^(1./m) ;
 beta2  = t./U ;                        % as in SlidingLawBeta.m (b)
 Dbeta2 = (1./m-1).*t./U.^3 ;           % as in SlidingLawBeta.m (DbetaU), zero for m=1
 
-if nargin<7 || isempty(kHe) ; kHe=CtrlVar.kH ; end   % (1 Nov 2026) kH at the integration points (element-wise kH, IntegrationPointkH.m), as in the uv assembly
+if nargin<7 || isempty(kHe) ; kHe=(1/CtrlVar.GroundingLineTransition.lmin) ; end   % (1 Nov 2026) kH at the integration points (element-wise kH, IntegrationPointkH.m), as in the uv assembly
 G      = HeavisideApprox(kHe,Dh,CtrlVar.Hh0) ;
 Dtilde = DiracDelta(kHe,Dh,CtrlVar.Hh0) ;        % regularised delta, not a Dirac delta
 Dprime = 2*kHe.*Dtilde.*(1-2*G) ;                % its ordinary derivative

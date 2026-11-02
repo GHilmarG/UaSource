@@ -13,7 +13,7 @@ classdef UaFields
         hTimeDiscretisationErrorEstimate=[] ;  % (10 Oct 2026) estimate of the local time-discretisation error of h in the last time step (m), see TimeDiscretisationErrorEstimate.m
         hTimeDiscretisationErrorAccumulated=[] ;  % (10 Oct 2026) accumulated estimate (structure with fields Signed, Abs, ValidTime, TotalTime), see TimeDiscretisationErrorEstimate.m
         ah=[] ;  % (15 Oct 2026) equivalent local mass-balance rate of the thickness constraints (distance/time), positive where ice is added, see ThicknessConstraintReactions.m
-kHElement=[] ;  % (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (Nele x 1, or [] for the scalar CtrlVar.kH), set at the start of each time step, see ElementWisekH.m
+lGL=[] ;  % (2 Nov 2026) nodal transition length of the grounding-line mask (m), or [] for the scalar CtrlVar.GroundingLineTransition.lmin, set at the start of each time step, see GroundingLineTransitionLength.m
 hSuppressedThickening=[] ;  % (31 Oct 2026) net thickening suppressed by the thickness constraint at each constrained node (distance), for the cumulative release criterion, see UpdateSuppressedThickening.m
 
         xint=[];

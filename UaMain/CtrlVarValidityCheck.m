@@ -1,12 +1,23 @@
 function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 
-%% (1 Nov 2026) element-wise kH, see ElementWisekH.m
+%% (2 Nov 2026) grounding-line transition, see Ua2D_DefaultParameters.m and GroundingLineTransitionLength.m
+if isfield(CtrlVar,"kH")
+    error("CtrlVarValidityCheck:kH","CtrlVar.kH is no longer used. Use CtrlVar.GroundingLineTransition.lmin=1/kH instead (the transition length of the grounding-line mask, in m; default 1 m).")
+end
+GLT=CtrlVar.GroundingLineTransition ;
+if ~isscalar(GLT.lmin) || ~isfinite(GLT.lmin) || GLT.lmin<=0
+    error("CtrlVarValidityCheck:lmin","CtrlVar.GroundingLineTransition.lmin must be a positive, finite scalar.")
+end
+if ~isscalar(GLT.lmax) || isnan(GLT.lmax) || GLT.lmax<GLT.lmin
+    error("CtrlVarValidityCheck:lmax","CtrlVar.GroundingLineTransition.lmax must be a scalar not smaller than CtrlVar.GroundingLineTransition.lmin.")
+end
+if ~isscalar(GLT.c) || ~isfinite(GLT.c) || GLT.c<0
+    error("CtrlVarValidityCheck:c","CtrlVar.GroundingLineTransition.c must be a finite, non-negative scalar.")
+end
+
+%% (2 Nov 2026) the element-wise kH has been replaced by the nodal transition length (CtrlVar.GroundingLineTransition)
 if isfield(CtrlVar,"kHElementAlpha")
-    if ~isscalar(CtrlVar.kHElementAlpha) || ~isfinite(CtrlVar.kHElementAlpha) || CtrlVar.kHElementAlpha<0
-        error("CtrlVarValidityCheck:kHElementAlpha","CtrlVar.kHElementAlpha must be a finite, non-negative scalar.")
-    elseif CtrlVar.kHElementAlpha>0.5
-        warning("CtrlVarValidityCheck:kHElementAlpha","CtrlVar.kHElementAlpha=%g is unusually large: the grounding-line transition then covers more than half of the range of h-hf over an element.",CtrlVar.kHElementAlpha)
-    end
+    error("CtrlVarValidityCheck:kHElementAlpha","CtrlVar.kHElementAlpha is no longer used. The grounding-line transition is now set by CtrlVar.GroundingLineTransition.lmin, .lmax and .c (see Ua2D_DefaultParameters.m).")
 end
 
 %  Performs some basic validity checks on CtrlVar

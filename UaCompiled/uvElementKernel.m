@@ -1,7 +1,7 @@
 function [Tint,Fext,vs]=uvElementKernel(MUA,Deriv,DetJ,conn,...
     sv,hv,uv,vv,AGlenv,nv,Cv,mv,qv,mukv,V0v,Bv,Sv,rhov,...
     uov,vov,Cov,mov,uav,vav,Cav,mav,...
-    CtrlVar,rhow,g,Ronly,ca,sa,rPtr,rIdx,invPtr,invIdx,perm,kHv)
+    CtrlVar,rhow,g,Ronly,ca,sa,rPtr,rIdx,invPtr,invIdx,perm,lGLv)
 
 %% Element-based uv assembly kernel, compiled with MATLAB Coder (30 Oct 2026); see README.md in this folder
 %
@@ -68,6 +68,7 @@ parfor e=1:Nele
 
     % nodal values of this element, 1 x nod
     hn=hv(idx).'; sn=sv(idx).'; un=uv(idx).'; vn=vv(idx).'; Bn=Bv(idx).'; Sn=Sv(idx).'; rhon=rhov(idx).';
+    ln=zeros(1,numel(idx)) ; if ~isempty(lGLv) ; ln=lGLv(idx).' ; end   % (2 Nov 2026) nodal transition length of the grounding-line mask
 
     % element residuals and element matrices, accumulated over integration points. k(j,i) corresponds to d(e,j,i) in
     % uvMatrixAssemblySSTREAM.m (i: test function, j: unknown)
@@ -102,7 +103,7 @@ parfor e=1:Nele
 
         % flotation thickness, Heaviside and Dirac functions, and d, at the integration point (as in uvMatrixAssemblySSTREAM.m)
         hfint=rhow*Hint/rhoint;
-        kHe=kHv(e);   % (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m); kHv(e)=kH if not used
+        if isempty(lGLv) ; kHe=kH ; else ; kHe=1/(ln*fun) ; end   % (2 Nov 2026) kH=1/l, l interpolated from the nodal transition length (F.lGL); kH=1/lmin if lGLv is empty
         Heint=HeavisideApprox(kHe,hint-hfint,Hh0);
         HEint=HeavisideApprox(kHe,hfint-hint,Hh0);
         deltaint=DiracDelta(kHe,hint-hfint,Hh0);

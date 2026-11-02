@@ -32,12 +32,12 @@ if ~all(cellfun(@isreal,Fields)) || ~isreal(F.rhow) || ~isreal(F.g) || ~isreal(F
 end
 
 % Deriv and DetJ are passed as separate arrays: fields of a structure input would be copied into the MEX file, arrays are not
-% (1 Nov 2026) element-wise kH for the grounding-line mask at the integration points (ElementWisekH.m), as in the vectorised assembly:
-% from F.kHElement if set, otherwise calculated from F; kH for all elements if CtrlVar.kHElementAlpha=0.
-kHv=IntegrationPointkH(CtrlVar,MUA,F) ; kHv=kHv+zeros(MUA.Nele,1) ;   % kH for all elements if scalar
+% (2 Nov 2026) nodal transition length of the grounding-line mask (F.lGL, GroundingLineTransitionLength.m), interpolated to the
+% integration points in the kernel; empty for the scalar 1/lmin
+lGLv=zeros(0,1) ; if (isobject(F) && isprop(F,"lGL")) || (isstruct(F) && isfield(F,"lGL")) ; if numel(F.lGL)==MUA.Nnodes ; lGLv=F.lGL(:) ; end ; end
 MUAk=struct("Nele",MUA.Nele,"nod",MUA.nod,"nip",MUA.nip,"points",MUA.points,"weights",MUA.weights(:).');
 args=[{MUAk,MUA.Deriv,MUA.DetJ,MUA.connectivity}, cellfun(col,Fields(1:14),'UniformOutput',false), {uo,vo,Co,mo,ua,va,Ca,ma}, ...
-      {RK,F.rhow,F.g,cos(F.alpha),sin(F.alpha),Cp.rPtr,Cp.rIdx,Cp.invPtr,Cp.invIdx,Cp.perm,kHv}];
+      {RK,F.rhow,F.g,cos(F.alpha),sin(F.alpha),Cp.rPtr,Cp.rIdx,Cp.invPtr,Cp.invIdx,Cp.perm,lGLv}];
 
 % A failure of the MEX file itself (eg built for another MATLAB release or another platform, or with an outdated interface) is reported
 % as UaCompiled:KernelFailed: the vectorised assembly is then used instead.
