@@ -2,6 +2,28 @@
 
 %%
 % 
+% *Release Notes* _November 2026_
+
+%
+% * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
+%
+%
+% The grounding-line mask is now G=(1+tanh((h-hf)/l))/2 with a transition length l (in units of thickness, m) that is a nodal field in
+% transient runs, F.lGL, evaluated once per time step from the state at its start (GroundingLineTransitionLength.m):
+%
+%   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
+%
+% with dh/dt the rate of thickness change of the previous time step and dt the current time step. The transition is thus made wide
+% compared with the change of thickness over the time step. 
+%
+% The smoothing is proportional to dt (like the error of the implicit time stepping) and vanishes as dt->0; 
+% 
+% lmax limits it where |dh/dt| is large far from flotation (eg near calving fronts). New options:
+%
+%   CtrlVar.GroundingLineTransition.lmin=1;    % (m) replaces 1/CtrlVar.kH; defining CtrlVar.kH now gives an error
+%   CtrlVar.GroundingLineTransition.lmax=25;   % (m)
+%   CtrlVar.GroundingLineTransition.c=0.5;     % (dimensionless); c=0 gives l=lmin everywhere (the previous behaviour with kH=1/lmin)
+%
 % *Release Notes* _October 2026_
 %
 % * Support for compiled uvh, uv and h  matrix assemblies. 
@@ -75,154 +97,11 @@
 % * Reactions of the thickness constraints as an output:
 %
 % The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per
-% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time
-% step from the discrete reactions of the constraints, and includes all thickness constraints: the active set (h>=ThickMin), the
-% level-set constraints downstream of calving fronts, and user-defined thickness boundary conditions. In addition, the total rates at
-% which mass is added and removed by the constraints (units of mass per time, eg kg/yr) are stored for each time step in
-% RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for
-% example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to
-% the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by
-% the constraints (tested to round-off in the Thule example). 
+% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. 
 %
-%
-% * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
-%
-% Cause of the non-convergence of the uvh Newton iteration in strongly transient phases with significant grounding-line migration (Thule
-% example): the grounding-line mask GF=HeavisideApprox(kH,h-hf) is evaluated at the integration points. If the range of h-hf over a
-% grounding-line element is much larger than the transition width 2/kH (Thule, 50 km mesh: about 1300 m against 2 m for kH=1), the
-% integration points practically never lie within the transition, and the mask is effectively a step function of the thickness at the
-% integration points. The residual is then nearly piecewise constant, with steep (smooth, but over about 1 m of thickness) transitions
-% where an integration point passes through the transition. When a few integration points lie within the transition, the discrete
-% problem may have no root near the iterate, only a local minimum of the residual norm (shown with fsolve: first-order optimality to
-% 5e-6 at |f|^2=2e-7). Newton, kH continuation, linear rheology in ice-free areas, a regularised Jacobian and fsolve all stalled at the
-% same residual level. The Jacobian is exact (Taylor test), the linear solves are exact, and there is no round-off floor.
-%
-% The grounding-line mask is now G=(1+tanh((h-hf)/l))/2 with a transition length l (in units of thickness, m) that is a nodal field in
-% transient runs, F.lGL, evaluated once per time step from the state at its start (GroundingLineTransitionLength.m):
-%
-%   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
-%
-% with dh/dt the rate of thickness change of the previous time step and dt the current time step. The transition is thus made wide
-% compared with the change of thickness over the time step, which removes the limitation of the time step by the mask: the uvh Newton
-% iteration converges at grounding-line Courant numbers of order one (Thule: Co_GL~1 at dt=0.5), where with lmin=1 m it stagnated from
-% Co_GL~0.01. The smoothing is proportional to dt (like the error of the implicit time stepping) and vanishes as dt->0; lmax limits it
-% where |dh/dt| is large far from flotation (eg near calving fronts). New options:
-%
-%   CtrlVar.GroundingLineTransition.lmin=1;    % (m) replaces 1/CtrlVar.kH; defining CtrlVar.kH now gives an error
-%   CtrlVar.GroundingLineTransition.lmax=25;   % (m)
-%   CtrlVar.GroundingLineTransition.c=0.5;     % (dimensionless); c=0 gives l=lmin everywhere (the previous behaviour with kH=1/lmin)
-%
-% l is kept fixed during the Newton iterations (no additional Jacobian terms), recalculated if the time step is reduced (uvh2NotConvergent.m),
-% and reset on mesh changes. It is used, through IntegrationPointkH.m (kH=1/l at the integration points), by the uvh and uv assemblies
-% (vectorised and compiled: the kernels take the nodal l and interpolate it), so that -uvh- and -uv-h- solve the same discrete problem, and
-% by the gradient and Hessian calculations of the inverse problem. Diagnostic solves and inversions use l=lmin (no time step). The nodal
-% mask of the lower surface (Calc_bs_From_hBS.m) and the water-depth mask use lmin. The element-wise kH of 1 November 2026
-% (CtrlVar.kHElementAlpha, F.kHElement, ElementWisekH.m) has been removed; defining CtrlVar.kHElementAlpha gives an error.
-%
-% New diagnostic: GroundingLineCourantNumber.m, the grounding-line Courant number of each time step (median, 90th percentile, maximum over
-% the grounding-line elements of the change of h-hf over the time step relative to its range over the element), printed at InfoLevel>=1
-% and stored in RunInfo.Forward.GLCourantMedian, GLCourantP90 and GLCourantMax.
-%
-% Tests (Thule, fixed calving front, meshes refined to 5.8 km at the grounding line; t=0.5 to 2.5): with fixed time steps of 0.25 and 0.5 yr
-% no time-step reductions (with the element-wise kH, alpha=0.02: 1 and 2; with alpha=0.05: 0 and 1); the remaining error against dt=0.01 is
-% the time-discretisation error (thickness about as with alpha=0.05 at the same time step, velocities considerably better). With adaptive
-% time stepping (ATSTargetIterations=25, t=0 to 5) 88 time steps and 606 Newton iterations, against 662 with alpha=0.02. Greenland (real A
-% and C, dt=0.1): differences from the element-wise kH of 2 mm rms in thickness, same run time; -uvh- and -uv-h- agree to 0.6 mm rms.
-% Regression tests: TestUaCompiled.m (new tests testUvhNodalTransitionLength, testUvNodalTransitionLength), TestInverseNodalTransitionLength.m
-% (replaces TestInverseElementWisekH.m; adjoint gradient and Hessian consistent with a spatially varying, frozen F.lGL): 92 of 92 passed.
-%
-% * Time-step reduction after a failed uvh solve starts from the active set at the start of the time step (2 November 2026):
-%
-% When a uvh solve did not converge, uvh2NotConvergent.m reduced the time step and solved again from the velocities, thickness and
-% multipliers at the start of the time step, but with the active set of thickness constraints left by the failed attempt. In a failed
-% attempt with a large time step, many nodes can become (deeply) negative and are added to the active set (in addition to any predictive
-% activation based on the explicit estimate for the large time step). Keeping these constraints for the smaller time step held nodes at the
-% minimum thickness that would otherwise have kept their ice, and the cumulative release criterion (CtrlVar.ActiveSet.ReleaseAlpha)
-% releases them only gradually. Thule (refined mesh, t=0.5 to 1.5): a run whose first step was halved from dt=1 to dt=0.5 differed from a
-% run with dt=0.5 from the start by 107 m rms in thickness, with up to 2276 m of ice lost at individual nodes. uvhRootFinding.m now stores
-% the boundary conditions at the start of the time step and passes them to uvh2NotConvergent.m (new optional last input), which resets the
-% active set (and the related RunInfo.Forward.ActiveSetLockedNodes, ActiveSetNoFurtherReleases and ActiveSetah) to them before each new
-% attempt. The two runs above now agree to round-off. This affected all runs in which a time step was reduced after a failed uvh solve.
-%
-% * Local mesh refinement with CtrlVar.MeshSizeMax=NaN (2 November 2026):
-%
-% NewDesiredEleSizesAndElementsToRefineOrCoarsen2.m: with CtrlVar.MeshSizeMax=NaN (as in the Thule example), nodes outside the refinement
-% ranges (CtrlVar.MeshAdapt.GLrange, CFrange, ...) kept a NaN target size. The threshold for local refinement is taken from the sorted size
-% ratios at the fraction CtrlVar.LocalAdaptMeshRatio of all elements; since sort places NaN last, the threshold itself became NaN whenever
-% fewer than that fraction of the elements had a finite ratio, and then no element was refined or coarsened, silently. (Thule: the 50 km
-% mesh was refined, the 25 km mesh was not.) Three changes:
-%
-%   - The fallback that sets all target sizes to CtrlVar.MeshSize when no criterion applied (all target sizes equal to MeshSizeMax) now also
-%     recognises a NaN MeshSizeMax (NaN==NaN is false).
-%   - Nodes still without a finite target size keep their current size (size ratio 1: neither refined nor coarsened); the function no
-%     longer returns NaN target sizes.
-%   - The refinement and coarsening thresholds are taken from the finite ratios only. With all ratios finite they are the same as before.
-%
-% Thule: the 50 km mesh is refined exactly as before (12052 elements, 6081 nodes); the 25 km mesh is now refined with MeshSizeMax=NaN, and
-% identically to a run with MeshSizeMax=MeshSize (29810 elements, 15005 nodes).
-%
-% * Convergence criteria of the uvh, uv, h and level-set solvers depend on rForce only, with the same logic (1 November 2026):
-%
-% uvhResidualsCriteria.m, used by the implicit uvh solver and for the outer uv-h iteration, now decides on the force residual rForce alone:
-%
-%   CtrlVar.uvhDesiredForceTolerance=1e-15;     % convergence
-%   CtrlVar.uvhAcceptableForceTolerance=1e-6;   % acceptance of a stagnated solve, or of one ended by a short backtracking step
-%
-% Previously, the work residual rWork also entered: CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8] required rWork<1 or rForce<1e-8
-% for acceptance, in addition to rForce<1e-6. rWork contains the Newton step, which becomes very large at nearly singular modes of the
-% Jacobian (eg weakly determined velocities of floating, nearly ice-free areas behind a calving front), and is returned as NaN (and then
-% set to zero) by the line search whenever the accepted step is not a Newton step. Whether a stalled solve was accepted, or the time step
-% halved, therefore depended on which line-search branch produced the last step (Thule example: a solve stalled at rForce=3e-7 after a
-% Newton step was rejected and the time step halved; one stalled at rForce=5e-7 after a fallback step was accepted, and its solution was
-% as accurate as that obtained with two half-steps). The acceptable tolerance 1e-6 is now the same as CtrlVar.uvhStalledForceTolerance in
-% uvhRootFinding.m. The fields CtrlVar.uvhDesiredWorkAndForceTolerances, CtrlVar.uvhDesiredWorkOrForceTolerances,
-% CtrlVar.uvhAcceptableWorkAndForceTolerances and CtrlVar.uvhAcceptableWorkOrForceTolerances are no longer used; if a run sets them, the
-% force entries of the *WorkAndForceTolerances fields are taken over, with a warning (CtrlVarValidityCheck.m). The corresponding criteria
-% for the h and level-set equations were changed in the same way, see below.
-%
-% The same change for the h equation (MassContinuityEquationNewtonRaphson.m, SSHEET_TransientImplicit.m), the level-set equation
-% (LevelSetEquationNewtonRaphson.m) and the uv equations (uvResidualsCriteria.m, SSTREAM2dNR2.m): the criteria depend on rForce only, with
-% new tolerances CtrlVar.hDesiredForceTolerance=1e-10, CtrlVar.hAcceptableForceTolerance=1e-6, CtrlVar.LSFDesiredForceTolerance=1e-12,
-% CtrlVar.LSFAcceptableForceTolerance=1e-10, CtrlVar.uvDesiredForceTolerance=1e-15 and CtrlVar.uvAcceptableForceTolerance=1e-15, and the
-% previous fields taken over with a warning if set. All solvers now follow the same logic as the uvh solver: the desired tolerance is
-% required while the Newton iteration makes normal progress, and the acceptable tolerance is used if it makes poor progress (short or
-% failed backtracking step, stagnation). In MassContinuityEquationNewtonRaphson.m and LevelSetEquationNewtonRaphson.m this was the other way
-% round (the stricter tolerance with poor progress, contrary to the comments in the code). In the h solver, the hard-wired test for
-% continuing while still converging quadratically uses rForce>1e-15 instead of rWork>1e-20. The uv solver (SSTREAM2dNR2.m) now, as the uvh
-% solver, accepts a solution after failed backtracking if rForce is below the acceptable tolerance (previously always non-convergence),
-% and detects stagnation (r/r0>0.98 in three successive iterations; previously the iteration continued to CtrlVar.NRitmax). The uv
-% acceptable tolerance is kept at 1e-15 (unlike uvh), since uv solves are also used in inverse runs, where the adjoint requires a converged
-% forward solution.
-%
-% Tests: h equation, replaying all 936 convergence checks of the h solves in three uv-h runs (Greenland with uniform and with inverted A
-% and C, Thule), the new criteria make identical decisions; Greenland -uvh- and -uv-h- runs (dt=0.1) are bit-identical. Level-set equation:
-% after the first Newton iteration rForce is about 1e-13; whether a second iteration followed was previously decided by rWork alone (in
-% 177 of 206 solves of a Thule run with a moving calving front). Now all level-set solves converge after one iteration. Thule example,
-% t=0 to 0.1: level-set iterations 77 -> 51; time steps, uvh Newton iterations and uvh residuals unchanged.
 %
 %
 % * Active-set method: cumulative release criterion for thickness constraints (31 October 2026):
-%
-% A node constrained to the minimum thickness (h>=ThickMin) was released only if, without the constraint, the ice there would thicken
-% by more than ReleaseAlpha*ThickMin within one time step. As a rate, this threshold is ReleaseAlpha*ThickMin/dt, so that slow
-% accumulation on ice-free ground was suppressed, the more so the smaller the time step: with ReleaseAlpha=1e-3 and ThickMin=1 m, all
-% accumulation below 1 m/yr was suppressed at dt=0.001. (Greenland, nx150, MAR mass balance: 84% of the ice-free nodes with positive
-% mass balance were held at ThickMin at dt=0.001, against 54% at dt=0.01.)
-%
-% The default is now a cumulative criterion, CtrlVar.ActiveSet.ReleaseRule="cumulative": for each constrained node, the net thickening
-% that the constraint has suppressed since the node became constrained is accumulated over time steps, as the new nodal field
-% F.hSuppressedThickening (S, units of distance; S <- max(0, S-ah*dt) once per accepted time step, with ah the equivalent mass-balance
-% rate of the constraint, see UpdateSuppressedThickening.m), and the node is released once max(0,S-ah*dt) > ReleaseAlpha*ThickMin. This
-% does not depend on the time step: accumulation, however small, always leads to the release of the node eventually (after the ice
-% would have grown by ReleaseAlpha*ThickMin, ie 1 mm with the defaults), while round-off contributions of alternating sign, the reason
-% for ReleaseAlpha>0, do not accumulate. S is capped at the release threshold, is saved in restart files, and is mapped onto new meshes
-% (MapFbetweenMeshes.m). The default value of ReleaseAlpha (1e-3) is unchanged; its exact value is much less important now. The previous
-% rule can be selected with CtrlVar.ActiveSet.ReleaseRule="per-step".
-%
-% Greenland, nx150, MAR mass balance, -uvh-: with the cumulative rule, 42.5% of the ice-free nodes with positive mass balance are held at
-% ThickMin at both dt=0.01 and dt=0.001 (the remainder lose more ice by outflow than they gain), and the ice thickness at t=0.5 differs
-% by at most 7 mm between the two time steps, and by at most 4 mm from runs without any release threshold (ReleaseAlpha=0), which,
-% however, release many nodes in ablation areas on round-off (25% of them, against 8% with the cumulative rule) at a much higher cost.
 %
 %
 % * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):

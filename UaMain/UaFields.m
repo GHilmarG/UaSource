@@ -138,11 +138,23 @@ hSuppressedThickening=[] ;  % (31 Oct 2026) net thickening suppressed by the thi
 
         function obj = loadobj(s)
 
-            obj=s;
+            % (2 Nov 2026) If the object was saved with a different set of properties (eg with a property that has since been removed,
+            % such as kHElement), MATLAB passes it as a structure. A UaFields object is then created and the fields that are still
+            % properties are copied; fields that no longer exist are dropped. (Returning the structure itself gave the warning
+            % MATLAB:class:mustReturnObject.)
+            if isstruct(s)
+                obj=UaFields ;
+                fn=intersect(fieldnames(s),properties(obj)) ;
+                for k=1:numel(fn)
+                    obj.(fn{k})=s.(fn{k}) ;
+                end
+            else
+                obj=s;
+            end
 
             % Make sure the loaded F
             % add in here any new modifications
-            if ~isprop(s,'LSF')
+            if ~isprop(obj,'LSF')
                 obj.LSF=[];
             end
         end

@@ -4,6 +4,12 @@
 % 
 % *Change Log* _October 2026_
 %
+% * UaFields.loadobj: objects saved with a different set of properties (2 November 2026):
+%
+% If a UaFields object was saved with a property that has since been removed (eg kHElement, in restart files written with the version of
+% 1 November 2026), MATLAB passes it to UaFields.loadobj as a structure, which was returned unchanged, giving the warning
+% MATLAB:class:mustReturnObject on loading. loadobj now creates a UaFields object and copies the fields that are still properties.
+%
 % * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
 %
 % Cause of the non-convergence of the uvh Newton iteration in strongly transient phases with significant grounding-line migration (Thule
