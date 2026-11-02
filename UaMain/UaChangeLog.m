@@ -4,6 +4,23 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Local mesh refinement with CtrlVar.MeshSizeMax=NaN (2 November 2026):
+%
+% NewDesiredEleSizesAndElementsToRefineOrCoarsen2.m: with CtrlVar.MeshSizeMax=NaN (as in the Thule example), nodes outside the refinement
+% ranges (CtrlVar.MeshAdapt.GLrange, CFrange, ...) kept a NaN target size. The threshold for local refinement is taken from the sorted size
+% ratios at the fraction CtrlVar.LocalAdaptMeshRatio of all elements; since sort places NaN last, the threshold itself became NaN whenever
+% fewer than that fraction of the elements had a finite ratio, and then no element was refined or coarsened, silently. (Thule: the 50 km
+% mesh was refined, the 25 km mesh was not.) Three changes:
+%
+%   - The fallback that sets all target sizes to CtrlVar.MeshSize when no criterion applied (all target sizes equal to MeshSizeMax) now also
+%     recognises a NaN MeshSizeMax (NaN==NaN is false).
+%   - Nodes still without a finite target size keep their current size (size ratio 1: neither refined nor coarsened); the function no
+%     longer returns NaN target sizes.
+%   - The refinement and coarsening thresholds are taken from the finite ratios only. With all ratios finite they are the same as before.
+%
+% Thule: the 50 km mesh is refined exactly as before (12052 elements, 6081 nodes); the 25 km mesh is now refined with MeshSizeMax=NaN, and
+% identically to a run with MeshSizeMax=MeshSize (29810 elements, 15005 nodes).
+%
 % * Inverse problem with the element-wise kH (1 November 2026):
 %
 % The gradient and Hessian calculations of the inverse problem now use the same grounding-line mask at the integration points as the
