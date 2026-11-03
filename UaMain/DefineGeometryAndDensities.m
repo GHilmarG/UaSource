@@ -59,15 +59,6 @@ rho=900+zeros(MUA.Nnodes,1) ;
 rhow=1030; 
 g=9.81/1000;
 
-if contains(FieldsToBeDefined,"-S-") && contains(FieldsToBeDefined,"-s-")
-
-    if any((s-S)<CtrlVar.ThickMin)
-
-        ind=(s-S)< CtrlVar.ThickMin;
-        s(ind)=S(ind)+CtrlVar.ThickMin;
-    end
-
-end
 
 
 

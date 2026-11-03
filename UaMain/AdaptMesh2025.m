@@ -112,12 +112,6 @@ if CtrlVar.MeshRefinementMethod=="start with explicit:global in the very first r
 
 end
 
-% isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(Fold.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
-
-% isMeshAdapt=CtrlVar.AdaptMesh  ...
-%     && (CtrlVar.AdaptMeshInitial || (mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshRunStepInterval)==0 ...
-%     && CtrlVar.AdaptMeshRunStepInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
-%     && ~isMeshAdvanceRetreat;
 
 %%
 
@@ -204,17 +198,6 @@ if CtrlVar.InfoLevelAdaptiveMeshing>=1
 end
 
 OutsideValue=DefineOutsideValues(UserVar,CtrlVar,MUAold,Fold);
-
-%% MeshAdvanceRetreat option no longer used
-% if isMeshAdvanceRetreat
-%
-%     [UserVar,RunInfo,MUAnew]=MeshAdvanceRetreat(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,Fold.GF,RuvNew,Lubvb);
-%     Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2); if MUAnew.Nele==0
-%         fprintf('No elements left in mesh! \n ') return
-% end
-%
-%
-% end
 
 
 %% If I want to be able to re-activate previously deactivated elements I will need to start be reintroducing a mesh over the original

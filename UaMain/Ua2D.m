@@ -447,7 +447,7 @@ while 1
  
     
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
-    if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+    if CtrlVar.AdaptMesh || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         
        
         %[UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
