@@ -5,15 +5,16 @@
 % *Release Notes* _November 2026_
 %
 %
-% * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
+% * Grounding-line transition: 
 %
 %
-% The grounding-line mask is now G=(1+tanh((h-hf)/l))/2 with a transition length l (in units of thickness, m) that is a nodal field in
-% transient runs, F.lGL, evaluated once per time step from the state at its start (GroundingLineTransitionLength.m):
+% The grounding-line mask is now has a transition length-scale which now is nodal variable and varies across the domain as
 %
 %   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
 %
-% with dh/dt the rate of thickness change of the previous time step and dt the current time step. There is a bit of theory behind this equation, but
+% with dh/dt the rate of thickness change of the previous time step and dt the current time step. 
+% 
+% There is a bit of theory behind this equation, but
 % basically the transition is thus made wide compared with the change of thickness over the time step. 
 %
 % The smoothing is proportional to dt (like the error of the implicit time stepping) and vanishes as dt->0; 
