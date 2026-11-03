@@ -69,7 +69,7 @@ end
 % Step 1:
 %if nargin<=8
 hf=rhow.*(S-B)./rho ;
-GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+GF.node = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
 %end
 
 %GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
@@ -80,8 +80,8 @@ b=GF.node.*B + (1-GF.node) .* bfloat ;
 
 
 if CtrlVar.Enforce_bAboveB
-    % because the grounding line is `smeared out' a bit for a finite CtrlVar.kH one can
-    % have situations where b<B. For CtrlVar.kH>0.1 this is not really much of an issue
+    % because the grounding line is `smeared out' a bit for a finite 1/CtrlVar.GroundingLineTransition.lmin one can
+    % have situations where b<B. For 1/CtrlVar.GroundingLineTransition.lmin>0.1 this is not really much of an issue
     % and anyhow this is a direct consequence of using a smooth step function (explained in detail in UaCompendium)
     I=b<B ;
 

@@ -264,11 +264,21 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
     T2=nexttile;
     cbar=UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
+
+    hglStart=F.rhow*(F.S-InvStartValues.B)./F.rho;
+    [~,hStart]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,InvStartValues.B,F.S,F.rho,F.rhow);
+    gf=hStart-hglStart ;
+
+    CtrlVar.DisplayName="Grounding lines at start";
+    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="m",LineWidth=1.5);
+    CtrlVar.DisplayName=[];
+
     title("$B$ at start of current inversion run",Interpreter="latex")
     subtitle("")
     title(cbar, '(m)')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(T2,othercolor("Mdarkterrain",32))
+    lg=legend();
 
     T3=nexttile ;
     cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-InvStartValues.B,CreateNewFigure=false);
@@ -276,6 +286,16 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    hglStart=F.rhow*(F.S-InvStartValues.B)./F.rho;
+    [~,hStart]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,InvStartValues.B,F.S,F.rho,F.rhow);
+    gf=hStart-hglStart ;
+
+
+
+    CtrlVar.DisplayName="Grounding lines at start";
+    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="m",LineWidth=1.5);
+    CtrlVar.DisplayName=[];
+    lg=legend();
 
     T4=nexttile;
     cbar=UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
@@ -341,8 +361,9 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
         bubblechart(Bx(iPosResiduals)/CtrlVar.PlotXYscale,By(iPosResiduals)/CtrlVar.PlotXYscale,BResiduals(iPosResiduals),color="r")
         hold on
         bubblechart(Bx(~iPosResiduals)/CtrlVar.PlotXYscale,By(~iPosResiduals)/CtrlVar.PlotXYscale,-BResiduals(~iPosResiduals),color="b")
-        maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
-        bubblesize([maxBubbleSize/100 maxBubbleSize]);    
+       % maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
+       % bubblesize([maxBubbleSize/100 maxBubbleSize]);    
+        bubblesize([1 20]) ; % 
         blg=bubblelegend("$B_{\mathrm{obs}}$ Misfit",Location="northeast",Interpreter="latex");
         lg=legend("Positive","Negative",Location="northwest") ;
         xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);

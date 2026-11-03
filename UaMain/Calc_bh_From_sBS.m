@@ -92,7 +92,7 @@ end
 % closure above, in which the floating base, $b_s$, is calculated from $s$, is the appropriate one.
 %
 % The two closures agree where $\mathcal{G}=0$ and $\mathcal{G}=1$, but they differ within the grounding-line transition zone, $0<\mathcal{G}<1$ (by about 1 m in
-% thickness for CtrlVar.kH=1 when the geometry from one is passed through the other). This function is therefore not the exact inverse of Calc_bs_From_hBS.m within the
+% thickness for 1/CtrlVar.GroundingLineTransition.lmin=1 when the geometry from one is passed through the other). This function is therefore not the exact inverse of Calc_bs_From_hBS.m within the
 % transition zone. When geometry from a $B$ inversion is used in a forward run, $b$ and $s$ are recalculated from $h$ and $B$ using Calc_bs_From_hBS.m, and differ
 % slightly, at the nodes within the transition zone, from those used in the inversion.
 %
@@ -152,8 +152,8 @@ while I < ItMax && J > tol
     I=I+1;
 
     if isnan(G0)
-        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
-        dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
+        G = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0);  % 1
+        dGdb=-DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0) ;
     else
         G=G0;
         dGdb=0;
@@ -194,7 +194,7 @@ if FloorIsActive
     b=s-h ;
 end
 
-GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
+GF.node = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0);
 
 if CtrlVar.MapOldToNew.Test
     FindOrCreateFigure("Testing Calc_bh_From_sBs")  ; 
@@ -235,7 +235,7 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
         h=hFloor ;
         b=s-h ;
     end
-    GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
+    GF.node = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0);
 end
 %%
 

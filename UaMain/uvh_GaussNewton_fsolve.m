@@ -61,7 +61,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=uvh_GaussNewton_fsolve(UserVar,RunInfo,Ctr
 %   CtrlVar.uvhFsolve.FunctionTolerance=[]             % [] : set to ForceTolerance^2. (fsolve declares success when norm(f)^2 < sqrt(FunctionTolerance))
 %   CtrlVar.uvhFsolve.StepTolerance=1e-12
 %   CtrlVar.uvhFsolve.OptimalityTolerance=1e-20        % fsolve's first-order optimality is absolute and depends on the scaling of J, so it is not used as the main stopping criterion
-%   CtrlVar.uvhFsolve.ForceTolerance=[]                % [] : set to CtrlVar.uvhDesiredWorkAndForceTolerances(2). Convergence if norm(f)^2 is below this value
+%   CtrlVar.uvhFsolve.ForceTolerance=[]                % [] : set to CtrlVar.uvhDesiredForceTolerance. Convergence if norm(f)^2 is below this value
 %   CtrlVar.uvhFsolve.Display="iter"                   % "off", "iter", "final"
 %   CtrlVar.uvhFsolve.CheckGradients=false             % finite-difference check of J at the starting point (uses checkGradients). Very expensive: one residual evaluation per free variable. Only for tiny meshes.
 %   CtrlVar.uvhFsolve.Scale=[]                         % see below
@@ -110,8 +110,8 @@ if isfield(CtrlVar,"uvhFsolve") && isstruct(CtrlVar.uvhFsolve)
 end
 
 if isempty(Opt.ForceTolerance)
-    if isfield(CtrlVar,"uvhDesiredWorkAndForceTolerances")
-        Opt.ForceTolerance=CtrlVar.uvhDesiredWorkAndForceTolerances(2);   % same criterion as in SSTREAM_TransientImplicit
+    if isfield(CtrlVar,"uvhDesiredForceTolerance")   % (1 Nov 2026) previously CtrlVar.uvhDesiredWorkAndForceTolerances(2)
+        Opt.ForceTolerance=CtrlVar.uvhDesiredForceTolerance;   % same criterion as in SSTREAM_TransientImplicit
     else
         Opt.ForceTolerance=1e-15;
     end

@@ -11,7 +11,7 @@ function GF= GL2d(B,S,h,rhow,rho,connectivity,CtrlVar)
 
 hf=(S-B)*rhow./rho ;  % hf is the maximum ice thickness possible for ice not to be grounded
 
-GF.node= HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
+GF.node= HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0);
 GF.ele=Nodes2EleMean(connectivity,GF.node);
 
 

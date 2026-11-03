@@ -101,8 +101,9 @@ figure(20) ; imagesc(x,y,thickness); axis xy equal; clim([0 4500]); title(' thic
 figure(30) ; imagesc(x,y,firn); axis xy equal; clim([0 50]); title(' firn ' ) ; colorbar ; axis tight 
 figure(40) ; imagesc(x,y,surface); axis xy equal; clim([0 4800]); title(' surface ' ) ; colorbar ; axis tight
 figure(50) ; imagesc(x,y,geoid); axis xy equal; clim([-100 100]); title(' geoid ' ) ; colorbar ; axis tight
-figure(60) ; imagesc(x,y,mask); axis xy equal; clim([0 4]); title(' mask ' ) ; colorbar ; axis tight
+figure(60) ; imagesc(x,y,mask); axis xy equal; clim([0 4]); title(' mask ' ) ; colorbar ; axis tight ; colormap(jet(5)); clim([-0.5 4.5])
 drawnow ; fprintf('done.\n')
+
 
 
 %% Check relationship between geometrical variables
@@ -184,7 +185,7 @@ mask=mask(1:N:end,1:N:end) ;
 fprintf(' Creating gridded interpolants...')
 [X,Y]=ndgrid(double(x),double(flipud(y))) ;
 
-Fs=griddedInterpolant(X,Y,rot90(double(s),3)); 
+Fs=griddedInterpolant(X,Y,rot90(double(s),3)); % is this not same as fliplr?
 Fb=griddedInterpolant(X,Y,rot90(double(b),3)); 
 FB=griddedInterpolant(X,Y,rot90(double(B),3)); 
 Frho=griddedInterpolant(X,Y,rot90(double(rho),3)); 

@@ -21,6 +21,9 @@ RunInfo.Forward.ActiveSetConverged=1;
 iActiveSetIteration=0;
 RunInfo.Forward.ActiveSetLockedNodes=[];   % (9 Oct 2026) nodes kept constrained for the rest of this time step, see ActiveSetUpdate
 RunInfo.Forward.ActiveSetNoFurtherReleases=false;
+RunInfo.Forward.ActiveSetah=[];   % (31 Oct 2026) nodal rates of the thickness constraints from the last active-set update of this time step, see ActiveSetUpdate.m
+F0.lGL=GroundingLineTransitionLength(CtrlVar,MUA,F0) ; F1.lGL=F0.lGL ;   % (2 Nov 2026) transition length of the grounding-line mask from the state at the start of the time step
+BCs1AtStartOfStep=BCs1 ;   % (2 Nov 2026) active set at the start of the time step: if the time step is reduced, the solve starts again from it (uvh2NotConvergent.m)
 isActiveSetCyclical=NaN;
 nlIt=nan(CtrlVar.NRitmax,1);
 BCsLastSolve=[] ; lLastSolve=[] ;   % (15 Oct 2026) boundary conditions and multipliers of the last uvh solve, used to calculate F1.ah
@@ -55,7 +58,7 @@ if ~CtrlVar.ThicknessConstraints
 
     if ~RunInfo.Forward.uvhConverged
 
-        [UserVar,RunInfo,F1,F0,~,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1) ;
+        [UserVar,RunInfo,F1,F0,~,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1,BCs1AtStartOfStep) ;
 
         % The time step has been reduced. Continue with the reduced time step, both in the remaining solves in this function
         % and on return. F1.dt is the master and CtrlVar.dt only a copy.
@@ -144,7 +147,7 @@ else   %  Thickness constraints used
             elseif StalledPass
                 fprintf(" uvhRootFinding: The uvh iteration stalled with rForce=%g, which is below %g. The time step is not reduced. The active set is updated and the iteration continued from the current iterate with dt=%g. \n",RunInfo.Forward.uvhrForce,uvhStalledTol,F1.dt)
             else
-                [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+                [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1,BCs1AtStartOfStep);
 
                 % The time step has been reduced. Continue with the reduced time step, both in the remaining solves in this function
                 % and on return. F1.dt is the master and CtrlVar.dt only a copy.
@@ -216,7 +219,7 @@ else   %  Thickness constraints used
             % The solve stalled, but the active set can not be used to resolve this. Now reduce the time step.
             fprintf(" uvhRootFinding: The stalled uvh iteration can not be resolved by changing the active set. \n")
             dtBeforeReduction=F1.dt ;
-            [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+            [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1,BCs1AtStartOfStep);
             F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
             if F1.dt < dtBeforeReduction
                 continue      % solve again, now with the reduced time step

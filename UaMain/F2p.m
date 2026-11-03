@@ -89,7 +89,7 @@ if isB
     % This second situation is not going to happen if we do not update the bed, B, where the ice is already afloat. 
     %
     % 
-    % BAboveFloatationMinimum = 10/CtrlVar.kH ;   % ~10 grounding-line widths
+    % BAboveFloatationMinimum = 10/1/CtrlVar.GroundingLineTransition.lmin ;   % ~10 grounding-line widths
     % 
     % Bstar=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % we must have B > Bstar
     % 

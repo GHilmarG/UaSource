@@ -4,6 +4,469 @@
 % 
 % *Change Log* _October 2026_
 %
+% * UaFields.loadobj: objects saved with a different set of properties (2 November 2026):
+%
+% If a UaFields object was saved with a property that has since been removed (eg kHElement, in restart files written with the version of
+% 1 November 2026), MATLAB passes it to UaFields.loadobj as a structure, which was returned unchanged, giving the warning
+% MATLAB:class:mustReturnObject on loading. loadobj now creates a UaFields object and copies the fields that are still properties.
+%
+% * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
+%
+% Cause of the non-convergence of the uvh Newton iteration in strongly transient phases with significant grounding-line migration (Thule
+% example): the grounding-line mask GF=HeavisideApprox(kH,h-hf) is evaluated at the integration points. If the range of h-hf over a
+% grounding-line element is much larger than the transition width 2/kH (Thule, 50 km mesh: about 1300 m against 2 m for kH=1), the
+% integration points practically never lie within the transition, and the mask is effectively a step function of the thickness at the
+% integration points. The residual is then nearly piecewise constant, with steep (smooth, but over about 1 m of thickness) transitions
+% where an integration point passes through the transition. When a few integration points lie within the transition, the discrete
+% problem may have no root near the iterate, only a local minimum of the residual norm (shown with fsolve: first-order optimality to
+% 5e-6 at |f|^2=2e-7). Newton, kH continuation, linear rheology in ice-free areas, a regularised Jacobian and fsolve all stalled at the
+% same residual level. The Jacobian is exact (Taylor test), the linear solves are exact, and there is no round-off floor.
+%
+% The grounding-line mask is now G=(1+tanh((h-hf)/l))/2 with a transition length l (in units of thickness, m) that is a nodal field in
+% transient runs, F.lGL, evaluated once per time step from the state at its start (GroundingLineTransitionLength.m):
+%
+%   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
+%
+% with dh/dt the rate of thickness change of the previous time step and dt the current time step. The transition is thus made wide
+% compared with the change of thickness over the time step, which removes the limitation of the time step by the mask: the uvh Newton
+% iteration converges at grounding-line Courant numbers of order one (Thule: Co_GL~1 at dt=0.5), where with lmin=1 m it stagnated from
+% Co_GL~0.01. The smoothing is proportional to dt (like the error of the implicit time stepping) and vanishes as dt->0; lmax limits it
+% where |dh/dt| is large far from flotation (eg near calving fronts). New options:
+%
+%   CtrlVar.GroundingLineTransition.lmin=1;    % (m) replaces 1/CtrlVar.kH; defining CtrlVar.kH now gives an error
+%   CtrlVar.GroundingLineTransition.lmax=25;   % (m)
+%   CtrlVar.GroundingLineTransition.c=0.5;     % (dimensionless); c=0 gives l=lmin everywhere (the previous behaviour with kH=1/lmin)
+%
+% l is kept fixed during the Newton iterations (no additional Jacobian terms), recalculated if the time step is reduced (uvh2NotConvergent.m),
+% and reset on mesh changes. It is used, through IntegrationPointkH.m (kH=1/l at the integration points), by the uvh and uv assemblies
+% (vectorised and compiled: the kernels take the nodal l and interpolate it), so that -uvh- and -uv-h- solve the same discrete problem, and
+% by the gradient and Hessian calculations of the inverse problem. Diagnostic solves and inversions use l=lmin (no time step). The nodal
+% mask of the lower surface (Calc_bs_From_hBS.m) and the water-depth mask use lmin. The element-wise kH of 1 November 2026
+% (CtrlVar.kHElementAlpha, F.kHElement, ElementWisekH.m) has been removed; defining CtrlVar.kHElementAlpha gives an error.
+%
+% New diagnostic: GroundingLineCourantNumber.m, the grounding-line Courant number of each time step (median, 90th percentile, maximum over
+% the grounding-line elements of the change of h-hf over the time step relative to its range over the element), printed at InfoLevel>=1
+% and stored in RunInfo.Forward.GLCourantMedian, GLCourantP90 and GLCourantMax.
+%
+% Tests (Thule, fixed calving front, meshes refined to 5.8 km at the grounding line; t=0.5 to 2.5): with fixed time steps of 0.25 and 0.5 yr
+% no time-step reductions (with the element-wise kH, alpha=0.02: 1 and 2; with alpha=0.05: 0 and 1); the remaining error against dt=0.01 is
+% the time-discretisation error (thickness about as with alpha=0.05 at the same time step, velocities considerably better). With adaptive
+% time stepping (ATSTargetIterations=25, t=0 to 5) 88 time steps and 606 Newton iterations, against 662 with alpha=0.02. Greenland (real A
+% and C, dt=0.1): differences from the element-wise kH of 2 mm rms in thickness, same run time; -uvh- and -uv-h- agree to 0.6 mm rms.
+% Regression tests: TestUaCompiled.m (new tests testUvhNodalTransitionLength, testUvNodalTransitionLength), TestInverseNodalTransitionLength.m
+% (replaces TestInverseElementWisekH.m; adjoint gradient and Hessian consistent with a spatially varying, frozen F.lGL): 92 of 92 passed.
+%
+% * Time-step reduction after a failed uvh solve starts from the active set at the start of the time step (2 November 2026):
+%
+% When a uvh solve did not converge, uvh2NotConvergent.m reduced the time step and solved again from the velocities, thickness and
+% multipliers at the start of the time step, but with the active set of thickness constraints left by the failed attempt. In a failed
+% attempt with a large time step, many nodes can become (deeply) negative and are added to the active set (in addition to any predictive
+% activation based on the explicit estimate for the large time step). Keeping these constraints for the smaller time step held nodes at the
+% minimum thickness that would otherwise have kept their ice, and the cumulative release criterion (CtrlVar.ActiveSet.ReleaseAlpha)
+% releases them only gradually. Thule (refined mesh, t=0.5 to 1.5): a run whose first step was halved from dt=1 to dt=0.5 differed from a
+% run with dt=0.5 from the start by 107 m rms in thickness, with up to 2276 m of ice lost at individual nodes. uvhRootFinding.m now stores
+% the boundary conditions at the start of the time step and passes them to uvh2NotConvergent.m (new optional last input), which resets the
+% active set (and the related RunInfo.Forward.ActiveSetLockedNodes, ActiveSetNoFurtherReleases and ActiveSetah) to them before each new
+% attempt. The two runs above now agree to round-off. This affected all runs in which a time step was reduced after a failed uvh solve.
+%
+% * Local mesh refinement with CtrlVar.MeshSizeMax=NaN (2 November 2026):
+%
+% NewDesiredEleSizesAndElementsToRefineOrCoarsen2.m: with CtrlVar.MeshSizeMax=NaN (as in the Thule example), nodes outside the refinement
+% ranges (CtrlVar.MeshAdapt.GLrange, CFrange, ...) kept a NaN target size. The threshold for local refinement is taken from the sorted size
+% ratios at the fraction CtrlVar.LocalAdaptMeshRatio of all elements; since sort places NaN last, the threshold itself became NaN whenever
+% fewer than that fraction of the elements had a finite ratio, and then no element was refined or coarsened, silently. (Thule: the 50 km
+% mesh was refined, the 25 km mesh was not.) Three changes:
+%
+%   - The fallback that sets all target sizes to CtrlVar.MeshSize when no criterion applied (all target sizes equal to MeshSizeMax) now also
+%     recognises a NaN MeshSizeMax (NaN==NaN is false).
+%   - Nodes still without a finite target size keep their current size (size ratio 1: neither refined nor coarsened); the function no
+%     longer returns NaN target sizes.
+%   - The refinement and coarsening thresholds are taken from the finite ratios only. With all ratios finite they are the same as before.
+%
+% Thule: the 50 km mesh is refined exactly as before (12052 elements, 6081 nodes); the 25 km mesh is now refined with MeshSizeMax=NaN, and
+% identically to a run with MeshSizeMax=MeshSize (29810 elements, 15005 nodes).
+%
+% * Inverse problem with the element-wise kH (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
+%
+% The gradient and Hessian calculations of the inverse problem now use the same grounding-line mask at the integration points as the
+% forward uv assembly, ie the element-wise kH (CtrlVar.kHElementAlpha>0, default 0.02), so that they are consistent with it:
+%
+%   - IntegrationPointkH.m (new): kH for the grounding-line mask at the integration points, F.kHElement if set, otherwise calculated
+%     from F (ElementWisekH.m), or the scalar CtrlVar.kH if CtrlVar.kHElementAlpha=0. Used by the uv assemblies (vectorised and compiled),
+%     the compiled uvh assembly, and the routines below.
+%   - Gradients and sensitivities: dIdCq.m, dIdBqGeneral.m, dFuvdC.m, dFuvdBGeneral.m. Hessian terms: FCC.m, FCuv.m, Fqq.m, FBC.m, FBB.m,
+%     FBuv.m and WeertmanSecondOrderDerivatives.m (new optional input kHe). The water-depth mask (HeHint, as Hposint in the uv assembly)
+%     and the nodal geometry (dGeometrydB.m, bFunc.m, Calc_bs_From_hBS.m) keep the scalar kH. dIdAq.m does not involve the mask.
+%   - HeavisideApprox.m and DiracDelta.m: k.*(x-x0) instead of k*(x-x0), so that k can be an array of the size of x (identical for
+%     scalar k).
+%   - InvertForModelParameters.m: kH_e is evaluated once, from the thickness and bed at the start of the inversion, and kept fixed during
+%     the inversion (it is not differentiable with respect to B; in B inversions it is not updated as B, and with it h over grounded areas,
+%     changes). After the inversion it is recalculated from the final geometry before the next uv solve. Inversions previously used the
+%     scalar kH (CtrlVar.kHElementAlpha was set to zero).
+%   - calcVerticalSurfaceVelocity.m: element-wise kH, from its nodal input fields.
+%   - TestInverseHessianEndToEnd.m: new options kHElementAlpha and kH; kH_e is kept fixed during the test, as during an inversion.
+%
+% Since HeavisideApprox.m and DiracDelta.m are compiled into the MEX kernels, all MEX variants were rebuilt.
+%
+% Tests (TestInverseHessianEndToEnd.m, synthetic problem, cases A, C, A+C with velocity data, B and A+B+C with velocity and dh/dt data):
+% alpha=0: 5 of 5 passed. alpha=0.1 (kH_e<kH in 130 of 400 elements): 5 of 5 passed, gradients and Hessian with second-order convergence.
+% alpha=0.2 (kH_e<kH in 367 of 400 elements): with the default steps the A and C cases fail, but with smaller steps the adjoint gradient
+% agrees with finite differences to 1e-7 and the Hessian converges with second order: the cost function of this synthetic problem then
+% varies strongly in curvature over changes of about 0.1% in A or C, which the default steps do not resolve. (With a scalar kH of
+% comparable size, 0.26, all cases pass with the default steps; the origin of this non-linearity is not yet understood.)
+%
+% * Element-wise kH is the default, CtrlVar.kHElementAlpha=0.02 (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
+%
+% Cause of the non-convergence of the uvh Newton iteration in strongly transient phases with significant grounding-line migration (Thule
+% example): the grounding-line mask GF=HeavisideApprox(kH,h-hf) is evaluated at the integration points. If the range of h-hf over a
+% grounding-line element is much larger than the transition width 2/kH (Thule, 50 km mesh: about 1300 m against 2 m for kH=1), the
+% integration points practically never lie within the transition, and the mask is effectively a step function of the thickness at the
+% integration points. The residual is then nearly piecewise constant, with steep (smooth, but over about 1 m of thickness) transitions
+% where an integration point passes through the transition. When a few integration points lie within the transition, the discrete
+% problem may have no root near the iterate, only a local minimum of the residual norm (shown with fsolve: first-order optimality to
+% 5e-6 at |f|^2=2e-7). Newton, kH continuation, linear rheology in ice-free areas, a regularised Jacobian and fsolve all stalled at the
+% same residual level. The Jacobian is exact (Taylor test), the linear solves are exact, and there is no round-off floor.
+%
+% With the element-wise kH (ElementWisekH.m, see the entries below), the uvh solves in the Thule example converge without time-step
+% reductions at all time steps up to dt=0.1 on all meshes tested (uniform 50, 25, 12.5 km; refined to 5.8, 2.9, 1.4 km at the grounding
+% line), where the scalar kH=1 needs reductions on all of them; Newton iterations are 20-35% lower, and in a mesh-convergence test the
+% element-wise and the scalar kH converge to the same solution (0.1-0.2 m rms difference on the finest meshes). In Greenland (real A and
+% C, MAR mass balance, dt=0.2-1) both converge; the element-wise kH needs 4-22% fewer Newton iterations, with the same thickness accuracy
+% and a systematic speed difference of about 1.75 m/yr rms, at a few grounding-line nodes.
+%
+% CtrlVar.kHElementAlpha=0.02 is therefore the default. This changes results slightly near grounding lines compared with earlier versions.
+% Set CtrlVar.kHElementAlpha=0 to use the scalar kH everywhere, as before. A grounding-line fallback (the element-wise kH only in time
+% steps in which the solve with the scalar kH stagnates, CtrlVar.uvhGLFallback), implemented earlier the same day, has been removed again:
+% with the element-wise kH as the default it is not needed. If a uvh solve does not converge, the time step is reduced as before.
+%
+% * Compiled uv and uvh kernels with the element-wise kH (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
+%
+% The compiled uv and uvh kernels (uvElementKernel.m, uvhElementKernel.m and their entry points uvKernelFull/Ronly.m and
+% uvhKernelFull/Ronly.m) take the element-wise kH as a new last input, kHv (Nele x 1), used for the grounding-line mask at the
+% integration points (the nodal mask and Hposint keep the scalar kH). uvMatrixAssemblyCompiled.m and uvhMatrixAssemblyCompiled.m pass
+% kHv as the vectorised assemblies do (from F.kHElement or F0.kHElement if set, otherwise from ElementWisekH.m; kH for all elements if
+% CtrlVar.kHElementAlpha=0, which leaves the arithmetic unchanged). CompiledAssemblyCheck.m no longer excludes CtrlVar.kHElementAlpha>0.
+% All eight uv and uvh MEX variants rebuilt (BuildUaCompiled.m). TestUaCompiled.m: new tests testUvhElementWisekH and testUvElementWisekH
+% (compiled against vectorised assembly, kH_e calculated and taken from the field; the element-wise kH changes the residual).
+% Regression tests: 90 of 90 passed.
+%
+% Run times with the element-wise kH (alpha=0.02), compiled against vectorised: Thule (refined mesh, 42706 nodes, dt=0.1) 55.5 s
+% against 139.5 s (results identical to round-off), Greenland (56070 nodes, dt=1, t=0-6) 138.3 s against 476.7 s. Both are now faster
+% than with the scalar kH (113.0 s and 169.4 s), owing to fewer Newton iterations and no time-step reductions.
+%
+% * Element-wise kH in the uv solver, computed once per time step (1 November 2026) [superseded by the nodal transition length of 2 November 2026, see above]:
+%
+% The element-wise kH (CtrlVar.kHElementAlpha>0) is now defined in one place, ElementWisekH.m (from a state F) and ElementWisekHFromNodal.m
+% (from the nodal values of h-hf of each element), and used by both the uvh and the uv assemblies:
+%
+%   - At the start of each time step (uvhRootFinding.m, uvhSemiImplicit.m), kH_e is evaluated from the state at the start of the time step
+%     and stored in the new element field F.kHElement (Nele x 1; [] if CtrlVar.kHElementAlpha=0). The uv solves of -uv-h- use it, so that
+%     -uvh- and -uv-h- solve the same discrete problem (Thule, alpha=0.02: the two schemes agree at t=1.5 to within 5 mm rms in thickness).
+%   - uvMatrixAssemblySSTREAM.m: the grounding-line mask at the integration points uses kH_e (from F.kHElement if set, otherwise from the
+%     current thickness, eg in diagnostic uv solves). The uv Jacobian remains consistent (Taylor test: second order).
+%   - The nodal mask (Calc_bs_From_hBS.m) keeps the scalar kH.
+%   - Inversions use the scalar kH (InvertForModelParameters.m sets CtrlVar.kHElementAlpha=0 with a message): the element-wise kH is not yet
+%     implemented in the adjoint and gradient calculations.
+%   - The compiled uv and uvh kernels do not yet support the element-wise kH (the vectorised assembly is used, CompiledAssemblyCheck.m), nor
+%     does the spmd uv assembly (the sequential assembly is used, uvMatrixAssembly.m).
+%   - F.kHElement is reset on mesh changes (MapFbetweenMeshes.m) and before diagnostic uv solves in Ua2D.m.
+%   - CtrlVarValidityCheck.m: CtrlVar.kHElementAlpha must be finite and non-negative; a warning is given if it is larger than 0.5.
+%
+% With CtrlVar.kHElementAlpha=0 results are unchanged (regression tests, Greenland -uvh- and -uv-h- bit-identical).
+%
+% Tests of the element-wise kH used throughout (alpha=0.02), against the scalar kH=1:
+%   - Thule (fixed calving front), mesh convergence on uniform (50, 25, 12.5 km) and refined meshes (5.8, 2.9, 1.4 km at the grounding line):
+%     the two converge to the same solution; on the finest meshes they differ by 0.1-0.2 m rms in thickness, against discretisation errors
+%     of 60-120 m rms on the coarser meshes. With dt=0.1 the scalar kH needs time-step reductions on all meshes, the element-wise kH none.
+%     Newton iterations per time step are 20-35% lower with the element-wise kH.
+%   - Greenland (real A and C, MAR mass balance, nx150), dt=0.2-1, t=0-6: all converge with both; 4-22% fewer Newton iterations with the
+%     element-wise kH; thickness equally accurate (rms 0.4/0.1/0.03 m against dt=0.05 for dt=1/0.5/0.2); a systematic speed difference of
+%     about 1.75 m/yr rms, concentrated at a few grounding-line nodes.
+%
+% * uvh solver: grounding-line fallback with element-wise kH (1 November 2026) [removed again later the same day, see above]:
+%
+% Cause of the non-convergence of the uvh Newton iteration in strongly transient phases with significant grounding-line migration (Thule
+% example): the grounding-line mask GF=HeavisideApprox(kH,h-hf) is evaluated at the integration points. If the range of h-hf over a
+% grounding-line element is much larger than the transition width 2/kH (Thule, 50 km mesh: about 1300 m against 2 m for kH=1), the
+% integration points practically never lie within the transition, and the mask is effectively a step function of the thickness at the
+% integration points. The residual is then nearly piecewise constant, with steep (smooth, but over about 1 m of thickness) transitions
+% where an integration point passes through the transition. When a few integration points lie within the transition, the discrete
+% problem may have no root near the iterate, only a local minimum of the residual norm (shown with fsolve: first-order optimality to
+% 5e-6 at |f|^2=2e-7). Newton, kH continuation, linear rheology in ice-free areas, a regularised Jacobian and fsolve all stalled at the
+% same residual level. The Jacobian is exact (Taylor test), the linear solves are exact, and there is no round-off floor.
+%
+% New: element-wise kH for the mask at the integration points of the uvh assembly (uvhAssemblyIntPointImplicitSUPG_v2.m),
+%
+%   kH_e = min(CtrlVar.kH, 2/(CtrlVar.kHElementAlpha*range of h-hf over the element)),
+%
+% with the range taken from the thickness at the start of the time step, so that kH_e is fixed during the Newton solve. The derivative
+% (deltaint) is evaluated with the same kH_e, so the Jacobian stays consistent (Taylor test: second order). Where the mesh resolves the
+% transition, kH is unchanged; under mesh refinement the mask converges to that with the scalar kH. The nodal mask (lower surface,
+% Calc_bs_From_hBS.m) keeps the scalar kH. With kHElementAlpha=0 (default) the assembly is unchanged.
+%
+% Grounding-line fallback (uvhRootFinding.m, on by default): if a uvh solve does not converge (and is neither an early exit on negative
+% thickness nor a stall below CtrlVar.uvhStalledForceTolerance), the step is solved again, once, from the stalled iterate with
+% kHElementAlpha=CtrlVar.uvhGLFallback.Alpha, before the time step is reduced. If this succeeds, the element-wise kH is kept for the
+% remaining solves of this time step only; otherwise the time step is reduced as before, with the scalar kH. The compiled uvh kernel does
+% not support the element-wise kH; the fallback solves use the vectorised assembly (CompiledAssemblyCheck.m). New options:
+%
+%   CtrlVar.kHElementAlpha=0;             % >0: always use the element-wise kH (uvh assembly)
+%   CtrlVar.uvhGLFallback.isOn=true;
+%   CtrlVar.uvhGLFallback.Alpha=0.05;
+%
+% and RunInfo.Forward.uvhGLFallbackUsed (last time step) and RunInfo.Forward.uvhGLFallbackCount (number of time steps).
+%
+% Thule example (fixed calving front and mesh, t=0.5 to 1.5, kH=1, -uvh-): with the fallback, all time steps up to dt=0.25 converge without
+% time-step reductions (previously: reductions at all dt>=0.025); the fallback was used in 2 of 4 (dt=0.25), 5 of 10 (0.1), 6 of 20 (0.05)
+% and 1 of 40 (0.025) steps. Differences from a reference (kH=1, dt=0.005) at t=1.5 are as small as those of -uv-h- with kH=1 at the same
+% time step (rms thickness, dt=0.025: 1.08 m against 0.97 m; dt=0.1: 4.0 m against 4.8 m; dt=0.25: 9.2 m against 12.5 m). With the
+% element-wise kH used throughout (kHElementAlpha=0.05), there is a systematic deviation of about 3.5 m rms. Greenland (-uvh-, dt=0.1),
+% where all solves converge, is bit-identical (fallback not used).
+%
+% * Convergence criteria of the uvh, uv, h and level-set solvers depend on rForce only, with the same logic (1 November 2026):
+%
+% uvhResidualsCriteria.m, used by the implicit uvh solver and for the outer uv-h iteration, now decides on the force residual rForce alone:
+%
+%   CtrlVar.uvhDesiredForceTolerance=1e-15;     % convergence
+%   CtrlVar.uvhAcceptableForceTolerance=1e-6;   % acceptance of a stagnated solve, or of one ended by a short backtracking step
+%
+% Previously, the work residual rWork also entered: CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8] required rWork<1 or rForce<1e-8
+% for acceptance, in addition to rForce<1e-6. rWork contains the Newton step, which becomes very large at nearly singular modes of the
+% Jacobian (eg weakly determined velocities of floating, nearly ice-free areas behind a calving front), and is returned as NaN (and then
+% set to zero) by the line search whenever the accepted step is not a Newton step. Whether a stalled solve was accepted, or the time step
+% halved, therefore depended on which line-search branch produced the last step (Thule example: a solve stalled at rForce=3e-7 after a
+% Newton step was rejected and the time step halved; one stalled at rForce=5e-7 after a fallback step was accepted, and its solution was
+% as accurate as that obtained with two half-steps). The acceptable tolerance 1e-6 is now the same as CtrlVar.uvhStalledForceTolerance in
+% uvhRootFinding.m. The fields CtrlVar.uvhDesiredWorkAndForceTolerances, CtrlVar.uvhDesiredWorkOrForceTolerances,
+% CtrlVar.uvhAcceptableWorkAndForceTolerances and CtrlVar.uvhAcceptableWorkOrForceTolerances are no longer used; if a run sets them, the
+% force entries of the *WorkAndForceTolerances fields are taken over, with a warning (CtrlVarValidityCheck.m). The corresponding criteria
+% for the h and level-set equations were changed in the same way, see below.
+%
+% The same change for the h equation (MassContinuityEquationNewtonRaphson.m, SSHEET_TransientImplicit.m), the level-set equation
+% (LevelSetEquationNewtonRaphson.m) and the uv equations (uvResidualsCriteria.m, SSTREAM2dNR2.m): the criteria depend on rForce only, with
+% new tolerances CtrlVar.hDesiredForceTolerance=1e-10, CtrlVar.hAcceptableForceTolerance=1e-6, CtrlVar.LSFDesiredForceTolerance=1e-12,
+% CtrlVar.LSFAcceptableForceTolerance=1e-10, CtrlVar.uvDesiredForceTolerance=1e-15 and CtrlVar.uvAcceptableForceTolerance=1e-15, and the
+% previous fields taken over with a warning if set. All solvers now follow the same logic as the uvh solver: the desired tolerance is
+% required while the Newton iteration makes normal progress, and the acceptable tolerance is used if it makes poor progress (short or
+% failed backtracking step, stagnation). In MassContinuityEquationNewtonRaphson.m and LevelSetEquationNewtonRaphson.m this was the other way
+% round (the stricter tolerance with poor progress, contrary to the comments in the code). In the h solver, the hard-wired test for
+% continuing while still converging quadratically uses rForce>1e-15 instead of rWork>1e-20. The uv solver (SSTREAM2dNR2.m) now, as the uvh
+% solver, accepts a solution after failed backtracking if rForce is below the acceptable tolerance (previously always non-convergence),
+% and detects stagnation (r/r0>0.98 in three successive iterations; previously the iteration continued to CtrlVar.NRitmax). The uv
+% acceptable tolerance is kept at 1e-15 (unlike uvh), since uv solves are also used in inverse runs, where the adjoint requires a converged
+% forward solution.
+%
+% Tests: h equation, replaying all 936 convergence checks of the h solves in three uv-h runs (Greenland with uniform and with inverted A
+% and C, Thule), the new criteria make identical decisions; Greenland -uvh- and -uv-h- runs (dt=0.1) are bit-identical. Level-set equation:
+% after the first Newton iteration rForce is about 1e-13; whether a second iteration followed was previously decided by rWork alone (in
+% 177 of 206 solves of a Thule run with a moving calving front). Now all level-set solves converge after one iteration. Thule example,
+% t=0 to 0.1: level-set iterations 77 -> 51; time steps, uvh Newton iterations and uvh residuals unchanged.
+%
+% * uv-h outer iteration: divergence detection, and multipliers that match the active set (31 October 2026):
+%
+% uvhSemiImplicit.m: (1) The multipliers of the thickness constraints returned by the h solve belong to the active set of its last
+% solve. If the active set was changed after that solve (the active-set loop of the h solve left at its maximum number of iterations,
+% ActiveSetConverged=0, or deferred releases), they did not match BCs1, and the convergence test failed with an error in
+% CalcCostFunctionNRuvh.m ("Incorrect dimensions for matrix multiplication"). They are now reset (solved for again in the next h
+% solve), and such an outer iteration is not counted as converged. (2) If the residual of the outer iteration is not finite or grows by
+% more than CtrlVar.uv2h.DivergenceFactor (new, default 1e3) above its smallest value (from the third outer iteration on), the outer
+% iteration is stopped as diverged, and the iterate with the smallest residual is returned as not converged (RunInfo.Forward.uvhDiverged
+% =true). Greenland nx150 with the inverted A and C, dt=1: the uv-h iteration diverges (rForce from 13 to 1e22, h down to -3675 m) and
+% previously ended with the error above after 420 s; now stopped after 5 outer iterations. Converging runs are unchanged (bit-identical).
+%
+% * Active-set method: cumulative release criterion for thickness constraints (31 October 2026):
+%
+% A node constrained to the minimum thickness (h>=ThickMin) was released only if, without the constraint, the ice there would thicken
+% by more than ReleaseAlpha*ThickMin within one time step. As a rate, this threshold is ReleaseAlpha*ThickMin/dt, so that slow
+% accumulation on ice-free ground was suppressed, the more so the smaller the time step: with ReleaseAlpha=1e-3 and ThickMin=1 m, all
+% accumulation below 1 m/yr was suppressed at dt=0.001. (Greenland, nx150, MAR mass balance: 84% of the ice-free nodes with positive
+% mass balance were held at ThickMin at dt=0.001, against 54% at dt=0.01.)
+%
+% The default is now a cumulative criterion, CtrlVar.ActiveSet.ReleaseRule="cumulative": for each constrained node, the net thickening
+% that the constraint has suppressed since the node became constrained is accumulated over time steps, as the new nodal field
+% F.hSuppressedThickening (S, units of distance; S <- max(0, S-ah*dt) once per accepted time step, with ah the equivalent mass-balance
+% rate of the constraint, see UpdateSuppressedThickening.m), and the node is released once max(0,S-ah*dt) > ReleaseAlpha*ThickMin. This
+% does not depend on the time step: accumulation, however small, always leads to the release of the node eventually (after the ice
+% would have grown by ReleaseAlpha*ThickMin, ie 1 mm with the defaults), while round-off contributions of alternating sign, the reason
+% for ReleaseAlpha>0, do not accumulate. S is capped at the release threshold, is saved in restart files, and is mapped onto new meshes
+% (MapFbetweenMeshes.m). The default value of ReleaseAlpha (1e-3) is unchanged; its exact value is much less important now. The previous
+% rule can be selected with CtrlVar.ActiveSet.ReleaseRule="per-step".
+%
+% Greenland, nx150, MAR mass balance, -uvh-: with the cumulative rule, 42.5% of the ice-free nodes with positive mass balance are held at
+% ThickMin at both dt=0.01 and dt=0.001 (the remainder lose more ice by outflow than they gain), and the ice thickness at t=0.5 differs
+% by at most 7 mm between the two time steps, and by at most 4 mm from runs without any release threshold (ReleaseAlpha=0), which,
+% however, release many nodes in ablation areas on round-off (25% of them, against 8% with the cumulative rule) at a much higher cost.
+% Files: UaFields.m (new property hSuppressedThickening), UpdateSuppressedThickening.m (new), ActiveSetUpdate.m (release rule; the nodal
+% rates ah of the last active-set update of each time step are kept in RunInfo.Forward.ActiveSetah, as BCs and l need not match at the
+% end of a time step with deferred releases), uvhRootFinding.m and MassContinuityEquationNewtonRaphsonThicknessContraints.m (reset of
+% ActiveSetah per time step), Ua2D.m (update once per accepted time step, -uvh- and -uv-h-), MapFbetweenMeshes.m (mapping, with a message
+% for InfoLevelAdaptiveMeshing>=1), Ua2D_DefaultParameters.m. Tested: Greenland dt=0.01 and 0.001 (-uvh-), dt=0.01 (-uv-h-), a uniform
+% mass balance of 1 m/yr at dt=0.001 (ice-free ground now thickens as at dt=0.0025), restart at t=0.25 (equal to round-off), Thule with
+% deferred releases, mesh adaptation and adaptive time stepping.
+%
+% * ABfgPreEliminate.m: fast path for constraints that each fix one unknown (31 October 2026):
+%
+% The constrained system is solved as Atilde x = btilde, with Atilde=Q*A+B'B, Q=I-B'B (after scaling A). In the usual case, each row
+% of B has a single entry (+-1), ie each constraint fixes one unknown (fixed values, active thickness constraints); then Q is
+% diagonal, and Q*A only sets the rows of the constrained unknowns to zero. With PARDISO, and without a decomposition being reused,
+% Atilde and btilde are now formed directly (elementwise multiplication with a 0/1 vector, plus a diagonal), without scaling A, and
+% with the scale of the identity rows taken from the diagonal entries of the constrained rows only. Otherwise (eg ties between
+% unknowns, MATLAB's decomposition, distributed arrays) the previous general path is used unchanged.
+% Greenland nx150 uvh system (168,210 unknowns, 3.5 million nonzeros, 409 constraints): forming Atilde and btilde 110 -> 54 ms per
+% call; x and y equal to the previous version to rounding errors (6e-16, 2e-16); general path and MATLAB solver bit-identical.
+% Greenland run with -uvh- (nx150, dt=0.01, 50 steps): time steps 118.8 -> 111.0 s, results equal to 6e-12 m. -uv-h-: no measurable
+% change (the h systems are smaller). Regression test: 88 of 88 pass.
+%
+% * CtrlVar.Parallel.BuildWorkers now true by default (31 October 2026):
+%
+% BuildMuaWorkers.m builds the worker data for the spmd assembly (MUA.workers) only if CtrlVar.Parallel.BuildWorkers=true. The default
+% was false, and Ua2D.m set it to true ahead of each uv and uvh solve (five places), so that the worker data were not built for every
+% mesh. Since 26 October 2026, UpdateMUA.m only builds them when needed (spmd on, a pool open, and the mesh, element type or pool
+% changed; see MuaWorkersKey.m), so this is no longer necessary. Changes:
+%   - Ua2D_DefaultParameters.m: CtrlVar.Parallel.BuildWorkers=true.
+%   - Ua2D.m: the five lines setting it to true removed. (AdaptMesh.m and AdaptMesh2025.m still set it to false locally, so that no
+%     worker data are built for the intermediate meshes.)
+%   - BuildMuaWorkers.m: uses gcp('nocreate') and builds nothing if no pool is open (gcp would have created one, eg when called from
+%     CreateMUA.m).
+%   - uvhMatrixAssemblySSTREAM_SPMD.m: if there are no worker data, the assembly is done serially, as in uvMatrixAssemblySSTREAM_SPMD.m,
+%     instead of failing (eg when spmd is used outside Ua2D.m without the worker data having been built).
+% Thule (0.01 yr, initial mesh adaptation, level set) with spmd for uv and uvh: results bit-identical to the previous code, same
+% iterations as serial; the worker data are now also built once for the initial mesh ahead of the mesh adaptation (one extra build
+% per run, about 0.9 s here).
+%
+% * spmd versions of the uv and uvh assembly: less overhead per call (31 October 2026):
+%
+% Measured on Greenland nx150 (111,000 elements, 4 workers), one uv assembly with spmd took 320-334 ms (serial: 589 ms), of which
+% about half was the workers' assembly and half overhead: computing the fingerprint of the fields (16-18 ms; uvh 29-32 ms), fetching
+% the results (18 ms), waiting for the slowest worker (up to 27 ms), summing the sparse matrices (about 20 ms), and starting,
+% synchronising and ending the spmd block (45-54 ms). Changes:
+%   - SPMDFieldsFingerprint.m: the weights are kept between calls and the weighted sums are dot products (the careful treatment of
+%     non-finite values only where needed): 16-18 -> 4-6 ms (uv), 29-32 -> 7-8 ms (uvh, F0 and F1).
+%   - uvMatrixAssemblySSTREAM_SPMD.m, uvhMatrixAssemblySSTREAM_SPMD.m: worker 1 packs all summed results into one structure, which
+%     the client fetches in a single access of the Composite (each access costs about 5 ms): 9-18 -> 6 ms. The three residual vectors
+%     of the uv assembly are summed in a single spmdPlus.
+% Saving about 25 ms per call (uv full 334 -> 300 ms, residual only 195 -> 176 ms). Results unchanged (spmd against serial: to
+% rounding errors, also with ZeroFields and the lumped nodal penalty; Thule run with spmd: same iterations as serial). Tried and not
+% kept: summing the matrix values as one dense vector on the global pattern (one spmdPlus for everything); slower, as the dense vector
+% carries the whole pattern and building the sparse matrix on the client (sparse) costs 30-50 ms. With the compiled assembly, spmd is
+% not needed (and not used); these changes matter only where the compiled assembly is not available.
+%
+% * Regression test of the compiled assembly: h tests added to the regression test (31 October 2026):
+%
+% UaCompiled/Tests/TestUaCompiled.m now also tests the compiled h assembly (tests testH*; 88 tests in all, about 27 s): f0 (a full
+% vector) and K compared with the vectorised h assembly for level-set feedback, thickness penalty (at integration points and nodal),
+% constrained nodes, mass-balance geometry feedback, all SUPG tau options, linear, quadratic and cubic elements and quadrature rules
+% with 1 to 33 points, full and residual only, each time first checking that the compiled path is used; the fallback outside the
+% compiled range and when dFdt is requested (identical results); one non-linear h solve with MassContinuityEquationNewtonRaphson.m
+% (same iterations and solution); complex-valued input is an error. testBuildInformation covers all 13 MEX files. All 88 pass. A
+% deliberate change of 1e-6 in the SUPG parameter of the vectorised h assembly only made 18 of the 23 h tests fail (all assembly
+% comparisons except tau0).
+%
+% * Compiled h assembly (31 October 2026):
+%
+% CtrlVar.hMatrixAssembly.CompiledKernel=true (default false; a third switch, besides those for the uv and uvh assembly) makes
+% MassContinuityEquationAssembly.m (the h assembly, used by the uv-h scheme and by MassContinuityEquation.m) assemble f0 and K with a
+% compiled element-based kernel (UaCompiled/hElementKernel.m, entry points hKernelFull.m and hKernelRonly.m, MATLAB side
+% hMatrixAssemblyCompiled.m), in the same way as the compiled uv and uvh assembly. The common preparation (mass-balance geometry
+% feedback, level-set mask, constrained nodes) and the lumped nodal thickness penalty stay in MassContinuityEquationAssembly.m and are
+% shared with the vectorised assembly. Not used if dFdt is requested (nargout=4). CompiledAssemblyCheck.m now also handles "h";
+% BuildUaCompiled.m builds the h variants (hFull, hRonly, hFull_n3i6, hRonly_n3i6) as well. Complex-valued input is an error.
+% Results equal to the vectorised assembly to rounding errors (at most 4e-13 relative; 2e-12 with SUPG tau1) for level-set feedback,
+% thickness penalty (at integration points and nodal), constrained nodes, mass-balance geometry feedback, all tau options, linear and
+% cubic elements; fallback with a message outside the compiled range and without an h assembly pattern. Greenland nx150: full
+% assembly 180 -> 19.8 ms, residual only 131 -> 7.2 ms; h solves (Greenland nx150) 0.9 -> 0.35-0.45 s each, thickness equal to 1e-12 m.
+% Greenland forward run (nx150, uv-h, 20 time steps), with the compiled uv, uvh and h assembly: same iterations in all time steps
+% as with the vectorised h assembly, solution equal to 1e-15 relative; h assembly (332 calls) 45.3 -> 5.5 s, h solver 56.6 -> 16.9 s,
+% whole run 149.1 -> 108.2 s (profiled; 313.6 s with the vectorised uv assembly with spmd and the vectorised h assembly).
+%
+% * h assembly with a cached assembly pattern, residual as a full vector (31 October 2026):
+%
+% MassContinuityEquationAssembly.m (the h assembly, used by the uv-h scheme and MassContinuityEquation.m) now builds K (and dFdt) with a
+% cached assembly pattern, MUA.hAssemblyPattern, as the uv and uvh assemblies do, and returns the residual f0 as a full vector
+% (accumarray) instead of a sparse one (no caller depends on it being sparse). The element matrices are accumulated as K(e,j,i), as the
+% pattern expects. AssemblyPatternCache.m has a third output, hAssemblyPattern (one field, one block; switched by
+% CtrlVar.MUA.AssemblyPattern.h, default true); CreateMUA.m and UpdateMUA.m create and update it like the other two, including for
+% meshes read from files written before it existed. If MUA has no h pattern, the assembly creates it in each call, with a warning.
+% Results: 108 of 108 outputs equal to rounding errors (largest relative difference 2.7e-16). Greenland nx150 (110,976 elements):
+% full assembly 237 -> 173 ms, residual only 141 -> 128 ms. Greenland forward run (nx150, uv-h, 20 time steps): same iterations,
+% solution equal to 1e-15 relative; h assembly 62.1 -> 45.3 s, whole run 163.9 -> 149.1 s.
+% MassContinuityEquationNewtonRaphson.m now passes MUA.hAssemblyPattern to solveKApe.m as the structural pattern for PARDISO, as the
+% uv and uvh solvers do, so that the analysis is done once per mesh whatever the pattern of the individual matrices. (Before, the
+% learned pattern of the first matrix was used; for the Greenland run this also gave a single analysis.) Four h solves (Greenland
+% nx150): one analysis, four factorisations, no pattern extensions, thickness bit-identical to before.
+%
+% * Mass balance at integration points removed (31 October 2026):
+%
+% CtrlVar.MassBalance.Evaluation="-int-" (evaluating the mass balance at integration points, by calling DefineMassBalance.m there) is
+% no longer available, and CtrlVar.MassBalance.Evaluation is no longer defined in Ua2D_DefaultParameters.m. The mass balance is
+% always evaluated at the nodes. The option was only implemented in the h assembly (MassContinuityEquationAssembly.m, used by the uv-h
+% scheme and MassContinuityEquation.m), not in the uvh assembly, and was not used in any example or test. CtrlVarValidityCheck.m gives an
+% informative error for "-int-"; "-node-" is accepted and has no effect. MassContinuityEquationAssembly.m no longer gathers s, b, the
+% coordinates and GF at the nodes of each element (only needed for "-int-"). Results with nodal evaluation are unchanged: 108 of 108
+% outputs (residual, K, dFdt; Thule and synthetic states, with level-set feedback, thickness penalty, constrained nodes and mass-balance
+% geometry feedback) bit-identical. Not affected: CtrlVar.CalvingLaw.Evaluation="-int-" (calving law at integration points).
+%
+% * Compiled uv and uvh assembly: residual summed in the kernel (31 October 2026):
+%
+% The kernels (uvElementKernel.m, uvhElementKernel.m) now sum the element residuals into the nodal vectors Tint and Fext themselves,
+% in parallel over the rows, using the inverse of the assembly pattern's P.iR (rPtr, rIdx, computed once per mesh in
+% CompiledAssemblyPattern.m), instead of returning the element residuals for reordering and accumarray in uvMatrixAssemblyCompiled.m
+% and uvhMatrixAssemblyCompiled.m. The contributions are added in the same order as accumarray: all outputs are bit-identical to
+% before (112 of 112 compared, uv and uvh, all kernel variants). Greenland nx200: uv full 119 -> 100 ms, residual only 57 -> 38 ms;
+% uvh full 228 -> 186 ms, residual only 90 -> 58 ms. Regression test: 65 of 65 pass. All kernel MEX files rebuilt.
+%
+% * Regression test of the compiled assembly: uv tests added to the regression test (30 October 2026):
+%
+% UaCompiled/Tests/TestUaCompiled.m now covers both assemblies (results=runtests("TestUaCompiled"), 65 tests, about 22 s; the uvh
+% tests are now named testUvh*, the uv tests testUv*). The uv tests compare Ruv, Tint, Fext and Kuv of the compiled and the vectorised
+% uv assembly for all sliding laws (with and without melange), linear, quadratic and cubic elements and quadrature rules with 1 to 33
+% points, with and without ZeroFields, full and residual only (each time first checking that the compiled path is used, and that Ruv is
+% a full vector and Kuv exactly symmetric); further the fallback outside the compiled range, one uv solve with uv.m (same Newton
+% iterations and solution), and that complex-valued input is an error. All 65 pass. A deliberate change of 1e-6 in the effective
+% viscosity of the vectorised uv assembly only made 23 of the 25 uv tests fail (all but the fallback and complex-input tests).
+%
+% * Compiled uv assembly (30 October 2026):
+%
+% CtrlVar.uvMatrixAssembly.CompiledKernel=true (default false) makes uvMatrixAssemblySSTREAM.m assemble Ruv, Kuv, Tint and Fext with a
+% compiled element-based kernel (UaCompiled/uvElementKernel.m, entry points uvKernelFull.m and uvKernelRonly.m, MATLAB side
+% uvMatrixAssemblyCompiled.m), in the same way as the compiled uvh assembly (CtrlVar.uvhMatrixAssembly.CompiledKernel). As the switch is
+% in uvMatrixAssemblySSTREAM.m, it applies to all uv assemblies, including those called directly by the inverse code (adjoint). The
+% element matrices are summed into the nonzeros and symmetrised inside the MEX file. Not used within spmd workers
+% (uvMatrixAssemblySSTREAM_SPMD.m switches it off there). Complex-valued inputs are errors.
+% Greenland nx200 (197,204 elements): full assembly 1,494 -> 127 ms, residual only 806 -> 56 ms. Results equal to the vectorised
+% assembly to rounding errors for all sliding laws, with and without melange, linear, quadratic and cubic elements, with and without
+% ZeroFields; Thule run (0.01 yr, mesh adaptation): same uv and uvh Newton iterations, solution equal to 1e-15 relative.
+% Greenland inversion (nx100, A, B, C, 2 iterations) with the compiled uv assembly against the vectorised one (with spmd): identical
+% cost function history (J, I, R), estimates equal to 1e-16, gradients (adjoint) to 3e-14; wall time 42.3 -> 27.6 s. Greenland forward
+% run (nx150, 110,976 elements, uv-h scheme, 20 time steps): same iterations in all time steps, solution equal to 1e-15 relative; initial
+% uv solve 24.3 -> 10.0 s, whole run 307 -> 168 s.
+% Threads (OMP_NUM_THREADS), Greenland nx200, full / residual-only uv assembly: 1: 1,065 / 524 ms; 4: 361 / 172; 8: 204 / 108;
+% 16: 135 / 74; 32 (default): 112 / 55 ms (vectorised, serial: 1,494 / 806 ms).
+% Profiles: inversion nx100: uv assembly 16.3 s (spmd) -> 3.4 s, whole run 45.2 -> 29.2 s; the largest item is then
+% WriteAdjointRestartFile (10 s). Forward run nx150 (uv-h, 20 time steps): uv assembly (593 calls) 166.5 s (spmd, of which 133.6 s
+% spmd machinery) -> 29.8 s, whole run 313.6 -> 168.7 s; the largest item is then the (not compiled) h assembly
+% MassContinuityEquationAssembly (59 s). Of the 29.8 s, about 8 s are the summation of the residual on the MATLAB side
+% (uvMatrixAssemblyCompiled.m), which could be done in the kernel.
+%
+%   - CompiledAssemblyCheck.m (replaces uvhCompiledKernelCheck.m) decides for both assemblies (third input "uv" or "uvh") whether
+%     the compiled assembly can be used; messages, up-to-date check and switching off after a failure are separate for uv and uvh.
+%   - CompiledAssemblyPattern.m (replaces uvhCSCPattern.m) gives the per-mesh data for both, with one cache entry per assembly.
+%   - BuildUaCompiled.m builds the uv variants (uvFull, uvRonly, uvFull_n3i6, uvRonly_n3i6) as well; UaCompiledBuildInfo.m records
+%     the source files per kernel.
+%   - Ua2D_DefaultParameters.m: CtrlVar.uvMatrixAssembly.CompiledKernel, CtrlVar.uvMatrixAssembly.Ronly and
+%     CtrlVar.uvAssembly.ZeroFields now have defaults (the latter two were always set by the callers).
+%   - uvMatrixAssemblySSTREAM.m: CtrlVar.uvAssembly.SkipSymmetrisation and the special case for complex-step differentiation removed;
+%     the tangent matrix is always symmetrised.
+%
+% * uvMatrixAssemblySSTREAM.m: the uv residual now full (30 October 2026):
+%
+% Tint and Fext, and so Ruv (and fext0 in SSTREAM2dNR2.m), are now full vectors (accumarray), as in uvhMatrixAssembly.m; they were
+% sparse vectors with almost all entries non-zero. No caller depends on them being sparse. The values change at the level of
+% rounding errors only (order of summation). Greenland nx200 (197,204 elements): full assembly 1,639 -> 1,457 ms, residual only
+% 914 -> 751 ms; Kuv bit-identical. Thule run (0.01 yr, with mesh adaptation): same uv and uvh Newton iterations in all time steps,
+% solution equal to 1e-15 relative. Greenland inversion (nx100, uv assembly with spmd): identical cost function history, estimates
+% of A, B and C bit-identical.
+%
 % * Regression test of the compiled uvh assembly: UaSource/UaCompiled/Tests/TestUaCompiled.m (26 October 2026):
 %
 % A matlab.unittest class, run with results=runtests("TestUaCompiled"). It builds a small synthetic state itself (grounded and

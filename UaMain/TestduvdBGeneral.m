@@ -60,7 +60,7 @@ function TestduvdBGeneral(CtrlVar,MUA,F,BCs,l,Nodes,dB,doPlots)
 %   Nodes     optional. Nodes at which the finite-difference test is done. If empty, nodes are selected automatically
 %             as described above.
 %   dB        optional, default 0.01 m. The finite-difference step. Note that the grounding-line transition has a
-%             width of order 1/CtrlVar.kH, and the step must be small compared with that: a step of 1 m gives
+%             width of order 1/1/CtrlVar.GroundingLineTransition.lmin, and the step must be small compared with that: a step of 1 m gives
 %             truncation errors of order 10 per cent at nodes near the grounding line.
 %   doPlots   optional, default false.
 %

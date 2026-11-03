@@ -4,6 +4,10 @@ function [UserVar,F,l,InvFinalValues,RunInfo]=...
 
 narginchk(11,11)
 
+% (2 Nov 2026) Inversions use the scalar transition length lmin of the grounding-line mask: the nodal transition length (F.lGL,
+% GroundingLineTransitionLength.m) depends on the time step and is only used in transient runs.
+F.lGL=[] ;
+
 %%
 %
 %

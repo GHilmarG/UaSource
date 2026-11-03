@@ -2,6 +2,8 @@
 
 function KdFuvdC=dFuvdC(CtrlVar,MUA,F)
 
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (2 Nov 2026) kH=1/l at the integration points (Nele x nip, or the scalar 1/lmin), consistent with the uv assembly
+
 %%
 %
 %
@@ -116,7 +118,7 @@ for Iint=1:MUA.nip
     % It is linear in S and B, but not in rho, so this is not the same as interpolating a nodal hf if rho varies horizontally.
     % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
     hfint=F.rhow*Hint./rhoint;
-    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
+    Heint = HeavisideApprox(kHe(:,min(Iint,end)),hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
 
 
     dtaudC=BasalDragdC(CtrlVar,Heint,hint,Hint,rhoint,F.rhow,F.g,uint,vint,Cint,mint,qint,mukint,V0int);   % (26 Oct 2026) dbeta/dC at the integration points, see BasalDragdC.m

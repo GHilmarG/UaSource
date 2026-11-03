@@ -3,6 +3,8 @@
 
 function K=dFuvdBGeneral(CtrlVar,MUA,F)
 
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (2 Nov 2026) kH=1/l at the integration points (Nele x nip, or the scalar 1/lmin), consistent with the uv assembly
+
 %% Calculates the sensitivity matrix
 %
 % $$ \partial F^{uv} / \partial B $$
@@ -161,11 +163,11 @@ for Iint=1:MUA.nip
     % Masks. Because the Heaviside is symmetrical, the complementary mask is 1-Heint and the complementary delta is
     % deltaint, so neither needs to be formed separately.
     hfint=F.rhow*Hint./rhoint;
-    Heint    = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-    deltaint = DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+    Heint    = HeavisideApprox(kHe(:,min(Iint,end)),hint-hfint,CtrlVar.Hh0);
+    deltaint = DiracDelta(kHe(:,min(Iint,end)),hint-hfint,CtrlVar.Hh0);
 
-    HeHint    = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0);
-    deltaHint = DiracDelta(CtrlVar.kH,Hint,CtrlVar.Hh0);
+    HeHint    = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),Hint,CtrlVar.Hh0);
+    deltaHint = DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),Hint,CtrlVar.Hh0);
     Hposint   = HeHint.*Hint;
 
     dint = (1-Heint).*rhoint.*hint/F.rhow + Heint.*Hposint ;

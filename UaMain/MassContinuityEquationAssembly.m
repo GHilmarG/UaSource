@@ -23,6 +23,8 @@ function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,Ctrl
 %
 %   K dh =-f0
 %
+% f0 is a full vector, K a sparse matrix built with the cached assembly pattern MUA.hAssemblyPattern (31 Oct 2026).
+%
 % dFdt is the matrix F in d deltah/dt = F deltah This matrix can be used to assess (linear) stability, from eigenvalues of
 % M\dFdt
 %
@@ -33,6 +35,7 @@ narginchk(6,7)
 nargoutchk(2,4)
 
 nOut=nargout;
+persistent WarnedNoPattern WarnedNoUaCompiled
 
 % Nodes with thickness boundary conditions or active thickness constraints (8 Oct 2026). These nodes are excluded from the
 % thickness penalty: with the integration-point penalty, elements containing such nodes are excluded, and with the nodal penalty
@@ -43,7 +46,6 @@ else
     hConstrainedNodes=[BCs1.hFixedNode(:);BCs1.hPosNode(:)];
 end
 PenaltyNodal=isfield(CtrlVar,"ThicknessPenaltyNodal") && CtrlVar.ThicknessPenaltyNodal ;
-PenaltyElementMask=~any(ismember(MUA.connectivity,hConstrainedNodes),2) ;   % Nele x 1, false for elements containing an h-constrained node
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
@@ -56,10 +58,9 @@ dt=CtrlVar.dt;
 % time step, and the derivative of the mass balance with respect to thickness is included in K (and dFdt). The derivative is
 % treated as a nodal quantity: a_int=sum_k N_k a_k(h_k), so that d a_int/d h_j = N_j da_j/dh_j (see dadhnod below).
 % For CtrlVar.MassBalanceGeometryFeedback=0 the mass balance is used as given, and no derivative is included.
-% If the mass balance is evaluated at integration points ("-int-"), it is evaluated there directly as a function of the
-% integration-point thickness, and the derivative is then an integration-point quantity (da1dhint) and dadhnod is zero.
-MassBalanceAtIntPoints=contains(CtrlVar.MassBalance.Evaluation,"-int-");
-if CtrlVar.MassBalanceGeometryFeedback==3 && ~MassBalanceAtIntPoints
+% (31 Oct 2026) The mass balance is always evaluated at the nodes (evaluation at integration points, CtrlVar.MassBalance.Evaluation="-int-",
+% has been removed).
+if CtrlVar.MassBalanceGeometryFeedback==3
     CtrlVar.time=CtrlVar.time+CtrlVar.dt;
     [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
     CtrlVar.time=CtrlVar.time-CtrlVar.dt;
@@ -71,6 +72,47 @@ end
 a1=F1.as+F1.ab;
 a0=F0.as+F0.ab;
 
+%% (31 Oct 2026) Compiled element-based assembly (UaSource/UaCompiled)
+%
+% If CtrlVar.hMatrixAssembly.CompiledKernel=true, and the options, the element type and the cached assembly pattern allow it (see
+% CompiledAssemblyCheck.m), f0 and K are assembled by hMatrixAssemblyCompiled.m (compiled kernel, parallelised over elements), from the
+% quantities prepared above (mass balance, its derivative). The results are the same as those of the vectorised assembly below to
+% round-off. The lumped nodal thickness penalty at the end of this routine is added for both. Not used if dFdt is requested (nargout=4),
+% or if UaCompiled is not on the path. If the MEX files themselves fail (UaCompiled:KernelFailed), the compiled kernel is switched off
+% for the rest of the session (with a message), and the vectorised assembly is used. Other errors are passed on.
+UseCompiledKernel=false ;
+if nOut<=3 && isfield(CtrlVar,"hMatrixAssembly") && isfield(CtrlVar.hMatrixAssembly,"CompiledKernel") && CtrlVar.hMatrixAssembly.CompiledKernel
+    if exist("CompiledAssemblyCheck","file")==2
+        [UseCompiledKernel,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"h") ;
+    elseif isempty(WarnedNoUaCompiled)
+        WarnedNoUaCompiled=true ;
+        fprintf(CtrlVar.fidlog,"hMatrixAssembly: CtrlVar.hMatrixAssembly.CompiledKernel=true, but UaSource/UaCompiled is not on the path. The vectorised assembly is used instead.\n") ;
+    end
+    if UseCompiledKernel
+        if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+            if isempty(F1.LSFMask)
+                F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+            end
+            LSFMaskNodes=F1.LSFMask.NodesOut ;
+        else
+            LSFMaskNodes=zeros(0,1) ;
+        end
+        hBCsMask=zeros(MUA.Nnodes,1) ; hBCsMask(hConstrainedNodes)=1 ;
+        try
+            [f0,K]=hMatrixAssemblyCompiled(CtrlVar,MUA,F0,F1,a0,a1,dadh,LSFMaskNodes,hBCsMask,nOut<=2,RK,KernelFull,KernelRonly) ;
+        catch ME
+            if ~strcmp(ME.identifier,"UaCompiled:KernelFailed")
+                rethrow(ME) ;
+            end
+            CompiledAssemblyCheck(CtrlVar,MUA,"h",ME) ;   % reports the failure, and switches the compiled kernel off for this session
+            UseCompiledKernel=false ;
+        end
+    end
+end
+
+if ~UseCompiledKernel   % vectorised assembly
+
+PenaltyElementMask=~any(ismember(MUA.connectivity,hConstrainedNodes),2) ;   % Nele x 1, false for elements containing an h-constrained node
 
 h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -89,20 +131,8 @@ vb1nod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 rhonod=reshape(F1.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-s0nod=reshape(F0.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-s1nod=reshape(F1.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-b0nod=reshape(F0.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-b1nod=reshape(F1.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
-cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
-
-GF0node=reshape(F0.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);
-GF1node=reshape(F1.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-
-Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
+Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);    % (31 Oct 2026) Khh(e,j,i) and dFdt(e,j,i): element, column node j, row node i, as the assembly pattern expects
 dFdt=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Rh=zeros(MUA.Nele,MUA.nod);
 
@@ -137,78 +167,11 @@ for Iint=1:MUA.nip  %Integration points
 
     
 
-    if  contains(CtrlVar.MassBalance.Evaluation,"-int-")
-
-
-        % This is not fully flexible as I have not implemented calculating the flotation mask at integration points
-        xint=coox*fun;  % coordinates of this integration point for all elements
-        yint=cooy*fun;
-
-        F0int.x=xint;  F0int.y=yint;
-        F1int.x=xint;  F1int.y=yint;
-
-        s0int=s0nod*fun;
-        s1int=s1nod*fun;
-
-        b0int=b0nod*fun;
-        b1int=b1nod*fun;
-
-
-        F0int.h=h0int;
-        F0int.s=s0int;
-        F0int.b=b0int;
-        F0int.rho=rhoint;
-        F0int.rhow=F0.rhow;
-        F0int.S=F0.S(1);
-
-        F1int.h=h1int;
-        F1int.s=s1int;
-        F1int.b=b1int;
-        F1int.rho=rhoint;
-        F1int.rhow=F1.rhow;
-        F1int.S=F1.S(1);
-
-        F0int.as=nan(size(F0int.h)) ;
-        F0int.ab=nan(size(F0int.h)) ;
-        F1int.as=nan(size(F1int.h)) ;
-        F1int.ab=nan(size(F1int.h)) ;
-
-        GF0nodInt=GF0node*fun;
-        GF1nodInt=GF1node*fun;
-
-        F0int.GF.node=GF0nodInt;
-        F1int.GF.node=GF1nodInt;
-
-        MUAint.Nnodes=numel(h0int);
-
-        if nargout("DefineMassBalance")==5
-            [UserVar,as1int,ab1int,dasdhint,dabdhint]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
-        else
-            [UserVar,as1int,ab1int]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
-            dasdhint=zeros(size(h1int)) ; dabdhint=zeros(size(h1int)) ;
-        end
-        if CtrlVar.MassBalanceGeometryFeedback~=3
-            dasdhint=zeros(size(h1int)) ; dabdhint=zeros(size(h1int)) ;
-        end
-        [UserVar,as0int,ab0int]=DefineMassBalance(UserVar,CtrlVar,MUAint,F0int) ;
-
-        a0int=as0int+ab0int ;
-        a1int=as1int+ab1int ;
-        da1dhint=dasdhint+dabdhint;
-
-        % a0intTest=a0nod*fun;
-        % a1intTest=a1nod*fun;
-        % da1dhintTest=da1dhnod*fun;
-        %
-        % [norm(a0int-a0intTest) norm(a1int-a1intTest) norm(da1dhintTest-da1dhint)]
-
-    else
-
-        a0int=a0nod*fun;
-        a1int=a1nod*fun;
-        da1dhint=zeros(MUA.Nele,1);   % the derivative of the user-defined mass balance is treated as a nodal quantity (dadhnod)
-
-    end
+    % (31 Oct 2026) The mass balance is always evaluated at the nodes (CtrlVar.MassBalance.Evaluation="-int-", evaluation at
+    % integration points by calling DefineMassBalance.m there, has been removed), as in the uvh assembly.
+    a0int=a0nod*fun;
+    a1int=a1nod*fun;
+    da1dhint=zeros(MUA.Nele,1);   % the derivative of the user-defined mass balance is treated as a nodal quantity (dadhnod)
 
     if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
@@ -306,7 +269,7 @@ for Iint=1:MUA.nip  %Integration points
         if nOut>2
             for Jnod=1:MUA.nod
 
-                Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
+                Khh(:,Jnod,Inod)=Khh(:,Jnod,Inod)...
                     +(rhoint.*fun(Jnod)...
                     -dt*theta*rhoint.*(da1dhint+dadhnod(:,Jnod)).*fun(Jnod)...
                     +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
@@ -320,7 +283,7 @@ for Iint=1:MUA.nip  %Integration points
         if nOut>3
             for Jnod=1:MUA.nod
 
-                dFdt(:,Inod,Jnod)=dFdt(:,Inod,Jnod)...
+                dFdt(:,Jnod,Inod)=dFdt(:,Jnod,Inod)...
                     +(...
                     +rhoint.*(da1dhint+dadhnod(:,Jnod)).*fun(Jnod)...  % no theta for continuous time derivative, theta is an averaging ratio of two discrete time steps, 
                     -...                            % but does not appear in the continuous formulation of the equations 
@@ -363,11 +326,18 @@ for Iint=1:MUA.nip  %Integration points
 end
 %% assemble right-hand side
 
-f0=sparse(neq,1);
-
-for Inod=1:MUA.nod
-    f0=f0+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Rh(:,Inod),neq,1);
+% (31 Oct 2026) with the cached h assembly pattern (see AssemblyPatternCache.m): f0 as a full vector, K (and dFdt) from the pattern
+if ~isfield(MUA,"hAssemblyPattern") || isempty(MUA.hAssemblyPattern)
+    CtrlVarP=CtrlVar ; CtrlVarP.MUA.AssemblyPattern=struct("uv",false,"uvh",false,"h",true) ;
+    [~,~,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVarP,MUA) ;
+    if isempty(WarnedNoPattern)
+        WarnedNoPattern=true ;
+        warning("MassContinuityEquationAssembly:NoAssemblyPattern","MUA has no h assembly pattern (MUA.hAssemblyPattern), so it is created in each call. It is normally created by CreateMUA.m and UpdateMUA.m.")
+    end
 end
+P=MUA.hAssemblyPattern ;
+
+f0=accumarray(P.iR,Rh(:),[neq 1]) ;   % Rh(e,Inod): the same order as P.iR
 %%
 
 
@@ -375,35 +345,15 @@ end
 
 if nargout>2
 
-    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-    Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-    Kval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-
-    istak=0;
-    for Inod=1:MUA.nod
-        for Jnod=1:MUA.nod
-            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
-            Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
-            Kval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
-            istak=istak+MUA.Nele;
-        end
-    end
-
-    K=sparse(Iind,Jind,Kval,neq,neq);
+    K=sparse(P.i0,P.j0,accumarray(P.map,Khh(:),[P.nk 1]),neq,neq) ;
 
     if nargout>3
-        dFdtVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-        istak=0;
-        for Inod=1:MUA.nod
-            for Jnod=1:MUA.nod
-                dFdtVal(istak+1:istak+MUA.Nele)=dFdt(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-            end
-        end
-        dFdt=sparse(Iind,Jind,dFdtVal,neq,neq);
+        dFdt=sparse(P.i0,P.j0,accumarray(P.map,dFdt(:),[P.nk 1]),neq,neq) ;
     end
 
 end
+
+end   % vectorised assembly (~UseCompiledKernel)
 
 
 %% Lumped nodal thickness penalty (8 Oct 2026), done in the same way as in uvhMatrixAssembly (see comments there).
@@ -426,7 +376,7 @@ if isfield(CtrlVar,"ThicknessPenalty") && CtrlVar.ThicknessPenalty && PenaltyNod
     wPen=ones(MUA.Nnodes,1) ; wPen(hConstrainedNodes)=0 ;
     [aPen,daPendh]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,F1.h) ;
     mw=mLump.*wPen ;
-    f0=f0-sparse(dt*theta*F1.rho(:).*mw.*aPen) ;
+    f0=f0-dt*theta*F1.rho(:).*mw.*aPen ;
     if nargout>2
         K=K+spdiags(-dt*theta*F1.rho(:).*mw.*daPendh,0,neq,neq) ;
     end

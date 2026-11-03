@@ -11,7 +11,6 @@ nargoutchk(1,4)
 
 
 
-if ~isfield(CtrlVar.uvAssembly,"SkipSymmetrisation") ; CtrlVar.uvAssembly.SkipSymmetrisation=false ; end
 
 
 
@@ -201,9 +200,6 @@ if any(F.h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
 if any(F.C<0) ; warning('MATLAB:KRTF:Cnegative',' C negative ') ; end
 
 
-if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
-    CtrlVar.TestForRealValues=false;
-end
 
 
 
@@ -225,6 +221,38 @@ g=F.g;
 
 %Nnodes=max(connectivity(:)); [Nele,nod]=size(connectivity);
 ndim=2; dof=2; neq=dof*MUA.Nnodes;
+
+%% (30 Oct 2026) Compiled element-based assembly (UaSource/UaCompiled)
+%
+% If CtrlVar.uvMatrixAssembly.CompiledKernel=true, and the options, the element type and the cached assembly pattern allow it (see
+% CompiledAssemblyCheck.m), Ruv, Kuv, Tint and Fext are assembled by uvMatrixAssemblyCompiled.m (compiled kernel, parallelised over
+% elements). The results are the same as those of the vectorised assembly below to round-off. Otherwise, or if UaCompiled is not on the
+% path, the vectorised assembly is used. If the MEX files themselves fail (UaCompiled:KernelFailed, eg built for another MATLAB release),
+% the compiled kernel is switched off for the rest of the session (with a message), and the vectorised assembly is used. Other errors
+% are passed on.
+%
+persistent WarnedNoUaCompiled
+if isfield(CtrlVar,"uvMatrixAssembly") && isfield(CtrlVar.uvMatrixAssembly,"CompiledKernel") && CtrlVar.uvMatrixAssembly.CompiledKernel
+    UseCompiledKernel=false ;
+    if exist("CompiledAssemblyCheck","file")==2
+        [UseCompiledKernel,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"uv") ;
+    elseif isempty(WarnedNoUaCompiled)
+        WarnedNoUaCompiled=true ;
+        fprintf(CtrlVar.fidlog,"uvMatrixAssembly: CtrlVar.uvMatrixAssembly.CompiledKernel=true, but UaSource/UaCompiled is not on the path. The vectorised assembly is used instead.\n") ;
+    end
+    if UseCompiledKernel
+        try
+            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblyCompiled(CtrlVar,MUA,F,Ronly,RK,KernelFull,KernelRonly) ;
+            return
+        catch ME
+            if ~strcmp(ME.identifier,"UaCompiled:KernelFailed")
+                rethrow(ME) ;
+            end
+            CompiledAssemblyCheck(CtrlVar,MUA,"uv",ME) ;   % reports the failure, and switches the compiled kernel off for this session
+        end
+    end
+end
+
 
 %[b,s]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar);
 
@@ -288,6 +316,10 @@ nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+% (2 Nov 2026) kH=1/l for the grounding-line mask at the integration points (IntegrationPointkH.m): from the nodal transition length
+% F.lGL, set at the start of each time step (so that the uv solves of -uv-h- use the same mask as -uvh-), or the scalar 1/lmin.
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;
 
 ca=cos(F.alpha); sa=sin(F.alpha);
 
@@ -384,12 +416,12 @@ for Iint=1:MUA.nip
     % It is linear in S and B, but not in rho, so this is not the same as interpolating a nodal hf if rho varies horizontally.
     % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
     hfint=F.rhow*Hint./rhoint;
-    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
-    HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+    Heint = 0.5+0.5*tanh(kHe(:,min(Iint,end)).*(hint-hfint-CtrlVar.Hh0));   % HeavisideApprox, with kHe(:,min(Iint,end)) scalar or element-wise (1 Nov 2026); important to calculate Heint and deltaint in a consistent manner
+    HEint = 0.5+0.5*tanh(kHe(:,min(Iint,end)).*(hfint-hint-CtrlVar.Hh0));
 
-    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
+    deltaint=0.5*kHe(:,min(Iint,end)).*sech(kHe(:,min(Iint,end)).*(hint-hfint-CtrlVar.Hh0)).^2;  % DiracDelta, i.e. deltaint must be the exact derivative of Heint
 
-    Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+    Hposint = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),Hint,CtrlVar.Hh0).*Hint;
 
     dint=HEint.*rhoint.*hint/F.rhow + Heint.*Hposint ;  % definition of d, applied directly at integration points
 
@@ -489,7 +521,6 @@ end
 Cache= MUA.uvAssemblyPattern;
 
 iR=Cache.iR;
-One=ones(1,1,"uint32");
 
 Tval=zeros(MUA.nod*MUA.Nele*2,1);
 Fval=zeros(MUA.nod*MUA.Nele*2,1);
@@ -507,8 +538,8 @@ for Inod=1:MUA.nod
 
 end
 
-Tint=sparse(iR,One,Tval,neq,1);
-Fext=sparse(iR,One,Fval,neq,1);
+Tint=accumarray(iR,Tval,[neq 1]);   % (30 Oct 2026) full: was sparse with density ~0.9 (as in uvhMatrixAssembly.m)
+Fext=accumarray(iR,Fval,[neq 1]);   % (30 Oct 2026) full: was sparse
 
 Ruv=Tint-Fext;
 
@@ -518,11 +549,7 @@ if ~Ronly
 
     vs=accumarray(Cache.map,Xval,[Cache.nk 1]);
 
-    if CtrlVar.uvAssembly.SkipSymmetrisation
-        % diagnostic path only
-    else
-        vs=0.5*(vs+vs(Cache.perm));
-    end
+    vs=0.5*(vs+vs(Cache.perm));   % symmetrisation
 
     Kuv=sparse(Cache.i0,Cache.j0,vs,neq,neq);
 

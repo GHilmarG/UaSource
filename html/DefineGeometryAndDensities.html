@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>DefineGeometryAndDensities</title>
-<meta name="generator" content="MATLAB 23.2">
+<meta name="generator" content="MATLAB 26.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2023-10-26">
+<meta name="DC.date" content="2026-10-31">
 <meta name="DC.source" content="DefineGeometryAndDensities.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -80,7 +80,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <span class="keyword">function</span>  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
 </pre>
 <p>Defines model geometry and ice densities</p>
-<pre>[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)</pre>
+<pre class="language-matlab">[UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
+</pre>
 <p>FieldsToBeDefined is a string indicating which return values are required. For example if</p>
 <pre class="language-matlab">FieldsToBeDefined=<span class="string">"-s-b-S-B-rho-rhow-g-"</span>
 </pre>
@@ -100,25 +101,43 @@ F.rho     :  ice density (nodal variable)
 F.g       :  gravitational acceleration
 F.x       : x nodal coordinates
 F.y       : y nodal coordinates
+F.time    : time (i.e. model time)
 F.GF      : The nodal grounded/floating mask (has other subfields)</pre>
-<p>These fields need to be returned at the nodal coordinates. The nodal x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y</p>
-<pre class="codeinput">B=MismBed(F.x,F.y);
+<p>These fields need to be returned at the nodal coordinates.</p>
+<p>The nodal x and y coordinates are also stored in MUA.coordinates in addition to F.x and F.y.</p>
+<pre class="codeinput">
+<span class="comment">% Defines model geometry</span>
 
-S=B*0;
+
+
+gamma=0.01;
+S=F.x*0 ;
+B0=-850;
+B=B0-gamma*F.x ;
 b=B;
-h0=300;
-s=b+h0;
+s=b+1000;
 
-rho=917+zeros(MUA.Nnodes,1) ;
+
+rho=900+zeros(MUA.Nnodes,1) ;
 rhow=1030;
 g=9.81/1000;
+
+<span class="keyword">if</span> contains(FieldsToBeDefined,<span class="string">"-S-"</span>) &amp;&amp; contains(FieldsToBeDefined,<span class="string">"-s-"</span>)
+
+    <span class="keyword">if</span> any((s-S)&lt;CtrlVar.ThickMin)
+
+        ind=(s-S)&lt; CtrlVar.ThickMin;
+        s(ind)=S(ind)+CtrlVar.ThickMin;
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
 </pre>
 <pre class="codeinput">
 <span class="keyword">end</span>
 </pre>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2026b</a>
 <br>
 </p>
 </div>
@@ -131,7 +150,7 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %
 % Defines model geometry and ice densities
 %
-%  [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
+%   [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
 %
 % FieldsToBeDefined is a string indicating which return values are required. For
 % example if
@@ -160,24 +179,40 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %  F.g       :  gravitational acceleration
 %  F.x       : x nodal coordinates 
 %  F.y       : y nodal coordinates 
+%  F.time    : time (i.e. model time)
 %  F.GF      : The nodal grounded/floating mask (has other subfields)
 %
-% These fields need to be returned at the nodal coordinates. The nodal
-% x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y
+% These fields need to be returned at the nodal coordinates. 
+% 
+% The nodal x and y coordinates are also stored in MUA.coordinates in addition to F.x and F.y.
 %
 %%
 
+% Defines model geometry
 
-B=MismBed(F.x,F.y);
 
-S=B*0;
+
+gamma=0.01;
+S=F.x*0 ; 
+B0=-850;
+B=B0-gamma*F.x ;
 b=B;
-h0=300;
-s=b+h0;
+s=b+1000;
 
-rho=917+zeros(MUA.Nnodes,1) ;
-rhow=1030;
+
+rho=900+zeros(MUA.Nnodes,1) ; 
+rhow=1030; 
 g=9.81/1000;
+
+if contains(FieldsToBeDefined,"-S-") && contains(FieldsToBeDefined,"-s-")
+
+    if any((s-S)<CtrlVar.ThickMin)
+
+        ind=(s-S)< CtrlVar.ThickMin;
+        s(ind)=S(ind)+CtrlVar.ThickMin;
+    end
+
+end
 
 
 

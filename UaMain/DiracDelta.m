@@ -28,7 +28,7 @@ if nargin==2 ; error('DiracDelta: Need three arguments \n') ; end
 % y=2*k./(exp(k*(x-x0)) +exp(-k*(x-x0))).^2;
 % y(isnan(y))=0; % underflow errors
 
-y=0.5*k*(sech(k*(x-x0))).^2;
+y=0.5*k.*(sech(k.*(x-x0))).^2;   % (1 Nov 2026) k.* so that k can also be an array of the size of x (element-wise kH); identical for scalar k
 
 
 

@@ -98,7 +98,8 @@ end
 ndim=2;
 ca=cos(F.alpha) ; sa=sin(F.alpha) ;
 nNodes=MUA.Nnodes ;
-kH=CtrlVar.kH ;
+kH=(1/CtrlVar.GroundingLineTransition.lmin) ;   % scalar kH: water-depth mask (HeHint, as Hposint in the uv assembly)
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (2 Nov 2026) kH=1/l at the integration points (Nele x nip, or the scalar 1/lmin), consistent with the uv assembly
 
 %% nodal derivatives of the geometry with respect to B
 
@@ -175,9 +176,9 @@ for Iint=1:MUA.nip
     % masks
     hfint=F.rhow*Hint./rhoint;
     Dhint    = hint-hfint ;
-    Heint    = HeavisideApprox(kH,Dhint,CtrlVar.Hh0);
-    deltaint = DiracDelta(kH,Dhint,CtrlVar.Hh0);
-    dDelta   = 2*kH*deltaint.*(1-2*Heint) ;                 % derivative of the regularised delta
+    Heint    = HeavisideApprox(kHe(:,min(Iint,end)),Dhint,CtrlVar.Hh0);
+    deltaint = DiracDelta(kHe(:,min(Iint,end)),Dhint,CtrlVar.Hh0);
+    dDelta   = 2*kHe(:,min(Iint,end)).*deltaint.*(1-2*Heint) ;                 % derivative of the regularised delta
 
     HeHint    = HeavisideApprox(kH,Hint,CtrlVar.Hh0);
     deltaHint = DiracDelta(kH,Hint,CtrlVar.Hh0);
@@ -206,7 +207,7 @@ for Iint=1:MUA.nip
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = ...
         BasalDrag(CtrlVar,2,Heint,deltaint,hint,Hint,rhoint,F.rhow,F.g,uint,vint,Cint,mint,qint,mukint,V0int,[],[],[],[],[],[],[],[]);   % (26 Oct 2026)
 
-    [d2taubxdh2,d2taubydh2]=WeertmanSecondOrderDerivatives(CtrlVar,Dhint,uint,vint,Cint,mint);
+    [d2taubxdh2,d2taubydh2]=WeertmanSecondOrderDerivatives(CtrlVar,Dhint,uint,vint,Cint,mint,kHe(:,min(Iint,end)));
 
     detJw=detJ*MUA.weights(Iint);
 
