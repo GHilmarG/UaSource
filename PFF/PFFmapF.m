@@ -23,7 +23,7 @@ Fnew.h=Fnew.s-Fnew.b;
 Fnew.h0=Fnew.h; 
 
 hf=Fnew.rhow.*(Fnew.S-Fnew.B)./Fnew.rho0 ;
-Fnew.GF.node = HeavisideApprox(CtrlVar.kH,Fnew.h0-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+Fnew.GF.node = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),Fnew.h0-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
 
 %[UserVar,Fnew.C,Fnew.m,Fnew.q,Fnew.muk,Fnew.V0]=DefineSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 % [UserVar,Fnew.C,Fnew.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);

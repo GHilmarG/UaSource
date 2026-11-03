@@ -40,9 +40,9 @@ F.dvddt=(F.vd-F0.vd)/F.dt;
 
 F.dtRates=F.dt ;   % (9 Oct 2026) the time step over which the above rates (backward differences) were calculated
 
-
-fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
-
+if CtrlVar.InfoLevel > 1
+    fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
+end
 
 
 if CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero

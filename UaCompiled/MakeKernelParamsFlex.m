@@ -24,7 +24,11 @@ end
 
 R=struct(); ok=true; missing=strings(0);
 for k=1:numel(P.Num)
-    [in,v]=getpath(CtrlVar,P.Num{k});
+    if P.NumName(k)=="kH"   % (2 Nov 2026) the kernels use kH=1/l for the scalar transition length l (CtrlVar.kH is no longer used)
+        [in,v]=getpath(CtrlVar,{'GroundingLineTransition','lmin'}) ; if in ; v=1/v ; end
+    else
+        [in,v]=getpath(CtrlVar,P.Num{k});
+    end
     if ~in
         if isfield(P.Opt,P.OptKey(k)) ; v=P.Opt.(P.OptKey(k)) ; else ; ok=false ; missing(end+1)=P.NumName(k) ; v=NaN ; end %#ok<AGROW>
     end

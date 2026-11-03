@@ -1,10 +1,57 @@
 function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 
+%% (2 Nov 2026) grounding-line transition, see Ua2D_DefaultParameters.m and GroundingLineTransitionLength.m
+if isfield(CtrlVar,"kH")
+    error("CtrlVarValidityCheck:kH","CtrlVar.kH is no longer used. Use CtrlVar.GroundingLineTransition.lmin=1/kH instead (the transition length of the grounding-line mask, in m; default 1 m).")
+end
+GLT=CtrlVar.GroundingLineTransition ;
+if ~isscalar(GLT.lmin) || ~isfinite(GLT.lmin) || GLT.lmin<=0
+    error("CtrlVarValidityCheck:lmin","CtrlVar.GroundingLineTransition.lmin must be a positive, finite scalar.")
+end
+if ~isscalar(GLT.lmax) || isnan(GLT.lmax) || GLT.lmax<GLT.lmin
+    error("CtrlVarValidityCheck:lmax","CtrlVar.GroundingLineTransition.lmax must be a scalar not smaller than CtrlVar.GroundingLineTransition.lmin.")
+end
+if ~isscalar(GLT.c) || ~isfinite(GLT.c) || GLT.c<0
+    error("CtrlVarValidityCheck:c","CtrlVar.GroundingLineTransition.c must be a finite, non-negative scalar.")
+end
+
+%% (2 Nov 2026) the element-wise kH has been replaced by the nodal transition length (CtrlVar.GroundingLineTransition)
+if isfield(CtrlVar,"kHElementAlpha")
+    error("CtrlVarValidityCheck:kHElementAlpha","CtrlVar.kHElementAlpha is no longer used. The grounding-line transition is now set by CtrlVar.GroundingLineTransition.lmin, .lmax and .c (see Ua2D_DefaultParameters.m).")
+end
+
 %  Performs some basic validity checks on CtrlVar
 
 
 % (26 Oct 2026) the sliding law first: SlidingLawCode.m gives an informative error for former aliases ("W", "B", "C")
 SlidingLawCode(CtrlVar.SlidingLaw);
+
+% (1 Nov 2026) The uvh convergence criteria depend on rForce only (uvhResidualsCriteria.m). The previous fields are no longer in the
+% defaults, so if they are present they were set by the user: the force entries of the *WorkAndForceTolerances fields are then taken over
+% into CtrlVar.uvhDesiredForceTolerance and CtrlVar.uvhAcceptableForceTolerance, and the *WorkOrForceTolerances fields are ignored.
+OldUvhTol=["uvhDesiredWorkAndForceTolerances","uvhDesiredForceTolerance";"uvhAcceptableWorkAndForceTolerances","uvhAcceptableForceTolerance";
+           "hDesiredWorkAndForceTolerances","hDesiredForceTolerance";"hAcceptableWorkAndForceTolerances","hAcceptableForceTolerance";
+           "LSFDesiredWorkAndForceTolerances","LSFDesiredForceTolerance";"LSFAcceptableWorkAndForceTolerances","LSFAcceptableForceTolerance";
+           "uvDesiredWorkAndForceTolerances","uvDesiredForceTolerance";"uvAcceptableWorkAndForceTolerances","uvAcceptableForceTolerance"] ;   % (1 Nov 2026) also h, level set and uv
+for iOld=1:size(OldUvhTol,1)
+    if isfield(CtrlVar,OldUvhTol(iOld,1))
+        CtrlVar.(OldUvhTol(iOld,2))=CtrlVar.(OldUvhTol(iOld,1))(2) ;
+        warning("CtrlVarValidityCheck:uvhWorkTolerances","CtrlVar.%s is no longer used (1 Nov 2026): the convergence criteria depend on rForce only. Its force entry is used, ie CtrlVar.%s=%g. Set CtrlVar.%s instead.",OldUvhTol(iOld,1),OldUvhTol(iOld,2),CtrlVar.(OldUvhTol(iOld,2)),OldUvhTol(iOld,2))
+    end
+end
+for OldField=["uvhDesiredWorkOrForceTolerances","uvhAcceptableWorkOrForceTolerances","hDesiredWorkOrForceTolerances","hAcceptableWorkOrForceTolerances","LSFDesiredWorkOrForceTolerances","LSFAcceptableWorkOrForceTolerances","uvDesiredWorkOrForceTolerances","uvAcceptableWorkOrForceTolerances"]
+    if isfield(CtrlVar,OldField)
+        warning("CtrlVarValidityCheck:uvhWorkTolerances","CtrlVar.%s is no longer used (1 Nov 2026) and is ignored: the convergence criteria depend on rForce only (CtrlVar.*DesiredForceTolerance, CtrlVar.*AcceptableForceTolerance).",OldField)
+    end
+end
+
+% (31 Oct 2026) Evaluation of the mass balance at integration points (CtrlVar.MassBalance.Evaluation="-int-") has been removed: the mass
+% balance is always evaluated at the nodes, in the uvh and in the h (uv-h) assembly. A setting of "-node-" is accepted and has no effect.
+if isfield(CtrlVar,"MassBalance") && isfield(CtrlVar.MassBalance,"Evaluation") && contains(string(CtrlVar.MassBalance.Evaluation),"-int-")
+    error("CtrlVarValidityCheck:MassBalanceEvaluation", ...
+        "CtrlVar.MassBalance.Evaluation=""%s"": evaluating the mass balance at integration points is no longer available. The mass balance is always evaluated at the nodes. Remove this setting (eg from DefineInitialInputs.m).", ...
+        string(CtrlVar.MassBalance.Evaluation))
+end
 
 fn = fieldnames(CtrlVar.MustBe);
 for I=1:numel(fn)

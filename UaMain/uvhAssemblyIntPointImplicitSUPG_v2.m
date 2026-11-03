@@ -12,7 +12,7 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     LSFMasknod,hBCsMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
-    CtrlVar,rhow,g,Ronly,ca,sa,dt,...
+    CtrlVar,rhow,g,Ronly,ca,sa,dt,kHint,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
 %%
@@ -45,7 +45,7 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
 
 % Keep the names exactly as in call, apparently then MATLAB does perfect inlining with no loss in performance 
 
-narginchk(57,57)
+narginchk(58,58)   % (2 Nov 2026) +1 for kHint
 nargoutchk(15,19)
 
 
@@ -272,19 +272,24 @@ Hint=Sint-Bint;
 % Routines that differentiate this model (dIdCq.m, FCC.m, FCuv.m, FBC.m, ...) must use the same convention.
 hfint=rhow*Hint./rhoint;
 
+% (2 Nov 2026) kH=1/l at this integration point (kHint, from IntegrationPointkH.m via uvhMatrixAssembly.m): the scalar 1/lmin, or one value
+% per element from the nodal transition length F0.lGL (GroundingLineTransitionLength.m). The nodal mask used for the lower surface (GFn,
+% deln below, consistent with Calc_bs_From_hBS) and the water-depth mask (Hposint) use the scalar 1/lmin.
+kHe=kHint ;
+
 
 
 
 % calculate He and DiracDelta from integration point values of thickness
 
 
-Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
-HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+Heint = 0.5+0.5*tanh(kHe.*(hint-hfint-CtrlVar.Hh0));   % HeavisideApprox, with kHe scalar or element-wise (1 Nov 2026); important to calculate Heint and deltaint in a consistent manner
+HEint = 0.5+0.5*tanh(kHe.*(hfint-hint-CtrlVar.Hh0));
 
-deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
-Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+deltaint=0.5*kHe.*sech(kHe.*(hint-hfint-CtrlVar.Hh0)).^2;  % DiracDelta, i.e. deltaint must be the exact derivative of Heint
+Deltaint=0.5*kHe.*sech(kHe.*(hfint-hint-CtrlVar.Hh0)).^2;  %  although delta is an even function...
 
-Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+Hposint = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),Hint,CtrlVar.Hh0).*Hint;
 
 dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
 Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
@@ -455,8 +460,8 @@ if ~Ronly
     if CtrlVar.ResetThicknessToMinThickness ; hrn(hnod<CtrlVar.ThickMin)=CtrlVar.ThickMin ; end
 
     hfn=rhow*(Snod-Bnod)./rhonod ;
-    GFn=HeavisideApprox(CtrlVar.kH,hrn-hfn,CtrlVar.Hh0) ;
-    deln=DiracDelta(CtrlVar.kH,hrn-hfn,CtrlVar.Hh0) ;
+    GFn=HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),hrn-hfn,CtrlVar.Hh0) ;
+    deln=DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),hrn-hfn,CtrlVar.Hh0) ;
     bfn=Snod-rhonod.*hrn/rhow ;
 
     bpn=deln.*(Bnod-bfn)-(1-GFn).*rhonod/rhow ;                     % db/dh, Nele x nod

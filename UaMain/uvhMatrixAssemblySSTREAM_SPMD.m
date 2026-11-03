@@ -39,7 +39,18 @@ persistent W   % data kept on the workers between calls (Composites), with the f
 
 ParPool = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
 
-if isempty(ParPool)
+% (31 Oct 2026) as in uvMatrixAssemblySSTREAM_SPMD.m: on how many workers are there worker data (MUA.workers)? Without any (eg spmd
+% switched on without the worker data having been built), the assembly is done serially instead of failing.
+nBuilt=0 ;
+if ~isempty(ParPool) && isfield(MUA,"workers") && ~isempty(MUA.workers)
+    try
+        nBuilt=nnz(exist(MUA.workers)) ;   %#ok<EXIST> exist of a Composite: which workers hold data
+    catch
+        nBuilt=0 ;
+    end
+end
+
+if isempty(ParPool) || nBuilt==0
 
     [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
 
@@ -49,6 +60,7 @@ else
         CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
     end
     nW=CtrlVar.Parallel.uvhAssembly.spmd.nWorkers;
+    if nW~=nBuilt ; nW=nBuilt ; end    % the workers hold the sub-domains of MUA.workers
     MUAworkers=MUA.workers;
 
     % fields that change within a uvh solve, and are sent in each call
@@ -95,20 +107,26 @@ else
         fn=fieldnames(V) ;
         for i=1:numel(fn) ; F1loc.(fn{i})=V.(fn{i}) ; end
         CtrlVarLoc=CRw ; CtrlVarLoc.uvhMatrixAssembly=UMA ;
+        % (31 Oct 2026) Worker 1 packs the summed results into one structure, so that the client fetches them in a single access.
+        % (Summing the matrix values as a dense vector on the global pattern, with one spmdPlus for everything, was tried and was
+        % slower: the dense vector carries the whole pattern, and building the sparse matrix on the client costs more than it saves.)
         [~,~,rr,kk]=uvhMatrixAssembly(UVw,RIw,CtrlVarLoc,MUAworkers,F0w,F1loc,[],BCw);   % l1 is not used in the assembly
-        rrsum = spmdPlus(rr,1);
-        kksum = spmdPlus(kk,1);
+        Xsum=spmdPlus(rr,1) ;
+        if ~isempty(kk) ; Ksum=spmdPlus(kk,1) ; else ; Ksum=[] ; end
+        if spmdIndex==1
+            Out=struct("X",Xsum,"K",Ksum) ;
+        else
+            Out=[] ;
+        end
         tw=toc(tw0) ;
     end
     Timing.Spmd=toc(t0) ;
     if nargout>=5 ; Timing.Workers=max([tw{:}]) ; end
     t0=tic ;
-
-    % rrsum and kksum are composites
-    % Ruvh and Kuvh are double sparse
-
-    Ruvh=rrsum{1};
-    Kuvh=kksum{1};
+    O=Out{1} ;   % (31 Oct 2026) a single access to the Composite (each access costs about 5 ms)
+    neq=3*MUA.Nnodes ;
+    Ruvh=O.X(1:neq) ;
+    Kuvh=O.K ;
     Timing.Fetch=toc(t0) ;
 
 end

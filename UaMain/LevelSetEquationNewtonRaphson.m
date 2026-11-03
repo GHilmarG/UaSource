@@ -95,17 +95,16 @@ while true
         % due to rounding errors making a further reduction
         % impossible.
 
-        ResidualsCriteria=(rWork<CtrlVar.LSFDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.LSFDesiredWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.LSFDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.LSFDesiredWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
+        % (1 Nov 2026) The convergence criteria depend on rForce only (previously also on rWork, see CtrlVarValidityCheck.m). With poor
+        % progress, the acceptable tolerance is used, and in the normal case the desired tolerance, as in the uvh solver (previously the
+        % other way round).
+        ResidualsCriteria = rForce<CtrlVar.LSFAcceptableForceTolerance && iteration >= CtrlVar.NRitmin;
 
 
     else
 
         % This is the otherwise default exit criterion
-        ResidualsCriteria=(rWork<CtrlVar.LSFAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.LSFAcceptableWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.LSFAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.LSFAcceptableWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
+        ResidualsCriteria = rForce<CtrlVar.LSFDesiredForceTolerance && iteration >= CtrlVar.NRitmin;   % (1 Nov 2026) rForce only, desired tolerance in the normal case
 
 
     end

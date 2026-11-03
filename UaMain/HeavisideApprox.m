@@ -83,6 +83,6 @@ if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 
 % y=1./(1+exp(-2*k*(x-x0)));  %  The logistic function, an approximation to the Heaviside function 
 %  also same as
-y=0.5 + 0.5*tanh(k*(x-x0)); % this does not lead to Inf values when calculating the exponent
+y=0.5 + 0.5*tanh(k.*(x-x0));   % (1 Nov 2026) k.* so that k can also be an array of the size of x (element-wise kH); identical for scalar k % this does not lead to Inf values when calculating the exponent
 
 end

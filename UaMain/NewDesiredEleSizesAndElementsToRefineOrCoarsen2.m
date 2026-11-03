@@ -210,7 +210,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
 end
 
 
-if all(EleSizeDesired==CtrlVar.MeshSizeMax)
+if all(EleSizeDesired==CtrlVar.MeshSizeMax) || (isnan(CtrlVar.MeshSizeMax) && all(isnan(EleSizeDesired)))   % (2 Nov 2026) NaN==NaN is false, so a NaN CtrlVar.MeshSizeMax must be tested separately
     if CtrlVar.InfoLevelAdaptiveMeshing>=100
         fprintf(' After using inbuilt relative error criteria, all desired ele sizes are equal to CtrlVar.MeshSizeMax=%g.\n',CtrlVar.MeshSizeMax)
         fprintf(' This most likely happened because either no relative error criteria were specified, or none were applicable. \n')
@@ -311,6 +311,10 @@ end
 %% now create a (logical) list of elements to be locally refined
 
 
+% (2 Nov 2026) Nodes without a finite target size (eg with CtrlVar.MeshSizeMax=NaN, where no criterion applies) keep their current
+% size, ie their size ratio is 1 and they are neither refined nor coarsened. Previously their target size remained NaN.
+I=~isfinite(EleSizeDesired) ; EleSizeDesired(I)=EleSizeCurrent(I) ;
+
 eRatio=EleSizeDesired./EleSizeCurrent;
 %eRatio=Nodes2EleMean(MUA.connectivity,eRatio);
 %eRatio=mean(reshape(eRatio(MUA.connectivity),MUA.Nele,MUA.nod),2);  
@@ -320,16 +324,22 @@ eRatio=min(reshape(eRatio(MUA.connectivity),MUA.Nele,MUA.nod),[],2);
 % do not refine a greater number of elements than CtrlVar.MeshRefinementRatio*CurrentNumberOfElements
 % at any given refinement step
 
-test=sort(eRatio);
+% (2 Nov 2026) The thresholds are taken from the finite ratios only. Previously NaN ratios (sorted last) could make the threshold NaN
+% if fewer than CtrlVar.LocalAdaptMeshRatio of the elements had a finite ratio, and then no element was refined or coarsened. With all
+% ratios finite, the thresholds are the same as before.
+test=sort(eRatio(isfinite(eRatio)));
+if isempty(test) ; test=NaN ; end
+kR=min(max(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio),1),numel(test)) ;
+kC=min(max(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio),1),numel(test)) ;
 Ratio=0.9;
-ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<Ratio;
+ElementsToBeRefined=eRatio<=test(kR) & eRatio<Ratio;
 
 % have to make sure that if an element has just been refined that it will not
 % then afterwards be a candidate for coarsening. If an element was refined, the
 % size decreased by about a factor of 2 so if the ratio was R+eps it is now
 % R/2+eps and I must set eRatio>2*R at the very least, for coarsening
 
-ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>(2.1*Ratio);
+ElementsToBeCoarsened=eRatio>=test(kC) & eRatio>(2.1*Ratio);
 
 %end
 

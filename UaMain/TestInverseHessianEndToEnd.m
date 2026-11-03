@@ -159,6 +159,8 @@ arguments
     Options.Seed (1,1) double = 1
     Options.MaxNodes (1,1) double {mustBePositive} = 1500
     Options.Verbose (1,1) logical = true
+    Options.lGLVariation (1,1) double = NaN     % (2 Nov 2026) if given, a smooth, frozen nodal transition length F.lGL, from lmin to lmin+lGLVariation (m), is used
+    Options.lmin (1,1) double = NaN             % (2 Nov 2026) transition length of the grounding-line mask of the synthetic problem (m): NaN keeps the default (1)
 end
 
 tStart=tic ;
@@ -193,6 +195,17 @@ if CtrlVar.Hh0~=0
 end
 
 N=MUA.Nnodes ;
+% (2 Nov 2026) nodal transition length of the grounding-line mask, kept fixed during the test as during a time step (in inversions F.lGL is
+% empty, ie the scalar lmin is used, but the derivative code must be consistent for any frozen F.lGL)
+F.lGL=[] ;
+if ~isnan(Options.lGLVariation)
+    x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ; xn=(x-min(x))/(max(x)-min(x)) ; yn=(y-min(y))/(max(y)-min(y)) ;
+    F.lGL=CtrlVar.GroundingLineTransition.lmin+Options.lGLVariation*(0.5+0.5*sin(2*pi*1.1*xn+0.3).*cos(2*pi*0.7*yn)) ;
+end
+nlGLAboveMin=nnz(F.lGL>CtrlVar.GroundingLineTransition.lmin) ;
+if Options.Verbose && ~isempty(F.lGL)
+    fprintf(" Nodal transition length: above lmin at %i of %i nodes, max %.3g m\n",nlGLAboveMin,MUA.Nnodes,max(F.lGL)) ;
+end
 if N>Options.MaxNodes
     error("TestInverseHessianEndToEnd:TooManyNodes",...
         "The mesh has %i nodes. The Hessian is a full matrix, and the test is limited to %i nodes. Use the option MaxNodes to change this limit.",N,Options.MaxNodes)
@@ -291,6 +304,7 @@ Results.Cases=[CaseResults{:}] ;
 Results.Passed=all([Results.Cases.Passed]) ;
 Results.Options=Options ;
 Results.Synthetic=Synthetic ;
+Results.lGLNodesAboveMin=nlGLAboveMin ;   % (2 Nov 2026) nodes with F.lGL>lmin, see Options.lGLVariation
 Results.Time=toc(tStart) ;
 
 if Options.Verbose
@@ -702,7 +716,7 @@ CtrlVar.UaSquareMesh.Refine=true ;
 CtrlVar.CalcMUA_Derivatives=true ;
 CtrlVar.MUA.MassMatrix=true ;
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.kH=1 ;
+CtrlVar.GroundingLineTransition.lmin=1 ; if ~isnan(Options.lmin) ; CtrlVar.GroundingLineTransition.lmin=Options.lmin ; end
 CtrlVar.Hh0=0 ;
 CtrlVar.GroundingFloatingMaskContains="GF nodes" ;
 CtrlVar.InfoLevel=0 ;

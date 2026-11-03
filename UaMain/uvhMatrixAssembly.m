@@ -182,15 +182,15 @@ end
 %% (25 Oct 2026) Compiled element-based assembly (UaSource/UaCompiled)
 %
 % If CtrlVar.uvhMatrixAssembly.CompiledKernel=true, and the options, the element type and the cached assembly pattern allow it (see
-% uvhCompiledKernelCheck.m), the residual and the Jacobian are assembled by uvhMatrixAssemblyCompiled.m (compiled kernel, parallelised
+% CompiledAssemblyCheck.m), the residual and the Jacobian are assembled by uvhMatrixAssemblyCompiled.m (compiled kernel, parallelised
 % over elements). The results are the same as those of the vectorised assembly below to round-off. Otherwise, or if UaCompiled is not on
 % the path, the vectorised assembly is used, as before.
 %
 persistent WarnedNoUaCompiled
 UseCompiledKernel=false ;
 if isfield(CtrlVar.uvhMatrixAssembly,"CompiledKernel") && CtrlVar.uvhMatrixAssembly.CompiledKernel
-    if exist("uvhCompiledKernelCheck","file")==2
-        [UseCompiledKernel,RK,KernelFull,KernelRonly]=uvhCompiledKernelCheck(CtrlVar,MUA) ;
+    if exist("CompiledAssemblyCheck","file")==2
+        [UseCompiledKernel,RK,KernelFull,KernelRonly]=CompiledAssemblyCheck(CtrlVar,MUA,"uvh") ;
     elseif isempty(WarnedNoUaCompiled)
         WarnedNoUaCompiled=true ;
         fprintf(CtrlVar.fidlog,"uvhMatrixAssembly: CtrlVar.uvhMatrixAssembly.CompiledKernel=true, but UaSource/UaCompiled is not on the path. The vectorised assembly is used instead.\n") ;
@@ -214,7 +214,7 @@ if UseCompiledKernel
         if ~strcmp(ME.identifier,"UaCompiled:KernelFailed")
             rethrow(ME) ;
         end
-        uvhCompiledKernelCheck(CtrlVar,MUA,ME) ;   % reports the failure, and switches the compiled kernel off for this session
+        CompiledAssemblyCheck(CtrlVar,MUA,"uvh",ME) ;   % reports the failure, and switches the compiled kernel off for this session
         UseCompiledKernel=false ;
     end
 
@@ -344,6 +344,7 @@ end
 
 % adding contribution from each form function for every element. The number of form functions equals the number of nodes, so
 % the outputs have the dimension ele x nodes
+kHeIP=IntegrationPointkH(CtrlVar,MUA,F0) ;   % (2 Nov 2026) kH=1/l at the integration points (scalar, or Nele x nip from F0.lGL)
 for Iint=1:MUA.nip
 
     [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI,HeI]=...
@@ -351,7 +352,7 @@ for Iint=1:MUA.nip
         bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
         LSFMasknod,hBCsMasknod,...
         uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
-        CtrlVar,rhow,g,Ronly,ca,sa,dt,...
+        CtrlVar,rhow,g,Ronly,ca,sa,dt,kHeIP(:,min(Iint,end)),...
         Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
 
     Tx=Tx+Tx1;  Fx=Fx+Fx1;

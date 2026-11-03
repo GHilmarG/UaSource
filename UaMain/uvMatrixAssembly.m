@@ -63,7 +63,7 @@ switch lower(CtrlVar.FlowApproximation)
     case "sstream"
 
 
-        if CtrlVar.Parallel.uvAssembly.spmd.isOn
+        if CtrlVar.Parallel.uvAssembly.spmd.isOn && ~(((isobject(F) && isprop(F,"lGL")) || (isstruct(F) && isfield(F,"lGL"))) && ~isempty(F.lGL))   % (2 Nov 2026) with a nodal transition length (F.lGL) the sequential assembly is used
 
 
             [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,BCs);
@@ -74,11 +74,6 @@ switch lower(CtrlVar.FlowApproximation)
 
         end
 
-
-
-    case "sstream-rho"
-
-        [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMrho(CtrlVar,MUA,F,BCs) ;
 
     otherwise
 

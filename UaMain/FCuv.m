@@ -5,6 +5,8 @@
 
 function [KFCu,KFCv]=FCuv(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
+kHe=IntegrationPointkH(CtrlVar,MUA,F) ;   % (2 Nov 2026) kH=1/l at the integration points (Nele x nip, or the scalar 1/lmin), consistent with the uv assembly
+
 narginchk(7,7)
 
 %%
@@ -147,7 +149,7 @@ for Iint=1:MUA.nip
     Psix=Psixnod*fun;
     Psiy=Psiynod*fun;
 
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0); % This is sometimes also referred to has He in other parts of the code base
+    G = HeavisideApprox(kHe(:,min(Iint,end)),h-hf,CtrlVar.Hh0); % This is sometimes also referred to has He in other parts of the code base
 
     detJw=detJ*MUA.weights(Iint);
 

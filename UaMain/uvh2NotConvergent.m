@@ -1,5 +1,14 @@
 
-function [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dtOut]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
+function [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dtOut]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1,BCsStartOfStep)
+
+% (2 Nov 2026) BCsStartOfStep (optional): the boundary conditions, including the active set of thickness constraints, at the start of the
+% time step. If given, each new attempt with a reduced time step starts from this active set, and not from the active set left by the failed
+% attempt. In a failed attempt with a large time step, many nodes can become (deeply) negative and be added to the active set; keeping these
+% constraints for the smaller time step held nodes at the minimum thickness that would otherwise keep their ice (Thule: up to 2300 m of ice
+% lost at individual nodes), and the cumulative release criterion releases them only gradually.
+if nargin<10
+    BCsStartOfStep=[] ;
+end
 
 %%
 %
@@ -47,6 +56,11 @@ else
 
     while F1.dt > dtMin
 
+        if ~isempty(BCsStartOfStep)   % (2 Nov 2026) start again from the active set at the start of the time step
+            nFailed=numel(BCs1.hPosNode) ; BCs1=BCsStartOfStep ;
+            RunInfo.Forward.ActiveSetLockedNodes=[] ; RunInfo.Forward.ActiveSetNoFurtherReleases=false ; RunInfo.Forward.ActiveSetah=[] ;
+            fprintf("uvh2NotConvergent: active set reset to the start of the time step (%i thickness constraints, against %i after the failed attempt). \n",numel(BCs1.hPosNode),nFailed)
+        end
         F1.ub=F0.ub ; F1.vb=F0.vb ; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h ; l1=l0 ;
         F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
         F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;       % make sure that the starting point is feasible with respect to the active set
@@ -54,6 +68,7 @@ else
         F1.dt=max(F1.dt/2,dtMin) ;     % never go below the minimum time step
         F0.dt=F1.dt ;
         CtrlVar.dt=F1.dt ;             % copy of F1.dt, kept for compatibility
+        F0.lGL=GroundingLineTransitionLength(CtrlVar,MUA,F0) ; F1.lGL=F0.lGL ;   % (2 Nov 2026) transition length for the reduced time step
         dtOut=F1.dt ;
 
         fprintf("uvh2NotConvergent: uvh solve did not converge. Reducing time step to dt=%g and try solving again. \n",F1.dt)

@@ -2,28 +2,73 @@
 
 %%
 % 
+% *Release Notes* _November 2026_
+%
+%
+% * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
+%
+%
+% The grounding-line mask is now G=(1+tanh((h-hf)/l))/2 with a transition length l (in units of thickness, m) that is a nodal field in
+% transient runs, F.lGL, evaluated once per time step from the state at its start (GroundingLineTransitionLength.m):
+%
+%   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
+%
+% with dh/dt the rate of thickness change of the previous time step and dt the current time step. There is a bit of theory behind this equation, but
+% basically the transition is thus made wide compared with the change of thickness over the time step. 
+%
+% The smoothing is proportional to dt (like the error of the implicit time stepping) and vanishes as dt->0; 
+% 
+% lmax limits it where |dh/dt| is large far from flotation (eg near calving fronts). New options:
+%
+%   CtrlVar.GroundingLineTransition.lmin=1;    % (m) replaces 1/CtrlVar.kH; defining CtrlVar.kH now gives an error
+%   CtrlVar.GroundingLineTransition.lmax=25;   % (m)
+%   CtrlVar.GroundingLineTransition.c=0.5;     % (dimensionless); c=0 gives l=lmin everywhere (the previous behaviour with kH=1/lmin)
+%
+% Note that the field
+%
+%   CtrlVar.kH
+%
+% is no longer used. Setting this field now produces an error.
+%
 % *Release Notes* _October 2026_
 %
-% * Support for compiled uvh matrix assembly 
+% * Support for compiled uvh, uv and h  matrix assemblies. 
 % 
-% Users can now use a complied version of the uvh assembly routine. 
+% Users can now use a complied version of the uvh, uv and h assembly routines. 
 %
 % Details are provided in : |UaCompiledUserGuide.pdf| 
 % 
-% MEX files for 64-bit Windows with MATLAB2026b are included in the distribution, and to use this option set:
-%
-%   CtrlVar.uvhMatrixAssembly.CompiledKernel=true;
-%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=false; % the compiled assembly is parallel already
-%
-% For other platforms consult  |UaCompiledUserGuide.pdf| 
-%
-%
+% MEX files for 64-bit Windows with MATLAB2026b are included in the distribution. 
 % 
+% To use this option set:
+%
+%   CtrlVar.uvhMatrixAssembly.CompiledKernel=true; 
+%   CtrlVar.uvMatrixAssembly.CompiledKernel=true; 
+%   CtrlVar.hMatrixAssembly.CompiledKernel=true; 
+%
+% and also set:
+%
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=false;    % the compiled uv-assembly is parallel already
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;   % the compiled uvh-assembly is parallel already
+%
+% If required you can also re-build the compiled files as:
+%
+%   mex -setup C
+%   BuildUaCompiled  
+%
+% Although this has only been tested on Windows platforms. You will need to install MATLAB Coder and a supported C compiler.
+%
+% For other platforms than Windows, consult  |UaCompiledUserGuide.pdf| 
+%
 %  * Support for the PARDISO direct sparse solver:
 % 
 %  Users can now use the PARDISO sparse linear solver as an alternative to the inbuilt MATLAB linear solvers (UMFPACK for the
-%  CHOLMOD of the uv system).
+%  uvh and CHOLMOD for the uv system).
 %
+% To use this option set:
+%
+%   CtrlVar.LinearSolver.Type="PARDISO";  
+% 
 % The advantage of PARIDISO over the default MATLAB solvers is that PARDISO allows for reuse of the analysis phase of the
 % solution. This is particularly interesting when a linear system with the same sparsity structure is solved repeatedly. While
 % PARDISO is not faster than the MATLAB solvers, the MATLAB solvers do not allow for this reuse of the analysis phase. In
@@ -65,14 +110,11 @@
 % * Reactions of the thickness constraints as an output:
 %
 % The equivalent local mass-balance rate of the thickness constraints is now provided as an output field, F.ah (units of distance per
-% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. It is calculated at the end of each time
-% step from the discrete reactions of the constraints, and includes all thickness constraints: the active set (h>=ThickMin), the
-% level-set constraints downstream of calving fronts, and user-defined thickness boundary conditions. In addition, the total rates at
-% which mass is added and removed by the constraints (units of mass per time, eg kg/yr) are stored for each time step in
-% RunInfo.Forward.ThicknessConstraintsMassAdded and RunInfo.Forward.ThicknessConstraintsMassRemoved. Downstream of a calving front, for
-% example, the mass removed is the calving flux. The mass budget of each time step closes exactly, ie the change in ice mass is equal to
-% the integrated mass balance, minus the net outflow across the boundary of the domain, plus the mass added and minus the mass removed by
-% the constraints (tested to round-off in the Thule example). 
+% time, eg m/yr), positive where the constraints add ice and negative where they remove ice. 
+%
+%
+%
+% * Active-set method: cumulative release criterion for thickness constraints (31 October 2026):
 %
 %
 % * Active-set method: predictive activation and release threshold, new defaults (14 October 2026):
@@ -138,12 +180,16 @@
 %
 % *Release Notes* _September 2026_
 %
-% * The conj grad Ua optimisation completely rewritten, and now competitive with the MATLAB lBFGS approach. Gradients used in
-% optimisation are Sobolov gradients with respect to a metric defined by the explicit Hessians of the regularization part.
-% Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and simplified. This may
-% possibly require some changes in input files. Box constraints in inversion can be implemented using two-sided variable
-% transform. 
+% * The conjugate gradient method used in  Ua optimisation has been completely rewritten, and is now competitive with the MATLAB lBFGS
+% approach. This is the approach used when setting:
 % 
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-GradientBased-" ;
+% 
+% Using this approach, the gradients are Sobolov gradients with respect to a metric defined by the explicit Hessians of the
+% regularization part. Box constraints are implemented using two-sided variable transform.
+% 
+% Selecting inversion algorithms, e.g. gradient-based versus Hessian-based has been streamlined and
+% simplified. This may possibly require some changes in input files. 
 % Hessian solver now calculates the exact and full Hessian using the Direct-Adjoint method. This is very memory intensive and
 % the Hessian option can only be used for small meshes (10,000 nodes or less). 
 %

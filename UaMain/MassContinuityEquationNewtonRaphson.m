@@ -183,7 +183,7 @@ while true
     % function is scaled in some ways that make further reduction irrelevant for the solution.
 
 
-    if rRatio<0.01 && rWork>1e-20 % OK I'm hard wiring in here an option of additional iteration
+    if rRatio<0.01 && rForce>1e-15 % OK I'm hard wiring in here an option of additional iteration (1 Nov 2026: rForce instead of rWork>1e-20 as the indicator of not yet being at round-off)
         % The argument being that we might most likely still be in the second-order convergence]
         % and not limited by numerical rounding errors. (Consider taking this out once
         % all is fine.)
@@ -197,17 +197,16 @@ while true
         % This exit criterion applies if in last iteration either back-step or the reduction was very small. This indicates
         % difficulties with convergence, but this might simply be due to rounding errors making a further reduction impossible.
 
-        ResidualsCriteria=(rWork<CtrlVar.hDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.hDesiredWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.hDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.hDesiredWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
+        % (1 Nov 2026) The convergence criteria depend on rForce only (previously also on rWork, see CtrlVarValidityCheck.m). With poor
+        % progress, the acceptable tolerance is used, and in the normal case the desired tolerance, as in the uvh solver (previously the
+        % other way round).
+        ResidualsCriteria = rForce<CtrlVar.hAcceptableForceTolerance && iteration >= CtrlVar.NRitmin;
 
 
     else
 
         % This is the otherwise default exit criterion
-        ResidualsCriteria=(rWork<CtrlVar.hAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.hAcceptableWorkAndForceTolerances(2))...
-            && (rWork<CtrlVar.hAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.hAcceptableWorkOrForceTolerances(2))...
-            && iteration >= CtrlVar.NRitmin;
+        ResidualsCriteria = rForce<CtrlVar.hDesiredForceTolerance && iteration >= CtrlVar.NRitmin;   % (1 Nov 2026) rForce only, desired tolerance in the normal case
 
 
     end
@@ -258,7 +257,10 @@ while true
         grhs=[];
     end
 
-    [dh,dl]=solveKApe(K,L,frhs,grhs,dh,dl,CtrlVar);
+    % (31 Oct 2026) the structural sparsity pattern of the mesh for PARDISO (see UaPardisoSolve.m), as in SSTREAM2dNR2.m and
+    % SSTREAM_TransientImplicit.m: one analysis per mesh, whatever the pattern of the individual matrices
+    if isfield(MUA,"hAssemblyPattern") ; hPattern=MUA.hAssemblyPattern ; else ; hPattern=[] ; end
+    [dh,dl]=solveKApe(K,L,frhs,grhs,dh,dl,CtrlVar,[],hPattern);
     dh=full(dh);
 
 

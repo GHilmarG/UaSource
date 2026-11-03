@@ -3,8 +3,8 @@ function [J,f,H]=bFunc(b,CtrlVar,s,B,S,rho,rhow)
 
 hf=rhow*(S-B)./rho ;
 h=s-b; 
-G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
-dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
+G = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0);
+dGdb=-DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),h-hf,CtrlVar.Hh0) ;
 
 
 f=b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;

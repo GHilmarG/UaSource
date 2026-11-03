@@ -399,7 +399,7 @@ CtrlVar.MustBe.uvhImplicitTimeSteppingMethod="SUPG"; % 'theta'|'supg' actually a
 CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;   
 
 
-CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
+CtrlVar.SUPG.beta0=1 ; % parameter related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
 % It has not been fully tested but seems to work very well for fully implicit transient calculation.
@@ -413,8 +413,6 @@ CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, the
 CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerkin method
                 % currently only implemented for periodic boundary conditions                         
            
-CtrlVar.IncludeTG3uvhBoundaryTerm=0;                     % keep zero (only used for testing)
-CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used for testing)
   
 %% Explicit estimation 
 %
@@ -446,7 +444,6 @@ CtrlVar.TimeDiscretisationErrorEstimate.Accumulate=false;                  % if 
 CtrlVar.TimeDiscretisationErrorEstimate.ResetAccumulatedAtRestart=false;   % if true, the accumulated estimate is reset at a restart (otherwise it is continued)
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-Adams-Bashforth-thickness-only-","-dhdt-","-no extrapolation-"] ;
 
-CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 % Note: Some of those parameters have physical dimensions and these values may have to be
 %       adjusted to the specific situation. 
@@ -480,13 +477,8 @@ CtrlVar.etaZero=10; %  Minimum value for the effective viscosity
 %
 
 CtrlVar.Czero=0 ;           % must be much smaller than C. 
-CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
-                            % non-zero basal drag term everywhere.)  
-                            %
 CtrlVar.Nzero=1e-20    ;    % lower value for effective pressure 
 
-CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
-CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees. 
 %% Constraints on viscosity and slipperiness
 % These constraints are always enforced, but only really of any importance when inverting for A and/or C.
 % (Using SIA or the hybrid approximation Cmin MUST be set to 0, or at least to a value much less than Czero!)
@@ -550,19 +542,18 @@ CtrlVar.AGlenminWidthRelative = 1e-10 ;
 CtrlVar.uvhSolver="Root-Finding Newton";  %  {"Root-Finding Newton","uvh_GaussNewton_fsolve"}
 
 
-% The non-linear uvh/uv loops are considered to have converged if:
+% The non-linear uvh loop (and the outer uv-h iteration) is considered to have converged if (see uvhResidualsCriteria.m):
 %
-%  1) Work and Force tolerances are both less than: 
-CtrlVar.uvhDesiredWorkAndForceTolerances=[inf 1e-15];
-% and, furthermore, at least one of Work and Force tolerances are less than:
-CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
-%Note: The default uvh tolerances set limits on the Force tolerance only. 
+%  1) the force residual (rForce) is below:
+CtrlVar.uvhDesiredForceTolerance=1e-15;
+% (1 Nov 2026) The uvh convergence criteria depend on rForce only. The previous fields CtrlVar.uvhDesiredWorkAndForceTolerances,
+% CtrlVar.uvhDesiredWorkOrForceTolerances, CtrlVar.uvhAcceptableWorkAndForceTolerances and CtrlVar.uvhAcceptableWorkOrForceTolerances are
+% no longer used (if set, their force entries are taken over, with a warning, see CtrlVarValidityCheck.m).
 
-% 2) If the step length in the backtracking becomes smaller than
+% 2) If the iteration stagnates, or the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-3;
-% while at the same time these Work and Force tolerances also fulfilled:
-CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  % both of those must be fulfilled
-CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one of those
+% while at the same time rForce is below:
+CtrlVar.uvhAcceptableForceTolerance=1e-6;
 
 % 3) If the uvh iteration has stalled (stagnation, failed backtracking or too many iterations) with rForce above the desired force
 % tolerance, but below this value, then the time step is not reduced. If thickness constraints are used, the active set is
@@ -571,34 +562,36 @@ CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one 
 CtrlVar.uvhStalledForceTolerance=1e-6;
 
 
-CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
-CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
+% (1 Nov 2026) The convergence criteria of the uv solve depend on rForce only (the previous fields CtrlVar.uv*WorkAndForceTolerances
+% and CtrlVar.uv*WorkOrForceTolerances are no longer used, see CtrlVarValidityCheck.m). The acceptable tolerance is used after a very short
+% backtracking step, failed backtracking or stagnation, as in the uvh solver:
+CtrlVar.uvDesiredForceTolerance=1e-15;
 CtrlVar.uvExitBackTrackingStepLength=1e-10;
-CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-15];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-15];
+CtrlVar.uvAcceptableForceTolerance=1e-15;   % (kept strict, unlike uvh: uv solves are also used in inverse runs, where the adjoint requires a converged forward solution)
 
-CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
-CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
+% (1 Nov 2026) The convergence criteria of the h solve depend on rForce only (previously also on rWork; the previous fields
+% CtrlVar.h*WorkAndForceTolerances and CtrlVar.h*WorkOrForceTolerances are no longer used, see CtrlVarValidityCheck.m):
+CtrlVar.hDesiredForceTolerance=1e-10;
 CtrlVar.hExitBackTrackingStepLength=1e-4;
-CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hAcceptableForceTolerance=1e-6;
 CtrlVar.hSolverMaxIterations=50;
 
 % (8 Oct 2026) The convergence of the outer iteration of the semi-implicit -uv-h- solver (CtrlVar.ForwardTimeIntegration="-uv-h-")
 % is judged using the same cost function and the same tolerances as for the implicit -uvh- solver, ie
-% CtrlVar.uvhDesiredWorkAndForceTolerances and CtrlVar.uvhDesiredWorkOrForceTolerances (see uvhResidualsCriteria.m).
+% CtrlVar.uvhDesiredForceTolerance (see uvhResidualsCriteria.m).
 % The previous parameter CtrlVar.uv2h.uvTolerance is no longer used.
 
-CtrlVar.uv2h.MaxIterations=15; % The maximum number of (outer) iterations in the semi-implicit -uv-h- solver
+CtrlVar.uv2h.MaxIterations=15;
+CtrlVar.uv2h.DivergenceFactor=1e3;   % (31 Oct 2026) the uv-h outer iteration is stopped as diverged if its residual grows by more than this factor above its smallest value (uvhSemiImplicit.m) % The maximum number of (outer) iterations in the semi-implicit -uv-h- solver
                                % The  -uv-h- solver solves for uv and h repeatedly. The iterations required for the uv solve and the h solver are referred
                                % to as "inner" iterations, and the repeated solve of uv and h as the outer iteration. 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-15 1e-15]; 
-CtrlVar.LSFDesiredWorkOrForceTolerances=[inf 1e-15];
+% (1 Nov 2026) The convergence criteria of the level-set solve depend on rForce only (previously also on rWork; the previous
+% fields CtrlVar.LSF*WorkAndForceTolerances and CtrlVar.LSF*WorkOrForceTolerances are no longer used, see CtrlVarValidityCheck.m):
+CtrlVar.LSFDesiredForceTolerance=1e-12;     % (1 Nov 2026) desired tolerance in the normal case (rForce after one Newton iteration is about 1e-13)
 CtrlVar.LSFExitBackTrackingStepLength=1e-3;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[1e-10 1e-12];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
+CtrlVar.LSFAcceptableForceTolerance=1e-10;  % (1 Nov 2026) acceptable tolerance with poor progress (as in the uvh solver)
 
 
 
@@ -654,7 +647,7 @@ CtrlVar.uvhFsolve.Display="iter";
 CtrlVar.uvhFsolve.MaxIterations=150;
 CtrlVar.uvhFsolve.StepTolerance=1e-12 ;
 CtrlVar.uvhFsolve.OptimalityTolerance=1e-20;          % fsolve's first-order optimality is absolute and depends on the scaling of J, so it is not used as the main stopping criterion
-CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhDesiredWorkAndForceTolerances(2). Convergence if norm(f)^2 is below this value
+CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhDesiredForceTolerance. Convergence if norm(f)^2 is below this value
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
 % When solving the non-linear system (forward model) the recommended option is is
@@ -677,7 +670,6 @@ CtrlVar.uvhFsolve.ForceTolerance=1e-8;                % [] : set to CtrlVar.uvhD
 %
 % Note:Most of the following parameters related to the NR iteration do, in general,
 % not to be modified and the default values should in most situation be OK.
-CtrlVar.NR=1;                             % 1 gives Newton-Raphson (use Newton-Raphson whenever possible)
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, always a positive integer number.
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; % fractional reduction forcing an update
 % (15 Oct 2026) Reuse of the Jacobian (modified Newton) in the uvh solver. Unlike the classical modified Newton method, the Jacobian and its
@@ -699,8 +691,6 @@ CtrlVar.uvhSaveNewtonSystem.MaxStates=100;               % maximum number of sta
 CtrlVar.uvhSaveNewtonSystem.FileName="uvhNewtonStates.mat";
 CtrlVar.uvhTestJacobian.Test=false;                      % if true, the Jacobian is tested (TestuvhJacobian.m) in selected Newton-Raphson iterations,
                                                          % and a summary is printed
-CtrlVar.uvhTestJacobian.Iterations=[1 2 3];
-CtrlVar.uvhTestJacobian.RunSteps=[];
 
 %% (16 Oct 2026) Linear solver for the systems solved in ABfgPreEliminate.m (eg in the uv and uvh Newton-Raphson iterations)
 CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposition/mldivide (UMFPACK), or "PARDISO": Intel oneMKL PARDISO through
@@ -729,7 +719,6 @@ CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into ba
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
 CtrlVar.LineSearchAllowedToUseExtrapolation=0; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
-CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolute step size, i.e. not a fraction of initial step size.)
 
 
 
@@ -777,7 +766,6 @@ CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
 CtrlVar.SymmSolver='Auto';   %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.AsymmSolver='Auto';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
-CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
 CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
                             % If the standard MATLAB backslash algorithm is used, default MATLAB values apply and this number is not used
                             % For indefinite block-structured systems of the type [A B' ; B 0] [x;y]=[f;g]
@@ -888,7 +876,6 @@ CtrlVar.ThicknessConstraintsInfoLevel=1 ;
 CtrlVar.hInfoLevel=1;         % Infolevel for the h solve when using semi-implicit uv/h approach
 CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
                               % if >=10, plots locations of min thickness within mesh
-CtrlVar.SymmSolverInfoLevel=0 ;
 
 CtrlVar.InfoLevelBackTrack=1;   % Controls information given during backtracking.
                                 % As with other info parameters, higher values provide more information
@@ -1132,11 +1119,7 @@ CtrlVar.Inverse.Matern.B.tau=[];
  %  -]
 CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
 %%
-% I and R are multiplied by these following DataMisit and Regularization
-% multipliers. This is a convening shortcut of getting rid of either the misfit
-% (I) or the regularization term (R) in the objective function (J) altogether.
-CtrlVar.Inverse.DataMisfit.Multiplier=1;
-CtrlVar.Inverse.Regularize.Multiplier=1;
+
 
 
 %
@@ -1358,7 +1341,7 @@ end
 %%
 % Some less-often used parameters related to inversion:
 CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R and I for each iteration,
-CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse step, only relevant when using UaOptimisation
+
 
 % >=100 for further info and plots
 %
@@ -1412,17 +1395,6 @@ CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which br
 % Note: When testing adjoint gradients, the perturbation is done with respect of nodal values and one must set
 %
 % 
-
-
-
-
-%% Inverse testing parameters (do not change)
-
-
-CtrlVar.Inverse.CalcGradI=true;   % do not change, just for testing
-CtrlVar.Inverse.DataMisfit.FunctionEvaluation='integral';   % do not change, just for testing
-CtrlVar.Inverse.DataGradient.FunctionEvaluation='integral'; % do not change, just for testing
-
 
 
 
@@ -1702,6 +1674,7 @@ CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 CtrlVar.MUA.AssemblyPattern.uv=true;
 CtrlVar.MUA.AssemblyPattern.uvh=true; 
+CtrlVar.MUA.AssemblyPattern.h=true;     % (31 Oct 2026) assembly pattern for the h assembly (MassContinuityEquationAssembly.m), see AssemblyPatternCache.m
 %% Pos. thickness constraints,          (-active set-)
 % A minimum ice thickness can be enforced in different ways using the following methods:
 %  1) `reset method' : simply resetting the thickness to min thickness at node where thickness is less than a prescribed value.
@@ -1758,8 +1731,6 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                       
                                             
                                             
-CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if lambda values are larger than this value they are inactivated, should be zero
-CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of added new constraints at each active-set update. 
 
@@ -1776,12 +1747,18 @@ CtrlVar.ActiveSet.ActivationTolerance=1e-3;             % (14 Oct 2026) Free nod
                                                         % this tolerance are accepted as they are. This is the tolerance on primal feasibility (the constraint
                                                         % h>=ThickMin), and the counterpart of ReleaseAlpha, which is the tolerance on dual feasibility (the sign of
                                                         % the multipliers). Both are expressed as a fraction of ThickMin, and have the same default value.
-CtrlVar.ActiveSet.ReleaseAlpha=1e-3;                    % (14 Oct 2026) A constrained node is only released if, without the constraint, the ice there would
-                                                        % thicken by more than ReleaseAlpha*ThickMin within the time step. With ReleaseAlpha=0 (the previous
+CtrlVar.ActiveSet.ReleaseAlpha=1e-3;                    % (14 Oct 2026; 31 Oct 2026: see ReleaseRule) A constrained node is only released once, without the constraint,
+                                                        % the ice there would have thickened by more than ReleaseAlpha*ThickMin since it became constrained (ReleaseRule="cumulative"),
+                                                        % or within the time step (ReleaseRule="per-step"). With ReleaseAlpha=0 (the previous
                                                         % default) nodes are released as soon as the multiplier has the wrong sign, which in some
                                                         % applications (eg Greenland) leads to many releases of nodes whose multipliers are only
                                                         % negative at round-off level, and that then immediately fall below ThickMin again.
                                                         % PredictiveActivation should only be used together with ReleaseAlpha>0.
+CtrlVar.ActiveSet.ReleaseRule="cumulative";             % (31 Oct 2026) "cumulative": the thickening suppressed by the constraint is accumulated over time steps
+                                                        % (F.hSuppressedThickening, see UpdateSuppressedThickening.m), and the node is released once it exceeds
+                                                        % ReleaseAlpha*ThickMin. This does not depend on the time step, and ice-free areas grow under any positive
+                                                        % accumulation. "per-step": the previous rule (thickening within one time step), which suppresses
+                                                        % accumulation rates below ReleaseAlpha*ThickMin/dt, increasingly so for small time steps.
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
                                                                     % thickness is usually prescribed directly.
 CtrlVar.ActiveSet.ReleaseCriterion="discrete";                         % (8 Oct 2026) Criterion for releasing active thickness constraints:
@@ -1933,10 +1910,6 @@ CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic= 0;           % a3 in the 
 % Elements are activated once at least one of the nodes leaves the active set. It is therefore
 % possible to have a new element where some of the nodes have thickness larger than CtrlVar.ThickMin.
 % but less than CtrlVar.ThickMinDeactivateElements.
-CtrlVar.FEmeshAdvanceRetreat=0;     % activates the Advance/Retreating mesh option
-CtrlVar.FEmeshAdvanceRetreatDT=0.5; % activation/deactivation done at this time interval
-                                    % for CtrlVar.FEmeshAdvanceRetreatDT=0 the activation/deactivation is done
-                                    % at every time step (in many cases the best approach)
 CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName='BackgroundMeshfile.mat'; % This file is needed for the advance/retreat option
                                                                              % It must contain the variable `MUA_Background'
                                                                              
@@ -2603,10 +2576,20 @@ CtrlVar.MeshAdapt.GLrange=[];   % Example (see description above):  CtrlVar.Mesh
 CtrlVar.MeshAdapt.CFrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.CFrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 %% Parameters affecting the floating mask
 
-CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
-                % kH=1 implies a grounding line "width" of 1 m up and down from floating condition
-                % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
-                % Note: This variable has UNITS!!!  The units are those of an inverse distance.
+% (2 Nov 2026) Grounding-line transition. The grounding-line mask is G=(1+tanh((h-hf)/l))/2, where hf is the flotation thickness and l
+% is the transition length, in units of thickness (m). (Previously the mask was written in terms of kH=1/l, CtrlVar.kH; that field is no
+% longer used, and defining it gives an error.) In transient uvh and uv-h runs, l is a nodal field (F.lGL), evaluated once per time step
+% from the state at its start,
+%
+%   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
+%
+% where dh/dt is the rate of thickness change of the previous time step and dt the current time step: the transition is made wide compared
+% with the change of thickness over the time step, so that the uvh Newton iteration does not stagnate when the grounding line moves through
+% the mesh (see GroundingLineTransitionLength.m). In diagnostic solves and inversions, l=lmin. lmin is also used for the water-depth mask
+% and for the nodal mask of the lower surface (Calc_bs_From_hBS.m).
+CtrlVar.GroundingLineTransition.lmin=1;     % (m) smallest transition length (replaces 1/CtrlVar.kH)
+CtrlVar.GroundingLineTransition.lmax=25;    % (m) largest transition length
+CtrlVar.GroundingLineTransition.c=0.5;      % (dimensionless) factor on dt*|dh/dt|; c=0 gives l=lmin everywhere
                 %       So if your distance units is meters, the unit of hH is 1/meters.
                 %       You must make sure that kH is sufficiently large so that 1/kH corresponds to a (vertical) distance
                 %       that is small compared to other distances of interest.
@@ -2698,7 +2681,6 @@ CtrlVar.ATSTargetIterations=7;      % if number of non-lin iterations has been l
                                     % increased by the factor ATStimeStepFactorUp
                                     % (10 Oct 2026) default changed from 4 to 7. In tests, 7 gave about 40% shorter run times than 4,
                                     % with only small differences in the solution.
-CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
 
                                     % The implicit time-stepping algorithms used in Ua by default are not limited by the CFL condition.
                                     % However, if one sets theta=0, i.e. by setting CtrlVar.theta=0.0 (not recommended!!!) , we get the
@@ -2772,7 +2754,8 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         %  as doing so avoids calls to DefineMassBalance.m within the non-lin loop.
                                         %
 CtrlVar.MustBe.MassBalanceGeometryFeedback = [0 3] ;
-CtrlVar.MassBalance.Evaluation="-node-";      
+% (31 Oct 2026) CtrlVar.MassBalance.Evaluation has been removed: the mass balance is always evaluated at the nodes (evaluation at
+% integration points, "-int-", is no longer available; see CtrlVarValidityCheck.m).
 
 %% Sea ice/melange                                               
 %
@@ -2787,18 +2770,6 @@ CtrlVar.IncludeMelangeModelPhysics=0;
 
 CtrlVar.MeltNodesDefinition='Node-Wise'; %  ('Edge-Wise','Element-wise','Node-Wise')
 
-%
-%
-%
-
-%% Mapping from Mesh1 to Mesh2
-% when a new FE is created, the values from the old mesh need to be mapped onto the new mesh
-% if the boundary of the mesh has not changed this only involves interpolation
-% but if the boundary of Mesh2 is different from that of Mesh1 then extrapolation might be involved
-% In this case one must check for such points and give them some sensible outside value.
-% 
-CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; % for non evolving mesh boundaries, can be set to 0/false
-CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using the `inpoly' m-file, should be small compared to size of any element
 
 %% Parallel options:
 % 
@@ -2865,14 +2836,12 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 
 CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
 
-CtrlVar.Parallel.BuildWorkers=false;   % this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.
+CtrlVar.Parallel.BuildWorkers=true;    % internal flag: the worker data for the spmd assembly (MUA.workers) may be built by UpdateMUA.m and CreateMUA.m.
+                                       % (31 Oct 2026, previously false, and set to true in Ua2D.m ahead of each uv and uvh solve.) UpdateMUA.m only builds them
+                                       % when needed (spmd on, a pool open, and the mesh, element type or pool changed, see MuaWorkersKey.m). AdaptMesh.m sets it
+                                       % to false locally, so that no worker data are built for the intermediate meshes.
                                        % Note: is you call the uv/uvh solvers in your own code, you most likely will need to set this flag to true when using parallel assembly. 
                                    
-
-%%  
-
-CtrlVar.UseMexFiles=false ; 
-CtrlVar.UseMexFilesCPUcompare=false;
 
 
 %% Tracers
@@ -2968,6 +2937,16 @@ CtrlVar.uvhMatrixAssembly.CompiledKernel=false;   % (25 Oct 2026) If true, the u
                                                   % options and the element type are supported; otherwise the vectorised assembly is used, and the reason is printed
                                                   % once. Results are the same to round-off. Not used within spmd workers (CtrlVar.Parallel.uvhAssembly.spmd.isOn=true).
                                                   % See UaCompiled/README.md.
+CtrlVar.uvAssembly.ZeroFields=false;
+CtrlVar.uvMatrixAssembly.Ronly=false;
+CtrlVar.uvMatrixAssembly.CompiledKernel=false;    % (30 Oct 2026) If true, the uv assembly (uvMatrixAssemblySSTREAM.m) uses the compiled element-based kernel in
+                                                  % UaSource/UaCompiled, in the same way as CtrlVar.uvhMatrixAssembly.CompiledKernel for the uvh assembly. This applies
+                                                  % to all uv assemblies, including those of the inverse problem (adjoint). Results are the same to round-off.
+                                                  % Not used within spmd workers (CtrlVar.Parallel.uvAssembly.spmd.isOn=true). See UaCompiled/README.md.
+CtrlVar.hMatrixAssembly.CompiledKernel=false;     % (31 Oct 2026) If true, the h assembly (MassContinuityEquationAssembly.m, used by the uv-h scheme and by
+                                                  % MassContinuityEquation.m) uses the compiled element-based kernel in UaSource/UaCompiled, in the same way as
+                                                  % CtrlVar.uvhMatrixAssembly.CompiledKernel for the uvh assembly. Results are the same to round-off. Not used if
+                                                  % the matrix dFdt is requested (stability analysis). See UaCompiled/README.md.
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
 CtrlVar.DevelopmentVersion=false ; % Internal variable, always set to false
 % (unless you want to use some untried, untested and unfinished features....)
@@ -2986,20 +2965,16 @@ CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 CtrlVar.CompareCalculationsOfRatesOfThicknessChanges=false ;  % activates call to CompareCalculationsOfRatesOfThicknessChanges.m which compares dh/dt from the the transient -uvh- solve,
                                                               % with an explicit estimate and implicit estimates using the mass conservation equation alone.
 
-CtrlVar.Compare_uvh_uv2h_CPUtimes=false;
 
 CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent=false;
 
-CtrlVar.Abort.State=false ; % This is an internal variable. If, for example, some calculations could not be performed as specified, 
-                            % then the idea is that the run will abort the calculations and terminate gracefully. 
-CtrlVar.Abort.Message="" ; 
 
  CtrlVar.uvhMakeInitialIterateFeasible=true; 
  CtrlVar.uvMakeInitialIterateFeasible=true; 
  
  CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
-end
 
+end
 
 

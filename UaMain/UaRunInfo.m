@@ -57,6 +57,9 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             obj.Forward.uvhIterations=NaN(N,1);
             obj.Forward.uvhResidual=NaN(N,1);
             obj.Forward.uvhBackTrackSteps=NaN(N,1);
+            obj.Forward.GLCourantMedian=NaN(N,1);   % (2 Nov 2026) grounding-line Courant number of each time step, see GroundingLineCourantNumber.m
+            obj.Forward.GLCourantP90=NaN(N,1);
+            obj.Forward.GLCourantMax=NaN(N,1);
 
             obj.Forward.uvhActiveSetIterations=NaN(N,1);
             obj.Forward.uvhActiveSetCyclical=NaN(N,1);
@@ -168,6 +171,10 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
                 obj.Forward.uvhIterations=UaResize(obj.Forward.uvhIterations,nPadding,FillValue=nan) ; 
                 obj.Forward.uvhResidual=UaResize(obj.Forward.uvhResidual,nPadding,FillValue=nan) ; 
                 obj.Forward.uvhBackTrackSteps=UaResize(obj.Forward.uvhBackTrackSteps,nPadding,FillValue=nan) ; 
+                for fGL=["GLCourantMedian","GLCourantP90","GLCourantMax"]   % (2 Nov 2026)
+                    if ~isfield(obj.Forward,fGL) ; obj.Forward.(fGL)=NaN(nElements,1) ; end
+                    obj.Forward.(fGL)=UaResize(obj.Forward.(fGL),nPadding,FillValue=nan) ;
+                end
 
                 obj.Forward.uvhActiveSetIterations=UaResize(obj.Forward.uvhActiveSetIterations,nPadding,FillValue=nan) ; 
                 obj.Forward.uvhActiveSetCyclical=UaResize(obj.Forward.uvhActiveSetCyclical,nPadding,FillValue=nan) ; 

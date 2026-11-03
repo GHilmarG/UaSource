@@ -127,9 +127,7 @@ if isempty(RunInfo) ||  ~isfield(RunInfo.Inverse,"Iterations") || numel(RunInfo.
     RunInfo.Inverse.Iterations(1)=0;
     RunInfo.Inverse.J(1)=J0;
 
-    if CtrlVar.Inverse.StoreSolutionAtEachIteration
-        RunInfo.Inverse.p{1}=p;
-    end
+  
 
     if isfield(fOuts,'R')
         RunInfo.Inverse.R(1)=fOuts.R;
@@ -192,7 +190,7 @@ gammaStart=gamma;
 %%
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g \t  decrement=%g \t \t gamma=%-g \n \n',J0,fOuts.I,fOuts.R,Decrement,gamma)
 
-It0=RunInfo.Inverse.Iterations(end);
+It0=max(RunInfo.Inverse.Iterations);
 
 fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R           decrement  \t    gamma  \t SDratio    CGcorr \n')
 
@@ -203,7 +201,7 @@ fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f
 
 ExitInfo=[];                              % state carried by CGExitCriteria
 
-for Iteration=1:CtrlVar.Inverse.Iterations
+for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
 
     % J at gammaStart, together with its slope. The cache already holds this point whenever gammaStart was one of the
     % trial steps probed above, or by the previous line search.
@@ -250,16 +248,31 @@ for Iteration=1:CtrlVar.Inverse.Iterations
 
   
     fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f \n',...
-        Iteration+It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.I,fOuts.R,...
+        Iteration,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.I,fOuts.R,...
         Decrement,gamma,cgInfo.SufficientDescentRatio,cgInfo.CGCorrectionRatio)
 
-    RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
-    RunInfo.Inverse.J=[RunInfo.Inverse.J;J0];
-    RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.R];
-    RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.I];
-    RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement;Decrement];
-    RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
-    RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];
+    if numel(RunInfo.Inverse.Iterations) < Iteration
+    
+            Padding=nan(CtrlVar.Inverse.Iterations,1);
+            RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations; Padding];
+            RunInfo.Inverse.J=[RunInfo.Inverse.J; Padding];
+            RunInfo.Inverse.R=[RunInfo.Inverse.R; Padding];
+            RunInfo.Inverse.I=[RunInfo.Inverse.I; Padding];
+            RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement; Padding];
+            RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm; Padding];
+            RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize; Padding];
+
+    end
+
+    RunInfo.Inverse.Iterations(Iteration)=Iteration;
+    RunInfo.Inverse.J(Iteration)=J0;
+    RunInfo.Inverse.R(Iteration)=fOuts.R;
+    RunInfo.Inverse.I(Iteration)=fOuts.I;
+    RunInfo.Inverse.Decrement(Iteration)=Decrement;
+    RunInfo.Inverse.GradNorm(Iteration)=GradNorm;
+    RunInfo.Inverse.StepSize(Iteration)=gamma;
+
+
 
     [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J0,sGs,cgInfo,LineSearchInfo,Misfit);
 

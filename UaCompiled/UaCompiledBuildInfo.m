@@ -3,7 +3,7 @@ function [ok,Reason,Note]=UaCompiledBuildInfo(Action,MexNames)
 %% Build information of the MEX files in UaCompiled: records it when building, and checks it before use
 %
 %   UaCompiledBuildInfo("record",MexNames)                   % called by BuildUaCompiled.m after building the MEX files MexNames
-%   [ok,Reason,Note]=UaCompiledBuildInfo("check",MexNames)   % called by uvhCompiledKernelCheck.m (once per session and variant)
+%   [ok,Reason,Note]=UaCompiledBuildInfo("check",MexNames)   % called by CompiledAssemblyCheck.m (once per session and variant)
 %
 % For each MEX file, the MATLAB release it was built with, and a checksum of each source file compiled into it, are kept in
 % UaCompiledBuildInfo_<mexext>.mat in this folder (one file per platform, eg UaCompiledBuildInfo_mexw64.mat).
@@ -18,7 +18,7 @@ function [ok,Reason,Note]=UaCompiledBuildInfo(Action,MexNames)
 % The checksums (ArrayChecksum.m) are of the file contents with carriage returns removed, so that a checkout with other line endings
 % (git core.autocrlf) does not count as a change. Source files are recorded relative to the UaSource folder.
 %
-% See also: BuildUaCompiled, uvhCompiledKernelCheck
+% See also: BuildUaCompiled, CompiledAssemblyCheck
 %
 % (26 Oct 2026)
 %%
@@ -100,7 +100,14 @@ if MexName=="SparseFromCSC"
 else
     % the kernel: the entry points and all UaSource functions they call, and MakeKernelParamsFlex.m (its list of fields fixes the
     % type of the kernel's parameter input). FindOrCreateFigure.m is only called by plotting that is excluded from compiled code.
-    Full=string(matlab.codetools.requiredFilesAndProducts({'uvhKernelFull','uvhKernelRonly'}))' ;
+    if startsWith(MexName,"uvKernel")   % uv kernel (30 Oct 2026)
+        Entries={'uvKernelFull','uvKernelRonly'} ;
+    elseif startsWith(MexName,"hKernel")   % h kernel (31 Oct 2026)
+        Entries={'hKernelFull','hKernelRonly'} ;
+    else
+        Entries={'uvhKernelFull','uvhKernelRonly'} ;
+    end
+    Full=string(matlab.codetools.requiredFilesAndProducts(Entries))' ;
     Full=[Full ; string(which('MakeKernelParamsFlex'))] ;
     Full=Full(startsWith(Full,Root+filesep) & ~endsWith(Full,filesep+"FindOrCreateFigure.m")) ;
 end

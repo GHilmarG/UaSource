@@ -11,7 +11,6 @@ clear EleAverageInterpolate
 clear JGH
 clear NrOfIntegrationPoints
 clear LocalMeshRefinement
-clear MeshAdvanceRetreat
 clear Mesh2dEleSizeFunction
 clear multiWaitbar
 clear NewConjugatedGrad

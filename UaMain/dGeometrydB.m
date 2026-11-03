@@ -148,8 +148,8 @@ bs = (rho.*s-rhow.*S)./(rho-rhow) ;    % base of freely floating ice
 hf = rhow.*(S-B)./rho ;                % flotation thickness
 Dh = (s-b)-hf ;                        % h-h_f
 
-G     = HeavisideApprox(CtrlVar.kH,Dh,CtrlVar.Hh0) ;
-Delta = DiracDelta(CtrlVar.kH,Dh,CtrlVar.Hh0) ;
+G     = HeavisideApprox((1/CtrlVar.GroundingLineTransition.lmin),Dh,CtrlVar.Hh0) ;
+Delta = DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),Dh,CtrlVar.Hh0) ;
 
 Lambda = Delta.*(B-bs) ;
 dFdb   = 1+Lambda ;                    % identical to dFdb within Calc_bh_From_sBS.m
@@ -167,14 +167,14 @@ if nargout>1
 end
 
 if nargout>2
-    DeltaOut = DiracDelta(CtrlVar.kH,(s-bFloored)-hf,CtrlVar.Hh0) ;     % delta at the floored thickness, which is what the mask is calculated from
+    DeltaOut = DiracDelta((1/CtrlVar.GroundingLineTransition.lmin),(s-bFloored)-hf,CtrlVar.Hh0) ;     % delta at the floored thickness, which is what the mask is calculated from
     dGdB = DeltaOut.*(rhow./rho-dbdB) ;
 end
 
 if nargout>4
 
     mu     = rhow./rho - dbdBc ;                          % d(Dh)/dB
-    dDelta = 2*CtrlVar.kH.*Delta.*(1-2*G) ;              % derivative of the smoothed delta
+    dDelta = 2*(1/CtrlVar.GroundingLineTransition.lmin).*Delta.*(1-2*G) ;              % derivative of the smoothed delta
 
     d2bdBc = ( 2*Delta.*mu + dDelta.*(B-bs).*mu.^2 )./dFdb ;     % second derivative of the unfloored closure
     d2bdB2 = dPhi.*d2bdBc - d2Phi.*dbdBc.^2 ;
@@ -208,7 +208,7 @@ if ~isfield(CtrlVarTest,"MapOldToNew") || ~isfield(CtrlVarTest.MapOldToNew,"Test
 end
 
 % The mask varies over a scale of about 1/kH, so the step must be small compared with that.
-dB=1e-3/max(CtrlVar.kH,1e-10) ;
+dB=1e-3/max((1/CtrlVar.GroundingLineTransition.lmin),1e-10) ;
 
 bPlus =Calc_bh_From_sBS(CtrlVarTest,[],s,B+dB,S,rho,rhow);
 bMinus=Calc_bh_From_sBS(CtrlVarTest,[],s,B-dB,S,rho,rhow);

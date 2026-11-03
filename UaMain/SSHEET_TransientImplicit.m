@@ -60,15 +60,11 @@ while true
     
        if gamma > max(CtrlVar.hExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
             
-            ResidualsCriteria=(rWork<CtrlVar.hDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.hDesiredWorkAndForceTolerances(2))...
-                && (rWork<CtrlVar.hDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.hDesiredWorkOrForceTolerances(2))...
-                && iteration >= CtrlVar.NRitmin;
+            ResidualsCriteria = rForce<CtrlVar.hDesiredForceTolerance && iteration >= CtrlVar.NRitmin;   % (1 Nov 2026) rForce only
 
         else
             
-            ResidualsCriteria=(rWork<CtrlVar.hAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.hAcceptableWorkAndForceTolerances(2))...
-                && (rWork<CtrlVar.hAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.hAcceptableWorkOrForceTolerances(2))...
-                && iteration >= CtrlVar.NRitmin;
+            ResidualsCriteria = rForce<CtrlVar.hAcceptableForceTolerance && iteration >= CtrlVar.NRitmin;   % (1 Nov 2026) rForce only
             
         end
         
