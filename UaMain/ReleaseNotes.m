@@ -3,7 +3,7 @@
 %%
 % 
 % *Release Notes* _November 2026_
-
+%
 %
 % * Grounding-line transition: nodal transition length, CtrlVar.kH replaced (2 November 2026):
 %
@@ -13,8 +13,8 @@
 %
 %   l = min(lmax, max(lmin, c*dt*|dh/dt|)),
 %
-% with dh/dt the rate of thickness change of the previous time step and dt the current time step. The transition is thus made wide
-% compared with the change of thickness over the time step. 
+% with dh/dt the rate of thickness change of the previous time step and dt the current time step. There is a bit of theory behind this equation, but
+% basically the transition is thus made wide compared with the change of thickness over the time step. 
 %
 % The smoothing is proportional to dt (like the error of the implicit time stepping) and vanishes as dt->0; 
 % 
@@ -23,6 +23,12 @@
 %   CtrlVar.GroundingLineTransition.lmin=1;    % (m) replaces 1/CtrlVar.kH; defining CtrlVar.kH now gives an error
 %   CtrlVar.GroundingLineTransition.lmax=25;   % (m)
 %   CtrlVar.GroundingLineTransition.c=0.5;     % (dimensionless); c=0 gives l=lmin everywhere (the previous behaviour with kH=1/lmin)
+%
+% Note that the field
+%
+%   CtrlVar.kH
+%
+% is no longer used. Setting this field now produces an error.
 %
 % *Release Notes* _October 2026_
 %
@@ -44,6 +50,13 @@
 %
 %   CtrlVar.Parallel.uvAssembly.spmd.isOn=false;    % the compiled uv-assembly is parallel already
 %   CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;   % the compiled uvh-assembly is parallel already
+%
+% If required you can also re-build the compiled files as:
+%
+%   mex -setup C
+%   BuildUaCompiled  
+%
+% Although this has only been tested on Windows platforms. You will need to install MATLAB Coder and a supported C compiler.
 %
 % For other platforms than Windows, consult  |UaCompiledUserGuide.pdf| 
 %
