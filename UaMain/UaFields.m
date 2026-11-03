@@ -3,18 +3,28 @@ classdef UaFields
 
     properties
 
-        solution="-none-" ; 
+        solution="-none-" ;
 
         x=[];
         y=[];
         time=[];
         dt=[] ;
         dtRates=NaN ;  % (9 Oct 2026) the time step over which the rates (dhdt, dubdt, dvbdt, duddt, dvddt) were calculated as backward differences
-        hTimeDiscretisationErrorEstimate=[] ;  % (10 Oct 2026) estimate of the local time-discretisation error of h in the last time step (m), see TimeDiscretisationErrorEstimate.m
-        hTimeDiscretisationErrorAccumulated=[] ;  % (10 Oct 2026) accumulated estimate (structure with fields Signed, Abs, ValidTime, TotalTime), see TimeDiscretisationErrorEstimate.m
-        ah=[] ;  % (15 Oct 2026) equivalent local mass-balance rate of the thickness constraints (distance/time), positive where ice is added, see ThicknessConstraintReactions.m
-lGL=[] ;  % (2 Nov 2026) nodal transition length of the grounding-line mask (m), or [] for the scalar CtrlVar.GroundingLineTransition.lmin, set at the start of each time step, see GroundingLineTransitionLength.m
-hSuppressedThickening=[] ;  % (31 Oct 2026) net thickening suppressed by the thickness constraint at each constrained node (distance), for the cumulative release criterion, see UpdateSuppressedThickening.m
+
+        hTimeDiscretisationErrorEstimate=[] ;  % (10 Oct 2026) estimate of the local time-discretisation error of h in the last time step (m),
+        % see TimeDiscretisationErrorEstimate.m
+
+        hTimeDiscretisationErrorAccumulated=[] ;  % (10 Oct 2026) accumulated estimate (structure with fields Signed, Abs, ValidTime, TotalTime),
+        % see TimeDiscretisationErrorEstimate.m
+
+        ah=[] ;  % (15 Oct 2026) equivalent local mass-balance rate of the thickness constraints (distance/time), positive where ice is added,
+        % see ThicknessConstraintReactions.m
+
+        lGL=[] ;  % (2 Nov 2026) nodal transition length of the grounding-line mask (m), or [] for the scalar CtrlVar.GroundingLineTransition.lmin,
+        % set at the start of each time step, see GroundingLineTransitionLength.m
+
+        hSuppressedThickening=[] ;  % (31 Oct 2026) net thickening suppressed by the thickness constraint at each constrained node (distance),
+        % for the cumulative release criterion, see UpdateSuppressedThickening.m
 
         xint=[];
         yint=[];
@@ -56,13 +66,13 @@ hSuppressedThickening=[] ;  % (31 Oct 2026) net thickening suppressed by the thi
         AGlenmin=[];
         AGlenmax=[];
         AGlen0=[] ; % undamaged A, used in phase field fracture
-        
-        E=[]; 
+
+        E=[];
 
         C=[];
         Cmin=[];
         Cmax=[];
-        
+
         m=[];
         n=[];
         rho=[];
@@ -120,7 +130,7 @@ hSuppressedThickening=[] ;  % (31 Oct 2026) net thickening suppressed by the thi
         vw=[];
 
 
-        Psi=[] ; % strain-rate energy density function 
+        Psi=[] ; % strain-rate energy density function
 
         D=[] ; % Damage (SSD)
         aD=[] ; % Damage accumulation
