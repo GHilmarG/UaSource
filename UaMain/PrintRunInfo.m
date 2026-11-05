@@ -4,7 +4,7 @@
 function PrintRunInfo(CtrlVar)
 
 fprintf(CtrlVar.fidlog,'\n \n');
-fprintf(CtrlVar.fidlog,' **************************    %ca version: 3 November 2026 (alpha)  ********************** \n',218);
+fprintf(CtrlVar.fidlog,' *************************    %ca version: 3 November, 2026   (beta)  *********************** \n',218);
 fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datetime);
 fprintf(CtrlVar.fidlog,'   Experiment: %s  \n ',CtrlVar.Experiment);
 
@@ -24,7 +24,6 @@ if CtrlVar.doInverseStep
     
     
 end
-
 
 if  ~CtrlVar.TimeDependentRun && ~CtrlVar.InverseRun   % (14 Oct 2026) based on TimeDependentRun, not on doDiagnostic
     if CtrlVar.Restart
@@ -49,7 +48,7 @@ if  status==0
     fprintf('   Running on: %s ',hostname)
 end
 
-fprintf(CtrlVar.fidlog,'********************************************************************************** \n \n');
+fprintf(CtrlVar.fidlog,'************************************************************************************** \n \n');
 
 
 end
