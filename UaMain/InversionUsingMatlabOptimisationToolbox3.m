@@ -138,6 +138,7 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.J;Outs.StepSize];
 RunInfo.Inverse.R=[RunInfo.Inverse.R;Outs.fval+NaN];
 RunInfo.Inverse.I=[RunInfo.Inverse.I;Outs.fval+NaN];
 RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Outs.GradNorm];
+RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement(:);Outs.GradNorm*0+nan];
 RunInfo.Inverse.p=Outs.p;
 % If I need some further info and want to update F
 
