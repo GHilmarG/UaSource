@@ -274,7 +274,7 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
 
 
 
-    [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J0,sGs,cgInfo,LineSearchInfo,Misfit);
+    [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration-It0,J0,sGs,cgInfo,LineSearchInfo,Misfit);
 
     if Exit
         fprintf('\n Inversion stopped after %i iterations, exit flag %i : %s \n',...
