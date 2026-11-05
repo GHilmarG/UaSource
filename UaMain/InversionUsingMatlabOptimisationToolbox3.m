@@ -132,7 +132,7 @@ end
 [stop,Outs] = fminuncOutfun();
 
 
-RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+Outs.iteration];
+RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;max(RunInfo.Inverse.Iterations)+Outs.iteration];
 RunInfo.Inverse.J=[RunInfo.Inverse.J;Outs.fval];
 RunInfo.Inverse.StepSize=[RunInfo.Inverse.J;Outs.StepSize];
 RunInfo.Inverse.R=[RunInfo.Inverse.R;Outs.fval+NaN];

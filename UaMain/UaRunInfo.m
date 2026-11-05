@@ -294,6 +294,23 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
 
             % Make sure the loaded UaRunInfo is up-to date
             % add in here any new modifications
+
+          
+
+
+            if ~isfield(sObj.Inverse,'Decrement')
+                sObj.Inverse.Decrement=nan;
+            end
+
+            if ~isfield(sObj.Inverse,'nFuncEval')
+                sObj.Inverse.nFuncEval=0;
+            end
+
+            if ~isfield(sObj.Inverse,'ConjGradUpdate')
+                sObj.Inverse.ConjGradUpdate=0;
+            end
+
+
             if ~isfield(sObj.Forward,'AdaptiveTimeSteppingResetCounter')
                 sObj.Forward.AdaptiveTimeSteppingResetCounter=0;
             end
@@ -346,8 +363,6 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             if ~isfield(sObj.Inverse,'nFuncEval')
                 sObj.Inverse.nFuncEval = 0 ;
             end
-
-
 
 
 
