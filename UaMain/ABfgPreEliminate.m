@@ -2,7 +2,7 @@ function [x,y,dAtilde,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde,Struct
 
 %%
 %
-% I developed this approach independently, and then later learned (Claude) that this exact method is Eq (29) in
+% I developed this approach independently, and then later learned that this exact method is Eq (29) in
 %
 % F. Aghili, "A unified approach for inverse and direct dynamics of constrained multibody systems based 
 % on linear projection operator: applications to control and simulation",
