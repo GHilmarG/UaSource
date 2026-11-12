@@ -249,7 +249,7 @@ CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ;
 
 [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);  % RHS with calculated velocities, i.e. difference between external and internal forces
 
-RunInfo.CPU.Solution.uv=0;
+% (12 Nov 2026) RunInfo.CPU.Solution.uv is no longer reset here: like the other timers it is the cumulative time over the run.
 
 
 

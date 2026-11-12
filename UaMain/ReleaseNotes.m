@@ -31,6 +31,10 @@
 %
 % is no longer used. Setting this field now produces an error.
 %
+% If a NR uvh iteration does not converge, l is increased until convergence is found (it is is found) and then decreased
+% again until a solution with the prescribed l has been found. Only if this fails, is a reduction in dt attempted. 
+%
+%
 % *Release Notes* _October 2026_
 %
 % * Support for compiled uvh, uv and h  matrix assemblies. 

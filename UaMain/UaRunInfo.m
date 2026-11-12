@@ -98,22 +98,27 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             obj.LevelSet.Phase=strings(N,1);
 
 
-            obj.CPU.tic=duration(0,0,0);
-            obj.CPU.toc=duration(0,0,0);
-          
-            obj.CPU.Total=duration(0,0,0);
-            
+            % (12 Nov 2026) Wall-clock and CPU times. WallTime.Total and CPU.Total are the times used by Ua, accumulated over a chain of
+            % restart runs (excluding the time spent in DefineOutputs). They are updated by UpdateTotalTimes, which adds the time since the
+            % last tic (a datetime for the wall time, the cputime of the MATLAB process as a duration for the CPU time) and resets the tic.
+            % The tic values are only meaningful within one MATLAB session; in a restart run they are reset at the start of the run
+            % (Ua2D.m), so that the time between runs is not counted.
+            obj.CPU.tic=duration(0,0,0,Format="dd:hh:mm:ss.SSS");
+            obj.CPU.toc=duration(0,0,0,Format="dd:hh:mm:ss.SSS");
+            obj.CPU.Total=duration(0,0,0,Format="dd:hh:mm:ss.SSS");
 
-            obj.CPU.Assembly.uv=[];
-            obj.CPU.Solution.uv=[];
-            obj.CPU.Assembly.uvh=[];
-            obj.CPU.Solution.uvh=[];
+            % Cumulative wall-clock times (s, from tic/toc) of the uv and uvh matrix assemblies and of the solutions of the linear systems
+            % of the uv and uvh Newton iterations. (12 Nov 2026) Previously initialised as [], so that they were never accumulated.
+            obj.CPU.Assembly.uv=0;
+            obj.CPU.Solution.uv=0;
+            obj.CPU.Assembly.uvh=0;
+            obj.CPU.Solution.uvh=0;
 
             obj.CPU.Inversion=[];
 
-            obj.WallTime.Total=duration(0,0,0);
-            obj.WallTime.tic=duration(0,0,0);
-            obj.WallTime.toc=duration(0,0,0);
+            obj.WallTime.Total=duration(0,0,0,Format="dd:hh:mm:ss.SSS");
+            obj.WallTime.tic=NaT(Format="yyyy-MM-dd HH:mm:ss.SSS");
+            obj.WallTime.toc=NaT(Format="yyyy-MM-dd HH:mm:ss.SSS");
 
             obj.Message="" ;
 
@@ -149,6 +154,34 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
         % 
         % end
 
+
+        function obj=RestartTimers(obj)
+            % (12 Nov 2026) Sets the wall-time and CPU tic values to the current time, without adding anything to the totals. Used at the
+            % start of a run, and to exclude time (eg spent in DefineOutputs) from the totals.
+            obj.WallTime.tic=datetime("now",Format="yyyy-MM-dd HH:mm:ss.SSS");
+            obj.WallTime.toc=obj.WallTime.tic;
+            obj.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS");
+            obj.CPU.toc=obj.CPU.tic;
+        end
+
+        function obj=UpdateTotalTimes(obj)
+            % (12 Nov 2026) Adds the wall-clock and CPU time since the last tic to WallTime.Total and CPU.Total, and resets the tic values.
+            % A tic value that is missing or of the wrong type (eg from an old restart file) gives a zero increment.
+            Now=datetime("now",Format="yyyy-MM-dd HH:mm:ss.SSS");
+            CPUNow=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS");
+            if ~isa(obj.WallTime.tic,"datetime") || isnat(obj.WallTime.tic) ; obj.WallTime.tic=Now ; end
+            if ~isa(obj.WallTime.Total,"duration") ; obj.WallTime.Total=duration(0,0,0) ; end
+            if ~isa(obj.CPU.tic,"duration") ; obj.CPU.tic=CPUNow ; end
+            if ~isa(obj.CPU.Total,"duration") ; obj.CPU.Total=duration(0,0,0) ; end
+            obj.WallTime.toc=Now;
+            obj.WallTime.Total=obj.WallTime.Total+(obj.WallTime.toc-obj.WallTime.tic);
+            obj.WallTime.tic=Now;
+            obj.CPU.toc=CPUNow;
+            obj.CPU.Total=obj.CPU.Total+(obj.CPU.toc-obj.CPU.tic);
+            obj.CPU.tic=CPUNow;
+            obj.WallTime.Total.Format="dd:hh:mm:ss.SSS";
+            obj.CPU.Total.Format="dd:hh:mm:ss.SSS";
+        end
 
         function obj=ExtendAllocations(obj,CtrlVar,index)
 
@@ -388,6 +421,22 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
                 sObj.WallTime.Total=duration(0,0,0);
                 sObj.WallTime.tic=duration(0,0,0);
                 sObj.WallTime.toc=duration(0,0,0);
+            end
+
+            if ~isa(sObj.WallTime.Total,"duration")   % (12 Nov 2026) in some old files a datetime
+                sObj.WallTime.Total=duration(0,0,0);
+            end
+
+            % (12 Nov 2026) The assembly and solution timers were initialised as [] and therefore never accumulated ([]+x is []).
+            for g=["Assembly","Solution"]
+                if ~isfield(sObj.CPU,g) || ~isstruct(sObj.CPU.(g))
+                    sObj.CPU.(g)=struct("uv",0,"uvh",0);
+                end
+                for f=["uv","uvh"]
+                    if ~isfield(sObj.CPU.(g),f) || isempty(sObj.CPU.(g).(f)) || ~isnumeric(sObj.CPU.(g).(f))
+                        sObj.CPU.(g).(f)=0;
+                    end
+                end
             end
 
             if ~sObj.hasNameValue("LevelSet")

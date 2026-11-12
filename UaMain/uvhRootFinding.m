@@ -221,8 +221,10 @@ else   %  Thickness constraints used
             dtBeforeReduction=F1.dt ;
             [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1,BCs1AtStartOfStep);
             F0.dt=F1.dt ;  CtrlVar.dt=F1.dt ;  dt=F1.dt ;
-            if F1.dt < dtBeforeReduction
-                continue      % solve again, now with the reduced time step
+            % (12 Nov 2026) Also continue if the solve converged with an increased grounding-line transition length (rescue branch 1 of
+            % uvh2NotConvergent, same time step and active set): the active set must now be updated for that solution.
+            if F1.dt < dtBeforeReduction || (isfield(RunInfo.Forward,"uvhTransitionLengthRescued") && RunInfo.Forward.uvhTransitionLengthRescued)
+                continue      % solve again, now with the reduced time step, or with the increased transition length
             end
 
         end
