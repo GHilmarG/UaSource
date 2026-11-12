@@ -47,17 +47,18 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 
 
 
-gamma=0.01;
-S=F.x*0 ; 
-B0=-850;
-B=B0-gamma*F.x ;
+B=MismBed(F.x,F.y);
+
+S=B*0;
 b=B;
-s=b+1000;
+h0=300;
+s=b+h0;
 
-
-rho=900+zeros(MUA.Nnodes,1) ; 
-rhow=1030; 
+rho=917+zeros(MUA.Nnodes,1) ;
+rhow=1030;
 g=9.81/1000;
+
+
 
 
 

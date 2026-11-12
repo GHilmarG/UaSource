@@ -134,7 +134,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
         ColorbarLimits(2)=ColorbarLimits(2)+Eps;
     end
 
-    figCeI=FindOrCreateFigure("Change in A during inversion") ; clf(figCeI)
+    figAeI=FindOrCreateFigure("Change in A during inversion") ; clf(figAeI)
 
 
     T=tiledlayout("flow");
@@ -166,7 +166,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     title("Change in $A$ during current inversion run",Interpreter="latex") ;
     subtitle("$\log_{10}(A_{\mathrm{End}})-\log_{10}(A_{\mathrm{Start}})$",Interpreter="latex")
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    set(figCeI,CurrentAxes=T3) ;
+    set(figAeI,CurrentAxes=T3) ;
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
     T4=nexttile ;
@@ -178,6 +178,11 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     CM=cmocean('-ice',15) ; colormap(T4,CM);
     %clim(ColorbarLimits)
 
+
+    set(figAeI,CurrentAxes=T1) ; CL=clim;   CM=cmocean('ice',25)  ; colormap(T1,CM);
+    set(figAeI,CurrentAxes=T2) ; clim(CL);  CM=cmocean('ice',25) ;  colormap(T2,CM);
+    set(figAeI,CurrentAxes=T3) ;            CM=cmocean('-balanced',25,'pivot',0) ;  colormap(T3,CM);
+    set(figAeI,CurrentAxes=T4) ; clim(CL); CM=cmocean('ice',25,'pivot',0) ;  colormap(T4,CM);
 
     T.Padding="tight";   T.TileSpacing="tight";
 
@@ -239,6 +244,10 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     %clim(ColorbarLimits)
     subtitle("",Interpreter="latex")
   
+    set(figCeI,CurrentAxes=T1) ; CL=clim;   CM=cmocean('ice',25)  ; colormap(T1,CM);
+    set(figCeI,CurrentAxes=T2) ; clim(CL);  CM=cmocean('ice',25) ;  colormap(T2,CM);
+    set(figCeI,CurrentAxes=T3) ;            CM=cmocean('-balanced',25,'pivot',0) ;  colormap(T3,CM);
+    set(figCeI,CurrentAxes=T4) ; clim(CL); CM=cmocean('ice',25,'pivot',0) ;  colormap(T4,CM);
 
     T.Padding="tight";   T.TileSpacing="tight";
 
@@ -307,9 +316,9 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
 
     set(figB,CurrentAxes=T3) ; CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
-    set(figB,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
-    set(figB,CurrentAxes=T2) ;  colormap(T2,othercolor("Mdarkterrain",32))
-    set(figB,CurrentAxes=T4) ;  colormap(T4,othercolor("Mdarkterrain",32))
+    set(figB,CurrentAxes=T1) ; CL=clim;  colormap(T1,othercolor("Mdarkterrain",32))
+    set(figB,CurrentAxes=T2) ; clim(CL);  colormap(T2,othercolor("Mdarkterrain",32))
+    set(figB,CurrentAxes=T4) ; clim(CL) ;  colormap(T4,othercolor("Mdarkterrain",32))
 
     T.Padding="tight";   T.TileSpacing="tight";
 
@@ -582,7 +591,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     axdhdt4=nexttile;
 
-    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false,logColorbar=true);
+    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false,logColorbar=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     title("$\dot{h}_{\mathrm{Error}}$",Interpreter="latex") ;
@@ -592,6 +601,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     axis(axdhdt1); clim(CLmeas)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
     axis(axdhdt2); clim(CLmod)   ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
     axis(axdhdt3); clim(CLdiff)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
+    axis(axdhdt4); clim([0 max(dhdtError)])  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt4,CM);
 
 
     T.Padding="tight";   T.TileSpacing="tight";

@@ -4,6 +4,62 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Wall-clock and CPU times in RunInfo corrected (12 November 2026):
+%
+% RunInfo.WallTime.Total and RunInfo.CPU.Total, and the assembly and solution timers RunInfo.CPU.Assembly.uv/uvh and
+% RunInfo.CPU.Solution.uv/uvh, were wrong:
+%
+%   - In restart runs, RunInfo is read from the restart file, including the tic values of the session that wrote it. The first update in
+%     Ua2D.m therefore added the calendar time since the restart file was written to WallTime.Total (eg 71 days after a chain of restarts),
+%     and the difference between the cputime of two different MATLAB processes to CPU.Total (which could decrease).
+%   - CreateOutputs.m calculated the wall-time increment but did not assign it, and then reset the tic, so that the wall time up to each
+%     output call was lost.
+%   - The assembly and solution timers were initialised as [] in UaRunInfo.m, and []+x is [], so that they were never accumulated.
+%   - RunInfo.CPU.Solution.uv was reset at the start of every uv solve (SSTREAM2dNR2.m).
+%
+% The updates are now done by two UaRunInfo methods, UpdateTotalTimes (adds the time since the last tic to the totals and resets the tic)
+% and RestartTimers (resets the tic only), used in Ua2D.m, CreateOutputs.m (time spent in DefineOutputs still excluded) and the restart
+% writers WriteForwardRunRestartFile.m and WriteAdjointRestartFile.m (so that the saved totals include the time up to the write). Ua2D.m
+% keeps the tic values of its own session and restores them after RunInfo has been read from a restart file. The totals accumulate over
+% a chain of restart runs, as before. The four assembly and solution timers are initialised as 0 (also when old files are loaded) and
+% accumulate over the run (and the chain of restarts); they are wall-clock times (tic/toc), even though they are in RunInfo.CPU.
+% Totals already in existing restart files may include the errors described above.
+%
+% * uvh non-convergence: rescue by increasing the grounding-line transition length before reducing the time step (12 November 2026):
+%
+% Cause (DeborahRheeConvergence, flow-line set-up, fixed dt=2, run step 1288): a row of integration points across the flow-line strip
+% (20 on each side, with identical h-hf) passes through the transition of the grounding-line mask G=(1+tanh((h-hf)/l))/2 within one time
+% step. The feedback between grounding (basal drag), velocity and thickness at these points folds the discrete problem when l is small: for
+% l=1 m the residual is not monotonic in h-hf at the row, with folds at h-hf=-0.91 and +0.31 m, and the root at +1.34 m. The explicit
+% estimate (+0.25 m) lay just below the upper fold, the Newton direction pointed away from the root, and the iteration ended at the lower
+% fold (the Jacobian nearly singular in that direction), where the line search failed. The root exists: it is found by continuation in
+% l (2 -> 1 m, two iterations per step), and the folds disappear for l>=1.75 m. The required l can not be predicted from dh/dt (0.33 m/yr
+% at the start of the time step), so the nodal transition length of 2 November 2026 (c*dt*|dh/dt|) does not prevent this.
+%
+% uvh2NotConvergent.m now has two rescue branches. (1) If integration points lie within the transition (|h-hf| < k*l at the start of the
+% time step or at the last iterate), l is doubled (at most to lmax) at the nodes of those elements, and the solve repeated from the start
+% of the time step with the same time step and the same active set (not reset, as the time step is unchanged), until it converges. If it converges, a final solve with the original l is done, starting from
+% that solution, and accepted if it converges (otherwise the solution with the increased l is kept). The increased l is used for the rest
+% of the time step only. (2) Only if (1) is not tried or does not converge is the time step reduced, as before. Each rescue is recorded in
+% RunInfo.Forward.uvhTransitionLengthRescueLog. In uvhRootFinding.m, the active-set loop continues after a rescue with an increased l,
+% as after a reduction of the time step. New options (Ua2D_DefaultParameters.m):
+%
+%   CtrlVar.GroundingLineTransition.Rescue.isOn=true;
+%   CtrlVar.GroundingLineTransition.Rescue.k=3;
+%   CtrlVar.GroundingLineTransition.Rescue.MaxIncreases=5;
+%   CtrlVar.GroundingLineTransition.Rescue.ReturnToDefault=true;
+%
+% The rescue is on by default. CtrlVarValidityCheck.m fills in missing Rescue fields with their default values (eg if
+% CtrlVar.GroundingLineTransition is set as a whole in the user input, which would otherwise switch the rescue off), with a message.
+%
+% DeborahRheeConvergence: step 1288 converges (l=2 m at 42 nodes, 6 iterations, then l=1 m from that solution, 3 iterations); the accepted
+% solution is the root for l=1 m. Steps 1289-1290 then converge in 2-3 iterations (previously 1290 stagnated after the unconverged 1288).
+% Thule (50 km mesh, restart at t=0.5, fixed dt, 300 steps, c=0 ie l=lmin as before 2 November): dt=0.05: 4 rescues (l=2 to 16 m;
+% three returned to l=1), no time-step reductions, t=15.5 reached (previously 2 reductions, dt=0.0125 from t=0.65, t=4.35 reached);
+% dt=0.1: 10 rescues (l=2 or 4 m, all returned to l=1), no reductions, t=30.5 reached (previously 8 reductions at the first step, to
+% dt=0.0004, t=0.62 reached). With the default c=0.5 no solve failed, and the runs are identical to those without the rescue.
+% Not yet included in the semi-implicit -uv-h- scheme (uvhSemiImplicit.m), which does not use uvh2NotConvergent.m.
+%
 % * UaFields.loadobj: objects saved with a different set of properties (2 November 2026):
 %
 % If a UaFields object was saved with a property that has since been removed (eg kHElement, in restart files written with the version of

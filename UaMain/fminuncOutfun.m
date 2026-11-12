@@ -19,6 +19,7 @@ if isempty(pOuts)
     pOuts.iteration=zeros(1000,1)+NaN;
     pOuts.StepSize=zeros(1000,1)+NaN;
     pOuts.GradNorm=zeros(1000,1)+NaN;
+  
     iCounter=1;
 end
 
@@ -47,6 +48,7 @@ else
     Outs.fval=Outs.fval(~isnan(Outs.fval));
     Outs.StepSize=Outs.StepSize(~isnan(Outs.StepSize));
     Outs.GradNorm=Outs.GradNorm(~isnan(Outs.GradNorm));
+  
     Outs.p=X;
 end
 

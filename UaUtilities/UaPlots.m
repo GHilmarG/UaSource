@@ -434,7 +434,7 @@ else
 
             [~,~,~,~,~,~,~,~,~,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
-            % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
+            % e(e<0)=eps ; % the projection onto nodes does not preserve positivy 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,eta);
             title(cbar,"(kPa yr)",Interpreter="latex")
             title(sprintf("effective viscosity eta at t=%g",CtrlVar.time),Interpreter="latex")
@@ -524,7 +524,7 @@ if options.PlotGroundingLines
         gf=F.h-hgl ;
         if numel(gf)==MUA.Nnodes
             CtrlVar.DisplayName="Grounding lines";
-            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color="r");
+            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,gf,[],[],[],color=options.GroundingLineColor);
             CtrlVar.DisplayName=[];
         end
     end

@@ -4,6 +4,21 @@ function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 if isfield(CtrlVar,"kH")
     error("CtrlVarValidityCheck:kH","CtrlVar.kH is no longer used. Use CtrlVar.GroundingLineTransition.lmin=1/kH instead (the transition length of the grounding-line mask, in m; default 1 m).")
 end
+% (12 Nov 2026) If CtrlVar.GroundingLineTransition, or its field Rescue, was set as a whole in the user input (eg
+% CtrlVar.GroundingLineTransition=struct("lmin",1,"lmax",25,"c",0.5)), the Rescue fields are missing. These are then filled in with their
+% default values (Ua2D_DefaultParameters.m), so that the rescue by increasing the transition length (uvh2NotConvergent.m) is on by default.
+RescueFields=["isOn","k","MaxIncreases","ReturnToDefault"] ;
+if ~isfield(CtrlVar.GroundingLineTransition,"Rescue") || ~isstruct(CtrlVar.GroundingLineTransition.Rescue)
+    CtrlVar.GroundingLineTransition.Rescue=struct() ;
+end
+Missing=RescueFields(~isfield(CtrlVar.GroundingLineTransition.Rescue,RescueFields)) ;
+if ~isempty(Missing)
+    Defaults=Ua2D_DefaultParameters() ;
+    for I=1:numel(Missing)
+        CtrlVar.GroundingLineTransition.Rescue.(Missing(I))=Defaults.GroundingLineTransition.Rescue.(Missing(I)) ;
+    end
+    fprintf("CtrlVarValidityCheck: CtrlVar.GroundingLineTransition.Rescue.{%s} not defined, default values used. \n",strjoin(Missing,","))
+end
 GLT=CtrlVar.GroundingLineTransition ;
 if ~isscalar(GLT.lmin) || ~isfinite(GLT.lmin) || GLT.lmin<=0
     error("CtrlVarValidityCheck:lmin","CtrlVar.GroundingLineTransition.lmin must be a positive, finite scalar.")
@@ -13,6 +28,21 @@ if ~isscalar(GLT.lmax) || isnan(GLT.lmax) || GLT.lmax<GLT.lmin
 end
 if ~isscalar(GLT.c) || ~isfinite(GLT.c) || GLT.c<0
     error("CtrlVarValidityCheck:c","CtrlVar.GroundingLineTransition.c must be a finite, non-negative scalar.")
+end
+if isfield(GLT,"Rescue")   % (12 Nov 2026) see uvh2NotConvergent.m (always true here, as missing fields have been filled in above)
+    R=GLT.Rescue ;
+    if ~isscalar(R.isOn) || ~(islogical(R.isOn) || isnumeric(R.isOn))
+        error("CtrlVarValidityCheck:RescueisOn","CtrlVar.GroundingLineTransition.Rescue.isOn must be a logical scalar.")
+    end
+    if ~isscalar(R.k) || ~isfinite(R.k) || R.k<=0
+        error("CtrlVarValidityCheck:Rescuek","CtrlVar.GroundingLineTransition.Rescue.k must be a positive, finite scalar.")
+    end
+    if ~isscalar(R.MaxIncreases) || ~isfinite(R.MaxIncreases) || R.MaxIncreases<0 || R.MaxIncreases~=round(R.MaxIncreases)
+        error("CtrlVarValidityCheck:RescueMaxIncreases","CtrlVar.GroundingLineTransition.Rescue.MaxIncreases must be a non-negative integer.")
+    end
+    if ~isscalar(R.ReturnToDefault) || ~(islogical(R.ReturnToDefault) || isnumeric(R.ReturnToDefault))
+        error("CtrlVarValidityCheck:RescueReturnToDefault","CtrlVar.GroundingLineTransition.Rescue.ReturnToDefault must be a logical scalar.")
+    end
 end
 
 %% (2 Nov 2026) the element-wise kH has been replaced by the nodal transition length (CtrlVar.GroundingLineTransition)

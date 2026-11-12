@@ -2590,6 +2590,20 @@ CtrlVar.MeshAdapt.CFrange=[];   % Example (see description above):  CtrlVar.Mesh
 CtrlVar.GroundingLineTransition.lmin=1;     % (m) smallest transition length (replaces 1/CtrlVar.kH)
 CtrlVar.GroundingLineTransition.lmax=25;    % (m) largest transition length
 CtrlVar.GroundingLineTransition.c=0.5;      % (dimensionless) factor on dt*|dh/dt|; c=0 gives l=lmin everywhere
+%
+% (12 Nov 2026) Rescue of a non-converged uvh solve by increasing the transition length (uvh2NotConvergent.m). If a uvh solve does not
+% converge, and integration points lie within the transition of the mask (|h-hf| < k*l at the start of the time step or at the last
+% iterate), l is first doubled (at most to lmax, and at most MaxIncreases times) at the nodes of these elements and the solve repeated
+% with the same time step. Only if this does not converge is the time step reduced. The increased l is used for the rest of the time
+% step only. If ReturnToDefault is true, a final solve with the original l is done, starting from the solution with the increased l, and
+% that solution is used if it converges. (The positive feedback between grounding, basal drag and thickness at a group of integration
+% points passing through the transition can fold the discrete problem if l is small, so that the Newton iteration does not find the root.)
+% The rescue is on by default. If CtrlVar.GroundingLineTransition (or its field Rescue) is set as a whole in the user input, missing
+% Rescue fields are filled in with the values below by CtrlVarValidityCheck.m.
+CtrlVar.GroundingLineTransition.Rescue.isOn=true;            % increase l before reducing the time step
+CtrlVar.GroundingLineTransition.Rescue.k=3;                 % integration points with |h-hf| < k*l are within the transition
+CtrlVar.GroundingLineTransition.Rescue.MaxIncreases=5;      % at most this many doublings of l per rescue (1 m -> 2, 4, 8, 16, 25 m)
+CtrlVar.GroundingLineTransition.Rescue.ReturnToDefault=true;% after convergence with the increased l, try again with the original l
                 %       So if your distance units is meters, the unit of hH is 1/meters.
                 %       You must make sure that kH is sufficiently large so that 1/kH corresponds to a (vertical) distance
                 %       that is small compared to other distances of interest.

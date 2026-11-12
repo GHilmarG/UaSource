@@ -5,6 +5,10 @@
 
 function WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo,Fm1)
 
+% (12 Nov 2026) The wall-time and CPU totals saved in the restart file include the time up to now (this changes only the local copy
+% of RunInfo; the caller adds the same interval to its own totals later). See UaRunInfo.m.
+RunInfo=UpdateTotalTimes(RunInfo) ;
+
 % (9 Oct 2026) Fm1, the rates of the previous time step (see UpdateFtimeDerivatives.m), is also saved. It is needed for the
 % second-order explicit estimate (ExplicitEstimationUsingBackwardDifferences.m) in the first time step after a restart.
 if nargin<9 || isempty(Fm1)

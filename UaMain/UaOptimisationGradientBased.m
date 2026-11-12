@@ -253,14 +253,14 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
 
     if numel(RunInfo.Inverse.Iterations) < Iteration
     
-            Padding=nan(CtrlVar.Inverse.Iterations,1);
-            RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations; Padding];
-            RunInfo.Inverse.J=[RunInfo.Inverse.J; Padding];
-            RunInfo.Inverse.R=[RunInfo.Inverse.R; Padding];
-            RunInfo.Inverse.I=[RunInfo.Inverse.I; Padding];
-            RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement; Padding];
-            RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm; Padding];
-            RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize; Padding];
+            Padding=nan(CtrlVar.Inverse.Iterations(:),1);
+            RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations(:); Padding];
+            RunInfo.Inverse.J=[RunInfo.Inverse.J(:); Padding];
+            RunInfo.Inverse.R=[RunInfo.Inverse.R(:); Padding];
+            RunInfo.Inverse.I=[RunInfo.Inverse.I(:); Padding];
+            RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement(:); Padding];
+            RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm(:); Padding];
+            RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize(:); Padding];
 
     end
 
