@@ -11,7 +11,7 @@ narginchk(5,5)
 %    delta_u r[phi_i] = kx phi_i + h dphidx_i  =:  Gx_i
 %    delta_v r[phi_i] = ky phi_i + h dphidy_i  =:  Gy_i
 %
-%    J_uu(i,k) = Gx_i Gx_k W        W := detJw / (Area eps_hdot^2)
+%    J_uu(i,k) = Gx_i Gx_k W        W := detJw w / Area,  w = 1/eps_hdot^2 interpolated from the nodes
 %    J_vv(i,k) = Gy_i Gy_k W
 %    J_uv(i,k) = Gx_i Gy_k W
 %    J_vu(i,k) = Gy_i Gx_k W       = J_uv(k,i)
@@ -64,25 +64,22 @@ if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
 
     %% contributions from the u and v misfit terms
     %
-    % $$ I_{uv} = \frac{1}{2 \, Area} \left ( r_u^T M \, r_u + r_v^T M \, r_v \right ), \quad r_u=(u-u_{obs})/err_u, \quad r_v=(v-v_{obs})/err_v $$
+    % $$ I_{uv} = \frac{1}{2 \, Area} \left ( r_u^T M_{w_u} \, r_u + r_v^T M_{w_v} \, r_v \right ), \quad r_u=u-u_{obs}, \quad r_v=v-v_{obs} $$
     %
-    % where M is the mass matrix. The gradient of this term (see Jq.m and Misfit.m) is D_u M D_u (u-u_{obs}) / Area, with D_u=diag(1/err_u), and the
-    % Hessian is therefore
+    % where M_w is the weighted mass matrix, (M_w)_{pq} = < w \phi_p , \phi_q >, with the nodal weights w=1/err^2 interpolated to
+    % the integration points (see Misfit.m and Jq.m). This is the consistent discretisation of the misfit integral also when
+    % the errors vary in space. The gradient is M_{w_u} r_u / Area, and the Hessian is therefore
     %
-    % $$ D_u M D_u / Area $$
+    % $$ M_{w_u} / Area $$
     %
-    % and equivalently for v. This is exact also when the measurement errors vary in space, and reduces to M/(err^2 Area) when they do not.
+    % and equivalently for v.
     %
-    if ~isfield(MUA,"M") || isempty(MUA.M)
-        MUA.M=MassMatrix2D1dof(MUA);
-    end
-
-    uErr=full(sqrt(spdiags(Meas.usCov)));
-    vErr=full(sqrt(spdiags(Meas.vsCov)));
-    Du=spdiags(1./uErr,0,MUA.Nnodes,MUA.Nnodes);
-    Dv=spdiags(1./vErr,0,MUA.Nnodes,MUA.Nnodes);
-    d2Iduu=Du*MUA.M*Du/Area;
-    d2Idvv=Dv*MUA.M*Dv/Area;
+    wu=1./full(diag(Meas.usCov));
+    wv=1./full(diag(Meas.vsCov));
+    [~,Muw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wu,0,0,0);
+    [~,Mvw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wv,0,0,0);
+    d2Iduu=(Muw+Muw.')/2/Area;     % symmetrised, as sparse() may sum duplicates in different order for (i,j) and (j,i)
+    d2Idvv=(Mvw+Mvw.')/2/Area;
     d2Jduvduv=blkdiag(d2Iduu,d2Idvv);  % This is a block matrix, no mixing uv terms here
 
 end
@@ -99,8 +96,9 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
     Juv=zeros(Nele,nod,nod);
     Jvv=zeros(Nele,nod,nod);
 
-    dhdtErr=sqrt(spdiags(Meas.dhdtCov));
-    dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),Nele,nod);
+    % data weights w=1/dhdtErr^2 at the nodes, interpolated to the integration points (as in EvaluateJhdotAndDerivatives.m)
+    dhdtW=1./full(diag(Meas.dhdtCov));
+    dhdtWnod=reshape(dhdtW(MUA.connectivity,1),Nele,nod);
 
     for Iint=1:MUA.nip
 
@@ -113,7 +111,7 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
 
         hint=hnod*fun;
         rhoint=rhonod*fun;
-        dhdtErrint=dhdtErrnod*fun;
+        dhdtWint=dhdtWnod*fun;
 
         dhdx=sum(Dx.*hnod,2);
         dhdy=sum(Dy.*hnod,2);
@@ -127,7 +125,7 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
         detJw=detJ*MUA.weights(Iint);
 
         % quadrature weight folded in here, once
-        W=detJw./(Area.*dhdtErrint.^2);
+        W=detJw.*dhdtWint./Area;
 
         % variation of the residual with respect to the nodal velocities,
         % Nele x nod

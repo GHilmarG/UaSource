@@ -99,9 +99,15 @@ dvJhdotIntSum=zeros(MUA.Nele,MUA.nod);
 dhJhdotIntSum=zeros(MUA.Nele,MUA.nod);
 
 Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
-dhdtErr=sqrt(spdiags(Meas.dhdtCov));
+% Weights w=1/dhdtErr^2 are defined at the nodes and interpolated to the integration points. This is the same discretisation
+% as used for the velocity misfit term in Misfit.m (weighted mass matrix with nodal weights w), so that both misfit terms are
+% treated consistently. (Previously the error itself was interpolated and then squared.)
+%
+% Note: diag() rather than spdiags(). With one output, spdiags returns all non-zero diagonals as columns, which would give
+% wrong results should dhdtCov ever contain off-diagonal entries. full() avoids sparse arithmetic in the integration loop.
+dhdtW=1./full(diag(Meas.dhdtCov));
 
-dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),MUA.Nele,MUA.nod);
+dhdtWnod=reshape(dhdtW(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 % vector over all elements for each integration point
@@ -120,7 +126,7 @@ for Iint=1:MUA.nip
 
 
     hdotMeasint=dhdtMeasnod*fun;
-    hdotErrInt=dhdtErrnod*fun;
+    hdotWInt=dhdtWnod*fun;    % weight, 1/dhdtErr^2, at integration points
 
     dhdx=zeros(MUA.Nele,1);
     dhdy=zeros(MUA.Nele,1);
@@ -152,13 +158,13 @@ for Iint=1:MUA.nip
     % end
 
 
-     R=(hdot-hdotMeasint)./hdotErrInt; 
+     r=hdot-hdotMeasint;   % residual at integration points
 
 
     detJw=detJ*MUA.weights(Iint);
     
   
-    JhdotIntSum=JhdotIntSum+R.^2 .*detJw/2/Area; 
+    JhdotIntSum=JhdotIntSum+hdotWInt.*r.^2 .*detJw/2/Area;
     
     for Inod=1:MUA.nod
         
@@ -166,20 +172,20 @@ for Iint=1:MUA.nip
         
        
 
-        duJhdotInt=-R...
-            .*(drhodx.*hint.*fun(Inod)+rhoint.*dhdx.*fun(Inod)+rhoint.*hint.*Deriv(:,1,Inod))./(hdotErrInt.*rhoint)...
+        duJhdotInt=-hdotWInt.*r...
+            .*(drhodx.*hint.*fun(Inod)+rhoint.*dhdx.*fun(Inod)+rhoint.*hint.*Deriv(:,1,Inod))./rhoint...
             .*detJw/Area;
         
         
-        dvJhdotInt=-R...
-            .*(drhody.*hint.*fun(Inod)+rhoint.*dhdy.*fun(Inod)+rhoint.*hint.*Deriv(:,2,Inod))./(hdotErrInt.*rhoint)...
+        dvJhdotInt=-hdotWInt.*r...
+            .*(drhody.*hint.*fun(Inod)+rhoint.*dhdy.*fun(Inod)+rhoint.*hint.*Deriv(:,2,Inod))./rhoint...
             .*detJw/Area;
         
-        dhJhdotInt=-R...
+        dhJhdotInt=-hdotWInt.*r...
             .*( ...
              drhodx.*uint.*fun(Inod)+rhoint.*dudx.*fun(Inod)+rhoint.*uint.*Deriv(:,1,Inod)...
             +drhody.*vint.*fun(Inod)+rhoint.*dvdy.*fun(Inod)+rhoint.*vint.*Deriv(:,2,Inod) ...
-            )./(hdotErrInt.*rhoint)...
+            )./rhoint...
             .*detJw/Area;
 
         
@@ -214,7 +220,8 @@ dhJhdot=full(dhJhdot);
 
 
 %% If F.dhdt is available this should give (approx) the same answer
-% dhdtErr=sqrt(spdiags(Meas.dhdtCov)) ;  dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr ;  JhdotTest=full(dhdtres'*MUA.M*dhdtres)/2/Area;
+% dhdtW=1./full(diag(Meas.dhdtCov)) ; [~,Mw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,dhdtW,0,0,0) ;
+% dhdtres=F.dhdt-Meas.dhdt ;  JhdotTest=full(dhdtres'*Mw*dhdtres)/2/Area;
 %%
 
 

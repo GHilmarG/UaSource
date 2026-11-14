@@ -77,7 +77,9 @@ subtitle(sprintf("Normalized diff %g",Diff),Interpreter="latex")
 
 fig_dJdpTest_bubble=FindOrCreateFigure("Test dJdp bubble") ; clf(fig_dJdpTest_bubble)
 
-bc=bubblechart(dJdp(iRange),dJdpTest(iRange),G(iRange)+1,"r",MarkerFaceColor="g") ; 
+% iRange indexes into p=[A;B;C], whereas G is a nodal variable. Map the p-index back onto the node number.
+iNode=mod(iRange-1,NA)+1 ;
+bc=bubblechart(dJdp(iRange),dJdpTest(iRange),G(iNode)+1,"r",MarkerFaceColor="g") ; 
 axis equal ; 
 bubblelegend("$\mathcal{G}+1$",Interpreter="latex",Location="northwest") ;
 hold on ; 
@@ -91,7 +93,7 @@ fprintf("  node                   G        dJdp_adjoint                  dJdp_FD
 for iTestNode=1:numel(iRange)
     node=iRange(iTestNode);
     diff=(dJdp(node)-dJdpTest(node))/(abs(dJdp(node)+eps)); 
-    fprintf("%7i \t %10.5g \t %15.10g \t %15.10g \t %15.10g \n",node,G(node),dJdp(node),dJdpTest(node),diff)
+    fprintf("%7i \t %10.5g \t %15.10g \t %15.10g \t %15.10g \n",node,G(mod(node-1,NA)+1),dJdp(node),dJdpTest(node),diff)
 end
 
 %%
