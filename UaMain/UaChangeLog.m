@@ -4,6 +4,146 @@
 % 
 % *Change Log* _October 2026_
 %
+% * UaOptimisationNewtonCG.m: nodal scaling of the trust region (experimental, 15 November 2026):
+% With CtrlVar.Inverse.NewtonCG.NodalTrustRegionScaling=true (default false) the trust region is ||s||_M<=Delta with M=G+diag(w). After
+% a failed step (rho<0.25), if the mismatch between the actual and the predicted change of the gradient is concentrated in a small
+% fraction of the variables (LocalisationFraction, LocalisationShare), the weights of these variables are increased (so that their
+% step alone would fill the trust region, at least four times the previous weight, at most 1e6 times diag(G)), and Delta is halved
+% instead of reduced to a quarter of the step. The weights are halved after good steps (rho>0.75). M is also used as the CG
+% preconditioner. Intended for problems where the model fails locally, eg close to flotation.
+%
+% * UaOptimisationNewtonCG.m: bounds imposed explicitly (projected Newton) (15 November 2026):
+% New setting CtrlVar.Inverse.NewtonCG.Bounds="-projected-" (default) or "-BoxTransform-". With "-projected-" the box transform is not
+% used (CtrlVarValidityCheck.m), and each step consists of a Cauchy step along the projected steepest-descent path (identifying the
+% variables at their bounds), a Steihaug-Toint CG step in the free variables (preconditioned with G restricted to the free variables),
+% and a projected search along that step (cf. TRON, Lin and More 1999). The quadratic model is then the Gauss-Newton (or full) model
+% in the physical parameters, avoiding the strong nonlinearity of the box transform close to the bounds, which limited the convergence.
+% The trust region is now also enlarged when the CG step ends on the trust-region boundary, and the output includes the cumulative
+% wall-clock time and (projected) the number of variables at their bounds.
+%
+% * Inversions using Hessian-vector products (15 November 2026):
+%
+% (1) CtrlVar.Inverse.HessianCalculation="-HVP-" with CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-HessianBased-": fmincon
+% (interior-point, SubproblemAlgorithm="cg") is given Hessian-vector products through HessianMultiplyFcn (new HessianMultiplyHVP.m)
+% instead of the Hessian. CtrlVar.Inverse.HVP.Type="-GN-" (default) or "-full-".
+%
+% (2) New CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-" (new UaOptimisationNewtonCG.m): inexact Newton with a trust
+% region, the Newton system solved with CG preconditioned with the metric G and the trust region in the G norm (Steihaug-Toint), using
+% Hessian-vector products (Gauss-Newton by default). Box constraints through the box transform (CtrlVar.Inverse.BoxTransform=true is
+% set by CtrlVarValidityCheck.m); the chain rule for the box transform is applied to the Hessian-vector products (new
+% NewtonCGHessianSetup.m), and BoxTransform.m has a new mode "curvature" (d^2p/dv^2) for the full Hessian. Settings in
+% CtrlVar.Inverse.NewtonCG (MaxInnerIterations, InitialTrustRegionRadius, MaxForcingTerm). RunInfo.Inverse.InnerIterations (new)
+% stores the number of CG iterations per Newton step. InvertForModelParameters.m and UaOptimisation.m pass the function handle
+% HessianSetup to the new optimiser.
+%
+% * Hessian-vector products (15 November 2026):
+% New functions AssembleHessianBlocks.m and HessianVectorProduct.m calculate H*v without forming the sensitivity matrix xi=dq/dp or
+% the Hessian: one linearised forward solve and one adjoint solve with K=dF/dq per product (several vectors at once), plus sparse
+% matrix-vector products with the blocks K_qq, K_pq, K_pp and F_p, assembled once per state. Type="-GN-" (Gauss-Newton, default) or
+% "-full-". The products agree with the Hessians from CalcDirectAdjointHessian.m (HessianTerms="-xi Jqq xi-Jpp-" and "-all-") to
+% round-off (1e-15 to 1e-14), tested for B inversions (Hofsjokull, Antarctic nx50, with uv points, dh/dt blocks and B measurements) and a
+% logA-B-logC inversion (Hofsjokull, all cross terms).
+%
+% * Gauss-Newton Hessian corrected (15 November 2026):
+% With HessianTerms="-xi Jqq xi-Jpp-", CalcDirectAdjointHessian.m now includes the Gauss-Newton part of the mixed term J^{pq} xi +
+% (J^{pq} xi)^T, which is non-zero for B inversions with dh/dt measurements (J_hdot depends on both q=(u,v) and h(B)). Previously this
+% term was omitted. JhdotBq.m has a new optional input GaussNewton (default false) returning only the Gauss-Newton part, ie without
+% the term proportional to the dh/dt residuals.
+%
+% * Individual terms of the cost function printed and stored during gradient-based inversions (15 November 2026):
+% Misfit.m has a new (optional) output MisfitInfo with the fields Juv (velocity misfit) and Jhdot (dh/dt misfit), and
+% Regularisation.m a new (optional) output RegularisationInfo with the field JBobs (misfit with respect to direct measurements of B,
+% which is included in R). JGH.m passes these on in JGHouts.MisfitInfo and JGHouts.RegularisationInfo. UaOptimisationGradientBased.m
+% prints JBobs as an additional column in B inversions, and stores Juv, Jhdot and JBobs in the new fields RunInfo.Inverse.Juv,
+% RunInfo.Inverse.Jhdot and RunInfo.Inverse.JBobs. When loading older restart files, UaRunInfo.m adds these fields (NaN, with the
+% same length as RunInfo.Inverse.J), so that older inverse runs can be continued.
+%
+% * LineSearchWolfe.m: bracket-collapse test made scale independent (14 November 2026):
+% The test was Width <= xtol*max(1,gHigh), which is absolute (1e-8) for steps below one. Where the steps are small because the
+% gradient is large (eg gamma~1e-12 to 1e-8 with absolute data weights, see PointDataMisfit.m), the initial bracket [0,gammaStart] was
+% then already 'collapsed' when gammaStart failed the Armijo condition, and the search returned without trying any smaller step
+% (iExit=-2). On a steepest-descent direction UaOptimisationGradientBased then stopped (exit flag 4), far from the minimum. The test
+% is now Width <= xtol*gHigh. The number of evaluations remains limited by MaxFuncEvaluations.
+%
+% * Option to include the Hessian of the B-measurement misfit in the metric (14 November 2026):
+% With CtrlVar.Inverse.Metric.IncludeBobsHessian=true (default false), BuildMetricMatrix.m adds HBobs=O' inv(Sigma) O to the B block
+% of the metric G, ie G=blkdiag(QA,QB+HBobs,QC). HBobs is added to the metric only, and not to QB, which is also used to evaluate the
+% regularisation term. This affects the Riesz-mapped gradient and the Cholesky mapping of gradient-based inversions.
+%
+% * DhdtMisfitVersusBlockSize.m (14 November 2026): diagnostic for the "-blocks-" dh/dt misfit. For a given state (F with a uv
+% solution, eg the end of an inversion) and a list of block sizes L, returns the number of blocks, mean and RMS of the residuals,
+% standard deviations of the measured and modelled block averages, and chi2=2J/N for given errors (scalar, or a function of L and/or
+% the block centres), and the slope of log(RMS) against log(L). The blocks are defined exactly as in CreateDhdtBlockMeasurements.m.
+% Optional plot. Used to select the block size and the errors of the block averages.
+%
+% * New dh/dt misfit formulations: "-points-" and "-blocks-", the modelled dh/dt brought to the data (14 November 2026):
+%
+% Selected by CtrlVar.Inverse.DataMisfit.dhdt.Method (default "-nodal-integral-", the previous formulation, unchanged):
+%
+%   "-points-" : the modelled dh/dt is evaluated at the measurement locations, without averaging.
+%   "-blocks-" : the modelled dh/dt at the integration points is averaged over square blocks (eg several pixels of a gridded product),
+%                and compared with the block averages of the measurements.
+%
+% In both, J = 1/2 sum_k (A hdot - d)_k^2/err_k^2 with uncorrelated errors and no normalisation with the area of the domain (A is the
+% identity for "-points-", and the block-averaging operator for "-blocks-"). New functions: ShapeFunctionsAtPoints.m (form functions
+% and their x,y derivatives at arbitrary locations, derivatives by complex-step differentiation of sr_shape_fun along the gradients of
+% the barycentric coordinates, exact to round-off for nod=3, 6 and 10), ShapeFunctionsAtIntegrationPoints.m, dhdtAtPoints.m (hdot,
+% its Jacobians with respect to u, v and h, and the residual-weighted second derivatives), dhdtObservationMisfit.m (misfit, gradients
+% and the matrices for the Hessian terms), dhdtMisfitMethod.m, CreateDhdtPointMeasurements.m and CreateDhdtBlockMeasurements.m (data
+% preparation, new Measurements properties dhdtx, dhdty, dhdtData, dhdtErr, dhdtP, dhdtA, dhdtBlockSize). New branches in
+% EvaluateJhdotAndDerivatives.m (and hence Misfit.m and Jq.m), Jqq.m, JhdotBB.m and JhdotBq.m. TestMeas.m checks the new measurements.
+% Meas.dhdtP and Meas.dhdtA depend on the mesh (dhdtA also on the integration rule) and must be recreated if these change.
+% Tested on the Antarctic nx50 inversion (logA, B, logC, uv and dh/dt): the misfit agrees with independent evaluations to round-off,
+% the gradients, Jqq, JhdotBB and JhdotBq agree with finite differences, and the brute-force gradient test gives normalised differences
+% of 1.0e-7 ("-blocks-", L=40 km, 53 blocks) and 5.9e-7 ("-points-", 1123 pixels of a 10 km product).
+%
+% * New velocity misfit formulation: point measurements, mesh brought to the data (14 November 2026):
+%
+% The velocity misfit can now be evaluated in the same way as the misfit with respect to direct measurements of B, ie with the modelled
+% velocities evaluated at the measurement locations using the node-to-data operator O (BuildNode2DataMap.m):
+%
+%   I = 1/2 sum_k ((O u)_k - u_k)^2/err_k^2 + (same for v)
+%
+% Errors are treated as uncorrelated, and there is no normalisation with the area of the domain. The new formulation is selected by
+%
+%   CtrlVar.Inverse.DataMisfit.uv.Method="-points-" ;     % default: "-nodal-integral-", ie the previous formulation, unchanged
+%
+% and the measurements defined using the new function CreatePointMeasurements.m, which sets the new Measurements properties uvx, uvy,
+% usData, vsData, usErr, vsErr and uvO (discarding measurements outside the mesh or not finite). The misfit, its gradient and Hessian
+% are calculated by the new function PointDataMisfit.m, called from Misfit.m, Jq.m and Jqq.m. is_uv_points_misfit.m returns the
+% selected formulation (an undefined field, eg in an old restart file, gives the default). TestMeas.m checks the point measurements
+% if the new formulation is used. Spatially correlated errors can be accounted for approximately when defining the errors, by thinning
+% or an effective variance, see CreatePointMeasurements.m. Note that Meas.uvO depends on the mesh, and must be recreated if the mesh
+% changes. Tested on an Antarctic B, logA, logC inversion (nx50, 2e6 ITS_LIVE pixels): the misfit agrees with a direct evaluation to
+% round-off, Jqq agrees with finite differences of Jq to 2e-11, and the brute-force gradient test gives a normalised difference of 9e-8.
+%
+% * uv solver: the solution is now always updated by at least one Newton step (14 November 2026):
+%
+% In SSTREAM2dNR2.m the test of whether the initial state is already within tolerance was done with iteration=1 before any Newton
+% update had been made, so that CtrlVar.NRitmin=1 did not force an update. As rForce is a global measure, a local change in A, B or C
+% (eg at a single node) could give an initial rForce below CtrlVar.uvDesiredForceTolerance, and the warm-start velocities were then
+% returned unchanged although the Newton step had been calculated. In an inversion, cost function and gradient could then refer to
+% velocities of a previous parameter vector, and brute-force gradient tests gave wrong values (exactly zero changes in the misfit) for
+% local perturbations. The test now uses the number of completed iterations (iteration-1). CtrlVar.NRitmin=0 still allows the initial
+% state to be accepted without an update.
+%
+% * Brute-force gradient tests (14 November 2026):
+%
+% CalcBruteForceGradient.m now starts every function evaluation from the same initial state (the persistent warm start in JGH.m is
+% cleared before each evaluation), so that the results no longer depend on the order in which the elements of p are perturbed. Note
+% that this also resets the call counters in JGH.m. TestCorrectnessOfAdjointGradient.m: indexing of the nodal GF field with the index
+% into p=[A;B;C] corrected (failed when inverting for more than one field). With these changes, and the uv solver change above, the
+% adjoint gradients (logA, B, logC) agree with brute-force finite differences to 1e-7 (normalised) on the Antarctic nx50 test.
+%
+% * Velocity and dh/dt misfits with spatially variable errors (14 November 2026):
+%
+% The nodal-integral misfit terms now use a consistent discretisation of the integral of (r/err)^2, with the nodal weights w=1/err^2
+% interpolated to the integration points (weighted mass matrix, GeneralizedMassAndStiffnessAssembly.m for u and v). Previously the
+% residuals were divided by the nodal errors before the (unweighted) mass matrix was applied, which is only correct if the errors are
+% constant over each element. Changed consistently in Misfit.m, Jq.m, Jqq.m, EvaluateJhdotAndDerivatives.m, JhdotBB.m and JhdotBq.m.
+% Also, diag() replaces spdiags() when extracting the variances from the covariance matrices (spdiags with one output returns all
+% non-zero diagonals).
+%
 % * Wall-clock and CPU times in RunInfo corrected (12 November 2026):
 %
 % RunInfo.WallTime.Total and RunInfo.CPU.Total, and the assembly and solution timers RunInfo.CPU.Assembly.uv/uvh and

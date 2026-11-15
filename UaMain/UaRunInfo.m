@@ -36,6 +36,10 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             obj.Inverse.Decrement = NaN ;
             obj.Inverse.nFuncEval = 0 ;
             obj.Inverse.ConjGradUpdate = 0 ;
+            obj.Inverse.Juv = NaN ;     % velocity misfit term (15 November 2026)
+            obj.Inverse.Jhdot = NaN ;   % dh/dt misfit term
+            obj.Inverse.JBobs = NaN ;   % misfit with respect to direct measurements of B (included in R)
+            obj.Inverse.InnerIterations = NaN ;   % number of CG iterations for each Newton step (UaOptimisationNewtonCG.m)
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
 
@@ -341,6 +345,14 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
 
             if ~isfield(sObj.Inverse,'ConjGradUpdate')
                 sObj.Inverse.ConjGradUpdate=0;
+            end
+
+            % (15 November 2026) individual terms of the cost function, same length as Inverse.J so that inverse runs can be
+            % continued (NaN for the iterations carried out before these fields were introduced)
+            for ff=["Juv","Jhdot","JBobs","InnerIterations"]
+                if ~isfield(sObj.Inverse,ff)
+                    sObj.Inverse.(ff)=nan(size(sObj.Inverse.J));
+                end
             end
 
 

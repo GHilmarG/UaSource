@@ -1,7 +1,33 @@
-function KJBq=JhdotBq(CtrlVar,MUA,F,Meas)
+function KJBq=JhdotBq(CtrlVar,MUA,F,Meas,GaussNewton)
 
-narginchk(4,4)
+narginchk(4,5)
+
+% (15 November 2026) GaussNewton=true returns only the Gauss-Newton part of the mixed derivative, ie without the term proportional to
+% the residuals (hdot-hdot_meas). This is the part needed for a Gauss-Newton Hessian, see CalcDirectAdjointHessian.m and
+% AssembleHessianBlocks.m. Default: false (the full mixed derivative).
+if nargin<5 || isempty(GaussNewton)
+    GaussNewton=false;
+end
 nargoutchk(1,1)
+
+if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
+    % "-points-" and "-blocks-" formulations: Gauss-Newton term (A Gh)' W (A Gu) plus the residual term Rhu (and the same for v),
+    % see dhdtObservationMisfit.m and dhdtAtPoints.m (14 November 2026)
+    if GaussNewton
+        [~,~,~,~,Mats]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas,"Jacobians");
+        Nnodes=MUA.Nnodes ; Mats.Rhu=sparse(Nnodes,Nnodes) ; Mats.Rhv=sparse(Nnodes,Nnodes) ;
+    else
+        [~,~,~,~,Mats]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas,"Second");
+    end
+    [~,dhdB]=dGeometrydB(CtrlVar,F.s,F.S,F.B,F.b,F.rho,F.rhow) ;
+    Nnodes=MUA.Nnodes ; m=numel(Mats.w) ;
+    WAGh=spdiags(Mats.w,0,m,m)*Mats.AGh ;
+    Jhu=WAGh'*Mats.AGu+Mats.Rhu ;
+    Jhv=WAGh'*Mats.AGv+Mats.Rhv ;
+    Dh=spdiags(dhdB(:),0,Nnodes,Nnodes) ;
+    KJBq=[Dh*Jhu , Dh*Jhv] ;
+    return
+end
 
 %% Explicit mixed second derivative of the dh/dt misfit term with respect to B and q=(u,v)
 %
@@ -70,6 +96,7 @@ for Iint=1:MUA.nip
     % the model dh/dt at the integration point, as in EvaluateJhdotAndDerivatives.m
     hdot=aint-(rhoint.*dhdx.*uint+rhoint.*hint.*dudx+drhodx.*hint.*uint+rhoint.*dhdy.*vint+rhoint.*hint.*dvdy+drhody.*hint.*vint)./rhoint ;
     res=hdot-hdotMeasint ;
+    if GaussNewton ; res=0*res ; end   % Gauss-Newton part only
 
     W=detJ.*MUA.weights(Iint).*wint./Area ;
 

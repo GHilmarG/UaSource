@@ -176,15 +176,15 @@ end
 %
 % is subtle. fmincon with lBFGS update, selects a search direction as
 %
-% $$d=-M g_{L^2}$$
+% $$d=-H_{lBFGS} g_{L^2}$$
 %
-% where $M$ is its lBFGS approximation to the inverse Hessian. If we feed it with the Riez-mapped
+% where $H_{lBFGS}$ is its lBFGS approximation to the inverse Hessian. If we feed it with the Riez-mapped
 % gradient we get the search direction
 %
 %
-% $$d= -M G^{-1}  g_{l^2} $$
+% $$d= -H_{lBFGS} G^{-1}  g_{l^2} $$
 %
-% but while both $M$ and $G$ are SPD, the produce $M G^{1}$ need not be! Therefore $d$ is not guaranteed to be a descent
+% but while both $M$ and $G$ are SPD, the product $H_:lBFGS} G^{1}$ need not be! Therefore $d$ is not guaranteed to be a descent
 % direction.
 %
 %
@@ -401,7 +401,19 @@ func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns
 %
 % But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the Hfunc is
 % not needed.
-Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method
+if CtrlVar.Inverse.HessianCalculation=="-HVP-"
+    % (15 November 2026) Hessian-vector products instead of the Hessian, used by fmincon (interior-point) as HessianMultiplyFcn
+    CtrlVar.JGH.CalcHessian=false;
+    func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+    Hfunc=@(p,lambda,v) HessianMultiplyHVP(p,lambda,v,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+else
+    Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method
+end
+
+% (15 November 2026) For CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-": given the optimisation variables x, the
+% state F and the additional outputs of JGH at x, HessianSetup returns a function handle for Hessian-vector products with respect to x
+% (including the chain rule for the box transform), see NewtonCGHessianSetup.m.
+HessianSetup=@(x,Fx,JGHoutsx) NewtonCGHessianSetup(x,Fx,JGHoutsx,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint);
 
 
 %%
@@ -430,11 +442,11 @@ else
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
 
-        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,HessianSetup);
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
 
-        clear fminconOutputFunction fminconHessianFcn fminuncOutfun
+        clear fminconOutputFunction fminconHessianFcn fminuncOutfun HessianMultiplyHVP
         [p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
 
     else

@@ -74,12 +74,23 @@ if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
     %
     % and equivalently for v.
     %
-    wu=1./full(diag(Meas.usCov));
-    wv=1./full(diag(Meas.vsCov));
-    [~,Muw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wu,0,0,0);
-    [~,Mvw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wv,0,0,0);
-    d2Iduu=(Muw+Muw.')/2/Area;     % symmetrised, as sparse() may sum duplicates in different order for (i,j) and (j,i)
-    d2Idvv=(Mvw+Mvw.')/2/Area;
+    if is_uv_points_misfit(CtrlVar)
+
+        % "-points-" formulation, the Hessian is O' W O, see PointDataMisfit.m (14 November 2026)
+        [~,~,d2Iduu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,F.ub+F.ud);
+        [~,~,d2Idvv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,F.vb+F.vd);
+
+    else
+
+        wu=1./full(diag(Meas.usCov));
+        wv=1./full(diag(Meas.vsCov));
+        [~,Muw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wu,0,0,0);
+        [~,Mvw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wv,0,0,0);
+        d2Iduu=(Muw+Muw.')/2/Area;     % symmetrised, as sparse() may sum duplicates in different order for (i,j) and (j,i)
+        d2Idvv=(Mvw+Mvw.')/2/Area;
+
+    end
+
     d2Jduvduv=blkdiag(d2Iduu,d2Idvv);  % This is a block matrix, no mixing uv terms here
 
 end
@@ -89,106 +100,119 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
 
     %% contribution due to the dh/dt misfit term $$J_{\dot{h}}$$
 
-    hnod=reshape(F.h(MUA.connectivity,1),Nele,nod);
-    rhonod=reshape(F.rho(MUA.connectivity,1),Nele,nod);
+    if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
 
-    Juu=zeros(Nele,nod,nod);
-    Juv=zeros(Nele,nod,nod);
-    Jvv=zeros(Nele,nod,nod);
+        % "-points-" and "-blocks-" formulations: Gauss-Newton term (A G)' W (A G) with G=[Gu Gv], see dhdtObservationMisfit.m.
+        % There is no term proportional to the residuals as hdot is linear in u and v. (14 November 2026)
+        [~,~,~,~,Mats]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas,"Jacobians");
+        AG=[Mats.AGu Mats.AGv];
+        m=numel(Mats.w);
+        d2Jduvduv=AG'*spdiags(Mats.w,0,m,m)*AG+d2Jduvduv;
 
-    % data weights w=1/dhdtErr^2 at the nodes, interpolated to the integration points (as in EvaluateJhdotAndDerivatives.m)
-    dhdtW=1./full(diag(Meas.dhdtCov));
-    dhdtWnod=reshape(dhdtW(MUA.connectivity,1),Nele,nod);
+    else
 
-    for Iint=1:MUA.nip
+        hnod=reshape(F.h(MUA.connectivity,1),Nele,nod);
+        rhonod=reshape(F.rho(MUA.connectivity,1),Nele,nod);
 
-        fun=shape_fun(Iint,ndim,nod,MUA.points) ;
-        detJ=MUA.DetJ(:,Iint);
-        Deriv=MUA.Deriv(:,:,:,Iint);
+        Juu=zeros(Nele,nod,nod);
+        Juv=zeros(Nele,nod,nod);
+        Jvv=zeros(Nele,nod,nod);
 
-        Dx=reshape(Deriv(:,1,:),Nele,nod);
-        Dy=reshape(Deriv(:,2,:),Nele,nod);
+        % data weights w=1/dhdtErr^2 at the nodes, interpolated to the integration points (as in EvaluateJhdotAndDerivatives.m)
+        dhdtW=1./full(diag(Meas.dhdtCov));
+        dhdtWnod=reshape(dhdtW(MUA.connectivity,1),Nele,nod);
 
-        hint=hnod*fun;
-        rhoint=rhonod*fun;
-        dhdtWint=dhdtWnod*fun;
+        for Iint=1:MUA.nip
 
-        dhdx=sum(Dx.*hnod,2);
-        dhdy=sum(Dy.*hnod,2);
+            fun=shape_fun(Iint,ndim,nod,MUA.points) ;
+            detJ=MUA.DetJ(:,Iint);
+            Deriv=MUA.Deriv(:,:,:,Iint);
 
-        drhodx=sum(Dx.*rhonod,2);
-        drhody=sum(Dy.*rhonod,2);
+            Dx=reshape(Deriv(:,1,:),Nele,nod);
+            Dy=reshape(Deriv(:,2,:),Nele,nod);
 
-        kx=dhdx+hint.*drhodx./rhoint;
-        ky=dhdy+hint.*drhody./rhoint;
+            hint=hnod*fun;
+            rhoint=rhonod*fun;
+            dhdtWint=dhdtWnod*fun;
 
-        detJw=detJ*MUA.weights(Iint);
+            dhdx=sum(Dx.*hnod,2);
+            dhdy=sum(Dy.*hnod,2);
 
-        % quadrature weight folded in here, once
-        W=detJw.*dhdtWint./Area;
+            drhodx=sum(Dx.*rhonod,2);
+            drhody=sum(Dy.*rhonod,2);
 
-        % variation of the residual with respect to the nodal velocities,
-        % Nele x nod
-        Gx=kx.*fun.'+hint.*Dx;
-        Gy=ky.*fun.'+hint.*Dy;
+            kx=dhdx+hint.*drhodx./rhoint;
+            ky=dhdy+hint.*drhody./rhoint;
+
+            detJw=detJ*MUA.weights(Iint);
+
+            % quadrature weight folded in here, once
+            W=detJw.*dhdtWint./Area;
+
+            % variation of the residual with respect to the nodal velocities,
+            % Nele x nod
+            Gx=kx.*fun.'+hint.*Dx;
+            Gy=ky.*fun.'+hint.*Dy;
+
+            for Inod=1:nod
+
+                WGx=W.*Gx(:,Inod);
+                WGy=W.*Gy(:,Inod);
+
+                Juu(:,:,Inod)=Juu(:,:,Inod) + WGx.*Gx;
+                Jvv(:,:,Inod)=Jvv(:,:,Inod) + WGy.*Gy;
+                Juv(:,:,Inod)=Juv(:,:,Inod) + WGx.*Gy;
+
+            end
+
+        end
+
+        %
+        %
+        % KJqq= [ Juu Juv ]
+        %       [ Jvu Jvv ]
+        %
+        % with J_vu(i,k) = J_uv(k,i), and the storage convention J**(:,Knod,Inod).
+        %
+        %
+
+        nnz4=4*nod*nod*Nele;
+        Iind=zeros(nnz4,1,'uint32');
+        Jind=zeros(nnz4,1,'uint32');
+        Xval=zeros(nnz4,1);
+
+        istak=0;
+        Nnodes=MUA.Nnodes;
 
         for Inod=1:nod
+            for Knod=1:nod
 
-            WGx=W.*Gx(:,Inod);
-            WGy=W.*Gy(:,Inod);
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
+                Xval(istak+1:istak+Nele)=Juu(:,Knod,Inod);
+                istak=istak+Nele;
 
-            Juu(:,:,Inod)=Juu(:,:,Inod) + WGx.*Gx;
-            Jvv(:,:,Inod)=Jvv(:,:,Inod) + WGy.*Gy;
-            Juv(:,:,Inod)=Juv(:,:,Inod) + WGx.*Gy;
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
+                Xval(istak+1:istak+Nele)=Jvv(:,Knod,Inod);
+                istak=istak+Nele;
 
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
+                Xval(istak+1:istak+Nele)=Juv(:,Knod,Inod);
+                istak=istak+Nele;
+
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
+                Xval(istak+1:istak+Nele)=Juv(:,Inod,Knod);   % J_vu(i,k) = J_uv(k,i)
+                istak=istak+Nele;
+
+            end
         end
 
+        d2Jduvduv=sparse(Iind,Jind,Xval,2*Nnodes,2*Nnodes)+d2Jduvduv ; %% adding all up.
+
     end
-
-    %
-    %
-    % KJqq= [ Juu Juv ]
-    %       [ Jvu Jvv ]
-    %
-    % with J_vu(i,k) = J_uv(k,i), and the storage convention J**(:,Knod,Inod).
-    %
-    %
-
-    nnz4=4*nod*nod*Nele;
-    Iind=zeros(nnz4,1,'uint32');
-    Jind=zeros(nnz4,1,'uint32');
-    Xval=zeros(nnz4,1);
-
-    istak=0;
-    Nnodes=MUA.Nnodes;
-
-    for Inod=1:nod
-        for Knod=1:nod
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
-            Xval(istak+1:istak+Nele)=Juu(:,Knod,Inod);
-            istak=istak+Nele;
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
-            Xval(istak+1:istak+Nele)=Jvv(:,Knod,Inod);
-            istak=istak+Nele;
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
-            Xval(istak+1:istak+Nele)=Juv(:,Knod,Inod);
-            istak=istak+Nele;
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
-            Xval(istak+1:istak+Nele)=Juv(:,Inod,Knod);   % J_vu(i,k) = J_uv(k,i)
-            istak=istak+Nele;
-
-        end
-    end
-
-    d2Jduvduv=sparse(Iind,Jind,Xval,2*Nnodes,2*Nnodes)+d2Jduvduv ; %% adding all up.
 
 end
 

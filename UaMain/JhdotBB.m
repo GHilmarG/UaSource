@@ -3,6 +3,19 @@ function KhdotBB=JhdotBB(CtrlVar,MUA,F,Meas)
 narginchk(4,4)
 nargoutchk(1,1)
 
+if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
+    % "-points-" and "-blocks-" formulations: Gauss-Newton term (A Gh)' W (A Gh), there is no term proportional to the residuals
+    % as hdot is linear in h, see dhdtObservationMisfit.m (14 November 2026)
+    [~,~,~,dhJhdot,Mats]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas,"Jacobians");
+    [~,dhdB,~,~,~,d2hdB2]=dGeometrydB(CtrlVar,F.s,F.S,F.B,F.b,F.rho,F.rhow) ;
+    Nnodes=MUA.Nnodes ; m=numel(Mats.w) ;
+    KJhh=Mats.AGh'*spdiags(Mats.w,0,m,m)*Mats.AGh ;
+    Dh=spdiags(dhdB(:),0,Nnodes,Nnodes) ;
+    KhdotBB=Dh*KJhh*Dh+spdiags(dhJhdot(:).*d2hdB2(:),0,Nnodes,Nnodes) ;
+    KhdotBB=(KhdotBB+KhdotBB.')/2 ;
+    return
+end
+
 %% Explicit second derivative, with respect to B, of the dh/dt misfit term (velocities held fixed)
 %
 % $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left ( \frac{\dot{h} - \dot{h}_{Meas}}{\dot{h}_{err}} \right )^2 dx \, dy ,  \qquad \dot{h} = a - \frac{1}{\rho} \nabla \cdot (\rho h \mathbf{v}) $$

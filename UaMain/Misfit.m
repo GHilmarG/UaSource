@@ -4,10 +4,10 @@
 
 
 
-function [I,dIdp,Psi_x,Psi_y,F,dFduv]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv)
+function [I,dIdp,Psi_x,Psi_y,F,dFduv,MisfitInfo]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv)
 
 narginchk(9,9)
-nargoutchk(6,6)
+nargoutchk(6,7)
 
 
 %%
@@ -97,8 +97,19 @@ if ~isfield(MUA,"M")
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-if is_uv_meas
+if is_uv_meas && is_uv_points_misfit(CtrlVar)
 
+    % "-points-" formulation (CtrlVar.Inverse.DataMisfit.uv.Method="-points-"): the modelled velocities are evaluated at the
+    % measurement locations (the mesh is brought to the data), as for the direct measurements of B, with uncorrelated errors and no
+    % normalisation with the area of the domain. See PointDataMisfit.m and CreatePointMeasurements.m. (14 November 2026)
+    [Iu,duIdu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,F.ub);
+    [Iv,dvIdv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,F.vb);
+    Iuv=Iu+Iv;
+
+elseif is_uv_meas
+
+    % "-nodal-integral-" formulation (default).
+    %
     % Consistent discretisation of
     %
     % $$ I_{uv} = \frac{1}{2\mathcal{A}} \int \! \int \left( \frac{(u-u_{\mathrm{Meas}})^2}{u_{err}^2} + \frac{(v-v_{\mathrm{Meas}})^2}{v_{err}^2} \right) dx \, dy $$
@@ -148,6 +159,12 @@ if is_dhdt_meas
 end
 
 I=full(Iuv+Ihdot) ;  %
+
+if nargout>6
+    % the individual misfit terms, eg for printing and storing in RunInfo (15 November 2026)
+    MisfitInfo.Juv=full(Iuv);       % velocity misfit term
+    MisfitInfo.Jhdot=full(Ihdot);   % dh/dt misfit term
+end
 duvIduv=[duIdu(:)+duIhdot(:);dvIdv(:)+dvIhdot(:)];
 
 if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"

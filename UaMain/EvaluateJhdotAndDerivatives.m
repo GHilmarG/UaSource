@@ -78,6 +78,17 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 %%
 
 
+%% "-points-" and "-blocks-" formulations (CtrlVar.Inverse.DataMisfit.dhdt.Method), see dhdtObservationMisfit.m (14 November 2026)
+%
+% In these formulations the modelled dh/dt is brought to the data: evaluated at the measurement locations, or averaged over the blocks
+% of the measurements. Errors are treated as uncorrelated, and there is no normalisation with the area of the domain.
+if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
+    [Jhdot,duJhdot,dvJhdot,dhJhdot]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas);
+    return
+end
+
+%% "-nodal-integral-" formulation (default)
+
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connectivity,1),MUA.Nele,MUA.nod);

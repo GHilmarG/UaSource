@@ -1,4 +1,4 @@
-function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
+function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup)
 
 %
 % func is the function to me minimized
@@ -13,7 +13,7 @@ function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,p
 % https://www.epfl.ch/labs/anchp/wp-content/uploads/2018/05/part5-1.pdf
 %
 %%
-narginchk(8,8)
+narginchk(8,9)
 nargoutchk(3,3)
 
 
@@ -24,6 +24,14 @@ switch CtrlVar.Inverse.MinimisationMethod
 
         [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub);
 
+
+    case  "-UaOptimisation-NewtonCG-"
+
+        % (15 November 2026) inexact Newton with Hessian-vector products, see UaOptimisationNewtonCG.m
+        if nargin<9 || isempty(HessianSetup)
+            error("UaOptimisation:NoHessianSetup","-UaOptimisation-NewtonCG- requires the function handle HessianSetup (see InvertForModelParameters.m).")
+        end
+        [p,UserVar,RunInfo]=UaOptimisationNewtonCG(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup);
 
     case  "-UaOptimisation-GradientBased-"
 

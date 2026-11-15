@@ -547,6 +547,19 @@ if CtrlVar.InverseRun
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;     % Ua HessianBased approach knows about the metric
             CtrlVar.Inverse.BoxTransform=false;                                 % no box transform with Hessian, in fact the Ua Hessian solver can't really deal with box constraints at all... :-(
 
+        case "-UaOptimisation-NewtonCG-"
+
+            % (15 November 2026) inexact Newton with Hessian-vector products, see UaOptimisationNewtonCG.m. The gradient is not Riesz mapped,
+            % the metric G is used as the preconditioner in the CG solution of the Newton system. Box constraints through the box transform.
+            CtrlVar.Inverse.RieszMapGradient=false;
+            CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
+            % box constraints either imposed explicitly (projected Newton, default) or through the box transform
+            if isfield(CtrlVar.Inverse,"NewtonCG") && isfield(CtrlVar.Inverse.NewtonCG,"Bounds") && CtrlVar.Inverse.NewtonCG.Bounds=="-BoxTransform-"
+                CtrlVar.Inverse.BoxTransform=true;
+            else
+                CtrlVar.Inverse.BoxTransform=false;
+            end
+
         case "-MatlabOptimisation-HessianBased-"
 
             CtrlVar.Inverse.RieszMapGradient=false;                          % It would be wrong to combine Riesz and Cholesky mappings. It would be doing the metric-transform twice

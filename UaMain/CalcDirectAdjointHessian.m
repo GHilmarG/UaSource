@@ -189,6 +189,22 @@ if Sensitivites
         [KHess_qp]=Hess_qp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y,KdudA,KdvdA,KdudB,KdvdB,KdudC,KdvdC,Meas);
         H=H+KHess_qp ;
 
+    elseif contains(HessianTerms,"-xi Jqq xi-")
+
+        % (15 November 2026) Gauss-Newton Hessian (eg HessianTerms="-xi Jqq xi-Jpp-"): the mixed term J^{pq} xi + (J^{pq} xi)^T,
+        % without the forward-model term F^{pq} and without the part of J^{pq} proportional to the residuals. This is non-zero only
+        % when inverting for B with dh/dt measurements, as J_hdot depends on both q=(u,v) and h(B), see JhdotBq.m. Previously this
+        % term was omitted, and the Gauss-Newton Hessian was then not the Gauss-Newton approximation of the full Hessian.
+        [isA,isB,~] = isABC(CtrlVar);
+        [~,is_dhdt_meas]=is_uv_dhdt_Meas(CtrlVar) ;
+        if isB && is_dhdt_meas
+            nA=isA*MUA.Nnodes ;
+            KJpq=sparse(size(H,1),2*MUA.Nnodes) ;
+            KJpq(nA+(1:MUA.Nnodes),:)=JhdotBq(CtrlVar,MUA,F,Meas,true) ;
+            KJpqxi=KJpq*xi ;
+            H=H+KJpqxi+KJpqxi' ;
+        end
+
     end
 end
 
