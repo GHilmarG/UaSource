@@ -984,7 +984,8 @@ CtrlVar.Inverse.MinimisationMethodOptions=[...
     "-MatlabOptimisation-GradientBased-"; ...        % gradient-based, MATLAB toolbox
     "-MatlabOptimisation-HessianBased-"; ...         % Hessian-based, MATLAB toolbox
     "-UaOptimisation-GradientBased-"; ...            % gradient-based, Ua Optimisation toolbox
-    "-UaOptimisation-HessianBased-"     ];       % Hessian-based, Ua Optimisation toolbox
+    "-UaOptimisation-HessianBased-"; ...             % Hessian-based, Ua Optimisation toolbox
+    "-UaOptimisation-NewtonCG-"     ];               % inexact Newton (Hessian-vector products) with preconditioned CG and a trust region, Ua Optimisation toolbox
    
 % If a Hessian-based Optimisation is used, the the expressions for the Hessians can be selected as follows:
 
@@ -994,7 +995,32 @@ CtrlVar.Inverse.HessianTerms="-all-";  % only applies for the  HessianCalculatio
 
 CtrlVar.Inverse.HessianCalculationOptions=[...
     "-DirectAdjoint-";...
-    "-FiniteDifferences-"] ; 
+    "-FiniteDifferences-";...
+    "-HVP-"] ; 
+
+% (15 November 2026) Hessian-vector products (HVP)
+%
+% With CtrlVar.Inverse.HessianCalculation="-HVP-" and CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-HessianBased-", fmincon
+% (interior-point, SubproblemAlgorithm="cg") is given Hessian-vector products (HessianMultiplyFcn) instead of the full Hessian, see
+% HessianMultiplyHVP.m. The Hessian is then never formed. The Hessian-vector products are calculated by HessianVectorProduct.m, from
+% the sparse blocks assembled by AssembleHessianBlocks.m, and are also used by CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-".
+%
+%   CtrlVar.Inverse.HVP.Type="-GN-"   : Gauss-Newton Hessian (positive semi-definite), default
+%   CtrlVar.Inverse.HVP.Type="-full-" : full Hessian (all second-order terms), in general indefinite
+%
+CtrlVar.Inverse.HVP.Type="-GN-" ;
+
+% (15 November 2026) Settings for CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-" (see UaOptimisationNewtonCG.m):
+% inexact Newton with Hessian-vector products, the Newton system solved approximately with conjugate gradients preconditioned with the
+% metric G (the Hessian of the regularisation term), and a trust region measured in the G norm (Steihaug-Toint). Box constraints are
+% imposed through the box transform (CtrlVar.Inverse.BoxTransform=true), so the Optimisation problem is unconstrained.
+CtrlVar.Inverse.NewtonCG.MaxInnerIterations=200;     % maximum number of CG iterations for each Newton step
+CtrlVar.Inverse.NewtonCG.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
+CtrlVar.Inverse.NewtonCG.MaxForcingTerm=0.5;          % the CG iteration stops when |r|<eta |g| with eta=min(MaxForcingTerm,sqrt(|g|/|g0|)) (in the inverse G norm)
+CtrlVar.Inverse.NewtonCG.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
+CtrlVar.Inverse.NewtonCG.NodalTrustRegionScaling=false; % (experimental) trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation)
+CtrlVar.Inverse.NewtonCG.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
+CtrlVar.Inverse.NewtonCG.LocalisationShare=0.5;
 
 
 % Should a Riesz-mapped gradient be used?
@@ -1010,6 +1036,12 @@ if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
 elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     CtrlVar.Inverse.RieszMapGradient=false;
 end
+
+% Should the metric (used for the Riesz-mapped gradient, and the Cholesky mapping) include the Hessian of the misfit with respect
+% to direct measurements of B, ie HBobs=O' inv(Sigma) O (see BuildMetricMatrix.m)?  By default the metric is the Hessian of the
+% regularisation term only. Including HBobs makes the metric closer to the Hessian of the full cost function where B is measured.
+% HBobs is only added to the metric, not to the regularisation term. (The Hessian-based method includes HBobs in any case, Jpp.m.)
+CtrlVar.Inverse.Metric.IncludeBobsHessian=false;
 
 
 CtrlVar.Inverse.Iterations=1; % Maximum number of inverse iterations
@@ -1049,6 +1081,42 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 % The gradient of the objective function is calculated using the adjoint method.
 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint'}
+%
+% Formulation of the velocity misfit term:
+%
+%   "-nodal-integral-" : (default) the velocity measurements are given at the nodes (Meas.us, Meas.vs), with diagonal error
+%                        covariances (Meas.usCov, Meas.vsCov), and the misfit is evaluated as an integral over the mesh, normalised
+%                        by the area of the domain.
+%
+%   "-points-"         : the velocity measurements are given at arbitrary locations, for example the pixel centres of a gridded
+%                        product, and the modelled velocities are evaluated at those locations (the mesh is brought to the data), in
+%                        the same way as for direct measurements of B. Errors are treated as uncorrelated, and there is no
+%                        normalisation with the area of the domain:
+%
+%                           I = 1/2 sum_k ((O u)_k - u_k)^2/err_k^2 + (same for v)
+%
+%                        The measurements are defined using CreatePointMeasurements.m, which sets Meas.uvx, Meas.uvy, Meas.usData,
+%                        Meas.vsData, Meas.usErr, Meas.vsErr and Meas.uvO. (Meas.us and Meas.vs are then not used in the misfit,
+%                        but can still be defined, for example for plotting.)
+%
+CtrlVar.Inverse.DataMisfit.uv.Method="-nodal-integral-" ;   % {"-nodal-integral-","-points-"}
+%
+% Formulation of the dh/dt misfit term:
+%
+%   "-nodal-integral-" : (default) the dh/dt measurements are given at the nodes (Meas.dhdt), with a diagonal error covariance
+%                        (Meas.dhdtCov), and the misfit is evaluated as an integral over the mesh, normalised by the area of the
+%                        domain (EvaluateJhdotAndDerivatives.m).
+%
+%   "-points-"         : the modelled dh/dt is evaluated at the measurement locations, without averaging. Measurements defined
+%                        using CreateDhdtPointMeasurements.m.
+%
+%   "-blocks-"         : the modelled dh/dt is averaged over square blocks (eg several pixels of a gridded product), and compared with
+%                        the block averages of the measurements. Measurements defined using CreateDhdtBlockMeasurements.m.
+%
+%   In both "-points-" and "-blocks-" the errors are treated as uncorrelated, and there is no normalisation with the area of the
+%   domain: J = 1/2 sum_k (A hdot - d)_k^2/err_k^2, see dhdtObservationMisfit.m.
+%
+CtrlVar.Inverse.DataMisfit.dhdt.Method="-nodal-integral-" ;   % {"-nodal-integral-","-points-","-blocks-"}
 
 %% Inverse methodology: Select either Tikhonov or Matern 
 %

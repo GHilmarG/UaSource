@@ -3,6 +3,19 @@ function KhdotBB=JhdotBB(CtrlVar,MUA,F,Meas)
 narginchk(4,4)
 nargoutchk(1,1)
 
+if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
+    % "-points-" and "-blocks-" formulations: Gauss-Newton term (A Gh)' W (A Gh), there is no term proportional to the residuals
+    % as hdot is linear in h, see dhdtObservationMisfit.m (14 November 2026)
+    [~,~,~,dhJhdot,Mats]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas,"Jacobians");
+    [~,dhdB,~,~,~,d2hdB2]=dGeometrydB(CtrlVar,F.s,F.S,F.B,F.b,F.rho,F.rhow) ;
+    Nnodes=MUA.Nnodes ; m=numel(Mats.w) ;
+    KJhh=Mats.AGh'*spdiags(Mats.w,0,m,m)*Mats.AGh ;
+    Dh=spdiags(dhdB(:),0,Nnodes,Nnodes) ;
+    KhdotBB=Dh*KJhh*Dh+spdiags(dhJhdot(:).*d2hdB2(:),0,Nnodes,Nnodes) ;
+    KhdotBB=(KhdotBB+KhdotBB.')/2 ;
+    return
+end
+
 %% Explicit second derivative, with respect to B, of the dh/dt misfit term (velocities held fixed)
 %
 % $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left ( \frac{\dot{h} - \dot{h}_{Meas}}{\dot{h}_{err}} \right )^2 dx \, dy ,  \qquad \dot{h} = a - \frac{1}{\rho} \nabla \cdot (\rho h \mathbf{v}) $$
@@ -22,7 +35,8 @@ nargoutchk(1,1)
 %
 % There is no term proportional to the residual in J_hh because hdot is linear in h.
 %
-% Meas.dhdtCov is assumed to be diagonal, as in Jq.m, Jqq.m and Misfit.m.
+% Meas.dhdtCov is assumed to be diagonal, as in Jq.m, Jqq.m and Misfit.m. The data weights w=1/dhdt_err^2 are defined at the nodes and
+% interpolated to the integration points, as in EvaluateJhdotAndDerivatives.m and Jqq.m.
 %
 % see also: Jpp.m, EvaluateJhdotAndDerivatives.m, dGeometrydB.m, Jqq.m
 %%
@@ -37,8 +51,8 @@ unod=reshape(F.ub(MUA.connectivity,1),Nele,nod) ;
 vnod=reshape(F.vb(MUA.connectivity,1),Nele,nod) ;
 rhonod=reshape(F.rho(MUA.connectivity,1),Nele,nod) ;
 
-dhdtErr=full(sqrt(spdiags(Meas.dhdtCov))) ;
-dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),Nele,nod) ;
+dhdtW=1./full(diag(Meas.dhdtCov)) ;
+dhdtWnod=reshape(dhdtW(MUA.connectivity,1),Nele,nod) ;
 
 Jhh=zeros(Nele,nod,nod) ;      % stored as [Nele , k , i]
 
@@ -50,12 +64,12 @@ for Iint=1:MUA.nip
     Dx=reshape(Deriv(:,1,:),Nele,nod) ;
     Dy=reshape(Deriv(:,2,:),Nele,nod) ;
 
-    uint=unod*fun ; vint=vnod*fun ; rhoint=rhonod*fun ; errint=dhdtErrnod*fun ;
+    uint=unod*fun ; vint=vnod*fun ; rhoint=rhonod*fun ; wint=dhdtWnod*fun ;
 
     dudx=sum(Dx.*unod,2) ;  dvdy=sum(Dy.*vnod,2) ;
     drhodx=sum(Dx.*rhonod,2) ;  drhody=sum(Dy.*rhonod,2) ;
 
-    W=detJ.*MUA.weights(Iint)./(Area.*errint.^2) ;     % quadrature weight folded in
+    W=detJ.*MUA.weights(Iint).*wint./Area ;     % quadrature weight and data weight folded in
 
     % S(:,j) is the variation of hdot with respect to the thickness at node j (up to a sign), Nele x nod
     funR=fun.' ;

@@ -74,6 +74,8 @@ narginchk(5,5)
 
 Area=MUA.Area;
 
+Iuv=0;
+Ihdot=0;
 duIdu=0;
 duIhdot=0;
 dvIdv=0;
@@ -85,13 +87,33 @@ if contains(CtrlVar.Inverse.Measurements,"-uv-")
     us=F.ub+F.ud ;
     vs=F.vb+F.vd ;
 
-    uErr=sqrt(spdiags(Meas.usCov));
-    usres=(us-Meas.us)./uErr;
-    vErr=sqrt(spdiags(Meas.vsCov));
-    vsres=(vs-Meas.vs)./vErr;
-    duIdu=(MUA.M*usres)./uErr/Area;
-    dvIdv=(MUA.M*vsres)./vErr/Area;
-    Iuv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
+    if is_uv_points_misfit(CtrlVar)
+
+        % "-points-" formulation, see Misfit.m and PointDataMisfit.m (14 November 2026)
+        [Iu,duIdu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,us);
+        [Iv,dvIdv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,vs);
+        Iuv=Iu+Iv;
+
+    else
+
+        % Same discretisation as in Misfit.m: weighted mass matrices (M_w)_{pq} = < w \phi_p , \phi_q >, with the nodal weights
+        % w=1/err^2 interpolated to the integration points. This is the consistent discretisation of
+        %
+        % $$ I_{uv} = \frac{1}{2\mathcal{A}} \int \! \int \left( \frac{(u-u_{\mathrm{Meas}})^2}{u_{err}^2} + \frac{(v-v_{\mathrm{Meas}})^2}{v_{err}^2} \right) dx \, dy $$
+        %
+        % also when the errors vary in space.
+        wu=1./full(diag(Meas.usCov));
+        wv=1./full(diag(Meas.vsCov));
+        [~,Muw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wu,0,0,0);
+        [~,Mvw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wv,0,0,0);
+
+        usres=us-Meas.us;
+        vsres=vs-Meas.vs;
+        duIdu=(Muw*usres)/Area;
+        dvIdv=(Mvw*vsres)/Area;
+        Iuv=full(usres'*Muw*usres+vsres'*Mvw*vsres)/2/Area;
+
+    end
 
 end
 

@@ -28,6 +28,12 @@ CPUstart=tic;
 fprintf(' Calculating gradients using brute-force method...')
 
 
+% Start every function evaluation from the same initial state. JGH warm-starts each forward (uv) solve from the previous solution,
+% stored as persistent variables. In a brute-force calculation the previous solution belongs to a different perturbation, so that
+% the result depends on the order in which the elements of p are perturbed, and the + and - perturbations start from different
+% states. Clearing JGH resets this warm start, so that every evaluation starts from the same initial F. (14 Nov 2026)
+func=@(p) EvaluateFromFreshStart(func,p);
+
 J0=func(p0);
 
 %deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
@@ -233,4 +239,8 @@ fprintf(' ...done in %f sec.\n',CPUend)
 
 end
 
-
+function varargout=EvaluateFromFreshStart(func,p)
+% Resets the persistent warm start in JGH ahead of each function evaluation (see above).
+clear JGH
+[varargout{1:max(nargout,1)}]=func(p);
+end

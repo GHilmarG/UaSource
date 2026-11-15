@@ -25,6 +25,15 @@ CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inver
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'StepTolerance',CtrlVar.Inverse.StepTolerance);
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);
 
+if CtrlVar.Inverse.HessianCalculation=="-HVP-"
+    % (15 November 2026) Hessian-vector products instead of the Hessian (see HessianMultiplyHVP.m). For the interior-point algorithm this
+    % requires SubproblemAlgorithm="cg", and the Hessian-vector products are then provided through HessianMultiplyFcn=@(x,lambda,v).
+    if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm~="interior-point"
+        error("InversionUsingMatlabOptimisationToolbox3:HVP","CtrlVar.Inverse.HessianCalculation=-HVP- is only implemented for the fmincon interior-point algorithm.")
+    end
+    CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[],'HessianMultiplyFcn',Hfunc,'SubproblemAlgorithm','cg');
+end
+
 if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-reflective"
 
 
