@@ -28,7 +28,8 @@ end
 CtrlVarP=CtrlVar ;
 CtrlVarP.Inverse.BoxTransform=false ;
 CtrlVarP.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;
-Blocks=AssembleHessianBlocks(CtrlVarP,MUA,Fx,BCs,l,Priors,Meas,BCsAdjoint,JGHouts.Psi_x,JGHouts.Psi_y,Type);
+K=[] ; if isfield(JGHouts,"dFduv") ; K=JGHouts.dFduv ; end    % (16 Nov 2026) Jacobian from the forward solve in JGH.m
+Blocks=AssembleHessianBlocks(CtrlVarP,MUA,Fx,BCs,l,Priors,Meas,BCsAdjoint,JGHouts.Psi_x,JGHouts.Psi_y,Type,K);
 
 if CtrlVar.Inverse.BoxTransform
 

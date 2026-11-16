@@ -2,6 +2,8 @@ function d2Jduvduv=Jqq(CtrlVar,MUA,F,BCs,Meas)
 
 narginchk(5,5)
 
+persistent uvKey uvHessian   % (16 Nov 2026) cache of the (state-independent) velocity-misfit Hessian, see below
+
 %%
 %
 % Refactored version of Jqq.m.  Mathematically identical.
@@ -74,7 +76,18 @@ if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
     %
     % and equivalently for v.
     %
-    if is_uv_points_misfit(CtrlVar)
+    % (16 Nov 2026) This Hessian does not depend on the state (the misfit is quadratic in u and v): it only depends on the mesh, the
+    % observation operator and the errors. It is therefore calculated once, and kept (persistent) for subsequent calls with the same
+    % mesh and measurements, identified by a key calculated from these (UvHessianKey below). Nothing is stored in restart files: in a
+    % restart run, or after "clear Jqq", it is calculated again at the first call. In the -points- formulation, with millions of
+    % data, this was most of the time needed to assemble the Hessian blocks.
+    Key=UvHessianKey(CtrlVar,MUA,Meas) ;
+
+    if ~isempty(uvKey) && isequal(Key,uvKey)
+
+        d2Iduu=[] ; d2Idvv=[] ;   % not needed, uvHessian is used below
+
+    elseif is_uv_points_misfit(CtrlVar)
 
         % "-points-" formulation, the Hessian is O' W O, see PointDataMisfit.m (14 November 2026)
         [~,~,d2Iduu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,F.ub+F.ud);
@@ -91,7 +104,11 @@ if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
 
     end
 
-    d2Jduvduv=blkdiag(d2Iduu,d2Idvv);  % This is a block matrix, no mixing uv terms here
+    if isempty(uvKey) || ~isequal(Key,uvKey)
+        uvHessian=blkdiag(d2Iduu,d2Idvv);  % This is a block matrix, no mixing uv terms here
+        uvKey=Key ;
+    end
+    d2Jduvduv=uvHessian;
 
 end
 
@@ -292,4 +309,29 @@ subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpr
 drawnow
 
 %%
+end
+
+
+function Key=UvHessianKey(CtrlVar,MUA,Meas)
+
+% (16 Nov 2026) Key identifying the velocity-misfit Hessian: the formulation, the mesh, the observation operator (-points-) and the
+% errors. Weighted sums are used so that the key changes when any of these change (including a permutation or a change of a single
+% value), at the cost of a few vector operations and one sparse matrix-vector product.
+
+N=MUA.Nnodes ;
+xn=MUA.coordinates(:,1) ; yn=MUA.coordinates(:,2) ;
+MeshPart=[N MUA.Nele MUA.nod sum(xn) sum(yn) sum(xn.*(1:N)') sum(yn.*(1:N)') sum(double(MUA.connectivity(:)).*(1:numel(MUA.connectivity))')] ;
+
+if is_uv_points_misfit(CtrlVar)
+    O=Meas.uvO ; m=size(O,1) ;
+    Oi=O*(1:N)' ;                     % depends on the location of every non-zero of O
+    wu=1./Meas.usErr(:).^2 ; wv=1./Meas.vsErr(:).^2 ;
+    DataPart=[1 m nnz(O) sum(Oi) sum(Oi.*(1:m)') sum(wu) sum(wu.*(1:m)') sum(wv) sum(wv.*(1:m)')] ;
+else
+    wu=1./full(diag(Meas.usCov)) ; wv=1./full(diag(Meas.vsCov)) ;
+    DataPart=[2 MUA.Area sum(wu) sum(wu.*(1:N)') sum(wv) sum(wv.*(1:N)')] ;
+end
+
+Key=[MeshPart DataPart] ;
+
 end

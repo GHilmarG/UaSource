@@ -4,6 +4,33 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Jqq.m: the velocity-misfit Hessian is calculated once (16 November 2026):
+% The velocity part of J^{qq} (O' W O for -points-, the weighted mass matrices for -nodal-integral-) does not depend on the state. It is
+% now kept in a persistent variable and reused in subsequent calls with the same mesh, formulation, observation operator and errors,
+% identified by a key calculated from these (local function UvHessianKey). Nothing is stored in restart files; in a restart run (or
+% after "clear Jqq") it is calculated again at the first call. Antarctic nx50, -points- (2 million pixels): Jqq 0.71 s -> 0.19 s,
+% assembly of the Hessian blocks 1.30 s -> 0.81 s. The dh/dt part depends on the state and is calculated at every call as before.
+%
+% * Hessian-vector products: no additional forward solve (16 November 2026):
+% JGH.m returns the forward-model Jacobian K=dF/dq from its forward solve in JGHouts.dFduv. AssembleHessianBlocks.m has a new
+% optional input K, and then uses it directly instead of obtaining it from a further forward (uv) solve; HessianVectorProductSetup.m
+% and HessianMultiplyHVP.m pass JGHouts.dFduv. This also makes the Hessian-vector products use the same K as the adjoint solve of the
+% gradient. The products agree with those using a further forward solve to 1e-14 (nx50) and exactly (Hofsjokull).
+%
+% * Reuse of the factorisation of K in the Hessian-vector products, also with PARDISO (16 November 2026):
+% UaPardisoSolve.m (UaPardiso) has two new modes: Fac=UaPardisoSolve("factor",CtrlVar,A,...) does the analysis (if needed) and the
+% numerical factorisation, and x=UaPardisoSolve("solve",Fac,b) only the solve phase. Each factorisation has a unique number, and
+% "solve" checks that the factorisation is still the current one of its PARDISO state (it may have been replaced by that of another
+% matrix of the same size and type, eg a forward uv solve); if not, the matrix is factorised again (statistics: FactorReuses,
+% FactorReuseFailures). For small and diagonal systems Fac contains a MATLAB decomposition or the diagonal. solveKApe.m ("Bempty")
+% and ABfgPreEliminate.m ("EliminateBCsSolveSystemDirectly") now return, and accept, this factorisation as dA with
+% CtrlVar.LinearSolver.Type="PARDISO" (previously dA=[] was returned, and a given dA gave an error), so that reusing a decomposition
+% (eg modified Newton-Raphson) also works with PARDISO. In ABfgPreEliminate the fast path (31 Oct 2026) is not used when a decomposition
+% is requested, as the decomposition is reused with the scaling of the general path. AssembleHessianBlocks.m factorises K once (and K'
+% if K is not symmetric), and HessianVectorProduct.m reuses these factorisations, so that each Hessian-vector product only requires two
+% solve phases instead of two factorisations. HVP agree with the full Hessians to 1e-15 (Hofsjokull, no constraints; Antarctic nx50,
+% 410 constraints; MATLAB and PARDISO). Also corrected a typo in solveKApe.m (fMorm, an undefined variable, in a residual check).
+%
 % * "-UaOptimisation-NewtonCG-" renamed "-UaOptimisation-HessianVectorBased-" (15 November 2026):
 % The method is an inexact Gauss-Newton (default) or Newton trust-region method using Hessian-vector products, and not a
 % conjugate-gradient method (CG is only used to solve the trust-region subproblem). Renamed: UaOptimisationNewtonCG.m ->

@@ -1,8 +1,13 @@
-function Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y,Type)
+function Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y,Type,K)
 
 %%
 %
 %   Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y,Type)
+%   Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint,Psi_x,Psi_y,Type,K)
+%
+% (16 Nov 2026) K: the forward-model Jacobian dF/dq at the state F, if available (eg from the forward solve in JGH.m, JGHouts.dFduv).
+% It is then used directly, instead of being obtained from a further forward (uv) solve. F must then be the converged forward
+% solution for which K was calculated, as returned by JGH.m.
 %
 % Assembles the sparse matrices needed to calculate Hessian-vector products (see HessianVectorProduct.m), without forming the
 % (dense) sensitivity matrix xi=dq/dp or the (dense) Hessian itself.
@@ -32,7 +37,8 @@ function Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint
 %   Blocks.Kqq     : 2N x 2N
 %   Blocks.Kpq     : Np x 2N
 %   Blocks.Kpp     : Np x Np
-%   Blocks.dA      : decomposition of K (if available), reused for all linear solves in HessianVectorProduct.m
+%   Blocks.dA      : factorisation of K (MATLAB decomposition or PARDISO factorisation), reused for all solves in HessianVectorProduct.m
+%   Blocks.dAT     : factorisation of K' (only if K is not symmetric)
 %   Blocks.Symmetric : true if K is symmetric (then the adjoint solves reuse the decomposition of K)
 %   Blocks.Type, Blocks.Np, Blocks.N
 %
@@ -44,7 +50,7 @@ function Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint
 %
 %%
 
-narginchk(10,11)
+narginchk(10,12)
 
 if nargin<11 || isempty(Type)
     Type="-GN-";
@@ -64,8 +70,11 @@ N=MUA.Nnodes ;
 Np=(isA+isB+isC)*N ;
 ln10=log(10) ;
 
-%% forward-model Jacobian K=dF/dq at the current state (as in duv_hdABC.m), and the homogeneous constraints
-[~,~,F,~,K]=uv([],[],CtrlVar,MUA,BCs,F,l);
+%% forward-model Jacobian K=dF/dq at the current state, and the homogeneous constraints
+% If not given, K is obtained from a forward (uv) solve starting from the state F (as in duv_hdABC.m).
+if nargin<12 || isempty(K)
+    [~,~,F,~,K]=uv([],[],CtrlVar,MUA,BCs,F,l);
+end
 
 BCs0=BCs ;
 if numel(BCs0.ubFixedValue)>0 ; BCs0.ubFixedValue=BCs0.ubFixedValue*0 ; end
@@ -109,16 +118,19 @@ end
 Blocks.Symmetric=norm(K-K',1)<=1e-12*norm(K,1) ;
 frhs=zeros(2*N,1) ;
 if isempty(L) ; grhs=[] ; else ; grhs=zeros(size(L,1),1) ; end
-dA=[] ;
-try
-    [~,~,dA]=solveKApe(K,L,frhs,grhs,[],[],CtrlVar) ;   % returns the decomposition used, if supported (not with PARDISO)
-catch
-    dA=[] ;
+% (16 Nov 2026) The factorisation of K is returned by solveKApe (a MATLAB decomposition, or a PARDISO factorisation, see
+% UaPardisoSolve.m) and reused in all solves of HessianVectorProduct.m, so that each Hessian-vector product only requires the solve
+% phases. If K is not symmetric, K' is factorised as well, for the adjoint solves. Decompositions are supported by solveKApe for the
+% constraint methods "Bempty" and "EliminateBCsSolveSystemDirectly"; for other methods dA=[] and each solve factorises the matrix.
+[~,~,dA]=solveKApe(K,L,frhs,grhs,[],[],CtrlVar) ;
+dAT=[] ;
+if ~Blocks.Symmetric
+    [~,~,dAT]=solveKApe(K',L,frhs,grhs,[],[],CtrlVar) ;
 end
 
 Blocks.K=K ; Blocks.L=L ; Blocks.Fp=Fp ;
 Blocks.Kqq=Kqq ; Blocks.Kpq=Kpq ; Blocks.Kpp=Kpp ;
-Blocks.dA=dA ;
+Blocks.dA=dA ; Blocks.dAT=dAT ;
 Blocks.Type=Type ; Blocks.Np=Np ; Blocks.N=N ;
 Blocks.CtrlVar=CtrlVar ;
 

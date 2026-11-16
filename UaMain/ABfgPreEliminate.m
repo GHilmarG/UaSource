@@ -77,7 +77,7 @@ else
         % Only used with PARDISO and without a decomposition given (dAtilde): a decomposition returned here is reused by the callers
         % with the scaling of the general path.
         FastPath=false ;
-        if UsePardiso && isempty(dAtilde) && ~CtrlVar.Parallel.Distribute && ~isdistributed(A)
+        if UsePardiso && isempty(dAtilde) && nargout<3 && ~CtrlVar.Parallel.Distribute && ~isdistributed(A)   % (16 Nov 2026) not if a decomposition is requested: it is reused with the scaling of the general path
             [rB,cB,vB]=find(B) ;
             FastPath = numel(rB)==size(B,1) && numel(unique(rB))==size(B,1) && numel(unique(cB))==numel(cB) && all(abs(abs(vB)-1)<tolerance) ;
         end
@@ -142,10 +142,16 @@ else
         if UsePardiso && ~isdistributed(Atilde)
             % (16 Oct 2026) factorisation and solve with PARDISO, see UaPardisoSolve.m. The analysis (reordering and symbolic
             % factorisation) is kept between calls, and only repeated if the sparsity pattern of Atilde changes.
-            if ~isempty(dAtilde)
-                error("ABfgPreEliminate:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
+            % (16 Nov 2026) If a decomposition is requested (nargout>=3) or given, the PARDISO factorisation of Atilde is returned as
+            % dAtilde, and reused if given, so that only the solve phase is carried out (see UaPardisoSolve.m).
+            if nargout>=3 || ~isempty(dAtilde)
+                if isempty(dAtilde)
+                    dAtilde=UaPardisoSolve("factor",CtrlVar,Atilde,A,"nonsymmetric",StructuralPattern) ;
+                end
+                x=SolveWithFactorisation(dAtilde,btilde) ;
+            else
+                x=UaPardisoSolve(CtrlVar,Atilde,btilde,A,"nonsymmetric",StructuralPattern) ;   % the patterns of A and of the mesh contain all rows of Atilde
             end
-            x=UaPardisoSolve(CtrlVar,Atilde,btilde,A,"nonsymmetric",StructuralPattern) ;   % the patterns of A and of the mesh contain all rows of Atilde
         
         else
             if isempty(dAtilde)
@@ -154,7 +160,7 @@ else
      
 
         
-            x=dAtilde\btilde;
+            x=SolveWithFactorisation(dAtilde,btilde);
          
         end
 
@@ -211,3 +217,14 @@ end
 
 end
 
+function x=SolveWithFactorisation(dA,f)
+
+% (16 Nov 2026) solve with a given factorisation: a MATLAB decomposition object, or a PARDISO factorisation (see UaPardisoSolve.m)
+
+if isa(dA,"decomposition")
+    x=dA\f ;
+else
+    x=UaPardisoSolve("solve",dA,f) ;
+end
+
+end

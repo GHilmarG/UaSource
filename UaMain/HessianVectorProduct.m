@@ -16,8 +16,8 @@ function HV=HessianVectorProduct(Blocks,V)
 %   3) adjoint solve:              K' Y = A          (xi' A = -F_p' Y), with homogeneous constraints
 %   4)                             H V = -F_p' Y + K_pq W + K_pp V
 %
-% ie two linear solves with K (and K'), plus sparse matrix-vector products. Where K is symmetric (SSTREAM with Weertman sliding), and
-% a decomposition of K is available, both solves reuse that decomposition.
+% ie two linear solves with K (and K'), plus sparse matrix-vector products. The factorisation of K (and of K' if K is not symmetric)
+% is computed once in AssembleHessianBlocks.m and reused here, so that each product only requires the solve phases (16 Nov 2026).
 %
 % see also: AssembleHessianBlocks.m, CalcDirectAdjointHessian.m
 %
@@ -40,7 +40,7 @@ A=Blocks.Kqq*W+Blocks.Kpq'*V ;
 if Blocks.Symmetric
     Y=SolveK(Blocks.K,L,A,g,CtrlVar,Blocks.dA) ;
 else
-    Y=SolveK(Blocks.K',L,A,g,CtrlVar,[]) ;
+    Y=SolveK(Blocks.K',L,A,g,CtrlVar,Blocks.dAT) ;
 end
 
 % 4)

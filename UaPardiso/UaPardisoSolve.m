@@ -9,6 +9,19 @@ function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern)
 %   Stats=UaPardisoSolve("stats")     % numbers of analyses, factorisations, solves, pattern extensions, repeated solves, fallbacks, ...
 %   UaPardisoSolve("reset")           % release the memory used by PARDISO and reset the statistics
 %
+%   Fac=UaPardisoSolve("factor",CtrlVar,A,Apattern,MatrixType,StructuralPattern)   % factorise A only (16 Nov 2026)
+%   x=UaPardisoSolve("solve",Fac,b)                                                % solve A x = b with the factorisation Fac
+%
+% (16 Nov 2026) Reusing the factorisation: "factor" does the analysis (if needed) and the numerical factorisation, and returns a small
+% structure Fac identifying the factorisation; "solve" then only carries out the solve phase, which is much cheaper than the
+% factorisation. This is used when several systems with the same matrix are solved, eg the linearised forward and adjoint solves of
+% the Hessian-vector products (HessianVectorProduct.m) and the modified Newton-Raphson method (reuse of dA in solveKApe.m). As one
+% PARDISO state is kept for each matrix size and type, a factorisation can be replaced by that of another matrix of the same size and
+% type in the meantime (eg a forward uv solve). Each factorisation is therefore given a unique number, and "solve" checks that the
+% factorisation identified by Fac is still the current one; if not, A is factorised again (counted in the statistics as
+% FactorReuseFailures), so that a replaced factorisation is never used. The relative residual is checked as for the other solves.
+% For small (n<MinimumSize) and diagonal systems Fac contains a MATLAB decomposition or the diagonal.
+%
 % (16 Oct 2026) Used by solveKApe.m, ABfgPreEliminate.m, solveKApeSymmetric.m and KKT_null_space_decomposition_chol.m if
 % CtrlVar.LinearSolver.Type="PARDISO" (see Ua2D_DefaultParameters.m).
 %
@@ -50,12 +63,56 @@ function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern)
 %
 %%
 
-persistent States Stats Clock
+persistent States Stats Clock FactorCount
 
 MaxStates=6 ;
 
+Mode="factorise-and-solve" ;
+if isempty(FactorCount) ; FactorCount=0 ; end
+
 if ischar(CtrlVar) || isstring(CtrlVar)
     switch string(CtrlVar)
+        case "factor"
+            % Fac=UaPardisoSolve("factor",CtrlVar,A,Apattern,MatrixType,StructuralPattern): shift the inputs, and continue below
+            Mode="factor" ;
+            CtrlVar=A ; A=b ; b=zeros(size(A,1),0) ;
+        case "solve"
+            % x=UaPardisoSolve("solve",Fac,b)
+            Fac=A ;
+            if isempty(Stats) ; Stats=NewStats() ; end
+            if isempty(Clock) ; Clock=0 ; end
+            if issparse(b) ; b=full(b) ; end
+            switch Fac.Type
+                case "diagonal"
+                    x=b./Fac.d ;
+                case "decomposition"
+                    x=Fac.dA\b ;
+                case "PARDISO"
+                    k=[] ;
+                    if ~isempty(States) ; k=find([States.FactorId]==Fac.FactorId,1) ; end
+                    if isempty(k)
+                        % the factorisation has been replaced in the meantime: factorise again (and solve)
+                        Stats.FactorReuseFailures=Stats.FactorReuseFailures+1 ;
+                        x=UaPardisoSolve(Fac.CtrlVar,Fac.A,b,Fac.Apattern,Fac.MatrixType,Fac.StructuralPattern) ;
+                        return
+                    end
+                    Clock=Clock+1 ; States(k).LastUsed=Clock ;
+                    x=pardisoMex('solvep',States(k).h,b) ;
+                    Stats.Solves=Stats.Solves+1 ;
+                    Stats.FactorReuses=Stats.FactorReuses+1 ;
+                    nb=max(norm(b,"fro"),realmin) ;
+                    res=norm(Fac.A*x-b,"fro")/nb ;
+                    Opt=Fac.CtrlVar.LinearSolver.PARDISO ;
+                    if ~(res<=Opt.ResidualTolerance)
+                        % residual too large: solve with a new factorisation (with the checks and fallbacks used otherwise)
+                        x=UaPardisoSolve(Fac.CtrlVar,Fac.A,b,Fac.Apattern,Fac.MatrixType,Fac.StructuralPattern) ;
+                        return
+                    end
+                    Stats.MaxResidual=max(Stats.MaxResidual,res) ;
+                otherwise
+                    error("UaPardisoSolve:Fac","Unknown factorisation type.")
+            end
+            return
         case "stats"
             if isempty(Stats) ; Stats=NewStats() ; end
             x=Stats ;
@@ -71,7 +128,7 @@ if ischar(CtrlVar) || isstring(CtrlVar)
         otherwise
             error("UaPardisoSolve:Usage","Unknown command %s.",CtrlVar)
     end
-    return
+    if Mode~="factor" ; return ; end
 end
 
 if isempty(Stats) ; Stats=NewStats() ; end
@@ -93,11 +150,13 @@ n=size(A,1) ;
 
 % small and diagonal systems
 if isdiag(A)
+    if Mode=="factor" ; x=struct("Type","diagonal","d",full(diag(A))) ; return ; end
     x=b./full(diag(A)) ;
     Stats.DiagonalSystems=Stats.DiagonalSystems+1 ;
     return
 end
 if n<MinimumSize
+    if Mode=="factor" ; x=struct("Type","decomposition","dA",decomposition(A)) ; return ; end
     x=A\b ;
     Stats.SmallSystems=Stats.SmallSystems+1 ;
     return
@@ -145,7 +204,7 @@ if isempty(k)
         P=(Af~=0) | logical(speye(n)) ;
         if ~isempty(Apattern) ; P=P | PatternOf(Apattern,Symmetric) ; end
     end
-    New=struct("n",n,"mtype",mtype,"h",pardisoMex('init',mtype),"P",P,"LastUsed",0,"Sid",Sid) ;
+    New=struct("n",n,"mtype",mtype,"h",pardisoMex('init',mtype),"P",P,"LastUsed",0,"Sid",Sid,"FactorId",0) ;
     if isempty(States) ; States=New ; else ; States(end+1)=New ; end
     k=numel(States) ;
 elseif Sid>0 && States(k).Sid~=Sid
@@ -163,7 +222,7 @@ try
     catch ME
         if ME.identifier~="pardisoMex:handle" ; rethrow(ME) ; end
         % the solver states of pardisoMex have been released (eg pardisoMex was cleared from memory): start again
-        States=struct("n",n,"mtype",mtype,"h",pardisoMex('init',mtype),"P",States(k).P,"LastUsed",Clock,"Sid",States(k).Sid) ;
+        States=struct("n",n,"mtype",mtype,"h",pardisoMex('init',mtype),"P",States(k).P,"LastUsed",Clock,"Sid",States(k).Sid,"FactorId",0) ;
         k=1 ;
         r=pardisoMex('factorp',States(k).h,Af,States(k).P) ;
     end
@@ -185,6 +244,14 @@ catch ME
 end
 Stats.Analyses=Stats.Analyses+r ;
 Stats.Factorisations=Stats.Factorisations+1 ;
+FactorCount=FactorCount+1 ; States(k).FactorId=FactorCount ;   % (16 Nov 2026) identifies this factorisation
+
+if Mode=="factor"
+    x=struct("Type","PARDISO","FactorId",States(k).FactorId,"A",A,"CtrlVar",CtrlVar,"Apattern",Apattern,...
+        "MatrixType",MatrixType,"StructuralPattern",StructuralPattern) ;
+    return
+end
+
 x=pardisoMex('solvep',States(k).h,b) ;
 Stats.Solves=Stats.Solves+1 ;
 
@@ -196,6 +263,7 @@ if ~(res<=Opt.ResidualTolerance)
     x=pardisoMex('solvep',States(k).h,b) ;
     Stats.Analyses=Stats.Analyses+1 ;
     Stats.Factorisations=Stats.Factorisations+1 ;
+    FactorCount=FactorCount+1 ; States(k).FactorId=FactorCount ;
     Stats.Resolves=Stats.Resolves+1 ;
     res=norm(A*x-b,"fro")/nb ;
     if ~(res<=Opt.ResidualTolerance)
@@ -219,7 +287,7 @@ end
 %%
 function S=NewStats()
 S=struct("Analyses",0,"Factorisations",0,"Solves",0,"PatternExtensions",0,"Resolves",0,"Fallbacks",0,"SPDFallbacks",0,...
-    "SmallSystems",0,"DiagonalSystems",0,"StatesReleased",0,"StructuralPatterns",0,"MaxResidual",0,"States",0) ;
+    "SmallSystems",0,"DiagonalSystems",0,"StatesReleased",0,"StructuralPatterns",0,"MaxResidual",0,"States",0,"FactorReuses",0,"FactorReuseFailures",0) ;
 end
 
 %%
