@@ -42,7 +42,8 @@ function [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,Ru
 %
 % CtrlVarValidityCheck.m sets CtrlVar.Inverse.BoxTransform accordingly.
 %
-% *Nodal scaling of the trust region* (CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling=true, experimental): the trust region is
+% *Nodal scaling of the trust region* (CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling="on" or "auto", experimental; see
+% the comments at the definition of ScalingMode and ScalingActive below for "auto"): the trust region is
 % ||s||_M <= Delta with M=G+diag(w). After a failed step, if the mismatch between the actual and the predicted change of the gradient
 % is concentrated in a few variables, their weights are increased, so that the step is limited there but not elsewhere. Intended for
 % problems where the quadratic model fails locally, for example close to flotation. M is then also the CG preconditioner.
@@ -56,12 +57,23 @@ function [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,Ru
 
 narginchk(9,9)
 
-Settings=struct("MaxInnerIterations",200,"InitialTrustRegionRadius",[],"MaxForcingTerm",0.5,"Bounds","-projected-","NodalTrustRegionScaling",false,"LocalisationFraction",0.01,"LocalisationShare",0.5);
+Settings=struct("MaxInnerIterations",200,"InitialTrustRegionRadius",[],"MaxForcingTerm",0.5,"Bounds","-projected-","NodalTrustRegionScaling","off","LocalisationFraction",0.01,"LocalisationShare",0.5,"AutoCollapseFactor",1e-2,"AutoActivationRadius",0.1);
 if isfield(CtrlVar.Inverse,"HessianVectorBased")
     fn=fieldnames(CtrlVar.Inverse.HessianVectorBased);
     for k=1:numel(fn) ; Settings.(fn{k})=CtrlVar.Inverse.HessianVectorBased.(fn{k}) ; end
 end
 UserGivenRadius=~isempty(Settings.InitialTrustRegionRadius) ;   % (16 Nov 2026) a given radius takes precedence over a saved one
+
+% (16 Nov 2026) Nodal scaling of the trust region: "off", "on" (from the start), or "auto" (switched on once the trust region has
+% collapsed because of localised model failures, see below). The logical values of earlier versions are still accepted.
+if islogical(Settings.NodalTrustRegionScaling) || isnumeric(Settings.NodalTrustRegionScaling)
+    if Settings.NodalTrustRegionScaling ; ScalingMode="on" ; else ; ScalingMode="off" ; end
+else
+    ScalingMode=lower(string(Settings.NodalTrustRegionScaling)) ;
+    if ~ismember(ScalingMode,["off","on","auto"])
+        error("UaOptimisationHessianVectorBased:NodalTrustRegionScaling","NodalTrustRegionScaling must be off, on or auto.")
+    end
+end
 if isempty(Settings.InitialTrustRegionRadius)
     Settings.InitialTrustRegionRadius=sqrt(numel(p));
 end
@@ -102,7 +114,7 @@ Delta=Settings.InitialTrustRegionRadius;
 Delta0=Delta;
 
 %% RunInfo
-Fields=["Iterations","J","R","I","StepSize","GradNorm","Decrement","Juv","Jhdot","JBobs","InnerIterations","TrustRegionRadius"];
+Fields=["Iterations","J","R","I","StepSize","GradNorm","Decrement","Juv","Jhdot","JBobs","InnerIterations","TrustRegionRadius","WeightedVariables"];
 for ff=Fields
     if ~isfield(RunInfo.Inverse,ff) || isempty(RunInfo.Inverse.(ff))
         RunInfo.Inverse.(ff)=NaN;
@@ -110,7 +122,7 @@ for ff=Fields
 end
 if isempty(RunInfo.Inverse.Iterations) || all(isnan(RunInfo.Inverse.Iterations)) || numel(RunInfo.Inverse.Iterations)<=1
     It0=0;
-    RunInfo=StoreIteration(RunInfo,1,It0,J,fOuts,0,gM,NaN,NaN,NaN,Fields);
+    RunInfo=StoreIteration(RunInfo,1,It0,J,fOuts,0,gM,NaN,NaN,NaN,NaN,Fields);
 else
     It0=max(RunInfo.Inverse.Iterations);
     n=numel(RunInfo.Inverse.J);
@@ -123,7 +135,7 @@ fprintf("\n +++++++++++ At start of inversion (HessianVectorBased, %s Hessian): 
 fprintf("\n   It  inner  CG exit           J                I                R            ||g||_G       ||s||_G       Delta        rho")
 if isBinversion ; fprintf("          JBobs") ; end
 if Projected ; fprintf("   at bounds") ; end
-if Settings.NodalTrustRegionScaling ; fprintf("  weighted") ; end
+if ScalingMode~="off" ; fprintf("  weighted") ; end
 fprintf("      time\n")
 
 nRejected=0;
@@ -142,6 +154,22 @@ n=numel(p) ; w=zeros(n,1) ;
 % the run, which after a restart close to the minimum gave far too loose inner tolerances).
 eta=Settings.MaxForcingTerm ;
 
+% (16 Nov 2026) State of the nodal trust-region scaling. With "auto", the scaling is switched on when (a) the trust region has
+% collapsed, Delta < AutoCollapseFactor*DeltaMax, with DeltaMax the largest trust-region radius in the run, (b) at least two of the
+% last three steps failed (rho<0.25) with the step limited by the trust region, and (c) the current failure is localised (see
+% LocalisationFraction and LocalisationShare). At activation the trust-region radius is set to AutoActivationRadius*DeltaMax (if this
+% is larger; AutoActivationRadius=[] keeps the current radius), as the collapse was caused by the few variables now weighted. The
+% scaling is switched off again when all weights have decayed to zero, and can then be switched on again. In inversions for B
+% together with A and/or C, only the B variables are weighted.
+ScalingActive = ScalingMode=="on" ;
+DeltaMax=Delta ;
+FailHistory=false(1,3) ;
+Weightable=true(n,1) ;
+[isA_,isB_,isC_]=isABC(CtrlVar) ;
+if isB_ && (isA_ || isC_) && n==(isA_+isB_+isC_)*MUA.Nnodes
+    Weightable=false(n,1) ; Weightable(isA_*MUA.Nnodes+(1:MUA.Nnodes))=true ;
+end
+
 % (16 Nov 2026) Restart runs continue with the trust-region state at the end of the previous run (trust-region radius, forcing
 % term and nodal weights), saved in RunInfo.Inverse.HessianVectorBasedState, provided it is for the same number of parameters and
 % the same treatment of the bounds. Otherwise, or if CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius is given, the
@@ -153,7 +181,9 @@ if isfield(RunInfo.Inverse,"HessianVectorBasedState") && isstruct(RunInfo.Invers
     if isfield(St,"Np") && St.Np==n && isfield(St,"Bounds") && St.Bounds==string(Settings.Bounds)
         if ~UserGivenRadius && isfinite(St.Delta) && St.Delta>0 ; Delta=St.Delta ; Restored=Restored+" Delta" ; end
         if isfinite(St.eta) && St.eta>0 ; eta=St.eta ; Restored=Restored+" eta" ; end
-        if Settings.NodalTrustRegionScaling && numel(St.w)==n ; w=St.w(:) ; Restored=Restored+" nodal-weights" ; end
+        if ScalingMode~="off" && numel(St.w)==n ; w=St.w(:) ; Restored=Restored+" nodal-weights" ; end
+        if ScalingMode=="auto" && isfield(St,"ScalingActive") ; ScalingActive=St.ScalingActive ; end
+        if isfield(St,"DeltaMax") && isfinite(St.DeltaMax) ; DeltaMax=max(DeltaMax,St.DeltaMax) ; end
     end
 end
 if Restored~=""
@@ -193,14 +223,25 @@ for it=1:CtrlVar.Inverse.Iterations
     %% trust-region update
     % mismatch between the actual and the predicted change of the gradient, and whether it is localised to a few variables
     Localised=false ;
-    if Settings.NodalTrustRegionScaling && isfinite(Jt) && all(isfinite(gt))
+    if ScalingMode~="off" && isfinite(Jt) && all(isfinite(gt))
         e2=(gt(:)-g-Hs).^2 ;
-        [e2s,idx]=sort(e2,"descend") ;
-        nTop=max(1,ceil(Settings.LocalisationFraction*n)) ;
-        Localised=sum(e2s(1:nTop))>Settings.LocalisationShare*sum(e2s) ;
+        e2w=e2 ; e2w(~Weightable)=0 ;                      % only variables that can be weighted are considered
+        [e2s,idx]=sort(e2w,"descend") ;
+        nTop=max(1,ceil(Settings.LocalisationFraction*sum(Weightable))) ;
+        Localised=sum(e2s(1:nTop))>Settings.LocalisationShare*sum(e2) ;
     end
 
-    if rho<0.25 && Localised
+    Failed = rho<0.25 ;
+    TRLimited = sG>=0.99*Delta || startsWith(cgInfo.Exit,"boundary") || startsWith(cgInfo.Exit,"neg. curv.") ;
+    FailHistory=[FailHistory(2:end) Failed && TRLimited] ;
+
+    Activated=false ;
+    if ScalingMode=="auto" && ~ScalingActive && Failed && Localised && Delta<Settings.AutoCollapseFactor*DeltaMax && sum(FailHistory)>=2
+        ScalingActive=true ; Activated=true ;
+        fprintf("UaOptimisationHessianVectorBased: trust region collapsed (Delta=%g, max %g), with localised model failures: nodal trust-region scaling switched on.\n",Delta,DeltaMax)
+    end
+
+    if Failed && Localised && ScalingActive
         % the model failed, and the failure is localised: increase the weights of the variables concerned so that their step alone
         % would fill the trust region (at least four times the previous weight), but do not reduce the trust region elsewhere
         % The new weight is such that the step of each of these variables alone would fill the trust region (and at least four times
@@ -209,7 +250,11 @@ for it=1:CtrlVar.Inverse.Iterations
         dG=full(diag(G)) ;
         sI=max(abs(s(I)),1e-3*max(abs(s))) ;
         w(I)=min(max(4*w(I),Delta^2./max(sI.^2,realmin)),1e6*dG(I)) ;
-        Delta=0.5*Delta ;
+        if Activated && ~isempty(Settings.AutoActivationRadius)
+            Delta=max(Delta,Settings.AutoActivationRadius*DeltaMax) ;   % the collapse was caused by the variables now weighted
+        else
+            Delta=0.5*Delta ;
+        end
     elseif rho<0.25
         Delta=0.25*sG;
     elseif rho>0.75 && (sG>=0.99*Delta || startsWith(cgInfo.Exit,"boundary") || startsWith(cgInfo.Exit,"neg. curv."))
@@ -220,7 +265,12 @@ for it=1:CtrlVar.Inverse.Iterations
     if rho>0.75
         w=w/2 ;   % relax the nodal weights after good steps
         w(w<1e-12*max(full(diag(G))))=0 ;
+        if ScalingMode=="auto" && ScalingActive && ~any(w>0)
+            ScalingActive=false ;
+            fprintf("UaOptimisationHessianVectorBased: all nodal weights have decayed, nodal trust-region scaling switched off.\n")
+        end
     end
+    DeltaMax=max(DeltaMax,Delta) ;
 
     Accepted=rho>1e-4;
     if Accepted
@@ -240,15 +290,15 @@ for it=1:CtrlVar.Inverse.Iterations
     fprintf("%5i  %5i  %-10s %15.10g  %15.10g  %15.10g  %11.4g  %11.4g  %11.4g  %9.4f",It0+it,cgInfo.Iterations,cgInfo.Exit,J,fOuts.I,fOuts.R,gM,sG,Delta,rho)
     if isBinversion ; fprintf("  %15.10g",JBobs) ; end
     if Projected ; fprintf("  %10i",sum(p<=plb | p>=pub)) ; end
-    if Settings.NodalTrustRegionScaling ; fprintf("  %8i",sum(w>0)) ; end
+    if ScalingMode~="off" ; fprintf("  %8i",sum(w>0)) ; end
     fprintf("  %8.1f s",toc(tStart)) ;   % cumulative wall-clock time
     if ~Accepted ; fprintf("  (step rejected)") ; end
     fprintf("\n")
 
     kNext=find(~isnan(RunInfo.Inverse.J),1,"last") ; if isempty(kNext) ; kNext=0 ; end
-    RunInfo=StoreIteration(RunInfo,kNext+1,It0+it,J,fOuts,sG*Accepted,gM,cgInfo.Iterations,pred,Delta,Fields);
+    RunInfo=StoreIteration(RunInfo,kNext+1,It0+it,J,fOuts,sG*Accepted,gM,cgInfo.Iterations,pred,Delta,sum(w>0),Fields);
     % (16 Nov 2026) trust-region state, for continuing in a restart run (see above)
-    RunInfo.Inverse.HessianVectorBasedState=struct("Delta",Delta,"eta",eta,"w",w,"Np",n,"Bounds",string(Settings.Bounds),"Iteration",It0+it) ;
+    RunInfo.Inverse.HessianVectorBasedState=struct("Delta",Delta,"eta",eta,"w",w,"Np",n,"Bounds",string(Settings.Bounds),"Iteration",It0+it,"ScalingActive",ScalingActive,"DeltaMax",DeltaMax) ;
 
     %% exit criteria
     if gM<=1e-10*gM0
@@ -313,22 +363,38 @@ end
 function [s,pred,Info,Hs,Cache]=ProjectedNewtonStep(x,g,Hv,G,PrecG,l,u,Delta,eta,MaxInner,Cache,Gkey)
 
 % Step for the bound-constrained trust-region subproblem, min q(s)=g's+1/2 s'Hs subject to l<=x+s<=u and ||s||_G<=Delta:
-% (1) Cauchy step along the projected steepest-descent path, (2) Steihaug-Toint CG in the free variables, (3) projected search.
+% (1) Cauchy step along the projected steepest-descent path, which identifies the variables at their bounds, (2) Steihaug-Toint CG
+% in the free variables, (3) projected search along that step, accepted if its model decrease is at least that of the Cauchy step.
+%
+% (16 Nov 2026) Changes:
+%  - The Cauchy step: if the minimiser of the model along -g (or the trust-region boundary) does not reach any bound, the model along
+%    the path is exactly quadratic in t, and the Cauchy step is taken there without backtracking (no further Hessian-vector products).
+%    Backtracking (with a Hessian-vector product per trial) is only needed if bounds are reached.
+%  - The CG step is no longer computed from the Cauchy point within the trust region remaining after the Cauchy step (which is zero
+%    when the Cauchy step reaches the trust-region boundary, as is typical far from the minimum, so that only Cauchy, ie steepest-
+%    descent, steps were taken). Instead the variables at their bounds at the Cauchy point are set to their Cauchy values, and CG is
+%    applied to the free variables from x, within the trust region (radius reduced by the length of the fixed part of the step).
+%    Without variables at bounds this is the unconstrained Steihaug-Toint step.
 
 n=numel(x) ;
 q=@(s,Hs) g'*s+0.5*(s'*Hs) ;
 
-%% (1) Cauchy step: s(t)=P(x-t g)-x, backtracking from the minimiser of the model along -g (or the trust-region boundary)
-Hg=Hv(g) ; gHg=g'*Hg ; gGg=g'*(G*g) ;
+%% (1) Cauchy step: s(t)=P(x-t g)-x
+Hg=Hv(g) ; gHg=g'*Hg ; gg=g'*g ; gGg=g'*(G*g) ;
 t=Delta/sqrt(max(gGg,realmin)) ;
-if gHg>0 ; t=min(t,(g'*g)/gHg) ; end
-for k=1:50
-    sc=min(max(x-t*g,l),u)-x ;
-    Hsc=Hv(sc) ;
-    if sqrt(max(sc'*(G*sc),0))<=Delta*(1+1e-10) && q(sc,Hsc)<=0.01*(g'*sc)
-        break
+if gHg>0 ; t=min(t,gg/gHg) ; end
+xt=x-t*g ;
+if all(xt>=l & xt<=u)
+    sc=-t*g ; Hsc=-t*Hg ;                    % no bound reached: exact minimiser along -g within the trust region
+else
+    for k=1:50
+        sc=min(max(x-t*g,l),u)-x ;
+        Hsc=Hv(sc) ;
+        if sqrt(max(sc'*(G*sc),0))<=Delta*(1+1e-10) && q(sc,Hsc)<=0.01*(g'*sc)
+            break
+        end
+        t=t/2 ;
     end
-    t=t/2 ;
 end
 
 xc=x+sc ; qc=q(sc,Hsc) ;
@@ -338,40 +404,45 @@ Free=~Active ;
 s=sc ; Hs=Hsc ;
 Info.Iterations=0 ; Info.Exit="Cauchy" ;
 
-%% (2) Steihaug-Toint CG in the free variables, starting from the Cauchy point
-DeltaW=Delta-sqrt(max(sc'*(G*sc),0)) ;     % so that ||sc+w||_G <= Delta
-if any(Free) && DeltaW>0
+%% (2) Steihaug-Toint CG in the free variables, from x, with the variables at bounds fixed at their Cauchy values
+if any(Free)
 
-    gc=g+Hsc ;                              % gradient of the model at the Cauchy point
-    if all(Free) ; GF=G ; else ; GF=G(Free,Free) ; end
-    [PrecF,Cache]=RestrictedSolver(Cache,G,PrecG,Free,Gkey) ;   % factorisation reused while Free (and G) do not change
-    HvF=@(v) RestrictedHv(Hv,v,Free,n) ;
-    gcF=gc(Free) ;
-    gcM=sqrt(max(gcF'*PrecF(gcF),0)) ;
+    s0=zeros(n,1) ; s0(Active)=sc(Active) ;
+    if any(Active) ; Hs0=Hv(s0) ; else ; Hs0=zeros(n,1) ; end
+    DeltaW=sqrt(max(Delta^2-s0'*(G*s0),0)) ;   % trust region for the free part of the step
 
-    if gcM>0
+    if DeltaW>0
+        g0=g+Hs0 ;                              % gradient of the model at x+s0
+        if all(Free) ; GF=G ; else ; GF=G(Free,Free) ; end
+        [PrecF,Cache]=RestrictedSolver(Cache,G,PrecG,Free,Gkey) ;   % factorisation reused while Free (and G) do not change
+        HvF=@(v) RestrictedHv(Hv,v,Free,n) ;
+        g0F=g0(Free) ;
+        g0M=sqrt(max(g0F'*PrecF(g0F),0)) ;
 
-        [w,~,cgInfo]=SteihaugToint(gcF,HvF,PrecF,GF,DeltaW,eta*gcM,MaxInner) ;
-        Info.Iterations=cgInfo.Iterations ; Info.Exit=cgInfo.Exit ;
-        wFull=zeros(n,1) ; wFull(Free)=w ;
+        if g0M>0
 
-        %% (3) projected search along w: accept if the model decrease is at least that of the Cauchy step
-        beta=1 ; Found=false ;
-        for k=1:20
-            st=min(max(xc+beta*wFull,l),u)-x ;
-            Hst=Hv(st) ;
-            if q(st,Hst)<=qc
-                s=st ; Hs=Hst ; Found=true ;
-                break
+            [w,~,cgInfo]=SteihaugToint(g0F,HvF,PrecF,GF,DeltaW,eta*g0M,MaxInner) ;
+            Info.Iterations=cgInfo.Iterations ; Info.Exit=cgInfo.Exit ;
+            wFull=zeros(n,1) ; wFull(Free)=w ;
+
+            %% (3) projected search along the step: accept if the model decrease is at least that of the Cauchy step
+            beta=1 ; Found=false ;
+            for k=1:20
+                st=min(max(x+s0+beta*wFull,l),u)-x ;
+                Hst=Hv(st) ;
+                if q(st,Hst)<=qc
+                    s=st ; Hs=Hst ; Found=true ;
+                    break
+                end
+                beta=beta/2 ;
             end
-            beta=beta/2 ;
-        end
-        if ~Found
-            Info.Exit="Cauchy" ;
-        elseif beta<1
-            Info.Exit=Info.Exit+"*" ;  % projected search shortened the step
-        end
+            if ~Found
+                Info.Exit="Cauchy" ;
+            elseif beta<1
+                Info.Exit=Info.Exit+"*" ;  % projected search shortened the step
+            end
 
+        end
     end
 
 end
@@ -447,7 +518,7 @@ tau=(-sGd+sqrt(max(sGd^2+dGd*(Delta^2-sGs),0)))/dGd ;
 end
 
 
-function RunInfo=StoreIteration(RunInfo,k,Iteration,J,fOuts,StepSize,GradNorm,InnerIterations,Decrement,TrustRegionRadius,Fields)
+function RunInfo=StoreIteration(RunInfo,k,Iteration,J,fOuts,StepSize,GradNorm,InnerIterations,Decrement,TrustRegionRadius,WeightedVariables,Fields)
 
 if numel(RunInfo.Inverse.J)<k
     Padding=nan(100,1);
@@ -467,6 +538,7 @@ RunInfo.Inverse.Jhdot(k)=Jhdot;
 RunInfo.Inverse.JBobs(k)=JBobs;
 RunInfo.Inverse.InnerIterations(k)=InnerIterations;
 RunInfo.Inverse.TrustRegionRadius(k)=TrustRegionRadius;   % trust-region radius after the update in this iteration (16 Nov 2026)
+RunInfo.Inverse.WeightedVariables(k)=WeightedVariables;   % number of variables with nodal trust-region weights (16 Nov 2026)
 
 end
 

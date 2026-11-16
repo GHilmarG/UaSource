@@ -4,6 +4,14 @@
 % 
 % *Change Log* _October 2026_
 %
+% * UaOptimisationHessianVectorBased.m: automatic nodal trust-region scaling (experimental, 16 November 2026):
+% CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling is now "off" (default), "on" or "auto" (true/false still accepted).
+% With "auto" the scaling is switched on when the trust region has collapsed (Delta < AutoCollapseFactor * largest Delta in the run,
+% default 1e-2), at least two of the last three steps failed (rho<0.25) with the step limited by the trust region, and the current
+% failure is localised. At activation Delta is set to AutoActivationRadius * largest Delta (default 0.1; [] keeps Delta). The scaling
+% is switched off again when all weights have decayed. In joint inversions only the B variables are weighted. The state (active,
+% largest Delta, weights) is kept for restart runs, and the number of weighted variables is stored in RunInfo.Inverse.WeightedVariables.
+%
 % * Hessian-vector products: symmetric (Cholesky) factorisation (16 November 2026):
 % If K is symmetric (SSTREAM with Weertman sliding) and the constraints are nodal, AssembleHessianBlocks.m now uses the same symmetric
 % reduction as the forward uv solve (solveKApeSymmetric.m, null-space method, KKT_null_space_decomposition_chol.m): x(c)=0 at the

@@ -1018,7 +1018,9 @@ CtrlVar.Inverse.HessianVectorBased.MaxInnerIterations=200;     % maximum number 
 CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
 CtrlVar.Inverse.HessianVectorBased.MaxForcingTerm=0.5;          % upper limit of the relative tolerance of the inner CG iteration (Eisenstat-Walker forcing term)
 CtrlVar.Inverse.HessianVectorBased.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
-CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling=false; % (experimental) trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation)
+CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling="off";  % "off", "on" or "auto" (experimental): trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation). "auto": switched on once the trust region has collapsed
+CtrlVar.Inverse.HessianVectorBased.AutoCollapseFactor=1e-2;    % "auto": the trust region is considered collapsed if Delta < AutoCollapseFactor * (largest Delta in the run)
+CtrlVar.Inverse.HessianVectorBased.AutoActivationRadius=0.1;   % "auto": at activation Delta is set to AutoActivationRadius * (largest Delta in the run), [] keeps Delta
 CtrlVar.Inverse.HessianVectorBased.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
 CtrlVar.Inverse.HessianVectorBased.LocalisationShare=0.5;
 
