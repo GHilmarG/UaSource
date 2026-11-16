@@ -240,7 +240,11 @@ catch ME
         % Cholesky factorisation failed, presumably as the matrix is not positive definite: solve as symmetric indefinite
         warning("UaPardisoSolve:NotPositiveDefinite","PARDISO Cholesky factorisation failed (%s); solving the system as symmetric indefinite.",ME.message)
         Stats.SPDFallbacks=Stats.SPDFallbacks+1 ;
-        x=UaPardisoSolve(CtrlVar,A,b,Apattern,"symmetric",StructuralPattern) ;
+        if Mode=="factor"   % (16 Nov 2026) return a factorisation (symmetric indefinite), not a solution
+            x=UaPardisoSolve("factor",CtrlVar,A,Apattern,"symmetric",StructuralPattern) ;
+        else
+            x=UaPardisoSolve(CtrlVar,A,b,Apattern,"symmetric",StructuralPattern) ;
+        end
         return
     end
     rethrow(ME)

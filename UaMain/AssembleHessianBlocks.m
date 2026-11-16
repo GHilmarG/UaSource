@@ -44,6 +44,8 @@ function Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint
 %   Blocks.Kpp     : Np x Np
 %   Blocks.dA      : factorisation of K (MATLAB decomposition or PARDISO factorisation), reused for all solves in HessianVectorProduct.m
 %   Blocks.dAT     : factorisation of K' (only if K is not symmetric)
+%   Blocks.Reduced : (16 Nov 2026) if K is symmetric and the constraints are nodal: the free unknowns (Free) and the (Cholesky)
+%                    factorisation of K(Free,Free) (Fac); then used instead of dA and dAT
 %   Blocks.Symmetric : true if K is symmetric (then the adjoint solves reuse the decomposition of K)
 %   Blocks.Type, Blocks.Np, Blocks.N
 %
@@ -141,10 +143,41 @@ if isempty(L) ; grhs=[] ; else ; grhs=zeros(size(L,1),1) ; end
 % UaPardisoSolve.m) and reused in all solves of HessianVectorProduct.m, so that each Hessian-vector product only requires the solve
 % phases. If K is not symmetric, K' is factorised as well, for the adjoint solves. Decompositions are supported by solveKApe for the
 % constraint methods "Bempty" and "EliminateBCsSolveSystemDirectly"; for other methods dA=[] and each solve factorises the matrix.
-[~,~,dA]=solveKApe(K,L,frhs,grhs,[],[],CtrlVar) ;
-dAT=[] ;
-if ~Blocks.Symmetric
-    [~,~,dAT]=solveKApe(K',L,frhs,grhs,[],[],CtrlVar) ;
+%
+% (16 Nov 2026) If K is symmetric (SSTREAM with Weertman sliding, as tested in SSTREAM2dNR2.m) and each constraint fixes one unknown
+% (or there are no constraints), the same symmetric reduction as in the forward uv solve (solveKApeSymmetric.m, null-space method,
+% KKT_null_space_decomposition_chol.m) is used: with the homogeneous constraints of the Hessian-vector products, x(c)=0 at the
+% constrained unknowns c, and K(f,f) x(f) = r(f) at the free unknowns f. K(f,f) is symmetric (positive definite) and is factorised
+% once, with a Cholesky factorisation (PARDISO "spd", which falls back to LDL' if K(f,f) is not positive definite, or MATLAB
+% decomposition), and used for both the forward and the adjoint solves. Otherwise the general (nonsymmetric) route of solveKApe is used.
+Blocks.Reduced=[] ; dA=[] ; dAT=[] ;
+if Blocks.Symmetric
+    [iRow,iCol,dVal]=find(L) ; m=size(L,1) ;
+    if m==0 || (numel(dVal)==m && numel(unique(iRow))==m && numel(unique(iCol))==m)
+        Free=true(2*N,1) ; Free(iCol)=false ;
+        Kff=K(Free,Free) ; Kff=(Kff+Kff')/2 ;
+        if isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO"
+            SPf=[] ;
+            if isfield(MUA,"uvAssemblyPattern") && ~isempty(MUA.uvAssemblyPattern)
+                SPf=struct("Pattern",MUA.uvAssemblyPattern,"Index",find(Free)) ;   % pattern of K(f,f), see UaPardisoSolve.m
+            end
+            Fac=UaPardisoSolve("factor",CtrlVar,Kff,[],"spd",SPf) ;
+        else
+            try
+                Fac=decomposition(Kff,"chol") ;
+            catch
+                Fac=decomposition(Kff,"ldl") ;
+            end
+        end
+        Blocks.Reduced=struct("Free",Free,"Fac",Fac) ;
+    end
+end
+
+if isempty(Blocks.Reduced)
+    [~,~,dA]=solveKApe(K,L,frhs,grhs,[],[],CtrlVar) ;
+    if ~Blocks.Symmetric
+        [~,~,dAT]=solveKApe(K',L,frhs,grhs,[],[],CtrlVar) ;
+    end
 end
 
 Blocks.K=K ; Blocks.L=L ; Blocks.Fp=Fp ;

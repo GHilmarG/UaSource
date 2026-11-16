@@ -4,6 +4,22 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Hessian-vector products: symmetric (Cholesky) factorisation (16 November 2026):
+% If K is symmetric (SSTREAM with Weertman sliding) and the constraints are nodal, AssembleHessianBlocks.m now uses the same symmetric
+% reduction as the forward uv solve (solveKApeSymmetric.m, null-space method, KKT_null_space_decomposition_chol.m): x(c)=0 at the
+% constrained unknowns, and K(f,f) x(f)=r(f), with K(f,f) factorised once (PARDISO "spd", or MATLAB decomposition "chol") and used for
+% both the forward and the adjoint solves (Blocks.Reduced). Previously the general route of solveKApe was used, with row-only
+% elimination and an LU factorisation. Antarctica nx150: Hessian-vector product 0.29 -> 0.20 s. Otherwise the general route is used as
+% before. UaPardisoSolve.m: in "factor" mode, if a Cholesky factorisation ("spd") fails, a symmetric indefinite factorisation is now
+% returned (previously the fallback returned a solution instead of a factorisation).
+%
+% * UaOptimisationHessianVectorBased.m: trust-region state kept for restart runs (16 November 2026):
+% The trust-region radius, the forcing term and the nodal weights at the end of each iteration are stored in
+% RunInfo.Inverse.HessianVectorBasedState, and a restart run continues with them (if for the same number of parameters and the same
+% treatment of the bounds, and unless CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius is given). Previously each restart
+% began with Delta=sqrt(number of parameters). The trust-region radius is also stored for each iteration in the new field
+% RunInfo.Inverse.TrustRegionRadius (UaRunInfo.m: initialised as NaN, and added with NaN to RunInfo of older restart files).
+%
 % * UaOptimisationHessianVectorBased.m: factorisations of the restricted metric reused (16 November 2026):
 % With projected bounds, G (or M=G+diag(w)) restricted to the free variables was factorised in every iteration for the CG step, and
 % again (with backslash) for each projected gradient norm. Now (local function RestrictedSolver) the factorisation is kept and

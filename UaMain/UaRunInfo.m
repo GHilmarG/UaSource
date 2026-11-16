@@ -40,6 +40,7 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             obj.Inverse.Jhdot = NaN ;   % dh/dt misfit term
             obj.Inverse.JBobs = NaN ;   % misfit with respect to direct measurements of B (included in R)
             obj.Inverse.InnerIterations = NaN ;   % number of CG iterations for each Newton step (UaOptimisationHessianVectorBased.m)
+            obj.Inverse.TrustRegionRadius = NaN ; % trust-region radius after each Newton step (UaOptimisationHessianVectorBased.m)
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
 
@@ -349,7 +350,7 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
 
             % (15 November 2026) individual terms of the cost function, same length as Inverse.J so that inverse runs can be
             % continued (NaN for the iterations carried out before these fields were introduced)
-            for ff=["Juv","Jhdot","JBobs","InnerIterations"]
+            for ff=["Juv","Jhdot","JBobs","InnerIterations","TrustRegionRadius"]
                 if ~isfield(sObj.Inverse,ff)
                     sObj.Inverse.(ff)=nan(size(sObj.Inverse.J));
                 end

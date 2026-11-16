@@ -61,6 +61,7 @@ if isfield(CtrlVar.Inverse,"HessianVectorBased")
     fn=fieldnames(CtrlVar.Inverse.HessianVectorBased);
     for k=1:numel(fn) ; Settings.(fn{k})=CtrlVar.Inverse.HessianVectorBased.(fn{k}) ; end
 end
+UserGivenRadius=~isempty(Settings.InitialTrustRegionRadius) ;   % (16 Nov 2026) a given radius takes precedence over a saved one
 if isempty(Settings.InitialTrustRegionRadius)
     Settings.InitialTrustRegionRadius=sqrt(numel(p));
 end
@@ -101,7 +102,7 @@ Delta=Settings.InitialTrustRegionRadius;
 Delta0=Delta;
 
 %% RunInfo
-Fields=["Iterations","J","R","I","StepSize","GradNorm","Decrement","Juv","Jhdot","JBobs","InnerIterations"];
+Fields=["Iterations","J","R","I","StepSize","GradNorm","Decrement","Juv","Jhdot","JBobs","InnerIterations","TrustRegionRadius"];
 for ff=Fields
     if ~isfield(RunInfo.Inverse,ff) || isempty(RunInfo.Inverse.(ff))
         RunInfo.Inverse.(ff)=NaN;
@@ -109,7 +110,7 @@ for ff=Fields
 end
 if isempty(RunInfo.Inverse.Iterations) || all(isnan(RunInfo.Inverse.Iterations)) || numel(RunInfo.Inverse.Iterations)<=1
     It0=0;
-    RunInfo=StoreIteration(RunInfo,1,It0,J,fOuts,0,gM,NaN,NaN,Fields);
+    RunInfo=StoreIteration(RunInfo,1,It0,J,fOuts,0,gM,NaN,NaN,NaN,Fields);
 else
     It0=max(RunInfo.Inverse.Iterations);
     n=numel(RunInfo.Inverse.J);
@@ -118,7 +119,7 @@ else
     end
 end
 
-fprintf("\n +++++++++++ At start of inversion (HessianVectorBased, %s Hessian):  J=%-g  I=%-g  R=%-g  |g|_G=%-g  Delta=%-g \n",HVPType(CtrlVar),J,fOuts.I,fOuts.R,gM,Delta)
+fprintf("\n +++++++++++ At start of inversion (HessianVectorBased, %s Hessian):  J=%-g  I=%-g  R=%-g  |g|_G=%-g \n",HVPType(CtrlVar),J,fOuts.I,fOuts.R,gM)
 fprintf("\n   It  inner  CG exit           J                I                R            ||g||_G       ||s||_G       Delta        rho")
 if isBinversion ; fprintf("          JBobs") ; end
 if Projected ; fprintf("   at bounds") ; end
@@ -140,6 +141,26 @@ n=numel(p) ; w=zeros(n,1) ;
 % so that it also works for restart runs (previously eta=min(MaxForcingTerm,sqrt(|g|/|g0|)), with g0 the gradient at the start of
 % the run, which after a restart close to the minimum gave far too loose inner tolerances).
 eta=Settings.MaxForcingTerm ;
+
+% (16 Nov 2026) Restart runs continue with the trust-region state at the end of the previous run (trust-region radius, forcing
+% term and nodal weights), saved in RunInfo.Inverse.HessianVectorBasedState, provided it is for the same number of parameters and
+% the same treatment of the bounds. Otherwise, or if CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius is given, the
+% initial values are used. Previously each restart began with Delta=sqrt(number of parameters), which is typically much larger
+% than the radius the run had settled at, so that the first steps of a restart run were rejected.
+Restored="" ;
+if isfield(RunInfo.Inverse,"HessianVectorBasedState") && isstruct(RunInfo.Inverse.HessianVectorBasedState)
+    St=RunInfo.Inverse.HessianVectorBasedState ;
+    if isfield(St,"Np") && St.Np==n && isfield(St,"Bounds") && St.Bounds==string(Settings.Bounds)
+        if ~UserGivenRadius && isfinite(St.Delta) && St.Delta>0 ; Delta=St.Delta ; Restored=Restored+" Delta" ; end
+        if isfinite(St.eta) && St.eta>0 ; eta=St.eta ; Restored=Restored+" eta" ; end
+        if Settings.NodalTrustRegionScaling && numel(St.w)==n ; w=St.w(:) ; Restored=Restored+" nodal-weights" ; end
+    end
+end
+if Restored~=""
+    fprintf(" +++++++++++ Continuing with the trust-region state of the previous run (%s): Delta=%-g, eta=%-g\n",strtrim(Restored),Delta,eta)
+else
+    fprintf(" +++++++++++ Initial trust-region radius Delta=%-g\n",Delta)
+end
 
 for it=1:CtrlVar.Inverse.Iterations
 
@@ -225,7 +246,9 @@ for it=1:CtrlVar.Inverse.Iterations
     fprintf("\n")
 
     kNext=find(~isnan(RunInfo.Inverse.J),1,"last") ; if isempty(kNext) ; kNext=0 ; end
-    RunInfo=StoreIteration(RunInfo,kNext+1,It0+it,J,fOuts,sG*Accepted,gM,cgInfo.Iterations,pred,Fields);
+    RunInfo=StoreIteration(RunInfo,kNext+1,It0+it,J,fOuts,sG*Accepted,gM,cgInfo.Iterations,pred,Delta,Fields);
+    % (16 Nov 2026) trust-region state, for continuing in a restart run (see above)
+    RunInfo.Inverse.HessianVectorBasedState=struct("Delta",Delta,"eta",eta,"w",w,"Np",n,"Bounds",string(Settings.Bounds),"Iteration",It0+it) ;
 
     %% exit criteria
     if gM<=1e-10*gM0
@@ -424,7 +447,7 @@ tau=(-sGd+sqrt(max(sGd^2+dGd*(Delta^2-sGs),0)))/dGd ;
 end
 
 
-function RunInfo=StoreIteration(RunInfo,k,Iteration,J,fOuts,StepSize,GradNorm,InnerIterations,Decrement,Fields)
+function RunInfo=StoreIteration(RunInfo,k,Iteration,J,fOuts,StepSize,GradNorm,InnerIterations,Decrement,TrustRegionRadius,Fields)
 
 if numel(RunInfo.Inverse.J)<k
     Padding=nan(100,1);
@@ -443,6 +466,7 @@ RunInfo.Inverse.Juv(k)=Juv;
 RunInfo.Inverse.Jhdot(k)=Jhdot;
 RunInfo.Inverse.JBobs(k)=JBobs;
 RunInfo.Inverse.InnerIterations(k)=InnerIterations;
+RunInfo.Inverse.TrustRegionRadius(k)=TrustRegionRadius;   % trust-region radius after the update in this iteration (16 Nov 2026)
 
 end
 
