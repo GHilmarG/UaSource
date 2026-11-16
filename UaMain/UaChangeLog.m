@@ -4,6 +4,19 @@
 % 
 % *Change Log* _October 2026_
 %
+% * "-UaOptimisation-NewtonCG-" renamed "-UaOptimisation-HessianVectorBased-" (15 November 2026):
+% The method is an inexact Gauss-Newton (default) or Newton trust-region method using Hessian-vector products, and not a
+% conjugate-gradient method (CG is only used to solve the trust-region subproblem). Renamed: UaOptimisationNewtonCG.m ->
+% UaOptimisationHessianVectorBased.m, NewtonCGHessianSetup.m -> HessianVectorProductSetup.m, CtrlVar.Inverse.NewtonCG ->
+% CtrlVar.Inverse.HessianVectorBased. The previous id and settings structure are still accepted (CtrlVarValidityCheck.m). Checks for
+% Hessian-based methods now test for "HessianBased" (so that the full Hessian is never calculated in JGH.m for this method).
+%
+% * UaOptimisationNewtonCG.m: forcing term of the inner CG iteration (15 November 2026):
+% The relative tolerance of the inner CG iteration is now given by the Eisenstat-Walker choice 1, eta=| |g_new| - |g_old+H s| |/|g_old|
+% (dual G norm, projected gradient), safeguarded (eta >= eta_old^1.618 if eta_old^1.618>0.1) and limited to [1e-6, MaxForcingTerm].
+% Previously eta=min(MaxForcingTerm,sqrt(|g|/|g0|)) with g0 the gradient at the start of the run, which in restart runs close to the
+% minimum gave far too loose tolerances (inner CG stopping after one or two iterations, and tiny steps).
+%
 % * UaOptimisationNewtonCG.m: nodal scaling of the trust region (experimental, 15 November 2026):
 % With CtrlVar.Inverse.NewtonCG.NodalTrustRegionScaling=true (default false) the trust region is ||s||_M<=Delta with M=G+diag(w). After
 % a failed step (rho<0.25), if the mismatch between the actual and the predicted change of the gradient is concentrated in a small

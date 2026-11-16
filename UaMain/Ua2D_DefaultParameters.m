@@ -985,7 +985,7 @@ CtrlVar.Inverse.MinimisationMethodOptions=[...
     "-MatlabOptimisation-HessianBased-"; ...         % Hessian-based, MATLAB toolbox
     "-UaOptimisation-GradientBased-"; ...            % gradient-based, Ua Optimisation toolbox
     "-UaOptimisation-HessianBased-"; ...             % Hessian-based, Ua Optimisation toolbox
-    "-UaOptimisation-NewtonCG-"     ];               % inexact Newton (Hessian-vector products) with preconditioned CG and a trust region, Ua Optimisation toolbox
+    "-UaOptimisation-HessianVectorBased-"     ];     % inexact Newton (Hessian-vector products) with preconditioned CG and a trust region, Ua Optimisation toolbox
    
 % If a Hessian-based Optimisation is used, the the expressions for the Hessians can be selected as follows:
 
@@ -1003,24 +1003,24 @@ CtrlVar.Inverse.HessianCalculationOptions=[...
 % With CtrlVar.Inverse.HessianCalculation="-HVP-" and CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-HessianBased-", fmincon
 % (interior-point, SubproblemAlgorithm="cg") is given Hessian-vector products (HessianMultiplyFcn) instead of the full Hessian, see
 % HessianMultiplyHVP.m. The Hessian is then never formed. The Hessian-vector products are calculated by HessianVectorProduct.m, from
-% the sparse blocks assembled by AssembleHessianBlocks.m, and are also used by CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-".
+% the sparse blocks assembled by AssembleHessianBlocks.m, and are also used by CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-".
 %
 %   CtrlVar.Inverse.HVP.Type="-GN-"   : Gauss-Newton Hessian (positive semi-definite), default
 %   CtrlVar.Inverse.HVP.Type="-full-" : full Hessian (all second-order terms), in general indefinite
 %
 CtrlVar.Inverse.HVP.Type="-GN-" ;
 
-% (15 November 2026) Settings for CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-" (see UaOptimisationNewtonCG.m):
+% (15 November 2026) Settings for CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-" (see UaOptimisationHessianVectorBased.m):
 % inexact Newton with Hessian-vector products, the Newton system solved approximately with conjugate gradients preconditioned with the
 % metric G (the Hessian of the regularisation term), and a trust region measured in the G norm (Steihaug-Toint). Box constraints are
 % imposed through the box transform (CtrlVar.Inverse.BoxTransform=true), so the Optimisation problem is unconstrained.
-CtrlVar.Inverse.NewtonCG.MaxInnerIterations=200;     % maximum number of CG iterations for each Newton step
-CtrlVar.Inverse.NewtonCG.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
-CtrlVar.Inverse.NewtonCG.MaxForcingTerm=0.5;          % the CG iteration stops when |r|<eta |g| with eta=min(MaxForcingTerm,sqrt(|g|/|g0|)) (in the inverse G norm)
-CtrlVar.Inverse.NewtonCG.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
-CtrlVar.Inverse.NewtonCG.NodalTrustRegionScaling=false; % (experimental) trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation)
-CtrlVar.Inverse.NewtonCG.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
-CtrlVar.Inverse.NewtonCG.LocalisationShare=0.5;
+CtrlVar.Inverse.HessianVectorBased.MaxInnerIterations=200;     % maximum number of CG iterations for each Newton step
+CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
+CtrlVar.Inverse.HessianVectorBased.MaxForcingTerm=0.5;          % upper limit of the relative tolerance of the inner CG iteration (Eisenstat-Walker forcing term)
+CtrlVar.Inverse.HessianVectorBased.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
+CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling=false; % (experimental) trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation)
+CtrlVar.Inverse.HessianVectorBased.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
+CtrlVar.Inverse.HessianVectorBased.LocalisationShare=0.5;
 
 
 % Should a Riesz-mapped gradient be used?
@@ -1033,7 +1033,7 @@ CtrlVar.Inverse.NewtonCG.LocalisationShare=0.5;
 %
 if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
     CtrlVar.Inverse.RieszMapGradient=true;
-elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"HessianBased")
     CtrlVar.Inverse.RieszMapGradient=false;
 end
 

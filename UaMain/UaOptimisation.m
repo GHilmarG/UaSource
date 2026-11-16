@@ -25,13 +25,13 @@ switch CtrlVar.Inverse.MinimisationMethod
         [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub);
 
 
-    case  "-UaOptimisation-NewtonCG-"
+    case  "-UaOptimisation-HessianVectorBased-"
 
-        % (15 November 2026) inexact Newton with Hessian-vector products, see UaOptimisationNewtonCG.m
+        % (15 November 2026) inexact Newton with Hessian-vector products, see UaOptimisationHessianVectorBased.m
         if nargin<9 || isempty(HessianSetup)
-            error("UaOptimisation:NoHessianSetup","-UaOptimisation-NewtonCG- requires the function handle HessianSetup (see InvertForModelParameters.m).")
+            error("UaOptimisation:NoHessianSetup","-UaOptimisation-HessianVectorBased- requires the function handle HessianSetup (see InvertForModelParameters.m).")
         end
-        [p,UserVar,RunInfo]=UaOptimisationNewtonCG(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup);
+        [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup);
 
     case  "-UaOptimisation-GradientBased-"
 

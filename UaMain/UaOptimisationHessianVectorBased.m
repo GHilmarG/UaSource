@@ -1,28 +1,33 @@
-function [p,UserVar,RunInfo]=UaOptimisationNewtonCG(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup)
+function [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup)
 
 %%
 %
-%   [p,UserVar,RunInfo]=UaOptimisationNewtonCG(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup)
+%   [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup)
 %
-% Inexact (truncated) Newton method with a trust region, using Hessian-vector products (CtrlVar.Inverse.MinimisationMethod=
-% "-UaOptimisation-NewtonCG-"). (15 November 2026)
+% Inexact Gauss-Newton (default) or Newton trust-region method using Hessian-vector products, CtrlVar.Inverse.MinimisationMethod=
+% "-UaOptimisation-HessianVectorBased-" (introduced 15 November 2026 as "-UaOptimisation-NewtonCG-", which is still accepted).
+%
+% The cost function (Gaussian errors and Gaussian priors) is a weighted nonlinear least-squares problem. With
+% CtrlVar.Inverse.HVP.Type="-GN-" (default) the Gauss-Newton Hessian is used, ie the terms proportional to the residuals (the
+% second derivatives of the forward model weighted by the adjoint variables) are omitted; the Gauss-Newton Hessian is positive
+% semi-definite. With "-full-" the full (Newton) Hessian is used. The Hessian is never formed, only Hessian-vector products.
 %
 % At each (outer) iteration the Newton system H s = -g is solved approximately with the conjugate-gradient method, preconditioned
 % with the metric G (the Hessian of the regularisation term, MUA.G), subject to the trust-region constraint ||s||_G <= Delta
 % (Steihaug-Toint). The CG iteration stops when
 %
-%   (1) the preconditioned residual is small enough: sqrt(r' G^{-1} r) <= eta sqrt(g' G^{-1} g), eta=min(MaxForcingTerm,sqrt(|g|/|g0|))
+%   (1) the preconditioned residual is small enough: sqrt(r' G^{-1} r) <= eta sqrt(g' G^{-1} g), eta from Eisenstat-Walker (choice 1)
 %   (2) the step reaches the trust-region boundary,
 %   (3) a direction of negative curvature is found (possible with the full Hessian), the step then goes to the boundary, or
 %   (4) the maximum number of CG iterations is reached.
 %
-% The Hessian-vector products are provided by HessianSetup(x,F,JGHouts), see NewtonCGHessianSetup.m. Each product costs a linearised
+% The Hessian-vector products are provided by HessianSetup(x,F,JGHouts), see HessianVectorProductSetup.m. Each product costs a linearised
 % forward and an adjoint solve. By default the Gauss-Newton Hessian is used (CtrlVar.Inverse.HVP.Type).
 %
 % The step is accepted if rho=(actual decrease)/(predicted decrease) > 1e-4, and the trust-region radius is reduced (rho<0.25) or
 % increased (rho>0.75 and the step on the boundary) as usual.
 %
-% *Box constraints* (CtrlVar.Inverse.NewtonCG.Bounds):
+% *Box constraints* (CtrlVar.Inverse.HessianVectorBased.Bounds):
 %
 %   "-projected-"    (default) : the bounds are imposed explicitly, in the physical parameters (no box transform). Each step consists
 %                                of (1) a Cauchy step along the projected steepest-descent path P(x-t g), giving sufficient decrease of
@@ -37,24 +42,24 @@ function [p,UserVar,RunInfo]=UaOptimisationNewtonCG(UserVar,CtrlVar,RunInfo,MUA,
 %
 % CtrlVarValidityCheck.m sets CtrlVar.Inverse.BoxTransform accordingly.
 %
-% *Nodal scaling of the trust region* (CtrlVar.Inverse.NewtonCG.NodalTrustRegionScaling=true, experimental): the trust region is
+% *Nodal scaling of the trust region* (CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling=true, experimental): the trust region is
 % ||s||_M <= Delta with M=G+diag(w). After a failed step, if the mismatch between the actual and the predicted change of the gradient
 % is concentrated in a few variables, their weights are increased, so that the step is limited there but not elsewhere. Intended for
 % problems where the quadratic model fails locally, for example close to flotation. M is then also the CG preconditioner.
 %
-% Settings: CtrlVar.Inverse.Iterations (maximum number of Newton iterations), CtrlVar.Inverse.NewtonCG.MaxInnerIterations,
-% CtrlVar.Inverse.NewtonCG.InitialTrustRegionRadius (default sqrt(numel(p))), CtrlVar.Inverse.NewtonCG.MaxForcingTerm.
+% Settings: CtrlVar.Inverse.Iterations (maximum number of Newton iterations), CtrlVar.Inverse.HessianVectorBased.MaxInnerIterations,
+% CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius (default sqrt(numel(p))), CtrlVar.Inverse.HessianVectorBased.MaxForcingTerm.
 %
-% see also: NewtonCGHessianSetup.m, HessianVectorProduct.m, AssembleHessianBlocks.m, UaOptimisationGradientBased.m
+% see also: HessianVectorProductSetup.m, HessianVectorProduct.m, AssembleHessianBlocks.m, UaOptimisationGradientBased.m
 %
 %%
 
 narginchk(9,9)
 
 Settings=struct("MaxInnerIterations",200,"InitialTrustRegionRadius",[],"MaxForcingTerm",0.5,"Bounds","-projected-","NodalTrustRegionScaling",false,"LocalisationFraction",0.01,"LocalisationShare",0.5);
-if isfield(CtrlVar.Inverse,"NewtonCG")
-    fn=fieldnames(CtrlVar.Inverse.NewtonCG);
-    for k=1:numel(fn) ; Settings.(fn{k})=CtrlVar.Inverse.NewtonCG.(fn{k}) ; end
+if isfield(CtrlVar.Inverse,"HessianVectorBased")
+    fn=fieldnames(CtrlVar.Inverse.HessianVectorBased);
+    for k=1:numel(fn) ; Settings.(fn{k})=CtrlVar.Inverse.HessianVectorBased.(fn{k}) ; end
 end
 if isempty(Settings.InitialTrustRegionRadius)
     Settings.InitialTrustRegionRadius=sqrt(numel(p));
@@ -77,7 +82,7 @@ if isempty(pub) ; pub=+inf(size(p)) ; end
 plb=plb(:) ; pub=pub(:) ;
 Projected=any(isfinite(plb)) || any(isfinite(pub)) ;
 if Projected && string(Settings.Bounds)~="-projected-"
-    error("UaOptimisationNewtonCG:Bounds","Explicit bounds given, but CtrlVar.Inverse.NewtonCG.Bounds=%s. Use -projected-, or the box transform.",Settings.Bounds)
+    error("UaOptimisationHessianVectorBased:Bounds","Explicit bounds given, but CtrlVar.Inverse.HessianVectorBased.Bounds=%s. Use -projected-, or the box transform.",Settings.Bounds)
 end
 p=min(max(p,plb),pub) ;   % feasible starting point
 
@@ -107,7 +112,7 @@ else
     end
 end
 
-fprintf("\n +++++++++++ At start of inversion (Newton-CG, %s Hessian):  J=%-g  I=%-g  R=%-g  |g|_G=%-g  Delta=%-g \n",HVPType(CtrlVar),J,fOuts.I,fOuts.R,gM,Delta)
+fprintf("\n +++++++++++ At start of inversion (HessianVectorBased, %s Hessian):  J=%-g  I=%-g  R=%-g  |g|_G=%-g  Delta=%-g \n",HVPType(CtrlVar),J,fOuts.I,fOuts.R,gM,Delta)
 fprintf("\n   It  inner  CG exit           J                I                R            ||g||_G       ||s||_G       Delta        rho")
 if isBinversion ; fprintf("          JBobs") ; end
 if Projected ; fprintf("   at bounds") ; end
@@ -123,11 +128,17 @@ tStart=tic;
 % to flotation), without limiting the step everywhere else.
 n=numel(p) ; w=zeros(n,1) ;
 
+% (15 November 2026) Forcing term (relative tolerance of the inner CG iteration), Eisenstat-Walker choice 1: eta measures how well
+% the quadratic model predicted the gradient at the new point, eta = | |g_new| - |g_old + H s| | / |g_old|  (in the dual G norm),
+% safeguarded and limited to MaxForcingTerm. This depends only on the last step, and not on the gradient at the start of the run,
+% so that it also works for restart runs (previously eta=min(MaxForcingTerm,sqrt(|g|/|g0|)), with g0 the gradient at the start of
+% the run, which after a restart close to the minimum gave far too loose inner tolerances).
+eta=Settings.MaxForcingTerm ;
+
 for it=1:CtrlVar.Inverse.Iterations
 
     %% approximate solution of the Newton system, Steihaug-Toint
     Hv=HessianSetup(p,Fx,fOuts);
-    eta=min(Settings.MaxForcingTerm,sqrt(gM/gM0));
 
     if any(w>0)
         M=G+spdiags(w,0,n,n) ; dM=decomposition(M) ; PrecM=@(r) dM\r ;
@@ -184,8 +195,13 @@ for it=1:CtrlVar.Inverse.Iterations
 
     Accepted=rho>1e-4;
     if Accepted
+        gMold=gM ; gModel=GradientNorm(pt,g+Hs,G,Prec,plb,pub,Projected) ;   % norm of the gradient predicted by the model
         p=pt ; J=Jt ; g=gt(:) ; fOuts=fOutst ; Fx=Fxt ;
         gM=GradientNorm(p,g,G,Prec,plb,pub,Projected);
+        etaNew=abs(gM-gModel)/max(gMold,realmin) ;                         % Eisenstat-Walker choice 1
+        phi=(1+sqrt(5))/2 ;
+        if eta^phi>0.1 ; etaNew=max(etaNew,eta^phi) ; end                  % safeguard
+        eta=min(max(etaNew,1e-6),Settings.MaxForcingTerm) ;
         nRejected=0;
     else
         nRejected=nRejected+1;
@@ -205,15 +221,15 @@ for it=1:CtrlVar.Inverse.Iterations
 
     %% exit criteria
     if gM<=1e-10*gM0
-        fprintf("UaOptimisationNewtonCG: gradient norm reduced by a factor of 1e10. Exiting.\n") ; break
+        fprintf("UaOptimisationHessianVectorBased: gradient norm reduced by a factor of 1e10. Exiting.\n") ; break
     end
     if Delta<1e-10*Delta0 || nRejected>=20
-        fprintf("UaOptimisationNewtonCG: trust region collapsed (no acceptable step found). Exiting.\n") ; break
+        fprintf("UaOptimisationHessianVectorBased: trust region collapsed (no acceptable step found). Exiting.\n") ; break
     end
 
 end
 
-fprintf("\n +++++++++++ At end of inversion (Newton-CG):  J=%-g  I=%-g  R=%-g  |g|_G=%-g \n",J,fOuts.I,fOuts.R,gM)
+fprintf("\n +++++++++++ At end of inversion (HessianVectorBased):  J=%-g  I=%-g  R=%-g  |g|_G=%-g \n",J,fOuts.I,fOuts.R,gM)
 
 end
 

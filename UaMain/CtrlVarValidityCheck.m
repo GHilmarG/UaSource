@@ -373,7 +373,7 @@ if CtrlVar.InverseRun
 
 
 
-    if contains(CtrlVar.Inverse.MinimisationMethod,'Hessian')
+    if contains(CtrlVar.Inverse.MinimisationMethod,'HessianBased')   % (not -UaOptimisation-HessianVectorBased-)
 
         CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
 
@@ -494,6 +494,17 @@ if CtrlVar.InverseRun
     CtrlVar.Inverse.MinimisationMethod="-"+ CtrlVar.Inverse.MinimisationMethod+"-"; 
     CtrlVar.Inverse.MinimisationMethod=replace(CtrlVar.Inverse.MinimisationMethod,"--","-");
 
+% (15 November 2026) "-UaOptimisation-NewtonCG-" was renamed "-UaOptimisation-HessianVectorBased-" (settings in CtrlVar.Inverse.HessianVectorBased,
+% previously CtrlVar.Inverse.NewtonCG). The previous name is still accepted.
+if CtrlVar.Inverse.MinimisationMethod=="-UaOptimisation-NewtonCG-"
+    CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-";
+    fprintf("CtrlVarValidityCheck: -UaOptimisation-NewtonCG- has been renamed -UaOptimisation-HessianVectorBased-.\n")
+end
+if isfield(CtrlVar.Inverse,"NewtonCG") && isstruct(CtrlVar.Inverse.NewtonCG)
+    fn=fieldnames(CtrlVar.Inverse.NewtonCG);
+    for k=1:numel(fn) ; CtrlVar.Inverse.HessianVectorBased.(fn{k})=CtrlVar.Inverse.NewtonCG.(fn{k}) ; end
+end
+
   
     if ~ismember(CtrlVar.Inverse.MinimisationMethod,CtrlVar.Inverse.MinimisationMethodOptions)
 
@@ -547,14 +558,14 @@ if CtrlVar.InverseRun
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;     % Ua HessianBased approach knows about the metric
             CtrlVar.Inverse.BoxTransform=false;                                 % no box transform with Hessian, in fact the Ua Hessian solver can't really deal with box constraints at all... :-(
 
-        case "-UaOptimisation-NewtonCG-"
+        case "-UaOptimisation-HessianVectorBased-"
 
-            % (15 November 2026) inexact Newton with Hessian-vector products, see UaOptimisationNewtonCG.m. The gradient is not Riesz mapped,
+            % (15 November 2026) inexact Newton with Hessian-vector products, see UaOptimisationHessianVectorBased.m. The gradient is not Riesz mapped,
             % the metric G is used as the preconditioner in the CG solution of the Newton system. Box constraints through the box transform.
             CtrlVar.Inverse.RieszMapGradient=false;
             CtrlVar.Inverse.CholeskyMappingOfCostFunctionAndGradient=false;
             % box constraints either imposed explicitly (projected Newton, default) or through the box transform
-            if isfield(CtrlVar.Inverse,"NewtonCG") && isfield(CtrlVar.Inverse.NewtonCG,"Bounds") && CtrlVar.Inverse.NewtonCG.Bounds=="-BoxTransform-"
+            if isfield(CtrlVar.Inverse,"HessianVectorBased") && isfield(CtrlVar.Inverse.HessianVectorBased,"Bounds") && CtrlVar.Inverse.HessianVectorBased.Bounds=="-BoxTransform-"
                 CtrlVar.Inverse.BoxTransform=true;
             else
                 CtrlVar.Inverse.BoxTransform=false;

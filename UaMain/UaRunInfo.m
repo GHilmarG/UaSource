@@ -39,7 +39,7 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             obj.Inverse.Juv = NaN ;     % velocity misfit term (15 November 2026)
             obj.Inverse.Jhdot = NaN ;   % dh/dt misfit term
             obj.Inverse.JBobs = NaN ;   % misfit with respect to direct measurements of B (included in R)
-            obj.Inverse.InnerIterations = NaN ;   % number of CG iterations for each Newton step (UaOptimisationNewtonCG.m)
+            obj.Inverse.InnerIterations = NaN ;   % number of CG iterations for each Newton step (UaOptimisationHessianVectorBased.m)
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
 

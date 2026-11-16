@@ -378,7 +378,7 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % each call is p itself.  I need to decide at this stage if the Hessian will ever be needed.
 
 
-if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+if contains(CtrlVar.Inverse.MinimisationMethod,"HessianBased")   % (not -UaOptimisation-HessianVectorBased-, which never forms the Hessian)
     CtrlVar.JGH.CalcHessian=true;  % From now on I CAN use JGH to calculate the Hessian.
     % But JGH will only do so if the number of output arguments is ALSO 3 or greater.
     %
@@ -410,10 +410,10 @@ else
     Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method
 end
 
-% (15 November 2026) For CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-": given the optimisation variables x, the
+% (15 November 2026) For CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-": given the optimisation variables x, the
 % state F and the additional outputs of JGH at x, HessianSetup returns a function handle for Hessian-vector products with respect to x
-% (including the chain rule for the box transform), see NewtonCGHessianSetup.m.
-HessianSetup=@(x,Fx,JGHoutsx) NewtonCGHessianSetup(x,Fx,JGHoutsx,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint);
+% (including the chain rule for the box transform), see HessianVectorProductSetup.m.
+HessianSetup=@(x,Fx,JGHoutsx) HessianVectorProductSetup(x,Fx,JGHoutsx,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint);
 
 
 %%
