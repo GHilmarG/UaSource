@@ -34,7 +34,12 @@ function Blocks=AssembleHessianBlocks(CtrlVar,MUA,F,BCs,l,Priors,Meas,BCsAdjoint
 %   Blocks.K       : 2N x 2N  forward-model Jacobian dF/dq
 %   Blocks.L       : constraint matrix (velocity boundary conditions), the HVP uses the homogeneous constraints L x = 0
 %   Blocks.Fp      : 2N x Np  dF/dp (with respect to log10(A), B, log10(C))
-%   Blocks.Kqq     : 2N x 2N
+%   Blocks.Kqq     : 2N x 2N, sparse part of K_qq
+%   Blocks.KqqAG, Blocks.Kqqw : (16 Nov 2026) for dh/dt measurements in the -points- or -blocks- formulations, the dh/dt part of
+%                    K_qq is (A G)' diag(w) (A G), with A G = [A Gu  A Gv] (number of measurements x 2N). It is kept in this factored
+%                    form, and not formed: for block averages each row of A G contains all nodes of a block, so that the product
+%                    couples all nodes within each block and (A G)' W (A G) has very many non-zeros (eg 1.8e8 for Antarctica nx150
+%                    and 40 km blocks), while A G itself is sparse. Empty otherwise (then K_qq is all in Blocks.Kqq).
 %   Blocks.Kpq     : Np x 2N
 %   Blocks.Kpp     : Np x Np
 %   Blocks.dA      : factorisation of K (MATLAB decomposition or PARDISO factorisation), reused for all solves in HessianVectorProduct.m
@@ -89,7 +94,21 @@ if isC ; FpC=dFuvdC(CtrlVar,MUA,F)*spdiags(F.C(:)*ln10,0,N,N) ; end
 Fp=[FpA FpB FpC] ;
 
 %% K_qq
-Kqq=Jqq(CtrlVar,MUA,F,BCs,Meas) ;
+KqqAG=[] ; Kqqw=[] ;
+if is_dhdt_meas && dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
+    % velocity part from Jqq (state independent, cached there), dh/dt part in factored form (see above)
+    CtrlVarUV=CtrlVar ; CtrlVarUV.Inverse.Measurements=replace(CtrlVar.Inverse.Measurements,"-dhdt-","-") ;
+    if contains(CtrlVarUV.Inverse.Measurements,"-uv-")
+        Kqq=Jqq(CtrlVarUV,MUA,F,BCs,Meas) ;
+    else
+        Kqq=sparse(2*N,2*N) ;
+    end
+    [~,~,~,~,Mats]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas,"Jacobians");
+    KqqAG=[Mats.AGu Mats.AGv] ;
+    Kqqw=Mats.w(:) ;
+else
+    Kqq=Jqq(CtrlVar,MUA,F,BCs,Meas) ;
+end
 if Type=="-full-"
     Kqq=Kqq+Fqq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
 end
@@ -129,7 +148,7 @@ if ~Blocks.Symmetric
 end
 
 Blocks.K=K ; Blocks.L=L ; Blocks.Fp=Fp ;
-Blocks.Kqq=Kqq ; Blocks.Kpq=Kpq ; Blocks.Kpp=Kpp ;
+Blocks.Kqq=Kqq ; Blocks.KqqAG=KqqAG ; Blocks.Kqqw=Kqqw ; Blocks.Kpq=Kpq ; Blocks.Kpp=Kpp ;
 Blocks.dA=dA ; Blocks.dAT=dAT ;
 Blocks.Type=Type ; Blocks.Np=Np ; Blocks.N=N ;
 Blocks.CtrlVar=CtrlVar ;

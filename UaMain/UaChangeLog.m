@@ -4,6 +4,27 @@
 % 
 % *Change Log* _October 2026_
 %
+% * UaOptimisationHessianVectorBased.m: factorisations of the restricted metric reused (16 November 2026):
+% With projected bounds, G (or M=G+diag(w)) restricted to the free variables was factorised in every iteration for the CG step, and
+% again (with backslash) for each projected gradient norm. Now (local function RestrictedSolver) the factorisation is kept and
+% reused while the set of free variables (and M) does not change, and if all variables are free the existing factorisation of G
+% (MUA.dG) is used directly. Antarctica nx150 (113,600 parameters, no variables at bounds): about 2.4 s less per iteration (no
+% restricted factorisations at all). The number of restricted factorisations is printed at the end of the inversion.
+%
+% * Hessian-vector products: dh/dt part of K_qq kept in factored form (16 November 2026):
+% For dh/dt measurements in the -points- and -blocks- formulations, AssembleHessianBlocks.m no longer forms the dh/dt part of K_qq,
+% (A G)' W (A G), but keeps A G and w (Blocks.KqqAG, Blocks.Kqqw), and HessianVectorProduct.m applies it as (A G)'(w.*(A G v)). For
+% block averages each row of A G contains all nodes of a block, so that the formed product couples all nodes within each block:
+% Antarctica nx150 with 40 km blocks, 1.8e8 non-zeros (about 3 GB), against 7.9e5 for the remaining K_qq. Hessian-vector product
+% 0.54 -> 0.24 s, assembly of the blocks 3.3 -> 1.6 s (nx150). Jqq.m itself (used by the full Hessian) is unchanged.
+%
+% * UaPardisoSolve.m: explicitly stored zeros (16 November 2026):
+% The fixed pattern now contains all stored entries of A, including explicitly stored zeros (local function StoredPattern; previously
+% (A~=0) was used). pardisoMex copies all stored entries into the pattern, so for a matrix with stored zeros (eg the assembled uv
+% Jacobian, which can contain a few) the pattern could not be extended to contain A, A was not factorised, and the solve failed with
+% "Call 'factorp' first". This did not affect the usual uv solves with boundary conditions, where the eliminated matrix is formed
+% by operations that drop stored zeros. If the extended pattern still does not contain A, an error is now given.
+%
 % * Jqq.m: the velocity-misfit Hessian is calculated once (16 November 2026):
 % The velocity part of J^{qq} (O' W O for -points-, the weighted mass matrices for -nodal-integral-) does not depend on the state. It is
 % now kept in a persistent variable and reused in subsequent calls with the same mesh, formulation, observation operator and errors,

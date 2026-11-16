@@ -89,7 +89,13 @@ p=min(max(p,plb),pub) ;   % feasible starting point
 %% initial point
 [J,g,~,fOuts,Fx]=func(p);
 g=g(:);
-gM=GradientNorm(p,g,G,Prec,plb,pub,Projected);     % (projected) gradient norm in the dual (inverse G) norm
+% (16 Nov 2026) Factorisations of G (or M) restricted to the free variables, kept while the set of free variables (and M) does not
+% change. When all variables are free, the factorisation of G (MUA.dG) or of M is used directly. See RestrictedSolver below.
+StepCache=struct("Free",[],"Key",[],"dF",[],"nFactorisations",0) ;   % for the CG step (G, or M with nodal weights)
+NormCache=StepCache ;                                                       % for the (projected) gradient norm (G)
+ModelNormCache=StepCache ;                                                  % for the norm of the gradient predicted by the model (G)
+
+[gM,NormCache]=GradientNorm(p,g,G,Prec,plb,pub,Projected,NormCache);     % (projected) gradient norm in the dual (inverse G) norm
 gM0=gM;
 Delta=Settings.InitialTrustRegionRadius;
 Delta0=Delta;
@@ -142,12 +148,14 @@ for it=1:CtrlVar.Inverse.Iterations
 
     if any(w>0)
         M=G+spdiags(w,0,n,n) ; dM=decomposition(M) ; PrecM=@(r) dM\r ;
+        Mkey=[sum(w) sum(w.*(1:n)')] ;     % identifies M, for reusing the restricted factorisation
     else
         M=G ; PrecM=Prec ;
+        Mkey=0 ;
     end
 
     if Projected
-        [s,pred,cgInfo,Hs]=ProjectedNewtonStep(p,g,Hv,M,plb,pub,Delta,eta,Settings.MaxInnerIterations);
+        [s,pred,cgInfo,Hs,StepCache]=ProjectedNewtonStep(p,g,Hv,M,PrecM,plb,pub,Delta,eta,Settings.MaxInnerIterations,StepCache,Mkey);
     else
         [s,Hs,cgInfo]=SteihaugToint(g,Hv,PrecM,M,Delta,eta*gM,Settings.MaxInnerIterations);
         pred=-(g'*s+0.5*(s'*Hs));     % predicted decrease
@@ -195,9 +203,9 @@ for it=1:CtrlVar.Inverse.Iterations
 
     Accepted=rho>1e-4;
     if Accepted
-        gMold=gM ; gModel=GradientNorm(pt,g+Hs,G,Prec,plb,pub,Projected) ;   % norm of the gradient predicted by the model
+        gMold=gM ; [gModel,ModelNormCache]=GradientNorm(pt,g+Hs,G,Prec,plb,pub,Projected,ModelNormCache) ;   % norm of the gradient predicted by the model
         p=pt ; J=Jt ; g=gt(:) ; fOuts=fOutst ; Fx=Fxt ;
-        gM=GradientNorm(p,g,G,Prec,plb,pub,Projected);
+        [gM,NormCache]=GradientNorm(p,g,G,Prec,plb,pub,Projected,NormCache);
         etaNew=abs(gM-gModel)/max(gMold,realmin) ;                         % Eisenstat-Walker choice 1
         phi=(1+sqrt(5))/2 ;
         if eta^phi>0.1 ; etaNew=max(etaNew,eta^phi) ; end                  % safeguard
@@ -230,6 +238,9 @@ for it=1:CtrlVar.Inverse.Iterations
 end
 
 fprintf("\n +++++++++++ At end of inversion (HessianVectorBased):  J=%-g  I=%-g  R=%-g  |g|_G=%-g \n",J,fOuts.I,fOuts.R,gM)
+if Projected
+    fprintf(" +++++++++++ factorisations of G restricted to the free variables: %i (CG steps), %i (gradient norms)\n",StepCache.nFactorisations,NormCache.nFactorisations+ModelNormCache.nFactorisations)
+end
 
 end
 
@@ -276,7 +287,7 @@ Info.Exit="max. its" ;
 end
 
 
-function [s,pred,Info,Hs]=ProjectedNewtonStep(x,g,Hv,G,l,u,Delta,eta,MaxInner)
+function [s,pred,Info,Hs,Cache]=ProjectedNewtonStep(x,g,Hv,G,PrecG,l,u,Delta,eta,MaxInner,Cache,Gkey)
 
 % Step for the bound-constrained trust-region subproblem, min q(s)=g's+1/2 s'Hs subject to l<=x+s<=u and ||s||_G<=Delta:
 % (1) Cauchy step along the projected steepest-descent path, (2) Steihaug-Toint CG in the free variables, (3) projected search.
@@ -309,7 +320,8 @@ DeltaW=Delta-sqrt(max(sc'*(G*sc),0)) ;     % so that ||sc+w||_G <= Delta
 if any(Free) && DeltaW>0
 
     gc=g+Hsc ;                              % gradient of the model at the Cauchy point
-    GF=G(Free,Free) ; dGF=decomposition(GF) ; PrecF=@(r) dGF\r ;
+    if all(Free) ; GF=G ; else ; GF=G(Free,Free) ; end
+    [PrecF,Cache]=RestrictedSolver(Cache,G,PrecG,Free,Gkey) ;   % factorisation reused while Free (and G) do not change
     HvF=@(v) RestrictedHv(Hv,v,Free,n) ;
     gcF=gc(Free) ;
     gcM=sqrt(max(gcF'*PrecF(gcF),0)) ;
@@ -357,7 +369,7 @@ y=y(Free) ;
 end
 
 
-function gM=GradientNorm(x,g,G,Prec,l,u,Projected)
+function [gM,Cache]=GradientNorm(x,g,G,Prec,l,u,Projected,Cache)
 
 % Gradient norm in the dual (inverse G) norm. For bound-constrained problems, the projected gradient: variables at a bound with the
 % gradient pointing out of the feasible region are excluded.
@@ -372,8 +384,33 @@ gF=g(Free) ;
 if isempty(gF)
     gM=0 ;
 else
-    gM=sqrt(max(gF'*(G(Free,Free)\gF),0)) ;
+    [SolveF,Cache]=RestrictedSolver(Cache,G,Prec,Free,0) ;   % factorisation reused while Free does not change (16 Nov 2026)
+    gM=sqrt(max(gF'*SolveF(gF),0)) ;
 end
+
+end
+
+
+function [Solve,Cache]=RestrictedSolver(Cache,G,PrecFull,Free,Key)
+
+% (16 Nov 2026) Returns a function handle solving systems with G(Free,Free). If all variables are free, the given solver for G
+% (PrecFull, eg the factorisation MUA.dG) is used. Otherwise the factorisation of G(Free,Free) is kept in Cache, and reused as long
+% as Free and Key (which identifies G) are unchanged; previously G(Free,Free) was factorised in every iteration, and again for each
+% (projected) gradient norm.
+
+if all(Free)
+    Solve=PrecFull ;
+    return
+end
+
+if ~(isequal(Cache.Free,Free) && isequal(Cache.Key,Key) && ~isempty(Cache.dF))
+    Cache.dF=decomposition(G(Free,Free)) ;
+    Cache.Free=Free ;
+    Cache.Key=Key ;
+    Cache.nFactorisations=Cache.nFactorisations+1 ;
+end
+dF=Cache.dF ;
+Solve=@(r) dF\r ;
 
 end
 

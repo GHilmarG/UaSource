@@ -198,10 +198,10 @@ if isempty(k)
         Stats.StatesReleased=Stats.StatesReleased+1 ;
     end
     if Sid>0
-        P=Pst | (Af~=0) ;
+        P=Pst | StoredPattern(Af) ;
         Stats.StructuralPatterns=Stats.StructuralPatterns+1 ;
     else
-        P=(Af~=0) | logical(speye(n)) ;
+        P=StoredPattern(Af) | logical(speye(n)) ;
         if ~isempty(Apattern) ; P=P | PatternOf(Apattern,Symmetric) ; end
     end
     New=struct("n",n,"mtype",mtype,"h",pardisoMex('init',mtype),"P",P,"LastUsed",0,"Sid",Sid,"FactorId",0) ;
@@ -209,7 +209,7 @@ if isempty(k)
     k=numel(States) ;
 elseif Sid>0 && States(k).Sid~=Sid
     % a (new) structural pattern for this size and type, eg after remeshing: it replaces the current pattern
-    States(k).P=Pst | (Af~=0) ;
+    States(k).P=Pst | StoredPattern(Af) ;
     States(k).Sid=Sid ;
     Stats.StructuralPatterns=Stats.StructuralPatterns+1 ;
 end
@@ -227,10 +227,13 @@ try
         r=pardisoMex('factorp',States(k).h,Af,States(k).P) ;
     end
     if r<0
-        States(k).P=States(k).P | (Af~=0) ;
+        States(k).P=States(k).P | StoredPattern(Af) ;
         if ~isempty(Apattern) ; States(k).P=States(k).P | PatternOf(Apattern,Symmetric) ; end
         Stats.PatternExtensions=Stats.PatternExtensions+1 ;
         r=pardisoMex('factorp',States(k).h,Af,States(k).P) ;
+        if r<0
+            error("UaPardisoSolve:Pattern","The matrix has entries outside the extended pattern (not factorised).")
+        end
     end
 catch ME
     if mtype==2 && ME.identifier=="pardisoMex:pardiso"
@@ -280,7 +283,7 @@ end
 
 %%
 function P=PatternOf(M,Symmetric)
-P=(M~=0) ;
+P=StoredPattern(M) ;
 if Symmetric ; P=tril(P) ; end
 end
 
@@ -344,5 +347,18 @@ TK=[] ; if isfield(Base,"TopologyKey") ; TK=Base.TopologyKey ; end
 E=struct("neq",Base.neq,"nk",numel(Base.i0),"Symmetric",Symmetric,"Index",Index,"i0",Base.i0,"j0",Base.j0,"P",S,"id",NextId,"TopologyKey",TK) ;
 if isempty(Cache) ; Cache=E ; else ; Cache=[Cache(max(1,end-2):end) E] ; end   % at most four patterns
 P=S ; id=NextId ;
+
+end
+
+%%
+function P=StoredPattern(M)
+
+% (16 Nov 2026) Pattern of the stored entries of the sparse matrix M, including entries that are stored with the value zero. pardisoMex
+% copies all stored entries of A into the fixed pattern, so the pattern must contain the explicitly stored zeros as well (eg the
+% assembled uv Jacobian can contain a few of these). Previously (M~=0) was used, which excludes them, so that for such a matrix the
+% pattern could not be extended to contain A, and A was not factorised.
+
+[i,j]=find(M) ;        % find also returns the stored zeros
+P=sparse(i,j,true,size(M,1),size(M,2)) ;
 
 end

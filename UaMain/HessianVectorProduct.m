@@ -35,6 +35,9 @@ W=SolveK(Blocks.K,L,-Blocks.Fp*V,g,CtrlVar,Blocks.dA) ;
 
 % 2)
 A=Blocks.Kqq*W+Blocks.Kpq'*V ;
+if isfield(Blocks,"KqqAG") && ~isempty(Blocks.KqqAG)
+    A=A+Blocks.KqqAG'*(Blocks.Kqqw.*(Blocks.KqqAG*W)) ;   % dh/dt part of K_qq in factored form (16 Nov 2026)
+end
 
 % 3) adjoint solve
 if Blocks.Symmetric
