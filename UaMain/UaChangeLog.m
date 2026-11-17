@@ -4,6 +4,23 @@
 % 
 % *Change Log* _October 2026_
 %
+% * ThinMeasurementsOnGrid.m: Options.SigmaCorrelated can be given for each measurement (17 November 2026):
+% Scalar or m x 1. If given for each measurement, the correlated (not averaging down) variance of a cell is the weighted mean of
+% SigmaCorrelated^2 over the measurements in the cell, with the same weights as the data. Used for errors common to many
+% measurements that differ between measurements, eg the uncertainty of an offset correction of a radar line or survey, or of the
+% correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
+% scalar SigmaCorrelated are unchanged.
+%
+% * Inversions: wall-clock limit and elapsed time per iteration; HessianVectorBased: cheaper steps (16 November 2026):
+% CtrlVar.Inverse.MaxWallClockTime (default inf): -UaOptimisation-GradientBased- and -UaOptimisation-HessianVectorBased- stop after the
+% first iteration ending after this time. RunInfo.Inverse.ElapsedTime: wall-clock time at the end of each iteration, from the start of
+% the iterations of the run (UaRunInfo.m: added with NaN to older RunInfo). HessianVectorBased: (1) the CG step is computed from x with
+% the variables at bounds fixed at their Cauchy values and the full trust region (previously from the Cauchy point within the trust
+% region remaining after the Cauchy step, which degenerated to steepest descent when the Cauchy step reached the trust-region boundary);
+% (2) no backtracking in the Cauchy step if no bound is reached; (3) MaxForcingTerm 0.5 -> 0.1; (4) RestrictedPreconditioner ("auto"
+% default): with at most 5% of the variables at bounds, the restriction of the factorisation of G is used instead of factorising G
+% restricted to the free variables; (5) AutoActivationRadius default [] (keep Delta at activation of the nodal scaling).
+%
 % * UaOptimisationHessianVectorBased.m: automatic nodal trust-region scaling (experimental, 16 November 2026):
 % CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling is now "off" (default), "on" or "auto" (true/false still accepted).
 % With "auto" the scaling is switched on when the trust region has collapsed (Delta < AutoCollapseFactor * largest Delta in the run,

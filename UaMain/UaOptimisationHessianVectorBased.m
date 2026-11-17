@@ -57,7 +57,7 @@ function [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,Ru
 
 narginchk(9,9)
 
-Settings=struct("MaxInnerIterations",200,"InitialTrustRegionRadius",[],"MaxForcingTerm",0.5,"Bounds","-projected-","NodalTrustRegionScaling","off","LocalisationFraction",0.01,"LocalisationShare",0.5,"AutoCollapseFactor",1e-2,"AutoActivationRadius",0.1);
+Settings=struct("MaxInnerIterations",200,"InitialTrustRegionRadius",[],"MaxForcingTerm",0.1,"Bounds","-projected-","NodalTrustRegionScaling","off","LocalisationFraction",0.01,"LocalisationShare",0.5,"AutoCollapseFactor",1e-2,"AutoActivationRadius",[],"RestrictedPreconditioner","auto");
 if isfield(CtrlVar.Inverse,"HessianVectorBased")
     fn=fieldnames(CtrlVar.Inverse.HessianVectorBased);
     for k=1:numel(fn) ; Settings.(fn{k})=CtrlVar.Inverse.HessianVectorBased.(fn{k}) ; end
@@ -114,7 +114,7 @@ Delta=Settings.InitialTrustRegionRadius;
 Delta0=Delta;
 
 %% RunInfo
-Fields=["Iterations","J","R","I","StepSize","GradNorm","Decrement","Juv","Jhdot","JBobs","InnerIterations","TrustRegionRadius","WeightedVariables"];
+Fields=["Iterations","J","R","I","StepSize","GradNorm","Decrement","Juv","Jhdot","JBobs","InnerIterations","TrustRegionRadius","WeightedVariables","ElapsedTime"];
 for ff=Fields
     if ~isfield(RunInfo.Inverse,ff) || isempty(RunInfo.Inverse.(ff))
         RunInfo.Inverse.(ff)=NaN;
@@ -122,7 +122,7 @@ for ff=Fields
 end
 if isempty(RunInfo.Inverse.Iterations) || all(isnan(RunInfo.Inverse.Iterations)) || numel(RunInfo.Inverse.Iterations)<=1
     It0=0;
-    RunInfo=StoreIteration(RunInfo,1,It0,J,fOuts,0,gM,NaN,NaN,NaN,NaN,Fields);
+    RunInfo=StoreIteration(RunInfo,1,It0,J,fOuts,0,gM,NaN,NaN,NaN,NaN,0,Fields);
 else
     It0=max(RunInfo.Inverse.Iterations);
     n=numel(RunInfo.Inverse.J);
@@ -206,7 +206,7 @@ for it=1:CtrlVar.Inverse.Iterations
     end
 
     if Projected
-        [s,pred,cgInfo,Hs,StepCache]=ProjectedNewtonStep(p,g,Hv,M,PrecM,plb,pub,Delta,eta,Settings.MaxInnerIterations,StepCache,Mkey);
+        [s,pred,cgInfo,Hs,StepCache]=ProjectedNewtonStep(p,g,Hv,M,PrecM,plb,pub,Delta,eta,Settings.MaxInnerIterations,StepCache,Mkey,string(Settings.RestrictedPreconditioner));
     else
         [s,Hs,cgInfo]=SteihaugToint(g,Hv,PrecM,M,Delta,eta*gM,Settings.MaxInnerIterations);
         pred=-(g'*s+0.5*(s'*Hs));     % predicted decrease
@@ -296,11 +296,14 @@ for it=1:CtrlVar.Inverse.Iterations
     fprintf("\n")
 
     kNext=find(~isnan(RunInfo.Inverse.J),1,"last") ; if isempty(kNext) ; kNext=0 ; end
-    RunInfo=StoreIteration(RunInfo,kNext+1,It0+it,J,fOuts,sG*Accepted,gM,cgInfo.Iterations,pred,Delta,sum(w>0),Fields);
+    RunInfo=StoreIteration(RunInfo,kNext+1,It0+it,J,fOuts,sG*Accepted,gM,cgInfo.Iterations,pred,Delta,sum(w>0),toc(tStart),Fields);
     % (16 Nov 2026) trust-region state, for continuing in a restart run (see above)
     RunInfo.Inverse.HessianVectorBasedState=struct("Delta",Delta,"eta",eta,"w",w,"Np",n,"Bounds",string(Settings.Bounds),"Iteration",It0+it,"ScalingActive",ScalingActive,"DeltaMax",DeltaMax) ;
 
     %% exit criteria
+    if isfield(CtrlVar.Inverse,"MaxWallClockTime") && toc(tStart)>CtrlVar.Inverse.MaxWallClockTime
+        fprintf("UaOptimisationHessianVectorBased: maximum wall-clock time (%g s) reached. Exiting.\n",CtrlVar.Inverse.MaxWallClockTime) ; break
+    end
     if gM<=1e-10*gM0
         fprintf("UaOptimisationHessianVectorBased: gradient norm reduced by a factor of 1e10. Exiting.\n") ; break
     end
@@ -360,7 +363,7 @@ Info.Exit="max. its" ;
 end
 
 
-function [s,pred,Info,Hs,Cache]=ProjectedNewtonStep(x,g,Hv,G,PrecG,l,u,Delta,eta,MaxInner,Cache,Gkey)
+function [s,pred,Info,Hs,Cache]=ProjectedNewtonStep(x,g,Hv,G,PrecG,l,u,Delta,eta,MaxInner,Cache,Gkey,PrecMode)
 
 % Step for the bound-constrained trust-region subproblem, min q(s)=g's+1/2 s'Hs subject to l<=x+s<=u and ||s||_G<=Delta:
 % (1) Cauchy step along the projected steepest-descent path, which identifies the variables at their bounds, (2) Steihaug-Toint CG
@@ -414,7 +417,7 @@ if any(Free)
     if DeltaW>0
         g0=g+Hs0 ;                              % gradient of the model at x+s0
         if all(Free) ; GF=G ; else ; GF=G(Free,Free) ; end
-        [PrecF,Cache]=RestrictedSolver(Cache,G,PrecG,Free,Gkey) ;   % factorisation reused while Free (and G) do not change
+            [PrecF,Cache]=RestrictedSolver(Cache,G,PrecG,Free,Gkey,PrecMode) ;   % factorisation reused while Free (and G) do not change
         HvF=@(v) RestrictedHv(Hv,v,Free,n) ;
         g0F=g0(Free) ;
         g0M=sqrt(max(g0F'*PrecF(g0F),0)) ;
@@ -485,7 +488,7 @@ end
 end
 
 
-function [Solve,Cache]=RestrictedSolver(Cache,G,PrecFull,Free,Key)
+function [Solve,Cache]=RestrictedSolver(Cache,G,PrecFull,Free,Key,Mode)
 
 % (16 Nov 2026) Returns a function handle solving systems with G(Free,Free). If all variables are free, the given solver for G
 % (PrecFull, eg the factorisation MUA.dG) is used. Otherwise the factorisation of G(Free,Free) is kept in Cache, and reused as long
@@ -494,6 +497,17 @@ function [Solve,Cache]=RestrictedSolver(Cache,G,PrecFull,Free,Key)
 
 if all(Free)
     Solve=PrecFull ;
+    return
+end
+
+% (16 Nov 2026) Approximate solver: the restriction of the solver for the full G to the free variables, ie (G^{-1})(Free,Free), which
+% is symmetric positive definite but not equal to G(Free,Free)^{-1}. It needs no new factorisation, and is used if few variables are
+% at bounds ("auto": at most 5%), as the factorisation would otherwise often be repeated whenever the active set changes. It only
+% affects the preconditioner (and the dual norms used for monitoring and the forcing term), not the model or the solution.
+if nargin<6 || isempty(Mode) ; Mode="auto" ; end
+if Mode=="approximate" || (Mode=="auto" && sum(~Free)<=0.05*numel(Free))
+    n=numel(Free) ;
+    Solve=@(r) RestrictedFullSolve(PrecFull,r,Free,n) ;
     return
 end
 
@@ -509,6 +523,13 @@ Solve=@(r) dF\r ;
 end
 
 
+function y=RestrictedFullSolve(PrecFull,r,Free,n)
+z=zeros(n,size(r,2)) ; z(Free,:)=r ;
+y=PrecFull(z) ;
+y=y(Free,:) ;
+end
+
+
 function tau=ToBoundary(sGs,sGd,dGd,Delta)
 
 % positive root of dGd tau^2 + 2 sGd tau + sGs - Delta^2 = 0, ie ||s+tau d||_G = Delta
@@ -518,7 +539,7 @@ tau=(-sGd+sqrt(max(sGd^2+dGd*(Delta^2-sGs),0)))/dGd ;
 end
 
 
-function RunInfo=StoreIteration(RunInfo,k,Iteration,J,fOuts,StepSize,GradNorm,InnerIterations,Decrement,TrustRegionRadius,WeightedVariables,Fields)
+function RunInfo=StoreIteration(RunInfo,k,Iteration,J,fOuts,StepSize,GradNorm,InnerIterations,Decrement,TrustRegionRadius,WeightedVariables,ElapsedTime,Fields)
 
 if numel(RunInfo.Inverse.J)<k
     Padding=nan(100,1);
@@ -539,6 +560,7 @@ RunInfo.Inverse.JBobs(k)=JBobs;
 RunInfo.Inverse.InnerIterations(k)=InnerIterations;
 RunInfo.Inverse.TrustRegionRadius(k)=TrustRegionRadius;   % trust-region radius after the update in this iteration (16 Nov 2026)
 RunInfo.Inverse.WeightedVariables(k)=WeightedVariables;   % number of variables with nodal trust-region weights (16 Nov 2026)
+RunInfo.Inverse.ElapsedTime(k)=ElapsedTime;               % wall-clock time from the start of the iterations of this run (16 Nov 2026)
 
 end
 

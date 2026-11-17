@@ -1016,11 +1016,17 @@ CtrlVar.Inverse.HVP.Type="-GN-" ;
 % imposed through the box transform (CtrlVar.Inverse.BoxTransform=true), so the Optimisation problem is unconstrained.
 CtrlVar.Inverse.HessianVectorBased.MaxInnerIterations=200;     % maximum number of CG iterations for each Newton step
 CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
-CtrlVar.Inverse.HessianVectorBased.MaxForcingTerm=0.5;          % upper limit of the relative tolerance of the inner CG iteration (Eisenstat-Walker forcing term)
+CtrlVar.Inverse.HessianVectorBased.MaxForcingTerm=0.1;          % upper limit of the relative tolerance of the inner CG iteration (Eisenstat-Walker forcing term). (16 Nov 2026) 0.5 -> 0.1: Hessian-vector products are cheap compared with the work done once per Newton step
 CtrlVar.Inverse.HessianVectorBased.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
 CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling="off";  % "off", "on" or "auto" (experimental): trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation). "auto": switched on once the trust region has collapsed
 CtrlVar.Inverse.HessianVectorBased.AutoCollapseFactor=1e-2;    % "auto": the trust region is considered collapsed if Delta < AutoCollapseFactor * (largest Delta in the run)
-CtrlVar.Inverse.HessianVectorBased.AutoActivationRadius=0.1;   % "auto": at activation Delta is set to AutoActivationRadius * (largest Delta in the run), [] keeps Delta
+CtrlVar.Inverse.HessianVectorBased.AutoActivationRadius=[];    % "auto": at activation Delta is set to AutoActivationRadius * (largest Delta in the run), [] keeps Delta (default, 16 Nov 2026: faster in the nx50 tests)
+CtrlVar.Inverse.HessianVectorBased.RestrictedPreconditioner="auto";   % with variables at bounds: "exact" (factorise G restricted to the free variables), "approximate" (restriction of the factorisation of G), "auto" (approximate if at most 5% of the variables are at bounds)
+
+% (16 Nov 2026) Maximum wall-clock time (seconds) of the inverse iterations, for -UaOptimisation-GradientBased- and -UaOptimisation-HessianVectorBased-.
+% The inversion stops after the first iteration that ends after this time. The wall-clock time at the end of each iteration (from the
+% start of the inverse iterations of the run) is stored in RunInfo.Inverse.ElapsedTime.
+CtrlVar.Inverse.MaxWallClockTime=inf;
 CtrlVar.Inverse.HessianVectorBased.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
 CtrlVar.Inverse.HessianVectorBased.LocalisationShare=0.5;
 

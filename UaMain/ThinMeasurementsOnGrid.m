@@ -71,6 +71,9 @@ function [Thinned,Info]=ThinMeasurementsOnGrid(x,y,d,ds,Options)
 %
 %   sigma^2 = RawError^2/n + SigmaCorrelated^2 + sRough^2
 %
+% (with RawError^2/n replaced by 1/sum(1/RawError^2) for errors given for each measurement, and SigmaCorrelated^2 by
+% its weighted mean over the cell if given for each measurement)
+%
 % The first term is the reduction of uncorrelated error on averaging n samples. The
 % second is a prescribed floor that does not average down, which is where any error
 % common to a whole profile, such as a navigation or datum offset, belongs. Without it
@@ -127,7 +130,13 @@ function [Thinned,Info]=ThinMeasurementsOnGrid(x,y,d,ds,Options)
 %                              estimate is an upper bound, since it also contains any
 %                              real bed structure at scales below ds.
 %
-%     .SigmaCorrelated  0      Error floor that does not average down.
+%     .SigmaCorrelated  0      Error floor that does not average down, scalar or m x 1. (17 Nov 2026) If
+%                              given for each measurement, the correlated variance of a cell is the weighted
+%                              mean of SigmaCorrelated^2 over the measurements in the cell (with the same
+%                              weights as the data). This is for errors that are common to many measurements,
+%                              eg the uncertainty of a correction applied to a whole radar line or survey, or of
+%                              a time correction based on a smooth rate of elevation change, which differ from
+%                              one measurement to the next but do not average down within a cell.
 %
 %     .ShrinkageDof     4      Strength of the shrinkage toward the pooled variance.
 %
@@ -148,6 +157,7 @@ function [Thinned,Info]=ThinMeasurementsOnGrid(x,y,d,ds,Options)
 %                .Count       number of raw measurements
 %                .Scatter     sqrt of the shrunken within-cell variance
 %                .Roughness   sRough, the excess over RawError
+%                .SigmaCorrelated  the correlated error of the cell (see Options.SigmaCorrelated)
 %                .FitType     3=plane, 2=line, 1=mean, 0=single sample
 %                .xGrid,.yGrid  the snapped grid location, for reference
 %                .ds, .Origin
@@ -208,6 +218,14 @@ end
 RawError=Options.RawError ;
 EstimateRawError=isempty(RawError) ;
 
+SigmaCorrelated=Options.SigmaCorrelated(:) ;
+if isscalar(SigmaCorrelated)
+    SigmaCorrelated=SigmaCorrelated*ones(m,1) ;
+elseif numel(SigmaCorrelated)~=m
+    error("ThinMeasurementsOnGrid:InconsistentInputs", ...
+        "Options.SigmaCorrelated must be a scalar, or have as many elements as x.")
+end
+
 if ~EstimateRawError
     RawError=RawError(:) ;
     if isscalar(RawError)
@@ -225,7 +243,7 @@ end
 
 Keep=isfinite(x) & isfinite(y) & isfinite(d) ;
 
-x=x(Keep) ; y=y(Keep) ; d=d(Keep) ;
+x=x(Keep) ; y=y(Keep) ; d=d(Keep) ; SigmaCorrelated=SigmaCorrelated(Keep) ;
 if ~EstimateRawError
     RawError=RawError(Keep) ;
 end
@@ -378,7 +396,9 @@ end
 
 sRough2=max(s2-RawVar,0) ;
 
-sigma=sqrt(RawMeanVar+Options.SigmaCorrelated^2+sRough2) ;
+CorrelatedVar=accumarray(bin,w.*SigmaCorrelated.^2,[nBins 1])./wSum ;   % (17 Nov 2026) weighted mean over the cell
+
+sigma=sqrt(RawMeanVar+CorrelatedVar+sRough2) ;
 sigma=max(sigma,Options.SigmaFloor) ;
 
 %% 8) Output
@@ -390,6 +410,7 @@ Thinned.sigma=sigma ;
 Thinned.Count=Count ;
 Thinned.Scatter=sqrt(s2) ;
 Thinned.Roughness=sqrt(sRough2) ;
+Thinned.SigmaCorrelated=sqrt(CorrelatedVar) ;
 Thinned.FitType=FitType ;
 Thinned.xGrid=x0+C(:,1)*ds ;
 Thinned.yGrid=y0+C(:,2)*ds ;

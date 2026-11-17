@@ -139,12 +139,13 @@ if isempty(RunInfo) ||  ~isfield(RunInfo.Inverse,"Iterations") || numel(RunInfo.
     RunInfo.Inverse.Decrement(1)=Decrement;
     RunInfo.Inverse.GradNorm(1)=GradNorm;
     [RunInfo.Inverse.Juv(1),RunInfo.Inverse.Jhdot(1),RunInfo.Inverse.JBobs(1)]=IndividualCostTerms(fOuts);
+    RunInfo.Inverse.ElapsedTime(1)=0;
 end
 
 % (15 November 2026) Individual terms of the cost function, the velocity misfit (Juv), the dh/dt misfit (Jhdot) and the misfit
 % with respect to direct measurements of B (JBobs, included in R). Make sure these fields exist, and have the same length as
 % RunInfo.Inverse.J, also if RunInfo does not contain them (eg RunInfo created before these fields were introduced).
-for ff=["Juv","Jhdot","JBobs"]
+for ff=["Juv","Jhdot","JBobs","ElapsedTime"]
     if ~isfield(RunInfo.Inverse,ff)
         RunInfo.Inverse.(ff)=nan(size(RunInfo.Inverse.J));
     elseif numel(RunInfo.Inverse.(ff))<numel(RunInfo.Inverse.J)
@@ -222,6 +223,7 @@ fprintf('\n')
 %%
 
 ExitInfo=[];                              % state carried by CGExitCriteria
+tStartIterations=tic;                     % (16 Nov 2026) for RunInfo.Inverse.ElapsedTime and CtrlVar.Inverse.MaxWallClockTime
 
 for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
 
@@ -290,6 +292,7 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
             RunInfo.Inverse.Juv=[RunInfo.Inverse.Juv(:); Padding];
             RunInfo.Inverse.Jhdot=[RunInfo.Inverse.Jhdot(:); Padding];
             RunInfo.Inverse.JBobs=[RunInfo.Inverse.JBobs(:); Padding];
+            RunInfo.Inverse.ElapsedTime=[RunInfo.Inverse.ElapsedTime(:); Padding];
 
     end
 
@@ -303,6 +306,7 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     RunInfo.Inverse.Juv(Iteration)=Juv;
     RunInfo.Inverse.Jhdot(Iteration)=Jhdot;
     RunInfo.Inverse.JBobs(Iteration)=JBobs;
+    RunInfo.Inverse.ElapsedTime(Iteration)=toc(tStartIterations);   % (16 Nov 2026)
 
 
 
@@ -311,6 +315,11 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     if Exit
         fprintf('\n Inversion stopped after %i iterations, exit flag %i : %s \n',...
             Iteration,ExitInfo.Flag,ExitInfo.Message)
+        break
+    end
+
+    if isfield(CtrlVar.Inverse,"MaxWallClockTime") && toc(tStartIterations)>CtrlVar.Inverse.MaxWallClockTime   % (16 Nov 2026)
+        fprintf('\n Inversion stopped after %i iterations: maximum wall-clock time (%g s) reached. \n',Iteration,CtrlVar.Inverse.MaxWallClockTime)
         break
     end
 
