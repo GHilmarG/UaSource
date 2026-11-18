@@ -11,6 +11,15 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * HelmholtzEquation.m: Dirichlet boundary conditions and ties (18 November 2026):
+% New optional input BCs (9th argument; a BoundaryConditions object or a structure): f is prescribed at BCs.hFixedNode (values
+% BCs.hFixedValue), and f(BCs.hTiedNodeA)=f(BCs.hTiedNodeB). The constraints are imposed with Lagrange multipliers (createLh.m,
+% ScaleL.m, solveKApe.m), which are returned in lambda; a node must not be constrained more than once. Without BCs the results are
+% unchanged (natural boundary conditions). Tests: identical results without BCs; the correction field of HofsBedPrior.m (computed
+% by eliminating the boundary nodes) reproduced to 4e-14; a linear field reproduced to 2e-13 (exact for linear elements); a smooth
+% field with prescribed boundary values to 0.03 of an amplitude of 50 (discretisation error; 13 with natural conditions); ties
+% satisfied to 2e-13; duplicate constraints rejected.
+%
 % * Inversions: wall-clock limit and elapsed time per iteration; HessianVectorBased: cheaper steps (16 November 2026):
 % CtrlVar.Inverse.MaxWallClockTime (default inf): -UaOptimisation-GradientBased- and -UaOptimisation-HessianVectorBased- stop after the
 % first iteration ending after this time. RunInfo.Inverse.ElapsedTime: wall-clock time at the end of each iteration, from the start of
