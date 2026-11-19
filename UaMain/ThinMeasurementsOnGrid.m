@@ -181,6 +181,7 @@ function [Thinned,Info]=ThinMeasurementsOnGrid(x,y,d,ds,Options)
 %
 % BuildNode2DataMap, BinMeasurementsOntoMesh
 %
+%
 %%
 
 narginchk(4,5)

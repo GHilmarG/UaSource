@@ -1,6 +1,10 @@
-function KhdotBB=JhdotBB(CtrlVar,MUA,F,Meas)
+function KhdotBB=JhdotBB(CtrlVar,MUA,F,Meas,GaussNewton)
 
-narginchk(4,4)
+narginchk(4,5)
+if nargin<5 || isempty(GaussNewton) ; GaussNewton=false ; end
+% (18 Nov 2026) GaussNewton=true: the term diag(J_h d2h/dB2), which is proportional to the residuals, is omitted (Gauss-Newton
+% Hessian, positive semi-definite). d2h/dB2 is non-zero where the ice is thin (close to the minimum thickness), eg along the
+% margins of an ice cap, and there this term can make the Hessian indefinite.
 nargoutchk(1,1)
 
 if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
@@ -11,7 +15,7 @@ if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
     Nnodes=MUA.Nnodes ; m=numel(Mats.w) ;
     KJhh=Mats.AGh'*spdiags(Mats.w,0,m,m)*Mats.AGh ;
     Dh=spdiags(dhdB(:),0,Nnodes,Nnodes) ;
-    KhdotBB=Dh*KJhh*Dh+spdiags(dhJhdot(:).*d2hdB2(:),0,Nnodes,Nnodes) ;
+    KhdotBB=Dh*KJhh*Dh+(~GaussNewton)*spdiags(dhJhdot(:).*d2hdB2(:),0,Nnodes,Nnodes) ;
     KhdotBB=(KhdotBB+KhdotBB.')/2 ;
     return
 end
@@ -96,7 +100,7 @@ KJhh=sparse(Iind,Jind,Xval,Nnodes,Nnodes) ;
 [~,~,~,dhJhdot]=EvaluateJhdotAndDerivatives([],CtrlVar,MUA,F,[],Meas) ;      % BCs is not used in that function
 
 Dh=spdiags(dhdB(:),0,Nnodes,Nnodes) ;
-KhdotBB=Dh*KJhh*Dh+spdiags(dhJhdot(:).*d2hdB2(:),0,Nnodes,Nnodes) ;
+KhdotBB=Dh*KJhh*Dh+(~GaussNewton)*spdiags(dhJhdot(:).*d2hdB2(:),0,Nnodes,Nnodes) ;
 KhdotBB=(KhdotBB+KhdotBB.')/2 ;
 
 end

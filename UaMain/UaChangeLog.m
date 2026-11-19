@@ -11,10 +11,19 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * Gauss-Newton Hessian-vector products: dh/dt term without the residual part (18 November 2026):
+% JhdotBB.m and Jpp.m have an optional input GaussNewton (default false, unchanged). With GaussNewton=true the term
+% diag(J_h d2h/dB2) of the explicit second derivative of the dh/dt misfit with respect to B is omitted; it is proportional to the
+% residuals, and non-zero where the ice is thin (close to the minimum thickness), eg along the margins of an ice cap, where it made
+% the "Gauss-Newton" Hessian indefinite (Hofsjokull, synthetic B: smallest eigenvalue -0.06; after the change the data part of the
+% Hessian is positive semi-definite to 1e-13). AssembleHessianBlocks.m passes GaussNewton=(Type=="-GN-"); the "-full-" Hessian
+% and CalcDirectAdjointHessian.m are unchanged.
+%
 % * HelmholtzEquation.m: Dirichlet boundary conditions and ties (18 November 2026):
-% New optional input BCs (9th argument; a BoundaryConditions object or a structure): f is prescribed at BCs.hFixedNode (values
-% BCs.hFixedValue), and f(BCs.hTiedNodeA)=f(BCs.hTiedNodeB). The constraints are imposed with Lagrange multipliers (createLh.m,
-% ScaleL.m, solveKApe.m), which are returned in lambda; a node must not be constrained more than once. Without BCs the results are
+% New optional input BCs (9th argument; a BoundaryConditions object): f is prescribed at BCs.hFixedNode (values BCs.hFixedValue),
+% and f(BCs.hTiedNodeA)=f(BCs.hTiedNodeB). The constraints are formed by BCs2MLC.m (MLC.hL, MLC.hRhs; 19 Nov 2026: replacing a
+% separate implementation with createLh.m and ScaleL.m, for consistency with the rest of the code) and imposed with Lagrange
+% multipliers (solveKApe.m), returned in lambda; BCs2MLC.m rejects nodes constrained more than once. Without BCs the results are
 % unchanged (natural boundary conditions). Tests: identical results without BCs; the correction field of HofsBedPrior.m (computed
 % by eliminating the boundary nodes) reproduced to 4e-14; a linear field reproduced to 2e-13 (exact for linear elements); a smooth
 % field with prescribed boundary values to 0.03 of an amplitude of 50 (discretisation error; 13 with natural conditions); ties

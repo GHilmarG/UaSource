@@ -1,6 +1,9 @@
-function KJpp=Jpp(CtrlVar,MUA,F,Meas)
+function KJpp=Jpp(CtrlVar,MUA,F,Meas,GaussNewton)
 
-narginchk(2,4)
+narginchk(2,5)
+if nargin<5 || isempty(GaussNewton) ; GaussNewton=false ; end
+% (18 Nov 2026) GaussNewton=true: omit the term of the dh/dt misfit that is proportional to the residuals (through d2h/dB2, which
+% is non-zero for thin ice), see JhdotBB.m. Used for the Gauss-Newton Hessian (AssembleHessianBlocks.m with Type "-GN-").
 
 %% Builds the Hessian term, Jpp, which is
 %
@@ -72,7 +75,7 @@ if isB && is_dhdt_meas
 
     nA=0 ; if isA ; nA=size(QA,1) ; end
     iB=nA+(1:size(QB,1)) ;
-    KJpp(iB,iB)=KJpp(iB,iB)+JhdotBB(CtrlVar,MUA,F,Meas) ;
+    KJpp(iB,iB)=KJpp(iB,iB)+JhdotBB(CtrlVar,MUA,F,Meas,GaussNewton) ;
 
 end
 

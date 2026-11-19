@@ -24,16 +24,17 @@ function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA
 %
 % where  $c= -a \tilde{f}$ and $d= -b \tilde{f}$, and $\tilde{f}$ is a given function
 %
-% Boundary conditions (18 Nov 2026):
+% Boundary conditions:
 %
 % Without BCs (or with BCs=[]) natural boundary conditions apply (as before). Dirichlet conditions, and ties between nodes, can be
-% given in BCs, a BoundaryConditions object or a structure, of which the fields
+% given in BCs, a BoundaryConditions object, of which the thickness fields are used:
 %
 %   BCs.hFixedNode, BCs.hFixedValue   : nodes where f is prescribed, and the values
 %   BCs.hTiedNodeA, BCs.hTiedNodeB    : f(hTiedNodeA)=f(hTiedNodeB) (eg periodic boundary conditions)
+%   (BCs.hPosNode, BCs.hPosValue are treated as BCs.hFixedNode, BCs.hFixedValue)
 %
-% are used (missing fields are treated as empty). The constraints are imposed with Lagrange multipliers, as elsewhere in Ua
-% (createLh.m, ScaleL.m, solveKApe.m), and the multipliers are returned in lambda. A node must not be constrained more than once.
+% The constraints are formed by BCs2MLC.m (MLC.hL, MLC.hRhs), as elsewhere in Ua, and imposed with Lagrange multipliers
+% (solveKApe.m), which are returned in lambda. BCs2MLC.m checks that no node is constrained more than once.
 %
 % Examples:  
 %
@@ -64,39 +65,14 @@ if nargin>=8 && ~isempty(RHS)
     HErhs=RHS;
 end
 
-% (18 Nov 2026) Dirichlet conditions and ties, imposed with Lagrange multipliers
+% Dirichlet conditions and ties (the h fields of BCs), imposed with Lagrange multipliers, through BCs2MLC.m as elsewhere in Ua
 if nargin==9 && ~isempty(BCs)
-    FixedNode=BCsField(BCs,"hFixedNode"); FixedValue=BCsField(BCs,"hFixedValue");
-    TiedA=BCsField(BCs,"hTiedNodeA"); TiedB=BCsField(BCs,"hTiedNodeB");
-    Constrained=[FixedNode(:);TiedA(:);TiedB(:)];
-    if numel(unique(Constrained))<numel(Constrained)
-        error("HelmholtzEquation:DuplicateConstraints","A node must not be constrained more than once (in hFixedNode, hTiedNodeA and hTiedNodeB).")
-    end
-    [L,Lrhs]=createLh(MUA.Nnodes,FixedNode(:),FixedValue(:),TiedA(:),TiedB(:));
-    if ~isempty(L)
-        [L,Lrhs]=ScaleL(CtrlVar,L,Lrhs);
-        lambda=zeros(size(L,1),1);
-    end
+    MLC=BCs2MLC(CtrlVar,MUA,BCs);
+    L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
 end
 
 [f,lambda]=solveKApe(HEmatrix,L,HErhs,Lrhs,f,lambda,CtrlVar);
 f=full(f);
 
-%
-% MLC=BCs2MLC(CtrlVar,MUA,BCsTracer);
-% L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
-% [c1,lambda]=solveKApe(kv,L,rh,Lrhs,c0,lambda,CtrlVar);
-% c1=full(c1);
 
-
-end
-
-
-function v=BCsField(BCs,Name)
-% field or property of BCs, empty if missing
-if (isstruct(BCs) && isfield(BCs,Name)) || (isobject(BCs) && isprop(BCs,Name))
-    v=BCs.(Name) ;
-else
-    v=[] ;
-end
 end

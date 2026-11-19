@@ -130,7 +130,7 @@ if isB && is_dhdt_meas
 end
 
 %% K_pp
-Kpp=Jpp(CtrlVar,MUA,F,Meas) ;
+Kpp=Jpp(CtrlVar,MUA,F,Meas,Type=="-GN-") ;   % (18 Nov 2026) Gauss-Newton: without the residual term of the dh/dt misfit (JhdotBB.m)
 if Type=="-full-"
     Kpp=Kpp+Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
 end
