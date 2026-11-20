@@ -62,21 +62,21 @@ narginchk(8,8)
 
 if isA
     if CtrlVar.Inverse.Matern.logAGlen.alpha==1
-     error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+     % (20 Nov 2026) alpha=1 is now supported: the trust-region radius uses 1/kappa as length scale (MaternRangeForTrustRegion)
     end
 end
 
 
 if isB
     if CtrlVar.Inverse.Matern.B.alpha==1
-        error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+        % (20 Nov 2026) alpha=1 is now supported: the trust-region radius uses 1/kappa as length scale (MaternRangeForTrustRegion)
     end
 end
 
 
 if isC
     if CtrlVar.Inverse.Matern.logC.alpha==1
-        error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+        % (20 Nov 2026) alpha=1 is now supported: the trust-region radius uses 1/kappa as length scale (MaternRangeForTrustRegion)
     end
 end
 
