@@ -11,6 +11,19 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * UaOptimisationHessianBased.m, UaOptimisationHessianEstimate.m, Matern_alpha_kappa_tau.m (20 November 2026): the maximum trust-region
+% radius uses an effective number of parameters Area/L^2, with L the Matern range rho for alpha>1 and 1/kappa for alpha=1 (local function
+% MaternRangeForTrustRegion), so that these optimisers also work with alpha=1, ie with the Tikhonov methodology (previously rho=0 for
+% alpha=1 and the run stopped with BadDeltaMax). Matern_alpha_kappa_tau returns rho=sigma=NaN for nu<=0 (alpha=1 in two dimensions),
+% where they are not defined (previously 0 and Inf).
+%
+% * Tikhonov regularisation (20 November 2026): Tikhonov2MaternParameters.m now gives tau=gs/sqrt(Area) (previously gs/sqrt(2*Area)), so
+% that with CtrlVar.Inverse.Methodology="-Tikhonov-" the regularisation term is R=(ga^2 dp'M dp + gs^2 dp'D dp)/(2 Area), as defined
+% (Regularisation.m computes R=dp'Q dp/2). Previously R was half of this, ie the regularisation half as strong as defined: inversions
+% with given ga and gs are now more strongly regularised (as with ga and gs larger by sqrt(2) before). Checked numerically (Hofsjokull
+% mesh): R from Q equals the Tikhonov formula. GetInputsForInverseRun.m: CtrlVar.Inverse.Regularize.Field with -AGlen- or -C- (regularisation
+% of AGlen and C rather than their logarithms, no longer supported) now gives an error.
+%
 % * F2p.m, Measurements.m (20 November 2026): optional node-wise bounds on B, Meas.BLowerBound and Meas.BUpperBound (new properties of
 % Measurements; NaN: no bound), combined with the
 % existing bounds (-5000 and s-ThickMin). Used for bounds from the grounded/floating mask (B >= b_f+eps where grounded, B <= b_f-w

@@ -72,6 +72,13 @@ if isempty(Priors.Bmin)
 end
 
 %%
+% (20 Nov 2026) Regularisation of AGlen and C themselves (rather than of log10(AGlen) and log10(C)) is no longer supported:
+% Regularisation.m always regularises log10(AGlen) and log10(C), and only the Tikhonov parameters of logAGlen, logC and B are used.
+RegField=string(CtrlVar.Inverse.Regularize.Field) ;
+if contains(RegField,"-AGlen-") || contains(RegField,"-C-")
+    error("GetInputsForInverseRun:RegularizeField","CtrlVar.Inverse.Regularize.Field=%s: regularisation of AGlen and C (rather than log10(AGlen) and log10(C)) is no longer supported. Use '-logAGlen-logC-', '-logAGlen-' or '-logC-'.",RegField)
+end
+
 if CtrlVar.Inverse.Methodology=="-Tikhonov-"
     isE=false ;
     switch CtrlVar.Inverse.Regularize.Field
