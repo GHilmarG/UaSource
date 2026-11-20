@@ -11,6 +11,16 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * F2p.m, Measurements.m (20 November 2026): optional node-wise bounds on B, Meas.BLowerBound and Meas.BUpperBound (new properties of
+% Measurements; NaN: no bound), combined with the
+% existing bounds (-5000 and s-ThickMin). Used for bounds from the grounded/floating mask (B >= b_f+eps where grounded, B <= b_f-w
+% where floating, away from the grounding line), which the projected Hessian-vector based optimiser respects.
+%
+% * SetSmoothFloorWidths.m (20 November 2026): the widths of the smooth lower limits of A and C (CtrlVar.AGlenminWidth, CminWidth) are
+% now relative to the median of F.AGlen and F.C instead of the mean. With estimates spanning many orders of magnitude the mean was
+% dominated by a few extreme values, so that the widths, the effective A and C close to the limits, and the cost function at the same
+% parameters changed between an inversion and its restart (Pine Island, nx150: J +9% on restart).
+%
 % * Gauss-Newton Hessian-vector products: dh/dt term without the residual part (18 November 2026):
 % JhdotBB.m and Jpp.m have an optional input GaussNewton (default false, unchanged). With GaussNewton=true the term
 % diag(J_h d2h/dB2) of the explicit second derivative of the dh/dt misfit with respect to B is omitted; it is proportional to the
