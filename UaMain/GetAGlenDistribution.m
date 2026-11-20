@@ -45,22 +45,10 @@ F.AGlenmin=CtrlVar.AGlenmin;
 %% Better do these test in uvh and uv, when they are needed
 
 
-[F.AGlen,iU,iL]=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin);
-
-niU=numel(find(iU));
-niL=numel(find(iL));
-
-if CtrlVar.InfoLevel>=10
-    if niU>0
-        fprintf('TestAGlenInputValues: On input %i AGlen values are larger than largest allowed value (%g).  \n',niU);
-        fprintf(' These values have been reset to the maximum allowed value of %g .\n',niU,CtrlVar.AGlenmax);
-
-    end
-    if niL>0
-        fprintf('TestAGlenInputValues: On input %i AGlen values are smaller than smallest allowed value (%g). \n',niL,CtrlVar.AGlenmin);
-        fprintf(' These values are have been reset to the minimum allowed value of %g.\n',CtrlVar.AGlenmin);
-    end
-end
+% (20 Nov 2026) Values outside [AGlenmin,AGlenmax] are reported at CtrlVar.InfoLevel>=1 (ReportClipping.m). Previously the report
+% was only printed at InfoLevel>=10, and with incorrect formatting for values above AGlenmax.
+ReportClipping(CtrlVar,"AGlen",F.AGlen,F.AGlenmin,F.AGlenmax,LowerName="CtrlVar.AGlenmin",UpperName="CtrlVar.AGlenmax",Where="GetAGlenDistribution") ;
+F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin);
 
 
 

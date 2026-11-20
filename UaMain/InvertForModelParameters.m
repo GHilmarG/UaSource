@@ -279,6 +279,18 @@ F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
 % This mapping between A, B and C into the control variable is done by F2p
 
 % Make sure initial point is feasible
+% (20 Nov 2026) Start values outside the limits, or already set to them (eg in TestSlipperinessInputValues.m), are reported at
+% CtrlVar.InfoLevel>=1 (ReportClipping.m). With the box transform such values start on the boundary of the box, where dp/dv is close
+% to zero, and hardly change during the inversion. For B only values beyond the limits are reported, as B=s-ThickMin is common.
+if CtrlVar.Inverse.BoxTransform
+    BoxNote="   With the box transform these start values are on the boundary of the box, where dp/dv is close to zero, and will"+newline+...
+        "   change little during the inversion. Consider changing the limits or the start values." ;
+else
+    BoxNote="" ;
+end
+if isA ; ReportClipping(CtrlVar,"AGlen",F.AGlen,F.AGlenmin,F.AGlenmax,Inclusive=true,Note=BoxNote,Where="InvertForModelParameters (start values)") ; end
+if isB ; ReportClipping(CtrlVar,"B",F.B,F.Bmin,F.Bmax,Log=false,Note=BoxNote,Where="InvertForModelParameters (start values)") ; end
+if isC ; ReportClipping(CtrlVar,"C",F.C,F.Cmin,F.Cmax,Inclusive=true,Note=BoxNote,Where="InvertForModelParameters (start values)") ; end
 F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
 F.B=kk_proj(F.B,F.Bmax,F.Bmin) ;
 F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;

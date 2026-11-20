@@ -4,6 +4,19 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Reports of A and C values set to their limits (20 November 2026): new function ReportClipping.m, which reports the number and
+% fraction of values outside given limits and how far beyond them they are (in orders of magnitude for A and C). Used in
+% TestSlipperinessInputValues.m (C outside [Cmin,Cmax], eg from GetSlipperyDistribution.m and for the start values of an inversion)
+% and GetAGlenDistribution.m (A outside [AGlenmin,AGlenmax]), which previously reported this only at CtrlVar.InfoLevel>=10, and with
+% incorrect formatting for values above the upper limits; now reported at CtrlVar.InfoLevel>=1, or CtrlVar.InfoLevelInverse>=1 in
+% inverse runs. Each report is printed once per run for a given caller, field and number of values (A and C are defined at every
+% time step in transient runs); all reports with InfoLevel>=10. ClearPersistentUaVariables.m clears the record at the start of a
+% run. InvertForModelParameters.m reports the start values of A, B and C that are outside the limits or already on them (A and C);
+% with the box transform such values start on the boundary of the box, where dp/dv is close to zero, and hardly change during the
+% inversion. SetSmoothFloorWidths.m also reports the percentage of the nodal values of C and A changed by more than 0.1% by the
+% smooth lower limits. Prompted by tests with large sliding-law exponents (m=9), where C values below the default Cmin=1e-20 were
+% set to Cmin without any message (Pine Island, nx50: 33 nodes, up to 6 orders of magnitude below Cmin).
+%
 % * ThinMeasurementsOnGrid.m: Options.SigmaCorrelated can be given for each measurement (17 November 2026):
 % Scalar or m x 1. If given for each measurement, the correlated (not averaging down) variance of a cell is the weighted mean of
 % SigmaCorrelated^2 over the measurements in the cell, with the same weights as the data. Used for errors common to many
