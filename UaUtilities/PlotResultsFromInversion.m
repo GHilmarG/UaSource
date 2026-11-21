@@ -234,7 +234,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
     T4=nexttile ;
-  
+
     cbar=UaPlots(CtrlVar,MUA,F,Priors.C,CreateNewFigure=false,logColorbar=true);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
     title("Prior $C$",Interpreter="latex") ;
@@ -243,7 +243,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     CM=cmocean('-ice',15) ; colormap(T3,CM);
     %clim(ColorbarLimits)
     subtitle("",Interpreter="latex")
-  
+
     set(figCeI,CurrentAxes=T1) ; CL=clim;   CM=cmocean('ice',25)  ; colormap(T1,CM);
     set(figCeI,CurrentAxes=T2) ; clim(CL);  CM=cmocean('ice',25) ;  colormap(T2,CM);
     set(figCeI,CurrentAxes=T3) ;            CM=cmocean('-balanced',25,'pivot',0) ;  colormap(T3,CM);
@@ -343,9 +343,9 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
         figBmeas=FindOrCreateFigure("Bobs: Direct") ; clf(figBmeas)
 
         T=tiledlayout("flow");
-        % 
+        %
         % T1=nexttile ;
-        % 
+        %
         % UaPlots(CtrlVar,MUA,F,F.B,CreateNewFigure=false);
         % hold on
         % plot(Meas.Bx/1000,Meas.By/1000,".r")
@@ -363,16 +363,16 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
         Bmodelled = OInside*F.B ;
         BResiduals = Bmodelled - BobsInside ;
-    
+
         iPosResiduals=BResiduals>=0 ;
 
 
         bubblechart(Bx(iPosResiduals)/CtrlVar.PlotXYscale,By(iPosResiduals)/CtrlVar.PlotXYscale,BResiduals(iPosResiduals),color="r")
         hold on
         bubblechart(Bx(~iPosResiduals)/CtrlVar.PlotXYscale,By(~iPosResiduals)/CtrlVar.PlotXYscale,-BResiduals(~iPosResiduals),color="b")
-       % maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
-       % bubblesize([maxBubbleSize/100 maxBubbleSize]);    
-        bubblesize([1 20]) ; % 
+        % maxBubbleSize=0.1*max(max(Bx)-min(By),max(By)-min(By))/CtrlVar.PlotXYscale;
+        % bubblesize([maxBubbleSize/100 maxBubbleSize]);
+        bubblesize([1 20]) ; %
         blg=bubblelegend("$B_{\mathrm{obs}}$ Misfit",Location="northeast",Interpreter="latex");
         lg=legend("Positive","Negative",Location="northwest") ;
         xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
@@ -461,94 +461,127 @@ end
 
 %%
 
-figSM=FindOrCreateFigure("Misfit:Speed") ; clf(figSM)
-speedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
-speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
-ErrSpeed=sqrt(usError.^2+vsError.^2);
-
-T=tiledlayout("flow");
-
-TS1=nexttile;
-cbar=UaPlots(CtrlVar,MUA,F,speedMeas,CreateNewFigure=false) ; title('Measured speed') ; set(gca,'ColorScale','log')
-title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|$",interpreter="latex")
-subtitle("")
-CL=clim;
-
-Ts2=nexttile;
-cbar=UaPlots(CtrlVar,MUA,F,speedCalc,CreateNewFigure=false) ; title('Modelled speed') ; set(gca,'ColorScale','log')
-title(cbar,"$\|\mathbf{v}_\mathrm{Modelled}\|$",interpreter="latex")
-clim(CL);
-subtitle("(Same colorbar scale as for measured speed)")
-
-TS3=nexttile;
-cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed measurement error') ; set(gca,'ColorScale','log')
-title(cbar,"error",interpreter="latex")
-subtitle("")
-
-TS4=nexttile;
-D=speedMeas-speedCalc ;
-cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; title('Measured speed - modelled speed') ; set(gca,'ColorScale','lin')
-title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|-\|\mathbf{v}_{\mathrm{Modelled}}\|$",interpreter="latex")
-subtitle("")
 
 
-axis(TS4);
-CL=clim;
-if CL(1)< 0 && CL(2) > 0
-    CM=cmocean('-balanced',25,'pivot',0) ; colormap(TS4,CM);
+
+if CtrlVar.Inverse.DataMisfit.uv.Method=="-points-"  && isempty(Meas.us)
+
+    Fus=scatteredInterpolant(Meas.uvx,Meas.uvy,Meas.usData);
+    Fvs=Fus; Fvs.Values=Meas.vsData;
+    FusErr=Fus; FusErr.Values=Meas.usErr;
+    FvsErr=Fus; FvsErr.Values=Meas.vsErr;
+
+
+    Meas.us=Fus(F.x,F.y);
+    Meas.vs=Fvs(F.x,F.y);
+    Meas.usErr=FusErr(F.x,F.y);
+    Meas.vsErr=FvsErr(F.x,F.y);
+
 end
 
-T.Padding="tight";   T.TileSpacing="tight";
+if isempty(Meas.us)
+    
+    fprintf("Observational velocity data can not be plotted.\n")
 
-%%
-figVmis=FindOrCreateFigure("Misfit:Velocities") ; clf(figVmis)
+else
 
 
-T=tiledlayout("flow");
-
-nexttile
-
-QuiverColorGHG(x,y,(us-Meas.us)./usError,(vs-Meas.vs)./vsError,CtrlVar);
-title("($\mathbf{v}_{\mathrm{modelled}}-\mathbf{v}_{\mathrm{measured}})./\mathbf{v}_{\mathrm{error}}$",Interpreter="latex")
-hold on
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ;
-xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-
-nexttile
-
-QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ;
-title("$\mathbf{v}_{\mathrm{modelled}}-\mathbf{v}_{\mathrm{measured}}$",Interpreter="latex") ;
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    figSM=FindOrCreateFigure("Misfit:Speed") ; clf(figSM)
+    speedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
 
 
 
-nexttile
 
-[~,~,QuiverPar]=QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ;
-title("$\mathbf{v}_{\mathrm{measured}}$",Interpreter="latex")
-hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ;
-xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
+    ErrSpeed=sqrt(usError.^2+vsError.^2);
 
-nexttile
+    T=tiledlayout("flow");
 
-QuiverPar.QuiverSameVelocityScalingsAsBefore=1;
-QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ;
-title("$\mathbf{v}_{\mathrm{modelled}}$",Interpreter="latex")
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ;
-xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
+    TS1=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,speedMeas,CreateNewFigure=false) ; title('Measured speed') ; set(gca,'ColorScale','log')
+    title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|$",interpreter="latex")
+    subtitle("")
+    CL=clim;
 
-T.Padding="tight";   T.TileSpacing="tight";
-%%
+    Ts2=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,speedCalc,CreateNewFigure=false) ; title('Modelled speed') ; set(gca,'ColorScale','log')
+    title(cbar,"$\|\mathbf{v}_\mathrm{Modelled}\|$",interpreter="latex")
+    clim(CL);
+    subtitle("(Same colorbar scale as for measured speed)")
+
+    TS3=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed measurement error') ; set(gca,'ColorScale','log')
+    title(cbar,"error",interpreter="latex")
+    subtitle("")
+
+    TS4=nexttile;
+    D=speedMeas-speedCalc ;
+    cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; title('Measured speed - modelled speed') ; set(gca,'ColorScale','lin')
+    title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|-\|\mathbf{v}_{\mathrm{Modelled}}\|$",interpreter="latex")
+    subtitle("")
+
+
+    axis(TS4);
+    CL=clim;
+    if CL(1)< 0 && CL(2) > 0
+        CM=cmocean('-balanced',25,'pivot',0) ; colormap(TS4,CM);
+    end
+
+    T.Padding="tight";   T.TileSpacing="tight";
+
+    %%
+    figVmis=FindOrCreateFigure("Misfit:Velocities") ; clf(figVmis)
+
+
+    T=tiledlayout("flow");
+
+    nexttile
+
+    QuiverColorGHG(x,y,(us-Meas.us)./Meas.usErr,(vs-Meas.vs)./Meas.vsErr,CtrlVar);
+
+    title("($\mathbf{v}_{\mathrm{modelled}}-\mathbf{v}_{\mathrm{measured}})./\mathbf{v}_{\mathrm{error}}$",Interpreter="latex")
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    PlotMuaBoundary(CtrlVar,MUA,'b')  ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+
+    nexttile
+
+    QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ;
+    title("$\mathbf{v}_{\mathrm{modelled}}-\mathbf{v}_{\mathrm{measured}}$",Interpreter="latex") ;
+    hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+
+
+
+    nexttile
+
+    [~,~,QuiverPar]=QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ;
+    title("$\mathbf{v}_{\mathrm{measured}}$",Interpreter="latex")
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    PlotMuaBoundary(CtrlVar,MUA,'b')  ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+
+    nexttile
+
+    QuiverPar.QuiverSameVelocityScalingsAsBefore=1;
+    QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ;
+    title("$\mathbf{v}_{\mathrm{modelled}}$",Interpreter="latex")
+    hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    PlotMuaBoundary(CtrlVar,MUA,'b')  ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
+
+    T.Padding="tight";   T.TileSpacing="tight";
+    %%
+
+end
+
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
@@ -606,120 +639,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     T.Padding="tight";   T.TileSpacing="tight";
 
-    %%
-
-    % figflux=FindOrCreateFigure("flux divergence etc") ; clf(figflux)
-    % 
-    % T=tiledlayout("flow");
-    % 
-    % flux1=nexttile;
-    % cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.ab,CreateNewFigure=false);
-    % title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
-    % title("$\rho\,a_b$",interpreter="latex")
-    % subtitle("")
-    % hold on ;
-    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    % T1clim=clim;
-    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
-    % 
-    % 
-    % 
-    % flux2=nexttile;
-    % cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.as,CreateNewFigure=false);
-    % title("$\rho \,\dot{a}_s$",Interpreter="latex") ;
-    % title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
-    % subtitle("")
-    % hold on ;
-    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    % T2clim=clim;
-    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux2,CM);
-    % CLmeas=clim;
-    % 
-    % qx=F.rho.*F.ub.*F.h ; qy=F.rho.*F.vb.*F.h;
-    % [dqxdx,dqxdy]=calcFEderivativesMUA(qx,MUA,CtrlVar);
-    % [dqydx,dqydy]=calcFEderivativesMUA(qy,MUA,CtrlVar);
-    % qdiv=dqxdx+dqydy;
-    % qdiv=ProjectFintOntoNodes(CtrlVar,MUA,qdiv) ;
-    % 
-    % flux3=nexttile;
-    % cbar=UaPlots(CtrlVar,MUA,F,qdiv,CreateNewFigure=false);
-    % title("$\nabla q  \; (\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",Interpreter="latex") ;
-    % title(cbar,"")
-    % subtitle("")
-    % hold on ;
-    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    % T3clim=clim;
-    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
-    % 
-    % [dudx,dudy]=calcFEderivativesMUA(F.ub,MUA,CtrlVar);
-    % [dvdx,dvdy]=calcFEderivativesMUA(F.vb,MUA,CtrlVar);
-    % vdiv=dudx+dvdy;
-    % vdiv=ProjectFintOntoNodes(CtrlVar,MUA,vdiv) ;
-    % 
-    % flux4=nexttile;
-    % cbar=UaPlots(CtrlVar,MUA,F,vdiv,CreateNewFigure=false);
-    % title("$\nabla \cdot v  \; (\mathrm{a^{-1}})$",Interpreter="latex") ;
-    % title(cbar,"")
-    % subtitle("")
-    % hold on ;
-    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    % T4clim=clim;
-    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
-    % 
-    % dhdtEst=(F.rho.*(F.as+F.ab)-qdiv)./F.rho ;
-    % 
-    % flux5=nexttile;
-    % cbar=UaPlots(CtrlVar,MUA,F,dhdtEst,CreateNewFigure=false);
-    % title("$a - (\nabla \cdot q )/\rho  \; (\mathrm{m}\;\mathrm{a^{-1}})$",Interpreter="latex") ;
-    % title(cbar,"")
-    % subtitle("")
-    % hold on ;
-    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    % T5clim=clim;
-    % CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
-    % 
-    % 
-    % [dbdx,dbdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
-    % [dbdx,dbdy]=ProjectFintOntoNodes(CtrlVar,MUA,dbdx,dbdy) ;
-    % db=sqrt(dbdx.*dbdx+dbdy.*dbdy);
-    % flux6=nexttile;
-    % cbar=UaPlots(CtrlVar,MUA,F,db,CreateNewFigure=false,logColorbar=true);
-    % title("Norm of lower ice surface gradients $\| \nabla b \|$",Interpreter="latex") ;
-    % title(cbar,"")
-    % subtitle("")
-    % hold on ;
-    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    % 
-    % 
-    % [dsdx,dsdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
-    % [dsdx,dsdy]=ProjectFintOntoNodes(CtrlVar,MUA,dsdx,dsdy) ;
-    % ds=sqrt(dsdx.*dsdx+dsdy.*dsdy);
-    % flux7=nexttile;
-    % cbar=UaPlots(CtrlVar,MUA,F,ds,CreateNewFigure=false,logColorbar=true);
-    % title("Norm of upper ice surface gradients $\| \nabla s \|$",Interpreter="latex") ;
-    % title(cbar,"")
-    % subtitle("")
-    % hold on ;
-    % xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    % axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    % 
-    % 
-    % 
-    % axis(flux1); clim(T1clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
-    % axis(flux2); clim(T2clim) ; CM=cmocean('-ice',25) ; colormap(flux2,CM);
-    % axis(flux3); clim(T3clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
-    % axis(flux4); clim(T4clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
-    % axis(flux5); clim(T5clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
-    % 
-    % T.Padding="tight";   T.TileSpacing="tight";
-    % 
-    % %%
+  
 
 
 end

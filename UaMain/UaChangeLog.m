@@ -24,6 +24,9 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * GetInputsForInverseRun.m (21 November 2026): Meas.dhdt (nodal values) is only required when inverting for B with the
+% "-nodal-integral-" dh/dt misfit; with "-points-" or "-blocks-" it may be left empty.
+%
 % * UaOptimisationHessianBased.m, UaOptimisationHessianEstimate.m, Matern_alpha_kappa_tau.m (20 November 2026): the maximum trust-region
 % radius uses an effective number of parameters Area/L^2, with L the Matern range rho for alpha>1 and 1/kappa for alpha=1 (local function
 % MaternRangeForTrustRegion), so that these optimisers also work with alpha=1, ie with the Tikhonov methodology (previously rho=0 for

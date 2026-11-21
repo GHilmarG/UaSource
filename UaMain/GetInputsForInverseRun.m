@@ -202,9 +202,11 @@ if isB
 
     end
 
-    if isempty(Meas.dhdt)
+    % (21 Nov 2026) Meas.dhdt (nodal) is only needed for the "-nodal-integral-" dh/dt misfit; for "-points-" and "-blocks-" the
+    % dh/dt data are in Meas.dhdtData etc.
+    if isempty(Meas.dhdt) && contains(CtrlVar.Inverse.Measurements,"-dhdt-") && dhdtMisfitMethod(CtrlVar)=="-nodal-integral-"
 
-        fprintf('Meas.dhdt can not be left empty when inverting for B.\n')
+        fprintf('Meas.dhdt can not be left empty when inverting for B with the -nodal-integral- dh/dt misfit.\n')
         error('GetInputsForInverseRun:Meas.dhdtIsNotDefined')
 
     end
