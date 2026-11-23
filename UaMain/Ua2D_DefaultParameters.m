@@ -1058,6 +1058,8 @@ CtrlVar.Inverse.FunctionTolerance=1e-6 ;  % see MATLAB documentation on the use 
 CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab Optimisation toolbox
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
+CtrlVar.Inverse.RestartFileWriteInterval=500; % (23 Nov 2026) if > 0, an inverse restart file is also written every this many iterations during the
+                                            % inversion (-UaOptimisation-HessianVectorBased- and -GradientBased-), so that a stopped run can be continued
 CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 

@@ -427,6 +427,12 @@ end
 % (including the chain rule for the box transform), see HessianVectorProductSetup.m.
 HessianSetup=@(x,Fx,JGHoutsx) HessianVectorProductSetup(x,Fx,JGHoutsx,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint);
 
+% (23 November 2026) For writing inverse restart files during the inversion, every CtrlVar.Inverse.RestartFileWriteInterval iterations
+% (used by -UaOptimisation-HessianVectorBased- and -UaOptimisation-GradientBased-): given the current iterate, the state (or [], then the
+% state at the start of the inversion is used), the cost function, gradient and
+% additional outputs, and RunInfo, writes a restart file (WriteInverseRestartFileDuringInversion.m).
+InverseFileRestartWriter=@(px,Fx,Jx,dJdpx,JGHoutsx,RunInfox) WriteInverseRestartFileDuringInversion(px,Fx,Jx,dJdpx,JGHoutsx,RunInfox,UserVar,CtrlVar,MUA,BCs,l,InvStartValues,Priors,Meas,BCsAdjoint,F);
+
 
 %%
 
@@ -454,7 +460,7 @@ else
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
 
-        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,HessianSetup);
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,HessianSetup,InverseFileRestartWriter);
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
 

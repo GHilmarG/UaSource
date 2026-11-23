@@ -24,6 +24,14 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * Inverse restart files during the inversion (23 November 2026): CtrlVar.Inverse.RestartFileWriteInterval (default 500; 0 switches it off): if > 0,
+% UaOptimisationHessianVectorBased.m, UaOptimisationGradientBased.m and UaOptimisationGradientBasedBounded.m write an inverse restart file
+% every this many iterations, with the
+% current iterate, through a
+% function handle set up in InvertForModelParameters.m (WriteInverseRestartFileDuringInversion.m: p2F, Vars2InvValues and
+% WriteAdjointRestartFile, on a local copy of the state, so that the inversion itself is not affected). UaOptimisation.m passes the
+% handle on (new optional tenth input). A stopped run can then be continued from the last restart file.
+%
 % * GetInputsForInverseRun.m (21 November 2026): Meas.dhdt (nodal values) is only required when inverting for B with the
 % "-nodal-integral-" dh/dt misfit; with "-points-" or "-blocks-" it may be left empty.
 %

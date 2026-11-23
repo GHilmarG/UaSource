@@ -1,4 +1,4 @@
-function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
+function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,InverseFileRestartWriter)
 
 %%
 % This is basically a non-linear conjugated-gradient minimizer.
@@ -36,7 +36,10 @@ function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInf
 %
 %%
 
-narginchk(8,8)
+narginchk(8,9)
+if nargin<9
+    InverseFileRestartWriter=[];   % (23 Nov 2026) function handle for writing inverse restart files during the inversion (InvertForModelParameters.m)
+end
 nargoutchk(3,3)
 
 
@@ -307,6 +310,16 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     RunInfo.Inverse.Jhdot(Iteration)=Jhdot;
     RunInfo.Inverse.JBobs(Iteration)=JBobs;
     RunInfo.Inverse.ElapsedTime(Iteration)=toc(tStartIterations);   % (16 Nov 2026)
+
+    % (23 Nov 2026) inverse restart file every CtrlVar.Inverse.RestartFileWriteInterval iterations, with the current iterate (the
+    % inversion can then be continued from it if the run is stopped; the final restart file is written as before, Ua2D.m). The state
+    % at p is not available here (func is called without it), so the writer uses the state of the start of the inversion with the
+    % current parameters (p2F); only the velocities in that state, used as the initial guess on restart, are not the current ones.
+    if ~isempty(InverseFileRestartWriter) && CtrlVar.Inverse.WriteRestartFile && isfield(CtrlVar.Inverse,"RestartFileWriteInterval") ...
+            && CtrlVar.Inverse.RestartFileWriteInterval>0 && mod(Iteration-It0,CtrlVar.Inverse.RestartFileWriteInterval)==0
+        InverseFileRestartWriter(p,[],J0,dJdp,fOuts,RunInfo) ;
+        fprintf("UaOptimisationGradientBased: restart file written at iteration %i (%s)\n",Iteration,CtrlVar.Inverse.NameOfRestartOutputFile)
+    end
 
 
 

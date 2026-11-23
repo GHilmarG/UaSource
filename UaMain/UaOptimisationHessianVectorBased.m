@@ -1,8 +1,12 @@
-function [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup)
+function [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup,InverseFileRestartWriter)
 
 %%
 %
-%   [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup)
+%   [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,HessianSetup,InverseFileRestartWriter)
+%
+% (23 Nov 2026) InverseFileRestartWriter (optional): function handle, called every CtrlVar.Inverse.RestartFileWriteInterval iterations (if > 0
+% and CtrlVar.Inverse.WriteRestartFile is true) with the current iterate, to write an inverse restart file during the inversion
+% (WriteInverseRestartFileDuringInversion.m, set up in InvertForModelParameters.m).
 %
 % Inexact Gauss-Newton (default) or Newton trust-region method using Hessian-vector products, CtrlVar.Inverse.MinimisationMethod=
 % "-UaOptimisation-HessianVectorBased-" (introduced 15 November 2026 as "-UaOptimisation-NewtonCG-", which is still accepted).
@@ -55,7 +59,10 @@ function [p,UserVar,RunInfo]=UaOptimisationHessianVectorBased(UserVar,CtrlVar,Ru
 %
 %%
 
-narginchk(9,9)
+narginchk(9,10)
+if nargin<10
+    InverseFileRestartWriter=[];
+end
 
 Settings=struct("MaxInnerIterations",200,"InitialTrustRegionRadius",[],"MaxForcingTerm",0.1,"Bounds","-projected-","NodalTrustRegionScaling","off","LocalisationFraction",0.01,"LocalisationShare",0.5,"AutoCollapseFactor",1e-2,"AutoActivationRadius",[],"RestrictedPreconditioner","auto");
 if isfield(CtrlVar.Inverse,"HessianVectorBased")
@@ -309,6 +316,14 @@ for it=1:CtrlVar.Inverse.Iterations
     end
     if Delta<1e-10*Delta0 || nRejected>=20
         fprintf("UaOptimisationHessianVectorBased: trust region collapsed (no acceptable step found). Exiting.\n") ; break
+    end
+
+    %% (23 Nov 2026) inverse restart file every CtrlVar.Inverse.RestartFileWriteInterval iterations, with the current iterate (the
+    % inversion can then be continued from it if the run is stopped; the final restart file is written as before, Ua2D.m)
+    if ~isempty(InverseFileRestartWriter) && CtrlVar.Inverse.WriteRestartFile && isfield(CtrlVar.Inverse,"RestartFileWriteInterval") ...
+            && CtrlVar.Inverse.RestartFileWriteInterval>0 && mod(it,CtrlVar.Inverse.RestartFileWriteInterval)==0
+        InverseFileRestartWriter(p,Fx,J,g,fOuts,RunInfo) ;
+        fprintf("UaOptimisationHessianVectorBased: restart file written at iteration %i (%s)\n",It0+it,CtrlVar.Inverse.NameOfRestartOutputFile)
     end
 
 end
