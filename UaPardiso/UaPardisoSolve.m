@@ -282,7 +282,7 @@ catch ME
         if Mode=="factor"   % (16 Nov 2026) return a factorisation (symmetric indefinite), not a solution
             x=UaPardisoSolve("factor",CtrlVar,A,Apattern,"symmetric",StructuralPattern) ;
         else
-            x=UaPardisoSolve(CtrlVar,A,b,Apattern,"symmetric",StructuralPattern) ;
+            x=UaPardisoSolve(CtrlVar,A,b,Apattern,"symmetric",StructuralPattern,FactorIdToKeep) ;   % (24 Nov 2026) FactorIdToKeep passed on
         end
         return
     end

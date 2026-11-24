@@ -4,6 +4,26 @@
 % 
 % *Change Log* _October 2026_
 %
+% * Symmetric (uv) systems: Cholesky first, LDL' with a warning if not positive definite, with both linear solvers (24 November 2026):
+% (1) KKT_null_space_decomposition_chol.m: in the direct reduction for nodal constraints (the route taken by the uv solves with
+% boundary conditions), H(f,f) was factorised with decomposition(Hff,'chol') with CtrlVar.LinearSolver.Type="MATLAB", so that the
+% run stopped with an error if H(f,f) was not positive definite, whereas with "PARDISO" UaPardisoSolve.m switched to LDL' with a
+% warning. Now an LDL factorisation is used, with the warning KKT_null_space_decomposition_chol:NotSPD, as already done for the
+% reduced Hessian of the general null-space method (23 November 2026). The uv system is symmetric positive definite for a well-posed
+% problem, so this only happens in exceptional cases (eg extreme parameter values at a trial point of an inversion, or a singular
+% problem), which the convergence tests and line searches of the callers then handle.
+% (2) solveKApeSymmetric.m ("Bempty", no constraints) and the case without constraints in KKT_null_space_decomposition_chol.m: with
+% PARDISO the system is solved as "spd" (Cholesky; LDL' with the warning UaPardisoSolve:NotPositiveDefinite if not positive definite)
+% instead of "symmetric" (LDL'), as in the constrained case. For a 262k uv system (Amundsen Sea Embayment) the factorisation took
+% 0.09 s instead of 0.13 s, with about 500 MB instead of 540 MB peak memory. solveKApeSymmetric is also used for other symmetric systems
+% (eg mass matrices, dhduv.m, LevelSetEquationNewtonRaphson.m, fminconUa.m, lsqStepUa.m); without constraints these are now also tried
+% with Cholesky first, as they already were with constraints. The MATLAB route (H\g) is unchanged.
+% (3) UaPardisoSolve.m: the switch from "spd" to "symmetric" passes FactorIdToKeep on, so that a factorisation used with "solve"
+% keeps its number in this case as well (see the entry below).
+% Checked: nodal-constraint and unconstrained solves with SPD and indefinite 262k matrices, MATLAB and PARDISO (same solutions, LDL'
+% with a warning for the indefinite ones, previously an error with MATLAB); the HVB inversion and MismipPlus runs of the entry below
+% are unchanged (no fallbacks, same iterates).
+%
 % * PARDISO accuracy check and fallbacks (24 November 2026): UaPardisoSolve.m checked the relative residual ||A x-b||/||b|| against
 % CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10, and if that failed repeated the analysis and then used decomposition.
 % This test is not scale invariant, and for badly scaled systems no backward stable solver can pass it. In a logA, logC inversion
