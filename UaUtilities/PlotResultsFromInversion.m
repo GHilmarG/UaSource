@@ -192,6 +192,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
     T4=nexttile ;
+    if isscalar(Priors.AGlen) ; Priors.AGlen=Priors.AGlen+zeros(MUA.Nnodes,1) ; end
     UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false,logColorbar=true);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
     title("Prior $A$",Interpreter="latex") ; subtitle("")
@@ -704,6 +705,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-AGlen-")
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"-C-")
+    if isscalar(Priors.C) ; Priors.C=Priors.C+zeros(MUA.Nnodes,1) ; end
     cbar=UaPlots(CtrlVar,MUA,F,Priors.C,FigureTitle="CPrior") ;
     set(gca,'ColorScale','log')
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');

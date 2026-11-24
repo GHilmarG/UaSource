@@ -274,8 +274,13 @@ if ~(res<=Opt.ResidualTolerance)
     Stats.Resolves=Stats.Resolves+1 ;
     res=norm(A*x-b,"fro")/nb ;
     if ~(res<=Opt.ResidualTolerance)
-        warning("UaPardisoSolve:Residual","PARDISO relative residual %g is above the tolerance %g; using decomposition instead.",...
-            res,Opt.ResidualTolerance)
+      
+        fprintf("UaPardisoSolve:Residual: PARDISO relative residual %g is above the tolerance %g; using decomposition instead.",res,Opt.ResidualTolerance)
+
+        % 
+        % warning("UaPardisoSolve:Residual","PARDISO relative residual %g is above the tolerance %g; using decomposition instead.",...
+        %     res,Opt.ResidualTolerance)
+        
         x=decomposition(A)\b ;
         Stats.Fallbacks=Stats.Fallbacks+1 ;
         res=norm(A*x-b,"fro")/nb ;

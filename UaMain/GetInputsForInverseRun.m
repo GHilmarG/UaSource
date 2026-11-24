@@ -45,6 +45,15 @@ if isempty(InvStartValues.C) ; save TestSave ; error('GetInputsForInverseRun:emp
 if isempty(InvStartValues.n) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.n is empty') ; end
 if isempty(InvStartValues.m) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.m is empty') ; end
 
+
+if isscalar(Priors.AGlen) 
+    Priors.AGlen=Priors.AGlen+zeros(MUA.Nnodes,1) ;
+end
+
+if isscalar(Priors.C) 
+    Priors.C=Priors.C+zeros(MUA.Nnodes,1) ;
+end
+
 if isempty(Priors.AGlenmax)
     Priors.AGlenmax=CtrlVar.AGlenmax;
 end
