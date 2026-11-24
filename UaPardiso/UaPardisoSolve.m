@@ -275,7 +275,7 @@ if ~(res<=Opt.ResidualTolerance)
     res=norm(A*x-b,"fro")/nb ;
     if ~(res<=Opt.ResidualTolerance)
       
-        fprintf("UaPardisoSolve:Residual: PARDISO relative residual %g is above the tolerance %g; using decomposition instead.",res,Opt.ResidualTolerance)
+        fprintf("UaPardisoSolve:Residual: PARDISO relative residual %g is above the tolerance %g; using decomposition instead.\n",res,Opt.ResidualTolerance)
 
         % 
         % warning("UaPardisoSolve:Residual","PARDISO relative residual %g is above the tolerance %g; using decomposition instead.",...
