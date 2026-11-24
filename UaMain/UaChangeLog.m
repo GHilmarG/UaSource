@@ -24,6 +24,24 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * KKT_null_space_decomposition_chol.m (23 November 2026): if the reduced Hessian is not positive definite, the Cholesky
+% factorisation raised an error that stopped the run (it bypassed the convergence test in SSTREAM2dNR2.m and the handling of
+% non-convergence in uv.m and JGH.m, which returns J=NaN). An LDL factorisation is now used instead (with a warning), so that
+% the existing convergence handling applies.
+%
+% * MATLAB optimisation toolbox (23 November 2026): the cost function passed to fmincon/fminunc is wrapped in
+% JGHforMatlabOptimisation.m (new; InvertForModelParameters.m): if the forward problem cannot be solved at a trial point (eg the
+% Cholesky factorisation in the velocity solve fails for extreme parameter values), J=Inf is returned and fmincon (interior-point)
+% tries a shorter step, instead of the inversion stopping with an error. Previously, the Inverse example in UaExamples stopped in
+% the second iteration with the default -MatlabOptimisation-GradientBased-.
+%
+% * Spatially correlated velocity errors (23 November 2026): Meas.uvCorr (Measurements.m; [] by default) with fields sigma and rho:
+% the velocity errors are the sum of a Matern field (alpha=2, on the mesh, SPDE precision Q_e) and the uncorrelated part usErr, vsErr.
+% CorrelatedPointDataMisfit.m (new) evaluates the misfit and its gradient with the Woodbury identity (K = Q_e + O' D^{-1} O factorised
+% once and kept); used in Misfit.m and Jq.m; the correction -A K^{-1} A to the Gauss-Newton Hessian is set up in
+% AssembleHessianBlocks.m (Blocks.KqqCorrU, KqqCorrV) and applied in HessianVectorProduct.m. Checked against the dense covariance
+% (misfit, gradient and Hessian-vector product to 1e-14) and by finite differences (adjoint gradient to 1e-6).
+%
 % * Inverse restart files during the inversion (23 November 2026): CtrlVar.Inverse.RestartFileWriteInterval (default 500; 0 switches it off): if > 0,
 % UaOptimisationHessianVectorBased.m, UaOptimisationGradientBased.m and UaOptimisationGradientBasedBounded.m write an inverse restart file
 % every this many iterations, with the

@@ -32,6 +32,9 @@ classdef Measurements
         usErr=[];   % errors (standard deviations) of usData
         vsErr=[];   % errors (standard deviations) of vsData
         uvO=[];     % Node2Data mapping matrix for (uvx,uvy), this is a property of both the data and the mesh!
+        uvCorr=[];  % (23 Nov 2026) spatially correlated velocity errors: [] (default, errors usErr, vsErr uncorrelated) or a structure with
+                    % fields sigma and rho (Matern, alpha=2, on the mesh); usErr, vsErr are then the uncorrelated parts (nugget), see
+                    % CorrelatedPointDataMisfit.m
 
         % Measurements of dh/dt used if CtrlVar.Inverse.DataMisfit.dhdt.Method="-points-" or "-blocks-"
         % (see CreateDhdtPointMeasurements.m and CreateDhdtBlockMeasurements.m)

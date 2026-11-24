@@ -90,8 +90,13 @@ if contains(CtrlVar.Inverse.Measurements,"-uv-")
     if is_uv_points_misfit(CtrlVar)
 
         % "-points-" formulation, see Misfit.m and PointDataMisfit.m (14 November 2026)
-        [Iu,duIdu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,us);
-        [Iv,dvIdv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,vs);
+        if isempty(Meas.uvCorr)
+            [Iu,duIdu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,us);
+            [Iv,dvIdv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,vs);
+        else   % (23 Nov 2026) spatially correlated errors, see CorrelatedPointDataMisfit.m
+            [Iu,duIdu]=CorrelatedPointDataMisfit(CtrlVar,MUA,Meas.uvO,Meas.usData,Meas.usErr,us,Meas.uvCorr);
+            [Iv,dvIdv]=CorrelatedPointDataMisfit(CtrlVar,MUA,Meas.uvO,Meas.vsData,Meas.vsErr,vs,Meas.uvCorr);
+        end
         Iuv=Iu+Iv;
 
     else

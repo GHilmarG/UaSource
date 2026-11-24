@@ -38,6 +38,13 @@ A=Blocks.Kqq*W+Blocks.Kpq'*V ;
 if isfield(Blocks,"KqqAG") && ~isempty(Blocks.KqqAG)
     A=A+Blocks.KqqAG'*(Blocks.Kqqw.*(Blocks.KqqAG*W)) ;   % dh/dt part of K_qq in factored form (16 Nov 2026)
 end
+if isfield(Blocks,"KqqCorrU") && ~isempty(Blocks.KqqCorrU)
+    % (23 Nov 2026) spatially correlated velocity errors: -A K^{-1} A applied to the u and v parts, see CorrelatedPointDataMisfit.m
+    Nn=size(Blocks.KqqCorrU.A,1) ;
+    Cu=Blocks.KqqCorrU ; Cv=Blocks.KqqCorrV ;
+    A(1:Nn,:)=A(1:Nn,:)-Cu.A*(Cu.L'\(Cu.L\(Cu.A*W(1:Nn,:)))) ;
+    A(Nn+1:2*Nn,:)=A(Nn+1:2*Nn,:)-Cv.A*(Cv.L'\(Cv.L\(Cv.A*W(Nn+1:2*Nn,:)))) ;
+end
 
 % 3) adjoint solve
 if Blocks.Symmetric

@@ -115,7 +115,20 @@ xp   = A' * (dAAT \ b);             % n x 1 particular solution
 Hr  = Z' * (H * Z);                  % (n-m) x (n-m)
 Hr=(Hr+Hr')/2 ; % symmetrize as the reduced Hessian must be symmetrical by construction, but may not always be so due to rounding errors. 
 if ~UsePardiso
-    dHr = decomposition(Hr, 'chol');
+    % (23 Nov 2026) if the reduced Hessian is not positive definite (eg in a Newton iteration far from the solution, or for extreme
+    % parameter values at a trial point of an inversion), the Cholesky factorisation fails with an error. Then a symmetric indefinite
+    % (LDL) factorisation is used instead, so that the step can still be computed, and the convergence test and line search of the
+    % calling solver (eg SSTREAM2dNR2.m, with uv.m and JGH.m handling non-convergence) decide what happens next.
+    try
+        dHr = decomposition(Hr, 'chol');
+    catch ME
+        if ME.identifier=="MATLAB:decomposition:InvalidAForCholSPD"
+            warning("KKT_null_space_decomposition_chol:NotSPD","Reduced Hessian not positive definite; using an LDL factorisation instead.")
+            dHr = decomposition(Hr, 'ldl');
+        else
+            rethrow(ME)
+        end
+    end
 end
 
 % --- Step 4: Solve reduced system Hr * u = Z'*(g - H*xp) ---

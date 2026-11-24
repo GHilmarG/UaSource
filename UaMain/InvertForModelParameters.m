@@ -465,7 +465,10 @@ else
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
 
         clear fminconOutputFunction fminconHessianFcn fminuncOutfun HessianMultiplyHVP
-        [p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
+        % (23 Nov 2026) the cost function is wrapped, so that a failure of the forward solve at a trial point (eg for extreme parameter
+% values) returns J=Inf instead of stopping the inversion, see JGHforMatlabOptimisation.m
+funcMatlab=@(p) JGHforMatlabOptimisation(func,p);
+[p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,funcMatlab,p0,plb,pub,Hfunc,Aineq,bineq);
 
     else
         error("CaseNotFound")
