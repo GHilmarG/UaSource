@@ -94,20 +94,42 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     subtitle("")
 end
 
-usError=sqrt(spdiags(Meas.usCov));
-vsError=sqrt(spdiags(Meas.vsCov));
-dhdtError=sqrt(spdiags(Meas.dhdtCov));
+if isempty(Meas.usErr)
+    if ~isempty(Meas.us)  &  ~isempty(Meas.us)  &  ~isempty(Meas.usCov)
+        Meas.usErr=sqrt(spdiags(Meas.usCov));
+    else
+        Meas.usErr=[];
+    end
+end
+
+if isempty(Meas.vsErr)
+    if ~isempty(Meas.vs)  &  ~isempty(Meas.vs)  &  ~isempty(Meas.vsCov)
+        Meas.vsErr=sqrt(spdiags(Meas.vsCov));
+    else
+        Meas.vsErr=[];
+    end
+end
+
+
+if isempty(Meas.dhdtErr)
+    if ~isempty(Meas.dhdt)  &  ~isempty(Meas.dhdt)  &  ~isempty(Meas.dhdtCov)
+        Meas.dhdtErr=sqrt(spdiags(Meas.dhdtCov));
+    else
+        Meas.dhdtErr=[];
+    end
+end
+
 
 
 
 nexttile
-cbar=UaPlots(CtrlVar,MUA,F,usError,CreateNewFigure=false);
+cbar=UaPlots(CtrlVar,MUA,F,Meas.usErr,CreateNewFigure=false);
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('us error on numerical grid') ;
 subtitle("")
 
 nexttile
-cbar=UaPlots(CtrlVar,MUA,F,vsError,CreateNewFigure=false);
+cbar=UaPlots(CtrlVar,MUA,F,Meas.vsErr,CreateNewFigure=false);
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('vs error on numerical grid') ;
 subtitle("")
@@ -115,7 +137,7 @@ subtitle("")
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     nexttile
-    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false);
+    cbar=UaPlots(CtrlVar,MUA,F,Meas.dhdtErr,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     title('dh/dt error on numerical grid') ;
     subtitle("")
@@ -450,11 +472,7 @@ if ~exist('us','var')
     us=F.ub+F.ud; vs=F.vb+F.vd;
 end
 
-if ~exist('usError','var')
-    usError=sqrt(spdiags(Meas.usCov));
-    vsError=sqrt(spdiags(Meas.vsCov));
-    % wsError=sqrt(spdiags(Meas.wsCov));
-end
+
 if ~exist('GLgeo','var')
     GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar); xGL=[] ; yGL=[] ;
 end
@@ -493,7 +511,7 @@ else
 
 
     speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
-    ErrSpeed=sqrt(usError.^2+vsError.^2);
+    ErrSpeed=sqrt(Meas.usErr.^2+Meas.vsErr.^2);
 
     T=tiledlayout("flow");
 
@@ -613,7 +631,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
 
     axdhdt3=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,(F.dhdt-Meas.dhdt)./dhdtError,CreateNewFigure=false);
+    cbar=UaPlots(CtrlVar,MUA,F,(F.dhdt-Meas.dhdt)./Meas.dhdtErr,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     title("$(\dot{h}_{\mathrm{Modelled}}-\dot{h}_{\mathrm{Measured}})/\dot{h}_{\mathrm{Error}}$",Interpreter="latex") ;
@@ -624,7 +642,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     axdhdt4=nexttile;
 
-    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false,logColorbar=false);
+    cbar=UaPlots(CtrlVar,MUA,F,Meas.dhdtErr,CreateNewFigure=false,logColorbar=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     title("$\dot{h}_{\mathrm{Error}}$",Interpreter="latex") ;
@@ -634,7 +652,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     axis(axdhdt1); clim(CLmeas)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
     axis(axdhdt2); clim(CLmod)   ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
     axis(axdhdt3); clim(CLdiff)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
-    axis(axdhdt4); clim([0 max(dhdtError)])  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt4,CM);
+    axis(axdhdt4); clim([0 max(Meas.dhdtErr)])  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt4,CM);
 
 
     T.Padding="tight";   T.TileSpacing="tight";
