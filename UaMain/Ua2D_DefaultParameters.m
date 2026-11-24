@@ -699,7 +699,7 @@ CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL
                                                           % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
 CtrlVar.LinearSolver.PARDISO.ThreadingLayer="TBB";        % "TBB" (multithreaded) or "SEQUENTIAL"; the OpenMP layer of MKL can not be used within MATLAB
 CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance=1e-12;   % (24 Nov 2026) if the normwise backward error of the solution,
-                                                          % max ||A x-b||_inf/(||A||_inf ||x||_inf+||b||_inf), is larger, the analysis is repeated
+                                                          % max ||A x-b||_1/(||A||_1 ||x||_1+||b||_1), is larger, the analysis is repeated
                                                           % (nonsymmetric systems), and if that does not help, decomposition is used instead.
                                                           % Replaces ResidualTolerance (relative residual, 1e-10), which is not scale invariant
                                                           % and could not be reached for badly scaled systems by any solver (see UaPardisoSolve.m)

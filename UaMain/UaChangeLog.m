@@ -4,6 +4,22 @@
 % 
 % *Change Log* _October 2026_
 %
+% * UaPardisoSolve.m, cost of the solves and of the accuracy check (24 November 2026):
+% (1) No iterative refinement unless pivots were perturbed, for the symmetric positive definite (uv, Cholesky) and the nonsymmetric
+% (uvh, LU) types: iparm(8)=0 instead of the default 2, set in the new local function NewPardisoHandle. The default carries out two
+% refinement steps in every solve, which made the solve phase about three times as expensive: 262k uv system 0.105 s instead of
+% 0.034 s (backward error 2.5e-19 with, 3.6e-19 without refinement, inf-norm); 65k uvh systems (MismipPlus, also with the analysis
+% reused from an earlier time step) 0.035 s instead of 0.010 s (1-2e-19 with, up to 1e-18 without; no perturbed pivots). PARDISO
+% still refines if pivots were perturbed, and the backward error is checked in every solve. The symmetric indefinite type (-2) keeps
+% the default.
+% (2) The backward error (see the entry below) is now computed in the 1-norm, eta = max_j ||A x_j-b_j||_1/(||A||_1 ||x_j||_1+||b_j||_1),
+% instead of the inf-norm: ||A||_1 (largest column sum) is cheap for MATLAB sparse matrices, ||A||_inf (largest row sum) is not, and
+% cost more than the factorisation (262k uv system: 0.003 s instead of 0.097 s; 65k uvh system: 0.001 s instead of 0.025 s). The
+% 1-norm form is typically about an order of magnitude smaller (uvh: 1e-20 instead of 1e-19); the tolerance (1e-12) is unchanged.
+% Results: HVB inversion of the entries below (3 iterations) 42 s instead of 59 s (103 s before the fallback changes), same iterates;
+% MismipPlus (2 km mesh, 40 time steps, PARDISO for all sizes) 138 s instead of 152 s, same number of factorisations (225), no
+% fallbacks, largest backward error 5e-17.
+%
 % * Symmetric (uv) systems: Cholesky first, LDL' with a warning if not positive definite, with both linear solvers (24 November 2026):
 % (1) KKT_null_space_decomposition_chol.m: in the direct reduction for nodal constraints (the route taken by the uv solves with
 % boundary conditions), H(f,f) was factorised with decomposition(Hff,'chol') with CtrlVar.LinearSolver.Type="MATLAB", so that the

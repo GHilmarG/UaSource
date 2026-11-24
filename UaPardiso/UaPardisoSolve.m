@@ -57,8 +57,10 @@ function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern,Fact
 %
 % (24 Nov 2026) Accuracy check: the normwise backward error of the solution,
 %
-%   eta = max_j ||A x_j - b_j||_inf / ( ||A||_inf ||x_j||_inf + ||b_j||_inf ) ,
+%   eta = max_j ||A x_j - b_j||_1 / ( ||A||_1 ||x_j||_1 + ||b_j||_1 ) ,
 %
+% (in the 1-norm since 24 Nov 2026, first in the inf-norm: ||A||_1, the largest column sum, is much cheaper for MATLAB sparse matrices
+% than ||A||_inf, the largest row sum, which cost more than the factorisation; see BackwardError below)
 % is compared with CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance. If eta is larger, and the analysis depends on the values of A
 % (scaling and matching, iparm(11) and iparm(13); by default only for the nonsymmetric type), the analysis is repeated with the current
 % values of A and the system solved again. For the symmetric types the analysis only depends on the pattern, so that repeating it would
@@ -126,7 +128,7 @@ if ischar(CtrlVar) || isstring(CtrlVar)
                     Stats.FactorReuses=Stats.FactorReuses+1 ;
                     % (24 Nov 2026) backward error instead of relative residual; no new factorisation of the same matrix (see above)
                     Tol=BackwardErrorTolerance(Fac.CtrlVar.LinearSolver.PARDISO) ;
-                    if isfield(Fac,"NormA") ; NormA=Fac.NormA ; else ; NormA=norm(Fac.A,inf) ; end
+                    if isfield(Fac,"NormA") ; NormA=Fac.NormA ; else ; NormA=norm(Fac.A,1) ; end
                     eta=BackwardError(Fac.A,x,b,NormA) ;
                     if ~(eta<=Tol) && AnalysisDependsOnValues(States(k).h)
                         % repeat the analysis with the values of this matrix, and solve again (still a factorisation of Fac.A: its number is kept)
@@ -243,7 +245,7 @@ if isempty(k)
         P=StoredPattern(Af) | logical(speye(n)) ;
         if ~isempty(Apattern) ; P=P | PatternOf(Apattern,Symmetric) ; end
     end
-    New=struct("n",n,"mtype",mtype,"h",pardisoMex('init',mtype),"P",P,"LastUsed",0,"Sid",Sid,"FactorId",0) ;
+    New=struct("n",n,"mtype",mtype,"h",NewPardisoHandle(mtype),"P",P,"LastUsed",0,"Sid",Sid,"FactorId",0) ;
     if isempty(States) ; States=New ; else ; States(end+1)=New ; end
     k=numel(States) ;
 elseif Sid>0 && States(k).Sid~=Sid
@@ -261,7 +263,7 @@ try
     catch ME
         if ME.identifier~="pardisoMex:handle" ; rethrow(ME) ; end
         % the solver states of pardisoMex have been released (eg pardisoMex was cleared from memory): start again
-        States=struct("n",n,"mtype",mtype,"h",pardisoMex('init',mtype),"P",States(k).P,"LastUsed",Clock,"Sid",States(k).Sid,"FactorId",0) ;
+        States=struct("n",n,"mtype",mtype,"h",NewPardisoHandle(mtype),"P",States(k).P,"LastUsed",Clock,"Sid",States(k).Sid,"FactorId",0) ;
         k=1 ;
         r=pardisoMex('factorp',States(k).h,Af,States(k).P) ;
     end
@@ -298,7 +300,7 @@ else
 end
 
 if Mode=="factor"
-    x=struct("Type","PARDISO","FactorId",States(k).FactorId,"A",A,"NormA",norm(A,inf),"CtrlVar",CtrlVar,"Apattern",Apattern,...
+    x=struct("Type","PARDISO","FactorId",States(k).FactorId,"A",A,"NormA",norm(A,1),"CtrlVar",CtrlVar,"Apattern",Apattern,...
         "MatrixType",MatrixType,"StructuralPattern",StructuralPattern) ;
     return
 end
@@ -308,7 +310,7 @@ Stats.Solves=Stats.Solves+1 ;
 
 % (24 Nov 2026) Accuracy check with the normwise backward error (see above), instead of the relative residual
 Tol=BackwardErrorTolerance(Opt) ;
-NormA=norm(A,inf) ;
+NormA=norm(A,1) ;
 eta=BackwardError(A,x,b,NormA) ;
 if ~(eta<=Tol) && AnalysisDependsOnValues(States(k).h)
     % Repeat the analysis with the current values of A (the scaling and matching used for pivoting are computed in the analysis, from
@@ -351,19 +353,45 @@ S=struct("Analyses",0,"Factorisations",0,"Solves",0,"PatternExtensions",0,"Resol
 end
 
 %%
+function h=NewPardisoHandle(mtype)
+
+% (24 Nov 2026) New PARDISO solver state for the matrix type mtype, with the parameters used by UaPardisoSolve. For the symmetric
+% positive definite (2) and the nonsymmetric (11) types, no iterative refinement is done unless pivots were perturbed (iparm(8)=0;
+% PARDISO then still carries out two refinement steps if pivots were perturbed in the factorisation). The default (iparm(8)=2)
+% carries out two refinement steps in every solve, which made the solve phase about three times as expensive without improving
+% the solution in a way that matters: 262k uv system (Cholesky): 0.105 s instead of 0.034 s, backward error (inf-norm) 2.5e-19 with
+% and 3.6e-19 without refinement; 65k uvh systems (LU, MismipPlus, also with the analysis reused from an earlier time step): 0.035 s
+% instead of 0.010 s, 1-2e-19 with and up to 1e-18 without, no perturbed pivots. The backward error is checked in every solve (and
+% the analysis repeated, or decomposition used, if it is too large). The symmetric indefinite type (-2, Bunch-Kaufman pivoting with
+% pivot perturbation 1e-8 by default) keeps the default.
+
+h=pardisoMex('init',mtype) ;
+if mtype==2 || mtype==11
+    pardisoMex('setiparm',h,8,0) ;
+end
+
+end
+
+%%
 function eta=BackwardError(A,x,b,NormA)
 
 % (24 Nov 2026) Normwise backward error of the solution x of A x = b, the largest over the columns of b:
-%   eta = max_j ||A x_j - b_j||_inf / ( ||A||_inf ||x_j||_inf + ||b_j||_inf )
-% NormA=norm(A,inf). It is scale invariant, and of the order of the machine precision for a backward stable solver, whatever the
-% conditioning and scaling of A. Non-finite values in x give eta=NaN, which fails the test.
+%   eta = max_j ||A x_j - b_j||_1 / ( ||A||_1 ||x_j||_1 + ||b_j||_1 )
+% NormA=norm(A,1). It is the smallest relative perturbation of A and b (in the 1-norm) for which x is an exact solution (Rigal and
+% Gaches), scale invariant, and of the order of the machine precision for a backward stable solver, whatever the conditioning and
+% scaling of A. Non-finite values in x give eta=NaN, which fails the test.
+% The 1-norm is used because ||A||_1, the largest column sum, is cheap for MATLAB sparse matrices (compressed sparse column format),
+% whereas ||A||_inf, the largest row sum, is not: 262k uv system 0.003 s instead of 0.097 s, 65k uvh system 0.001 s instead of
+% 0.025 s, in both cases more than the factorisation. The inf-norm form was used first (24 Nov 2026). The 1-norm form averages the
+% residual over the rows, and is typically about an order of magnitude smaller (uvh: 1e-20 instead of 1e-19); a failed factorisation
+% gives values many orders of magnitude larger in either form.
 
 if isempty(b)
     eta=0 ;
     return
 end
 r=A*x-b ;
-eta=max( vecnorm(r,Inf,1) ./ max(NormA*vecnorm(x,Inf,1)+vecnorm(b,Inf,1),realmin) ) ;
+eta=max( vecnorm(r,1,1) ./ max(NormA*vecnorm(x,1,1)+vecnorm(b,1,1),realmin) ) ;
 
 end
 
