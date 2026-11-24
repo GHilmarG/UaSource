@@ -4,6 +4,31 @@
 % 
 % *Change Log* _October 2026_
 %
+% * PARDISO accuracy check and fallbacks (24 November 2026): UaPardisoSolve.m checked the relative residual ||A x-b||/||b|| against
+% CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10, and if that failed repeated the analysis and then used decomposition.
+% This test is not scale invariant, and for badly scaled systems no backward stable solver can pass it. In a logA, logC inversion
+% with -UaOptimisation-HessianVectorBased- (Amundsen Sea Embayment, 131k nodes, m=3, n=4) the SPD matrix K of the Hessian-vector
+% products had diagonal values from 1.5e3 to 5e12 and ||A|| ||x||/||b||=4e9: PARDISO gave relative residuals of 1e-10 to 1e-9 with
+% backward errors of about 2e-19, and decomposition, used as fallback, a larger relative residual (2.6e-10). More iterative refinement
+% steps, extended-precision refinement (iparm(8)<0), another ordering, or diagonal scaling did not change this. Changes:
+% (1) The normwise backward error eta = max_j ||A x_j-b_j||_inf/(||A||_inf ||x_j||_inf+||b_j||_inf) is checked instead, against the
+% new CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance (default 1e-12), which replaces ResidualTolerance (no longer used; if given,
+% a note is printed once). Observed values: up to 9e-18 (the inversion above), up to 7e-17 (MismipPlus transient uvh, PARDISO for all
+% sizes). The statistics give MaxBackwardError instead of MaxResidual.
+% (2) The analysis is only repeated if it depends on the values of A (scaling or matching, iparm(11) or iparm(13); by default the
+% nonsymmetric type only). For the symmetric types it only depends on the pattern, so that it gave the same factorisation again.
+% (3) Repeating the analysis gave the factorisation a new number, although it is of the same matrix. This made a factorisation
+% passed to "solve" mode stale, so that every following solve with it (eg all Hessian-vector products of the CG iteration) factorised
+% the matrix again and could fail the check again. The number is now kept, also when "solve" factorises the matrix again after the
+% factorisation was replaced by that of another matrix (new hidden seventh input FactorIdToKeep), so that the following solves reuse it.
+% (4) In "solve" mode, a failed check no longer leads to a new factorisation of the same matrix. If repeating the analysis does not
+% help (or is not done), decomposition is used, and kept (at most two) for the following solves with that factorisation (statistics:
+% FallbackReuses). Fac ("factor" mode) contains NormA=norm(A,inf).
+% Result for the inversion above (3 iterations): iterates unchanged, 0 instead of 11 fallbacks and 0 instead of 18 failed reuses of
+% factorisations, 58 s instead of 103 s. Checked also with forced fallbacks (BackwardErrorTolerance=1e-30), and for nonsymmetric
+% systems (repeated analysis, reuse after replacement, kept decomposition, several right-hand sides).
+% Ua2D_DefaultParameters.m: CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance=1e-12 instead of ResidualTolerance=1e-10.
+%
 % * Reports of A and C values set to their limits (20 November 2026): new function ReportClipping.m, which reports the number and
 % fraction of values outside given limits and how far beyond them they are (in orders of magnitude for A and C). Used in
 % TestSlipperinessInputValues.m (C outside [Cmin,Cmax], eg from GetSlipperyDistribution.m and for the start values of an inversion)

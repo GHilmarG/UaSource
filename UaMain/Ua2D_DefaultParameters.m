@@ -698,8 +698,11 @@ CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposit
 CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL runtime library mkl_rt (eg ...\Library\bin\mkl_rt.3.dll, as installed
                                                           % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
 CtrlVar.LinearSolver.PARDISO.ThreadingLayer="TBB";        % "TBB" (multithreaded) or "SEQUENTIAL"; the OpenMP layer of MKL can not be used within MATLAB
-CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10;     % if the relative residual of the solution is larger, the analysis is repeated, and if that
-                                                          % does not help, decomposition is used instead
+CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance=1e-12;   % (24 Nov 2026) if the normwise backward error of the solution,
+                                                          % max ||A x-b||_inf/(||A||_inf ||x||_inf+||b||_inf), is larger, the analysis is repeated
+                                                          % (nonsymmetric systems), and if that does not help, decomposition is used instead.
+                                                          % Replaces ResidualTolerance (relative residual, 1e-10), which is not scale invariant
+                                                          % and could not be reached for badly scaled systems by any solver (see UaPardisoSolve.m)
 CtrlVar.LinearSolver.PARDISO.MinimumSize=10000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
                                                           % more than it saves); diagonal systems are always solved directly
 CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sparsity pattern of the mesh (MUA.uvAssemblyPattern,

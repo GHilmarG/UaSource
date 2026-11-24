@@ -1,4 +1,4 @@
-function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern)
+function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern,FactorIdToKeep)
 
 %% Solves A x = b with the Intel oneMKL PARDISO sparse direct solver (through pardisoMex)
 %
@@ -19,7 +19,9 @@ function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern)
 % PARDISO state is kept for each matrix size and type, a factorisation can be replaced by that of another matrix of the same size and
 % type in the meantime (eg a forward uv solve). Each factorisation is therefore given a unique number, and "solve" checks that the
 % factorisation identified by Fac is still the current one; if not, A is factorised again (counted in the statistics as
-% FactorReuseFailures), so that a replaced factorisation is never used. The relative residual is checked as for the other solves.
+% FactorReuseFailures), so that a replaced factorisation is never used. (24 Nov 2026) The new factorisation keeps the number of Fac, so
+% that the following solves with Fac reuse it (previously every following solve with Fac factorised A again). The backward error of the
+% solution is checked as for the other solves (see below).
 % For small (n<MinimumSize) and diagonal systems Fac contains a MATLAB decomposition or the diagonal.
 %
 % (16 Oct 2026) Used by solveKApe.m, ABfgPreEliminate.m, solveKApeSymmetric.m and KKT_null_space_decomposition_chol.m if
@@ -53,9 +55,22 @@ function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern)
 % CtrlVar.LinearSolver.PARDISO.StructuralPattern=false. If A has an entry outside the structural pattern, the pattern is extended as
 % described above, so that a wrong or outdated structural pattern costs time, but does not affect the solution.
 %
-% The relative residual of the solution is checked. If it is larger than CtrlVar.LinearSolver.PARDISO.ResidualTolerance, the analysis
-% is repeated with the current values of A (the scaling and matching used for pivoting are computed in the analysis, from the values of
-% A at that time), and the system solved again. If the residual is still too large, the system is solved with decomposition instead.
+% (24 Nov 2026) Accuracy check: the normwise backward error of the solution,
+%
+%   eta = max_j ||A x_j - b_j||_inf / ( ||A||_inf ||x_j||_inf + ||b_j||_inf ) ,
+%
+% is compared with CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance. If eta is larger, and the analysis depends on the values of A
+% (scaling and matching, iparm(11) and iparm(13); by default only for the nonsymmetric type), the analysis is repeated with the current
+% values of A and the system solved again. For the symmetric types the analysis only depends on the pattern, so that repeating it would
+% give the same factorisation. If eta is still too large, the system is solved with decomposition instead. For a factorisation used
+% with "solve", this decomposition is kept (at most two), and the following solves with that factorisation use it directly.
+%
+% Previously the relative residual ||A x-b||/||b|| was checked (CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10, no longer used).
+% That test is not scale invariant: ||A x-b||/||b|| can be as large as eta ||A|| ||x||/||b||, so that for badly scaled systems no
+% backward stable solver can pass it. Eg in a logA, logC inversion (Amundsen Sea Embayment, 131k nodes, m=3, n=4) the SPD matrix K of
+% the Hessian-vector products had diagonal values from 1.5e3 to 5e12 and ||A|| ||x||/||b||=4e9. PARDISO gave relative residuals of 1e-10
+% to 1e-9, with backward errors of about 2e-19, and decomposition, used as fallback, a larger relative residual (2.6e-10) than PARDISO,
+% so that the fallbacks (most Hessian-vector products) cost time without making the solutions more accurate.
 %
 % The MKL runtime library (mkl_rt) is not part of MATLAB, and must be installed separately, eg from PyPI (pip install mkl). Its path is
 % given by CtrlVar.LinearSolver.PARDISO.Library or, if empty, by the environment variable UA_MKL_RT. Within MATLAB, the TBB threading
@@ -63,7 +78,7 @@ function x=UaPardisoSolve(CtrlVar,A,b,Apattern,MatrixType,StructuralPattern)
 %
 %%
 
-persistent States Stats Clock FactorCount
+persistent States Stats Clock FactorCount FallbackCache
 
 MaxStates=6 ;
 
@@ -88,27 +103,50 @@ if ischar(CtrlVar) || isstring(CtrlVar)
                 case "decomposition"
                     x=Fac.dA\b ;
                 case "PARDISO"
+                    % (24 Nov 2026) a decomposition used instead of this factorisation, as its backward error was too large
+                    c=[] ;
+                    if ~isempty(FallbackCache) ; c=find([FallbackCache.FactorId]==Fac.FactorId,1) ; end
+                    if ~isempty(c)
+                        x=FallbackCache(c).dA\b ;
+                        Stats.FallbackReuses=Stats.FallbackReuses+1 ;
+                        return
+                    end
                     k=[] ;
                     if ~isempty(States) ; k=find([States.FactorId]==Fac.FactorId,1) ; end
                     if isempty(k)
-                        % the factorisation has been replaced in the meantime: factorise again (and solve)
+                        % the factorisation has been replaced in the meantime: factorise again (and solve). (24 Nov 2026) The new
+                        % factorisation is of the same matrix, and keeps the number of Fac, so that the following solves with Fac reuse it.
                         Stats.FactorReuseFailures=Stats.FactorReuseFailures+1 ;
-                        x=UaPardisoSolve(Fac.CtrlVar,Fac.A,b,Fac.Apattern,Fac.MatrixType,Fac.StructuralPattern) ;
+                        x=UaPardisoSolve(Fac.CtrlVar,Fac.A,b,Fac.Apattern,Fac.MatrixType,Fac.StructuralPattern,Fac.FactorId) ;
                         return
                     end
                     Clock=Clock+1 ; States(k).LastUsed=Clock ;
                     x=pardisoMex('solvep',States(k).h,b) ;
                     Stats.Solves=Stats.Solves+1 ;
                     Stats.FactorReuses=Stats.FactorReuses+1 ;
-                    nb=max(norm(b,"fro"),realmin) ;
-                    res=norm(Fac.A*x-b,"fro")/nb ;
-                    Opt=Fac.CtrlVar.LinearSolver.PARDISO ;
-                    if ~(res<=Opt.ResidualTolerance)
-                        % residual too large: solve with a new factorisation (with the checks and fallbacks used otherwise)
-                        x=UaPardisoSolve(Fac.CtrlVar,Fac.A,b,Fac.Apattern,Fac.MatrixType,Fac.StructuralPattern) ;
-                        return
+                    % (24 Nov 2026) backward error instead of relative residual; no new factorisation of the same matrix (see above)
+                    Tol=BackwardErrorTolerance(Fac.CtrlVar.LinearSolver.PARDISO) ;
+                    if isfield(Fac,"NormA") ; NormA=Fac.NormA ; else ; NormA=norm(Fac.A,inf) ; end
+                    eta=BackwardError(Fac.A,x,b,NormA) ;
+                    if ~(eta<=Tol) && AnalysisDependsOnValues(States(k).h)
+                        % repeat the analysis with the values of this matrix, and solve again (still a factorisation of Fac.A: its number is kept)
+                        if States(k).mtype==11 ; AfFac=Fac.A ; else ; AfFac=tril(Fac.A) ; end
+                        pardisoMex('factorp',States(k).h,AfFac,States(k).P,'reanalyse') ;
+                        x=pardisoMex('solvep',States(k).h,b) ;
+                        Stats.Analyses=Stats.Analyses+1 ;
+                        Stats.Factorisations=Stats.Factorisations+1 ;
+                        Stats.Resolves=Stats.Resolves+1 ;
+                        eta=BackwardError(Fac.A,x,b,NormA) ;
                     end
-                    Stats.MaxResidual=max(Stats.MaxResidual,res) ;
+                    if ~(eta<=Tol)
+                        fprintf("UaPardisoSolve: PARDISO backward error %g is above the tolerance %g; using decomposition instead.\n",eta,Tol)
+                        dA=decomposition(Fac.A) ;
+                        x=dA\b ;
+                        FallbackCache=AddToFallbackCache(FallbackCache,Fac.FactorId,dA) ;
+                        Stats.Fallbacks=Stats.Fallbacks+1 ;
+                        eta=BackwardError(Fac.A,x,b,NormA) ;
+                    end
+                    Stats.MaxBackwardError=max(Stats.MaxBackwardError,eta) ;
                 otherwise
                     error("UaPardisoSolve:Fac","Unknown factorisation type.")
             end
@@ -124,7 +162,7 @@ if ischar(CtrlVar) || isstring(CtrlVar)
                 catch
                 end
             end
-            States=[] ; Stats=NewStats() ; x=[] ; StructuralPatternOf("reset") ;
+            States=[] ; Stats=NewStats() ; x=[] ; StructuralPatternOf("reset") ; FallbackCache=[] ;
         otherwise
             error("UaPardisoSolve:Usage","Unknown command %s.",CtrlVar)
     end
@@ -136,6 +174,7 @@ if isempty(Clock) ; Clock=0 ; end
 if nargin<4 ; Apattern=[] ; end
 if nargin<5 || isempty(MatrixType) ; MatrixType="nonsymmetric" ; end
 if nargin<6 ; StructuralPattern=[] ; end
+if nargin<7 || isempty(FactorIdToKeep) ; FactorIdToKeep=0 ; end   % (24 Nov 2026) see the "solve" mode
 switch lower(string(MatrixType))
     case "nonsymmetric" ; mtype=11 ;
     case "spd"          ; mtype=2 ;
@@ -251,10 +290,15 @@ catch ME
 end
 Stats.Analyses=Stats.Analyses+r ;
 Stats.Factorisations=Stats.Factorisations+1 ;
-FactorCount=FactorCount+1 ; States(k).FactorId=FactorCount ;   % (16 Nov 2026) identifies this factorisation
+if FactorIdToKeep>0
+    States(k).FactorId=FactorIdToKeep ;   % (24 Nov 2026) a new factorisation of the matrix of a given factorisation ("solve" mode)
+else
+    FactorCount=FactorCount+1 ;
+    States(k).FactorId=FactorCount ;   % (16 Nov 2026) identifies this factorisation
+end
 
 if Mode=="factor"
-    x=struct("Type","PARDISO","FactorId",States(k).FactorId,"A",A,"CtrlVar",CtrlVar,"Apattern",Apattern,...
+    x=struct("Type","PARDISO","FactorId",States(k).FactorId,"A",A,"NormA",norm(A,inf),"CtrlVar",CtrlVar,"Apattern",Apattern,...
         "MatrixType",MatrixType,"StructuralPattern",StructuralPattern) ;
     return
 end
@@ -262,31 +306,34 @@ end
 x=pardisoMex('solvep',States(k).h,b) ;
 Stats.Solves=Stats.Solves+1 ;
 
-nb=max(norm(b,"fro"),realmin) ;
-res=norm(A*x-b,"fro")/nb ;
-if ~(res<=Opt.ResidualTolerance)
-    % repeat the analysis with the current values of A, and solve again
+% (24 Nov 2026) Accuracy check with the normwise backward error (see above), instead of the relative residual
+Tol=BackwardErrorTolerance(Opt) ;
+NormA=norm(A,inf) ;
+eta=BackwardError(A,x,b,NormA) ;
+if ~(eta<=Tol) && AnalysisDependsOnValues(States(k).h)
+    % Repeat the analysis with the current values of A (the scaling and matching used for pivoting are computed in the analysis, from
+    % the values of A at that time), and solve again. (24 Nov 2026) Only if the analysis depends on the values of A, ie not for the
+    % symmetric types with the default parameters, where it would give the same factorisation. The factorisation is of the same
+    % matrix, so it keeps its number (previously a new number was given, which made a factorisation passed to "solve" mode stale).
     pardisoMex('factorp',States(k).h,Af,States(k).P,'reanalyse') ;
     x=pardisoMex('solvep',States(k).h,b) ;
     Stats.Analyses=Stats.Analyses+1 ;
     Stats.Factorisations=Stats.Factorisations+1 ;
-    FactorCount=FactorCount+1 ; States(k).FactorId=FactorCount ;
     Stats.Resolves=Stats.Resolves+1 ;
-    res=norm(A*x-b,"fro")/nb ;
-    if ~(res<=Opt.ResidualTolerance)
-      
-        fprintf("UaPardisoSolve:Residual: PARDISO relative residual %g is above the tolerance %g; using decomposition instead.\n",res,Opt.ResidualTolerance)
-
-        % 
-        % warning("UaPardisoSolve:Residual","PARDISO relative residual %g is above the tolerance %g; using decomposition instead.",...
-        %     res,Opt.ResidualTolerance)
-        
-        x=decomposition(A)\b ;
-        Stats.Fallbacks=Stats.Fallbacks+1 ;
-        res=norm(A*x-b,"fro")/nb ;
-    end
+    eta=BackwardError(A,x,b,NormA) ;
 end
-Stats.MaxResidual=max(Stats.MaxResidual,res) ;
+if ~(eta<=Tol)
+    fprintf("UaPardisoSolve: PARDISO backward error %g is above the tolerance %g; using decomposition instead.\n",eta,Tol)
+    dA=decomposition(A) ;
+    x=dA\b ;
+    if FactorIdToKeep>0
+        % (24 Nov 2026) called from "solve" mode: the following solves with that factorisation use this decomposition
+        FallbackCache=AddToFallbackCache(FallbackCache,FactorIdToKeep,dA) ;
+    end
+    Stats.Fallbacks=Stats.Fallbacks+1 ;
+    eta=BackwardError(A,x,b,NormA) ;
+end
+Stats.MaxBackwardError=max(Stats.MaxBackwardError,eta) ;
 
 end
 
@@ -299,7 +346,71 @@ end
 %%
 function S=NewStats()
 S=struct("Analyses",0,"Factorisations",0,"Solves",0,"PatternExtensions",0,"Resolves",0,"Fallbacks",0,"SPDFallbacks",0,...
-    "SmallSystems",0,"DiagonalSystems",0,"StatesReleased",0,"StructuralPatterns",0,"MaxResidual",0,"States",0,"FactorReuses",0,"FactorReuseFailures",0) ;
+    "SmallSystems",0,"DiagonalSystems",0,"StatesReleased",0,"StructuralPatterns",0,"MaxBackwardError",0,"States",0,"FactorReuses",0,"FactorReuseFailures",0,...
+    "FallbackReuses",0) ;   % (24 Nov 2026) MaxBackwardError replaces MaxResidual; FallbackReuses: solves with a kept decomposition
+end
+
+%%
+function eta=BackwardError(A,x,b,NormA)
+
+% (24 Nov 2026) Normwise backward error of the solution x of A x = b, the largest over the columns of b:
+%   eta = max_j ||A x_j - b_j||_inf / ( ||A||_inf ||x_j||_inf + ||b_j||_inf )
+% NormA=norm(A,inf). It is scale invariant, and of the order of the machine precision for a backward stable solver, whatever the
+% conditioning and scaling of A. Non-finite values in x give eta=NaN, which fails the test.
+
+if isempty(b)
+    eta=0 ;
+    return
+end
+r=A*x-b ;
+eta=max( vecnorm(r,Inf,1) ./ max(NormA*vecnorm(x,Inf,1)+vecnorm(b,Inf,1),realmin) ) ;
+
+end
+
+%%
+function Tol=BackwardErrorTolerance(Opt)
+
+% (24 Nov 2026) CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance, with its default if not given. The former
+% CtrlVar.LinearSolver.PARDISO.ResidualTolerance (a relative residual) is no longer used; a note is printed once if it is given.
+
+persistent Noted
+
+Tol=1e-12 ;
+if isfield(Opt,"BackwardErrorTolerance") && ~isempty(Opt.BackwardErrorTolerance)
+    Tol=Opt.BackwardErrorTolerance ;
+end
+if isempty(Noted) && isfield(Opt,"ResidualTolerance") && ~isempty(Opt.ResidualTolerance)
+    Noted=true ;
+    fprintf("UaPardisoSolve: CtrlVar.LinearSolver.PARDISO.ResidualTolerance is no longer used; the accuracy check now uses the backward error, with CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance=%g.\n",Tol)
+end
+
+end
+
+%%
+function tf=AnalysisDependsOnValues(h)
+
+% (24 Nov 2026) True if the analysis (phase 11) of the PARDISO state h uses the values of the matrix, ie scaling (iparm(11)) or
+% weighted matching (iparm(13)) is switched on. By default this is the case for the nonsymmetric type (11) only; for the symmetric
+% types the analysis then only depends on the pattern, and repeating it gives the same factorisation.
+
+ip=pardisoMex('iparm',h) ;
+tf = ip(11)~=0 || ip(13)~=0 ;
+
+end
+
+%%
+function C=AddToFallbackCache(C,FactorId,dA)
+
+% (24 Nov 2026) Keeps the decomposition dA used instead of the PARDISO factorisation with the number FactorId (at most two are kept, as
+% these can be large).
+
+E=struct("FactorId",FactorId,"dA",dA) ;
+if isempty(C)
+    C=E ;
+else
+    C=[C(end) E] ;
+end
+
 end
 
 %%
