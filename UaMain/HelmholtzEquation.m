@@ -1,6 +1,6 @@
 
 
-function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d,RHS)
+function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d,RHS,BCs)
 
 %% 
 % Solves the in-homogeneous Helmholtz equation with variable coefficients in two dimensions:
@@ -24,6 +24,18 @@ function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA
 %
 % where  $c= -a \tilde{f}$ and $d= -b \tilde{f}$, and $\tilde{f}$ is a given function
 %
+% Boundary conditions:
+%
+% Without BCs (or with BCs=[]) natural boundary conditions apply (as before). Dirichlet conditions, and ties between nodes, can be
+% given in BCs, a BoundaryConditions object, of which the thickness fields are used:
+%
+%   BCs.hFixedNode, BCs.hFixedValue   : nodes where f is prescribed, and the values
+%   BCs.hTiedNodeA, BCs.hTiedNodeB    : f(hTiedNodeA)=f(hTiedNodeB) (eg periodic boundary conditions)
+%   (BCs.hPosNode, BCs.hPosValue are treated as BCs.hFixedNode, BCs.hFixedValue)
+%
+% The constraints are formed by BCs2MLC.m (MLC.hL, MLC.hRhs), as elsewhere in Ua, and imposed with Lagrange multipliers
+% (solveKApe.m), which are returned in lambda. BCs2MLC.m checks that no node is constrained more than once.
+%
 % Examples:  
 %
 % Smooth a given field over a FE mesh:
@@ -36,30 +48,31 @@ function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA
 %    figure(2) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,F.B) ; title(' Original field')  ; xlabel('x (km)') ; ylabel('y (km)') 
 %    figure(3) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,SmoothedField-F.B) ; title(' Smoothed-Original')  ; xlabel('x (km)') ; ylabel('y (km)') 
 %
+% A field that is prescribed at the boundary nodes and decays inwards over the length L (Dirichlet conditions):
+%
+%    BCs=BoundaryConditions; BCs.hFixedNode=MUA.Boundary.Nodes; BCs.hFixedValue=ValuesAtTheBoundary;
+%    [UserVar,f]=HelmholtzEquation([],CtrlVar,MUA,1,L^2,0,0,[],BCs);
+%
 %
 %%
-narginchk(7,8)
+narginchk(7,9)
 
 
 [UserVar,HEmatrix,HErhs]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c,d);
 L=[] ; Lrhs=[] ; lambda=[]; f=[] ;
 
-if nargin==8 && ~isempty(RHS)
+if nargin>=8 && ~isempty(RHS)
     HErhs=RHS;
+end
+
+% Dirichlet conditions and ties (the h fields of BCs), imposed with Lagrange multipliers, through BCs2MLC.m as elsewhere in Ua
+if nargin==9 && ~isempty(BCs)
+    MLC=BCs2MLC(CtrlVar,MUA,BCs);
+    L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
 end
 
 [f,lambda]=solveKApe(HEmatrix,L,HErhs,Lrhs,f,lambda,CtrlVar);
 f=full(f);
 
-%
-% MLC=BCs2MLC(CtrlVar,MUA,BCsTracer);
-% L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
-% [c1,lambda]=solveKApe(kv,L,rh,Lrhs,c0,lambda,CtrlVar);
-% c1=full(c1);
-
 
 end
-
-
-
-

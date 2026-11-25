@@ -103,7 +103,7 @@ else
         nonlcon = [];
 
 
-        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        if contains(CtrlVar.Inverse.MinimisationMethod,"HessianBased")
 
 
 

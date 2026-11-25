@@ -698,8 +698,11 @@ CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposit
 CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL runtime library mkl_rt (eg ...\Library\bin\mkl_rt.3.dll, as installed
                                                           % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
 CtrlVar.LinearSolver.PARDISO.ThreadingLayer="TBB";        % "TBB" (multithreaded) or "SEQUENTIAL"; the OpenMP layer of MKL can not be used within MATLAB
-CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10;     % if the relative residual of the solution is larger, the analysis is repeated, and if that
-                                                          % does not help, decomposition is used instead
+CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance=1e-12;   % (24 Nov 2026) if the normwise backward error of the solution,
+                                                          % max ||A x-b||_1/(||A||_1 ||x||_1+||b||_1), is larger, the analysis is repeated
+                                                          % (nonsymmetric systems), and if that does not help, decomposition is used instead.
+                                                          % Replaces ResidualTolerance (relative residual, 1e-10), which is not scale invariant
+                                                          % and could not be reached for badly scaled systems by any solver (see UaPardisoSolve.m)
 CtrlVar.LinearSolver.PARDISO.MinimumSize=10000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
                                                           % more than it saves); diagonal systems are always solved directly
 CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sparsity pattern of the mesh (MUA.uvAssemblyPattern,
@@ -985,7 +988,7 @@ CtrlVar.Inverse.MinimisationMethodOptions=[...
     "-MatlabOptimisation-HessianBased-"; ...         % Hessian-based, MATLAB toolbox
     "-UaOptimisation-GradientBased-"; ...            % gradient-based, Ua Optimisation toolbox
     "-UaOptimisation-HessianBased-"; ...             % Hessian-based, Ua Optimisation toolbox
-    "-UaOptimisation-NewtonCG-"     ];               % inexact Newton (Hessian-vector products) with preconditioned CG and a trust region, Ua Optimisation toolbox
+    "-UaOptimisation-HessianVectorBased-"     ];     % inexact Newton (Hessian-vector products) with preconditioned CG and a trust region, Ua Optimisation toolbox
    
 % If a Hessian-based Optimisation is used, the the expressions for the Hessians can be selected as follows:
 
@@ -1003,24 +1006,32 @@ CtrlVar.Inverse.HessianCalculationOptions=[...
 % With CtrlVar.Inverse.HessianCalculation="-HVP-" and CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-HessianBased-", fmincon
 % (interior-point, SubproblemAlgorithm="cg") is given Hessian-vector products (HessianMultiplyFcn) instead of the full Hessian, see
 % HessianMultiplyHVP.m. The Hessian is then never formed. The Hessian-vector products are calculated by HessianVectorProduct.m, from
-% the sparse blocks assembled by AssembleHessianBlocks.m, and are also used by CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-".
+% the sparse blocks assembled by AssembleHessianBlocks.m, and are also used by CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-".
 %
 %   CtrlVar.Inverse.HVP.Type="-GN-"   : Gauss-Newton Hessian (positive semi-definite), default
 %   CtrlVar.Inverse.HVP.Type="-full-" : full Hessian (all second-order terms), in general indefinite
 %
 CtrlVar.Inverse.HVP.Type="-GN-" ;
 
-% (15 November 2026) Settings for CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-" (see UaOptimisationNewtonCG.m):
+% (15 November 2026) Settings for CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-" (see UaOptimisationHessianVectorBased.m):
 % inexact Newton with Hessian-vector products, the Newton system solved approximately with conjugate gradients preconditioned with the
 % metric G (the Hessian of the regularisation term), and a trust region measured in the G norm (Steihaug-Toint). Box constraints are
 % imposed through the box transform (CtrlVar.Inverse.BoxTransform=true), so the Optimisation problem is unconstrained.
-CtrlVar.Inverse.NewtonCG.MaxInnerIterations=200;     % maximum number of CG iterations for each Newton step
-CtrlVar.Inverse.NewtonCG.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
-CtrlVar.Inverse.NewtonCG.MaxForcingTerm=0.5;          % the CG iteration stops when |r|<eta |g| with eta=min(MaxForcingTerm,sqrt(|g|/|g0|)) (in the inverse G norm)
-CtrlVar.Inverse.NewtonCG.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
-CtrlVar.Inverse.NewtonCG.NodalTrustRegionScaling=false; % (experimental) trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation)
-CtrlVar.Inverse.NewtonCG.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
-CtrlVar.Inverse.NewtonCG.LocalisationShare=0.5;
+CtrlVar.Inverse.HessianVectorBased.MaxInnerIterations=200;     % maximum number of CG iterations for each Newton step
+CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
+CtrlVar.Inverse.HessianVectorBased.MaxForcingTerm=0.1;          % upper limit of the relative tolerance of the inner CG iteration (Eisenstat-Walker forcing term). (16 Nov 2026) 0.5 -> 0.1: Hessian-vector products are cheap compared with the work done once per Newton step
+CtrlVar.Inverse.HessianVectorBased.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
+CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling="off";  % "off", "on" or "auto" (experimental): trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation). "auto": switched on once the trust region has collapsed
+CtrlVar.Inverse.HessianVectorBased.AutoCollapseFactor=1e-2;    % "auto": the trust region is considered collapsed if Delta < AutoCollapseFactor * (largest Delta in the run)
+CtrlVar.Inverse.HessianVectorBased.AutoActivationRadius=[];    % "auto": at activation Delta is set to AutoActivationRadius * (largest Delta in the run), [] keeps Delta (default, 16 Nov 2026: faster in the nx50 tests)
+CtrlVar.Inverse.HessianVectorBased.RestrictedPreconditioner="auto";   % with variables at bounds: "exact" (factorise G restricted to the free variables), "approximate" (restriction of the factorisation of G), "auto" (approximate if at most 5% of the variables are at bounds)
+
+% (16 Nov 2026) Maximum wall-clock time (seconds) of the inverse iterations, for -UaOptimisation-GradientBased- and -UaOptimisation-HessianVectorBased-.
+% The inversion stops after the first iteration that ends after this time. The wall-clock time at the end of each iteration (from the
+% start of the inverse iterations of the run) is stored in RunInfo.Inverse.ElapsedTime.
+CtrlVar.Inverse.MaxWallClockTime=inf;
+CtrlVar.Inverse.HessianVectorBased.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
+CtrlVar.Inverse.HessianVectorBased.LocalisationShare=0.5;
 
 
 % Should a Riesz-mapped gradient be used?
@@ -1033,7 +1044,7 @@ CtrlVar.Inverse.NewtonCG.LocalisationShare=0.5;
 %
 if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
     CtrlVar.Inverse.RieszMapGradient=true;
-elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"HessianBased")
     CtrlVar.Inverse.RieszMapGradient=false;
 end
 
@@ -1050,6 +1061,8 @@ CtrlVar.Inverse.FunctionTolerance=1e-6 ;  % see MATLAB documentation on the use 
 CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab Optimisation toolbox
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
+CtrlVar.Inverse.RestartFileWriteInterval=500; % (23 Nov 2026) if > 0, an inverse restart file is also written every this many iterations during the
+                                            % inversion (-UaOptimisation-HessianVectorBased- and -GradientBased-), so that a stopped run can be continued
 CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 
@@ -1321,7 +1334,7 @@ if license('test','Optimization_Toolbox')   % note, US spelling
         'PlotFcn',{@optimplotlogfval,@optimplotstepsize,@optimplotfirstorderopt},...
         'StepTolerance',CtrlVar.Inverse.StepTolerance,...
         'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
-        'UseParallel',true,...
+        'UseParallel',false,...
         'HessianApproximation',{'lbfgs',25},...
         'HessianFcn',[],...
         'HessianMultiplyFcn',[],...
@@ -1350,7 +1363,7 @@ if license('test','Optimization_Toolbox')   % note, US spelling
         'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
         'StepTolerance',CtrlVar.Inverse.StepTolerance,...
         'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
-        'UseParallel',true,...
+        'UseParallel',false,...
         'HessianFcn',Hfunc,...
         'HessianMultiplyFcn',[],...
         'InitBarrierParam',1e-7,...           % On a restart this might have to be reduced if objective function starts to increase

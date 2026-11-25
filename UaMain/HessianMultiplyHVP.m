@@ -31,7 +31,8 @@ if isempty(pLast) || numel(pLast)~=numel(p) || any(pLast(:)~=p(:))
 
     CtrlVarP=CtrlVar ;
     CtrlVarP.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;
-    Blocks=AssembleHessianBlocks(CtrlVarP,MUA,Fp,BCs,l,Priors,Meas,BCsAdjoint,JGHouts.Psi_x,JGHouts.Psi_y,Type);
+    K=[] ; if isfield(JGHouts,"dFduv") ; K=JGHouts.dFduv ; end   % (16 Nov 2026) Jacobian from the forward solve in JGH.m
+    Blocks=AssembleHessianBlocks(CtrlVarP,MUA,Fp,BCs,l,Priors,Meas,BCsAdjoint,JGHouts.Psi_x,JGHouts.Psi_y,Type,K);
     pLast=p;
 
 end

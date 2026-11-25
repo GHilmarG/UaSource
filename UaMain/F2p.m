@@ -111,6 +111,16 @@ if isB
 
    ubB=F.s-CtrlVar.ThickMin ; % This is Bmax, we must have B < Bmax = s - thickmin
 
+   % (20 Nov 2026) Optional node-wise bounds on B, eg from the grounded/floating mask (B >= b_f + eps where grounded, B <= b_f - w
+   % where floating, away from the grounding line): Meas.BLowerBound and Meas.BUpperBound (nodal; NaN: no bound). Set in the run
+   % folder (eg DefineInputsForInverseRun.m, UserVar.BMaskBounds in the AntarcticRegions example).
+   if (isprop(Meas,"BLowerBound") || isfield(Meas,"BLowerBound")) && ~isempty(Meas.BLowerBound)
+       I=isfinite(Meas.BLowerBound) ; lbB(I)=max(lbB(I),Meas.BLowerBound(I)) ;
+   end
+   if (isprop(Meas,"BUpperBound") || isfield(Meas,"BUpperBound")) && ~isempty(Meas.BUpperBound)
+       I=isfinite(Meas.BUpperBound) ; ubB(I)=min(ubB(I),Meas.BUpperBound(I)) ;
+   end
+
    if ~isempty(lbB)
        ubB=max(lbB,ubB) ; % make sure ubB >= lbB
    end

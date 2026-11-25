@@ -221,6 +221,7 @@ if nargout>3  % additional information needed as output
     JGHouts.ddRdpp=[];
     JGHouts.Psi_x=Psi_x;
     JGHouts.Psi_y=Psi_y;
+    JGHouts.dFduv=dFduv;     % (16 Nov 2026) forward-model Jacobian K=dF/dq at the current state, reused for the Hessian-vector products (AssembleHessianBlocks.m)
     JGHouts.MisfitInfo=MisfitInfo;                  % individual misfit terms, Juv and Jhdot (15 November 2026)
     JGHouts.RegularisationInfo=RegularisationInfo;  % individual terms included in R, JBobs (15 November 2026)
 

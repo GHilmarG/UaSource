@@ -1,4 +1,4 @@
-function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
+function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,InverseFileRestartWriter)
 
 %%
 % This is basically a non-linear conjugated-gradient minimizer.
@@ -36,7 +36,10 @@ function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInf
 %
 %%
 
-narginchk(8,8)
+narginchk(8,9)
+if nargin<9
+    InverseFileRestartWriter=[];   % (23 Nov 2026) function handle for writing inverse restart files during the inversion (InvertForModelParameters.m)
+end
 nargoutchk(3,3)
 
 
@@ -139,12 +142,13 @@ if isempty(RunInfo) ||  ~isfield(RunInfo.Inverse,"Iterations") || numel(RunInfo.
     RunInfo.Inverse.Decrement(1)=Decrement;
     RunInfo.Inverse.GradNorm(1)=GradNorm;
     [RunInfo.Inverse.Juv(1),RunInfo.Inverse.Jhdot(1),RunInfo.Inverse.JBobs(1)]=IndividualCostTerms(fOuts);
+    RunInfo.Inverse.ElapsedTime(1)=0;
 end
 
 % (15 November 2026) Individual terms of the cost function, the velocity misfit (Juv), the dh/dt misfit (Jhdot) and the misfit
 % with respect to direct measurements of B (JBobs, included in R). Make sure these fields exist, and have the same length as
 % RunInfo.Inverse.J, also if RunInfo does not contain them (eg RunInfo created before these fields were introduced).
-for ff=["Juv","Jhdot","JBobs"]
+for ff=["Juv","Jhdot","JBobs","ElapsedTime"]
     if ~isfield(RunInfo.Inverse,ff)
         RunInfo.Inverse.(ff)=nan(size(RunInfo.Inverse.J));
     elseif numel(RunInfo.Inverse.(ff))<numel(RunInfo.Inverse.J)
@@ -222,6 +226,7 @@ fprintf('\n')
 %%
 
 ExitInfo=[];                              % state carried by CGExitCriteria
+tStartIterations=tic;                     % (16 Nov 2026) for RunInfo.Inverse.ElapsedTime and CtrlVar.Inverse.MaxWallClockTime
 
 for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
 
@@ -290,6 +295,7 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
             RunInfo.Inverse.Juv=[RunInfo.Inverse.Juv(:); Padding];
             RunInfo.Inverse.Jhdot=[RunInfo.Inverse.Jhdot(:); Padding];
             RunInfo.Inverse.JBobs=[RunInfo.Inverse.JBobs(:); Padding];
+            RunInfo.Inverse.ElapsedTime=[RunInfo.Inverse.ElapsedTime(:); Padding];
 
     end
 
@@ -303,6 +309,17 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     RunInfo.Inverse.Juv(Iteration)=Juv;
     RunInfo.Inverse.Jhdot(Iteration)=Jhdot;
     RunInfo.Inverse.JBobs(Iteration)=JBobs;
+    RunInfo.Inverse.ElapsedTime(Iteration)=toc(tStartIterations);   % (16 Nov 2026)
+
+    % (23 Nov 2026) inverse restart file every CtrlVar.Inverse.RestartFileWriteInterval iterations, with the current iterate (the
+    % inversion can then be continued from it if the run is stopped; the final restart file is written as before, Ua2D.m). The state
+    % at p is not available here (func is called without it), so the writer uses the state of the start of the inversion with the
+    % current parameters (p2F); only the velocities in that state, used as the initial guess on restart, are not the current ones.
+    if ~isempty(InverseFileRestartWriter) && CtrlVar.Inverse.WriteRestartFile && isfield(CtrlVar.Inverse,"RestartFileWriteInterval") ...
+            && CtrlVar.Inverse.RestartFileWriteInterval>0 && mod(Iteration-It0,CtrlVar.Inverse.RestartFileWriteInterval)==0
+        InverseFileRestartWriter(p,[],J0,dJdp,fOuts,RunInfo) ;
+        fprintf("UaOptimisationGradientBased: restart file written at iteration %i (%s)\n",Iteration,CtrlVar.Inverse.NameOfRestartOutputFile)
+    end
 
 
 
@@ -311,6 +328,11 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     if Exit
         fprintf('\n Inversion stopped after %i iterations, exit flag %i : %s \n',...
             Iteration,ExitInfo.Flag,ExitInfo.Message)
+        break
+    end
+
+    if isfield(CtrlVar.Inverse,"MaxWallClockTime") && toc(tStartIterations)>CtrlVar.Inverse.MaxWallClockTime   % (16 Nov 2026)
+        fprintf('\n Inversion stopped after %i iterations: maximum wall-clock time (%g s) reached. \n',Iteration,CtrlVar.Inverse.MaxWallClockTime)
         break
     end
 

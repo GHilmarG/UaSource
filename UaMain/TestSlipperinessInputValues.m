@@ -182,22 +182,11 @@ elseif ~CtrlVar.CisElementBased && ~(length(MUA.coordinates) == length(m))
 end
 
 
-[C,iU,iL]=kk_proj(C,CtrlVar.Cmax,CtrlVar.Cmin);
-
-niU=numel(find(iU));
-niL=numel(find(iL));
-
-if CtrlVar.InfoLevel>=10
-    if niU>0
-        fprintf('TestCInputValues: On input %i C values are larger than largest allowed value (%g).  \n',niU);
-        fprintf(' These values have been reset to the maximum allowed value of %g .\n',niU,CtrlVar.Cmax);
-
-    end
-    if niL>0
-        fprintf('TestCInputValues: On input %i C values are smaller than smallest allowed value (%g). \n',niL,CtrlVar.Cmin);
-        fprintf(' These values are have been reset to the minimum allowed value of %g.\n',CtrlVar.Cmin);
-    end
-end
+% (20 Nov 2026) Values outside [Cmin,Cmax] are reported at CtrlVar.InfoLevel>=1 (ReportClipping.m). Previously the report was only
+% printed at InfoLevel>=10, and with incorrect formatting for values above Cmax.
+st=dbstack(1) ; Where="TestSlipperinessInputValues" ; if ~isempty(st) ; Where=string(st(1).name)+" (TestSlipperinessInputValues)" ; end
+ReportClipping(CtrlVar,"C",C,CtrlVar.Cmin,CtrlVar.Cmax,LowerName="CtrlVar.Cmin",UpperName="CtrlVar.Cmax",Where=Where) ;
+C=kk_proj(C,CtrlVar.Cmax,CtrlVar.Cmin);
 
 
 

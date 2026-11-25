@@ -102,8 +102,13 @@ if is_uv_meas && is_uv_points_misfit(CtrlVar)
     % "-points-" formulation (CtrlVar.Inverse.DataMisfit.uv.Method="-points-"): the modelled velocities are evaluated at the
     % measurement locations (the mesh is brought to the data), as for the direct measurements of B, with uncorrelated errors and no
     % normalisation with the area of the domain. See PointDataMisfit.m and CreatePointMeasurements.m. (14 November 2026)
-    [Iu,duIdu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,F.ub);
-    [Iv,dvIdv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,F.vb);
+    if isempty(Meas.uvCorr)
+        [Iu,duIdu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,F.ub);
+        [Iv,dvIdv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,F.vb);
+    else   % (23 Nov 2026) spatially correlated errors, see CorrelatedPointDataMisfit.m
+        [Iu,duIdu]=CorrelatedPointDataMisfit(CtrlVar,MUA,Meas.uvO,Meas.usData,Meas.usErr,F.ub,Meas.uvCorr);
+        [Iv,dvIdv]=CorrelatedPointDataMisfit(CtrlVar,MUA,Meas.uvO,Meas.vsData,Meas.vsErr,F.vb,Meas.uvCorr);
+    end
     Iuv=Iu+Iv;
 
 elseif is_uv_meas

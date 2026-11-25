@@ -1,11 +1,11 @@
-function Hv=NewtonCGHessianSetup(x,Fx,JGHouts,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint)
+function Hv=HessianVectorProductSetup(x,Fx,JGHouts,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint)
 
 %%
 %
-%   Hv=NewtonCGHessianSetup(x,Fx,JGHouts,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint)
+%   Hv=HessianVectorProductSetup(x,Fx,JGHouts,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint)
 %
 % Returns a function handle, Hv(V), for Hessian-vector products with respect to the optimisation variables x, as used by
-% UaOptimisationNewtonCG.m. Fx is the state at x, and JGHouts the additional outputs of JGH.m at x (adjoint variables and gradients).
+% UaOptimisationHessianVectorBased.m. Fx is the state at x, and JGHouts the additional outputs of JGH.m at x (adjoint variables and gradients).
 %
 % The blocks are assembled in the physical parameters p (AssembleHessianBlocks.m). With the box transform, p=T(x) element by element,
 % and with D=diag(dp/dx),
@@ -16,7 +16,7 @@ function Hv=NewtonCGHessianSetup(x,Fx,JGHouts,CtrlVar,MUA,BCs,l,Priors,Meas,BCsA
 % where g_p is the gradient with respect to p. The Gauss-Newton form omits the term due to the curvature of the box transform (which
 % is multiplied by the gradient), and is positive semi-definite.
 %
-% see also: UaOptimisationNewtonCG.m, AssembleHessianBlocks.m, HessianVectorProduct.m, BoxTransform.m
+% see also: UaOptimisationHessianVectorBased.m, AssembleHessianBlocks.m, HessianVectorProduct.m, BoxTransform.m
 %
 %%
 
@@ -28,7 +28,8 @@ end
 CtrlVarP=CtrlVar ;
 CtrlVarP.Inverse.BoxTransform=false ;
 CtrlVarP.Inverse.CholeskyMappingOfCostFunctionAndGradient=false ;
-Blocks=AssembleHessianBlocks(CtrlVarP,MUA,Fx,BCs,l,Priors,Meas,BCsAdjoint,JGHouts.Psi_x,JGHouts.Psi_y,Type);
+K=[] ; if isfield(JGHouts,"dFduv") ; K=JGHouts.dFduv ; end    % (16 Nov 2026) Jacobian from the forward solve in JGH.m
+Blocks=AssembleHessianBlocks(CtrlVarP,MUA,Fx,BCs,l,Priors,Meas,BCsAdjoint,JGHouts.Psi_x,JGHouts.Psi_y,Type,K);
 
 if CtrlVar.Inverse.BoxTransform
 

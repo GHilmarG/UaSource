@@ -118,7 +118,11 @@ tSolve=tic;
 switch CtrlVar.SymmSolver
     case "Bempty"
         if isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO"
-            x=UaPardisoSolve(CtrlVar,H,g,H,"symmetric",StructuralPattern) ;   % (16 Oct 2026) PARDISO, symmetric indefinite (LDL'), see UaPardisoSolve.m
+            % (16 Oct 2026) PARDISO, see UaPardisoSolve.m. (24 Nov 2026) As a Cholesky factorisation ("spd"), as in the constrained case
+            % (KKT_null_space_decomposition_chol.m), instead of LDL' ("symmetric"): the uv system is symmetric positive definite, and
+            % Cholesky is faster and needs less memory. If the matrix is not positive definite, UaPardisoSolve uses LDL' instead, with a
+            % warning.
+            x=UaPardisoSolve(CtrlVar,H,g,H,"spd",StructuralPattern) ;
         else
             x=H\g;
         end

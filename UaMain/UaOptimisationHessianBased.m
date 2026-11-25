@@ -62,21 +62,21 @@ narginchk(8,8)
 
 if isA
     if CtrlVar.Inverse.Matern.logAGlen.alpha==1
-     error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+     % (20 Nov 2026) alpha=1 is now supported: the trust-region radius uses 1/kappa as length scale (MaternRangeForTrustRegion)
     end
 end
 
 
 if isB
     if CtrlVar.Inverse.Matern.B.alpha==1
-        error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+        % (20 Nov 2026) alpha=1 is now supported: the trust-region radius uses 1/kappa as length scale (MaternRangeForTrustRegion)
     end
 end
 
 
 if isC
     if CtrlVar.Inverse.Matern.logC.alpha==1
-        error("UaOptimisationHessianEstimate:WrongInputs","alpha=1 for the Matern parameter is not supported ")
+        % (20 Nov 2026) alpha=1 is now supported: the trust-region radius uses 1/kappa as length scale (MaternRangeForTrustRegion)
     end
 end
 
@@ -301,15 +301,15 @@ while true
             Neff=0;
 
             if isA
-                Neff  = Neff+ MUA.Area/CtrlVar.Inverse.Matern.logAGlen.rho^2;
+                Neff  = Neff+ MUA.Area/MaternRangeForTrustRegion(CtrlVar.Inverse.Matern.logAGlen)^2;
             end
 
             if isB
-                Neff  = Neff + MUA.Area/CtrlVar.Inverse.Matern.B.rho^2;
+                Neff  = Neff + MUA.Area/MaternRangeForTrustRegion(CtrlVar.Inverse.Matern.B)^2;
             end
 
             if isC
-                Neff  = Neff + MUA.Area/CtrlVar.Inverse.Matern.logC.rho^2;
+                Neff  = Neff + MUA.Area/MaternRangeForTrustRegion(CtrlVar.Inverse.Matern.logC)^2;
             end
 
 
@@ -319,8 +319,8 @@ while true
             DeltaMax=DeltaRef;
             DeltaMin=DeltaMax/1e6;
 
-            % The way DeltaMax is selected, only works for alpha>1 in the Matern formulation. This will also not work if one is using the old Tikhonov approach.
-            % going forward, I'm simply going to insist on using alpha>1.
+            % (20 Nov 2026) For alpha=1 (also the Tikhonov methodology) the length scale 1/kappa is used instead of rho, see
+            % MaternRangeForTrustRegion below.
             %
             %
             assert(isfinite(DeltaMax) && DeltaMax>0, ...
@@ -538,3 +538,14 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gammaVector];
 end
 
 %%
+
+function L=MaternRangeForTrustRegion(M)
+% (20 Nov 2026) Length scale of the prior used for the effective number of parameters Area/L^2. For alpha>1 this is the Matern range rho.
+% For alpha=1 (eg the Tikhonov methodology) the Matern smoothness nu=alpha-d/2 is zero in two dimensions, rho is not defined (and
+% sigma infinite), and the natural length scale of the correlation function K0(kappa r) is 1/kappa.
+if M.alpha==1
+    L=1/M.kappa ;
+else
+    L=M.rho ;
+end
+end

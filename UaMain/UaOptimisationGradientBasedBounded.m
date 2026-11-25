@@ -1,4 +1,4 @@
-function  [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
+function  [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,InverseFileRestartWriter)
 
 %%
 % Bounded version of UaOptimisationGradientBased.
@@ -83,7 +83,10 @@ function  [p,UserVar,RunInfo]=UaOptimisationGradientBasedBounded(UserVar,CtrlVar
 %
 %%
 
-narginchk(8,8)
+narginchk(8,9)
+if nargin<9
+    InverseFileRestartWriter=[];   % (23 Nov 2026) function handle for writing inverse restart files during the inversion (InvertForModelParameters.m)
+end
 nargoutchk(3,3)
 
 
@@ -343,6 +346,15 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement;Decrement];
     RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
     RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];
+
+    % (23 Nov 2026) inverse restart file every CtrlVar.Inverse.RestartFileWriteInterval iterations, with the current iterate (as in
+    % UaOptimisationGradientBased.m: the state at p is not kept here, so the writer uses the state of the start of the inversion with
+    % the current parameters)
+    if ~isempty(InverseFileRestartWriter) && CtrlVar.Inverse.WriteRestartFile && isfield(CtrlVar.Inverse,"RestartFileWriteInterval") ...
+            && CtrlVar.Inverse.RestartFileWriteInterval>0 && mod(Iteration,CtrlVar.Inverse.RestartFileWriteInterval)==0
+        InverseFileRestartWriter(p,[],J0,dJdp,fOuts,RunInfo) ;
+        fprintf("UaOptimisationGradientBasedBounded: restart file written at iteration %i (%s)\n",Iteration+It0,CtrlVar.Inverse.NameOfRestartOutputFile)
+    end
 
     [Exit,ExitInfo]=CGExitCriteria(CGExitOptions,ExitInfo,Iteration,J0,sGs,cgInfo,LineSearchInfo,Misfit);
 
