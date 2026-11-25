@@ -2,6 +2,8 @@ function d2Jduvduv=Jqq(CtrlVar,MUA,F,BCs,Meas)
 
 narginchk(5,5)
 
+persistent uvKey uvHessian   % (16 Nov 2026) cache of the (state-independent) velocity-misfit Hessian, see below
+
 %%
 %
 % Refactored version of Jqq.m.  Mathematically identical.
@@ -11,7 +13,7 @@ narginchk(5,5)
 %    delta_u r[phi_i] = kx phi_i + h dphidx_i  =:  Gx_i
 %    delta_v r[phi_i] = ky phi_i + h dphidy_i  =:  Gy_i
 %
-%    J_uu(i,k) = Gx_i Gx_k W        W := detJw / (Area eps_hdot^2)
+%    J_uu(i,k) = Gx_i Gx_k W        W := detJw w / Area,  w = 1/eps_hdot^2 interpolated from the nodes
 %    J_vv(i,k) = Gy_i Gy_k W
 %    J_uv(i,k) = Gx_i Gy_k W
 %    J_vu(i,k) = Gy_i Gx_k W       = J_uv(k,i)
@@ -64,26 +66,49 @@ if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
 
     %% contributions from the u and v misfit terms
     %
-    % $$ I_{uv} = \frac{1}{2 \, Area} \left ( r_u^T M \, r_u + r_v^T M \, r_v \right ), \quad r_u=(u-u_{obs})/err_u, \quad r_v=(v-v_{obs})/err_v $$
+    % $$ I_{uv} = \frac{1}{2 \, Area} \left ( r_u^T M_{w_u} \, r_u + r_v^T M_{w_v} \, r_v \right ), \quad r_u=u-u_{obs}, \quad r_v=v-v_{obs} $$
     %
-    % where M is the mass matrix. The gradient of this term (see Jq.m and Misfit.m) is D_u M D_u (u-u_{obs}) / Area, with D_u=diag(1/err_u), and the
-    % Hessian is therefore
+    % where M_w is the weighted mass matrix, (M_w)_{pq} = < w \phi_p , \phi_q >, with the nodal weights w=1/err^2 interpolated to
+    % the integration points (see Misfit.m and Jq.m). This is the consistent discretisation of the misfit integral also when
+    % the errors vary in space. The gradient is M_{w_u} r_u / Area, and the Hessian is therefore
     %
-    % $$ D_u M D_u / Area $$
+    % $$ M_{w_u} / Area $$
     %
-    % and equivalently for v. This is exact also when the measurement errors vary in space, and reduces to M/(err^2 Area) when they do not.
+    % and equivalently for v.
     %
-    if ~isfield(MUA,"M") || isempty(MUA.M)
-        MUA.M=MassMatrix2D1dof(MUA);
+    % (16 Nov 2026) This Hessian does not depend on the state (the misfit is quadratic in u and v): it only depends on the mesh, the
+    % observation operator and the errors. It is therefore calculated once, and kept (persistent) for subsequent calls with the same
+    % mesh and measurements, identified by a key calculated from these (UvHessianKey below). Nothing is stored in restart files: in a
+    % restart run, or after "clear Jqq", it is calculated again at the first call. In the -points- formulation, with millions of
+    % data, this was most of the time needed to assemble the Hessian blocks.
+    Key=UvHessianKey(CtrlVar,MUA,Meas) ;
+
+    if ~isempty(uvKey) && isequal(Key,uvKey)
+
+        d2Iduu=[] ; d2Idvv=[] ;   % not needed, uvHessian is used below
+
+    elseif is_uv_points_misfit(CtrlVar)
+
+        % "-points-" formulation, the Hessian is O' W O, see PointDataMisfit.m (14 November 2026)
+        [~,~,d2Iduu]=PointDataMisfit(Meas.uvO,Meas.usData,Meas.usErr,F.ub+F.ud);
+        [~,~,d2Idvv]=PointDataMisfit(Meas.uvO,Meas.vsData,Meas.vsErr,F.vb+F.vd);
+
+    else
+
+        wu=1./full(diag(Meas.usCov));
+        wv=1./full(diag(Meas.vsCov));
+        [~,Muw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wu,0,0,0);
+        [~,Mvw]=GeneralizedMassAndStiffnessAssembly([],CtrlVar,MUA,wv,0,0,0);
+        d2Iduu=(Muw+Muw.')/2/Area;     % symmetrised, as sparse() may sum duplicates in different order for (i,j) and (j,i)
+        d2Idvv=(Mvw+Mvw.')/2/Area;
+
     end
 
-    uErr=full(sqrt(spdiags(Meas.usCov)));
-    vErr=full(sqrt(spdiags(Meas.vsCov)));
-    Du=spdiags(1./uErr,0,MUA.Nnodes,MUA.Nnodes);
-    Dv=spdiags(1./vErr,0,MUA.Nnodes,MUA.Nnodes);
-    d2Iduu=Du*MUA.M*Du/Area;
-    d2Idvv=Dv*MUA.M*Dv/Area;
-    d2Jduvduv=blkdiag(d2Iduu,d2Idvv);  % This is a block matrix, no mixing uv terms here
+    if isempty(uvKey) || ~isequal(Key,uvKey)
+        uvHessian=blkdiag(d2Iduu,d2Idvv);  % This is a block matrix, no mixing uv terms here
+        uvKey=Key ;
+    end
+    d2Jduvduv=uvHessian;
 
 end
 
@@ -92,105 +117,119 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
 
     %% contribution due to the dh/dt misfit term $$J_{\dot{h}}$$
 
-    hnod=reshape(F.h(MUA.connectivity,1),Nele,nod);
-    rhonod=reshape(F.rho(MUA.connectivity,1),Nele,nod);
+    if dhdtMisfitMethod(CtrlVar)~="-nodal-integral-"
 
-    Juu=zeros(Nele,nod,nod);
-    Juv=zeros(Nele,nod,nod);
-    Jvv=zeros(Nele,nod,nod);
+        % "-points-" and "-blocks-" formulations: Gauss-Newton term (A G)' W (A G) with G=[Gu Gv], see dhdtObservationMisfit.m.
+        % There is no term proportional to the residuals as hdot is linear in u and v. (14 November 2026)
+        [~,~,~,~,Mats]=dhdtObservationMisfit(CtrlVar,MUA,F,Meas,"Jacobians");
+        AG=[Mats.AGu Mats.AGv];
+        m=numel(Mats.w);
+        d2Jduvduv=AG'*spdiags(Mats.w,0,m,m)*AG+d2Jduvduv;
 
-    dhdtErr=sqrt(spdiags(Meas.dhdtCov));
-    dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),Nele,nod);
+    else
 
-    for Iint=1:MUA.nip
+        hnod=reshape(F.h(MUA.connectivity,1),Nele,nod);
+        rhonod=reshape(F.rho(MUA.connectivity,1),Nele,nod);
 
-        fun=shape_fun(Iint,ndim,nod,MUA.points) ;
-        detJ=MUA.DetJ(:,Iint);
-        Deriv=MUA.Deriv(:,:,:,Iint);
+        Juu=zeros(Nele,nod,nod);
+        Juv=zeros(Nele,nod,nod);
+        Jvv=zeros(Nele,nod,nod);
 
-        Dx=reshape(Deriv(:,1,:),Nele,nod);
-        Dy=reshape(Deriv(:,2,:),Nele,nod);
+        % data weights w=1/dhdtErr^2 at the nodes, interpolated to the integration points (as in EvaluateJhdotAndDerivatives.m)
+        dhdtW=1./full(diag(Meas.dhdtCov));
+        dhdtWnod=reshape(dhdtW(MUA.connectivity,1),Nele,nod);
 
-        hint=hnod*fun;
-        rhoint=rhonod*fun;
-        dhdtErrint=dhdtErrnod*fun;
+        for Iint=1:MUA.nip
 
-        dhdx=sum(Dx.*hnod,2);
-        dhdy=sum(Dy.*hnod,2);
+            fun=shape_fun(Iint,ndim,nod,MUA.points) ;
+            detJ=MUA.DetJ(:,Iint);
+            Deriv=MUA.Deriv(:,:,:,Iint);
 
-        drhodx=sum(Dx.*rhonod,2);
-        drhody=sum(Dy.*rhonod,2);
+            Dx=reshape(Deriv(:,1,:),Nele,nod);
+            Dy=reshape(Deriv(:,2,:),Nele,nod);
 
-        kx=dhdx+hint.*drhodx./rhoint;
-        ky=dhdy+hint.*drhody./rhoint;
+            hint=hnod*fun;
+            rhoint=rhonod*fun;
+            dhdtWint=dhdtWnod*fun;
 
-        detJw=detJ*MUA.weights(Iint);
+            dhdx=sum(Dx.*hnod,2);
+            dhdy=sum(Dy.*hnod,2);
 
-        % quadrature weight folded in here, once
-        W=detJw./(Area.*dhdtErrint.^2);
+            drhodx=sum(Dx.*rhonod,2);
+            drhody=sum(Dy.*rhonod,2);
 
-        % variation of the residual with respect to the nodal velocities,
-        % Nele x nod
-        Gx=kx.*fun.'+hint.*Dx;
-        Gy=ky.*fun.'+hint.*Dy;
+            kx=dhdx+hint.*drhodx./rhoint;
+            ky=dhdy+hint.*drhody./rhoint;
+
+            detJw=detJ*MUA.weights(Iint);
+
+            % quadrature weight folded in here, once
+            W=detJw.*dhdtWint./Area;
+
+            % variation of the residual with respect to the nodal velocities,
+            % Nele x nod
+            Gx=kx.*fun.'+hint.*Dx;
+            Gy=ky.*fun.'+hint.*Dy;
+
+            for Inod=1:nod
+
+                WGx=W.*Gx(:,Inod);
+                WGy=W.*Gy(:,Inod);
+
+                Juu(:,:,Inod)=Juu(:,:,Inod) + WGx.*Gx;
+                Jvv(:,:,Inod)=Jvv(:,:,Inod) + WGy.*Gy;
+                Juv(:,:,Inod)=Juv(:,:,Inod) + WGx.*Gy;
+
+            end
+
+        end
+
+        %
+        %
+        % KJqq= [ Juu Juv ]
+        %       [ Jvu Jvv ]
+        %
+        % with J_vu(i,k) = J_uv(k,i), and the storage convention J**(:,Knod,Inod).
+        %
+        %
+
+        nnz4=4*nod*nod*Nele;
+        Iind=zeros(nnz4,1,'uint32');
+        Jind=zeros(nnz4,1,'uint32');
+        Xval=zeros(nnz4,1);
+
+        istak=0;
+        Nnodes=MUA.Nnodes;
 
         for Inod=1:nod
+            for Knod=1:nod
 
-            WGx=W.*Gx(:,Inod);
-            WGy=W.*Gy(:,Inod);
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
+                Xval(istak+1:istak+Nele)=Juu(:,Knod,Inod);
+                istak=istak+Nele;
 
-            Juu(:,:,Inod)=Juu(:,:,Inod) + WGx.*Gx;
-            Jvv(:,:,Inod)=Jvv(:,:,Inod) + WGy.*Gy;
-            Juv(:,:,Inod)=Juv(:,:,Inod) + WGx.*Gy;
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
+                Xval(istak+1:istak+Nele)=Jvv(:,Knod,Inod);
+                istak=istak+Nele;
 
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
+                Xval(istak+1:istak+Nele)=Juv(:,Knod,Inod);
+                istak=istak+Nele;
+
+                Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
+                Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
+                Xval(istak+1:istak+Nele)=Juv(:,Inod,Knod);   % J_vu(i,k) = J_uv(k,i)
+                istak=istak+Nele;
+
+            end
         end
 
+        d2Jduvduv=sparse(Iind,Jind,Xval,2*Nnodes,2*Nnodes)+d2Jduvduv ; %% adding all up.
+
     end
-
-    %
-    %
-    % KJqq= [ Juu Juv ]
-    %       [ Jvu Jvv ]
-    %
-    % with J_vu(i,k) = J_uv(k,i), and the storage convention J**(:,Knod,Inod).
-    %
-    %
-
-    nnz4=4*nod*nod*Nele;
-    Iind=zeros(nnz4,1,'uint32');
-    Jind=zeros(nnz4,1,'uint32');
-    Xval=zeros(nnz4,1);
-
-    istak=0;
-    Nnodes=MUA.Nnodes;
-
-    for Inod=1:nod
-        for Knod=1:nod
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
-            Xval(istak+1:istak+Nele)=Juu(:,Knod,Inod);
-            istak=istak+Nele;
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
-            Xval(istak+1:istak+Nele)=Jvv(:,Knod,Inod);
-            istak=istak+Nele;
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod);
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod)+Nnodes;
-            Xval(istak+1:istak+Nele)=Juv(:,Knod,Inod);
-            istak=istak+Nele;
-
-            Iind(istak+1:istak+Nele)=MUA.connectivity(:,Inod)+Nnodes;
-            Jind(istak+1:istak+Nele)=MUA.connectivity(:,Knod);
-            Xval(istak+1:istak+Nele)=Juv(:,Inod,Knod);   % J_vu(i,k) = J_uv(k,i)
-            istak=istak+Nele;
-
-        end
-    end
-
-    d2Jduvduv=sparse(Iind,Jind,Xval,2*Nnodes,2*Nnodes)+d2Jduvduv ; %% adding all up.
 
 end
 
@@ -270,4 +309,29 @@ subtitle(sprintf("Comparison is here for one random column: %i",iColumn),Interpr
 drawnow
 
 %%
+end
+
+
+function Key=UvHessianKey(CtrlVar,MUA,Meas)
+
+% (16 Nov 2026) Key identifying the velocity-misfit Hessian: the formulation, the mesh, the observation operator (-points-) and the
+% errors. Weighted sums are used so that the key changes when any of these change (including a permutation or a change of a single
+% value), at the cost of a few vector operations and one sparse matrix-vector product.
+
+N=MUA.Nnodes ;
+xn=MUA.coordinates(:,1) ; yn=MUA.coordinates(:,2) ;
+MeshPart=[N MUA.Nele MUA.nod sum(xn) sum(yn) sum(xn.*(1:N)') sum(yn.*(1:N)') sum(double(MUA.connectivity(:)).*(1:numel(MUA.connectivity))')] ;
+
+if is_uv_points_misfit(CtrlVar)
+    O=Meas.uvO ; m=size(O,1) ;
+    Oi=O*(1:N)' ;                     % depends on the location of every non-zero of O
+    wu=1./Meas.usErr(:).^2 ; wv=1./Meas.vsErr(:).^2 ;
+    DataPart=[1 m nnz(O) sum(Oi) sum(Oi.*(1:m)') sum(wu) sum(wu.*(1:m)') sum(wv) sum(wv.*(1:m)')] ;
+else
+    wu=1./full(diag(Meas.usCov)) ; wv=1./full(diag(Meas.vsCov)) ;
+    DataPart=[2 MUA.Area sum(wu) sum(wu.*(1:N)') sum(wv) sum(wv.*(1:N)')] ;
+end
+
+Key=[MeshPart DataPart] ;
+
 end

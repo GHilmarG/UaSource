@@ -20,13 +20,20 @@ narginchk(3,3)
 %
 % using Tikhonov formulation I've written the precision matrix as:
 %
-% $$Q = \frac{1}{2 \mathcal{A}} ( \gamma_a^2 M + \gamma_s^2 D ) $$
+% $$Q = \frac{1}{\mathcal{A}} ( \gamma_a^2 M + \gamma_s^2 D ) $$
+%
+% (20 Nov 2026) The regularisation term is R = 1/2 dp' Q dp (Regularisation.m), and the Tikhonov term is defined as
+%
+% $$R = \frac{1}{2\mathcal{A}} \left( \gamma_a^2 \, dp^T M dp + \gamma_s^2 \, dp^T D dp \right) $$
+%
+% so that Q = (gamma_a^2 M + gamma_s^2 D)/Area. Previously Q was taken to be (gamma_a^2 M + gamma_s^2 D)/(2 Area), ie with tau a factor
+% sqrt(2) too small, so that the regularisation was half as strong as defined.
 %
 % therefore
 %
 % $$\alpha=1 $$
 %
-% $$\tau=\frac{\gamma_s}{\sqrt{2 \mathcal{A} }} $$
+% $$\tau=\frac{\gamma_s}{\sqrt{\mathcal{A} }} $$
 %
 % $$\kappa=\frac{\gamma_a}{\gamma_s} $$
 %
@@ -40,7 +47,7 @@ if isapprox(ga,0)
 end
 
 alphaMatern=1;
-tauMatern=gs/sqrt(2*Area);
+tauMatern=gs/sqrt(Area);   % (20 Nov 2026) was gs/sqrt(2*Area), see above
 
 if ga==0
     kappaMatern=0;

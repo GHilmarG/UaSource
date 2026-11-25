@@ -36,6 +36,7 @@ clear PlotFEmesh
 clear FindOrCreateFigure
 clear LevelSetEquation
 clear p2F
+clear ReportClipping   % (20 Nov 2026) record of the clipping reports already printed
 
 
 end

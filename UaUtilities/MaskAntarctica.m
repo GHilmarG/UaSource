@@ -58,6 +58,14 @@ dy=double(y(2)-y(1)) ; ymin=double(min(y)) ;
 ix=round((xloc-xmin)/dx) +1;
 iy=round((yloc-ymin)/dy) +1;
 
+% all locations outside of the mask are set to the corner and will simply be labeled as open ocean
+ix(ix<1)=1;
+iy(iy<1)=1;
+ix(ix>size(mask,1))=1;
+iy(iy>size(mask,2))=1;
+
+
+
 ind=sub2ind(size(mask),ix,iy);
 
 ID=mask(ind);

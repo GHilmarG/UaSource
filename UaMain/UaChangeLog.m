@@ -4,6 +4,448 @@
 % 
 % *Change Log* _October 2026_
 %
+% * UaPardisoSolve.m, cost of the solves and of the accuracy check (24 November 2026):
+% (1) No iterative refinement unless pivots were perturbed, for the symmetric positive definite (uv, Cholesky) and the nonsymmetric
+% (uvh, LU) types: iparm(8)=0 instead of the default 2, set in the new local function NewPardisoHandle. The default carries out two
+% refinement steps in every solve, which made the solve phase about three times as expensive: 262k uv system 0.105 s instead of
+% 0.034 s (backward error 2.5e-19 with, 3.6e-19 without refinement, inf-norm); 65k uvh systems (MismipPlus, also with the analysis
+% reused from an earlier time step) 0.035 s instead of 0.010 s (1-2e-19 with, up to 1e-18 without; no perturbed pivots). PARDISO
+% still refines if pivots were perturbed, and the backward error is checked in every solve. The symmetric indefinite type (-2) keeps
+% the default.
+% (2) The backward error (see the entry below) is now computed in the 1-norm, eta = max_j ||A x_j-b_j||_1/(||A||_1 ||x_j||_1+||b_j||_1),
+% instead of the inf-norm: ||A||_1 (largest column sum) is cheap for MATLAB sparse matrices, ||A||_inf (largest row sum) is not, and
+% cost more than the factorisation (262k uv system: 0.003 s instead of 0.097 s; 65k uvh system: 0.001 s instead of 0.025 s). The
+% 1-norm form is typically about an order of magnitude smaller (uvh: 1e-20 instead of 1e-19); the tolerance (1e-12) is unchanged.
+% Results: HVB inversion of the entries below (3 iterations) 42 s instead of 59 s (103 s before the fallback changes), same iterates;
+% MismipPlus (2 km mesh, 40 time steps, PARDISO for all sizes) 138 s instead of 152 s, same number of factorisations (225), no
+% fallbacks, largest backward error 5e-17.
+%
+% * Symmetric (uv) systems: Cholesky first, LDL' with a warning if not positive definite, with both linear solvers (24 November 2026):
+% (1) KKT_null_space_decomposition_chol.m: in the direct reduction for nodal constraints (the route taken by the uv solves with
+% boundary conditions), H(f,f) was factorised with decomposition(Hff,'chol') with CtrlVar.LinearSolver.Type="MATLAB", so that the
+% run stopped with an error if H(f,f) was not positive definite, whereas with "PARDISO" UaPardisoSolve.m switched to LDL' with a
+% warning. Now an LDL factorisation is used, with the warning KKT_null_space_decomposition_chol:NotSPD, as already done for the
+% reduced Hessian of the general null-space method (23 November 2026). The uv system is symmetric positive definite for a well-posed
+% problem, so this only happens in exceptional cases (eg extreme parameter values at a trial point of an inversion, or a singular
+% problem), which the convergence tests and line searches of the callers then handle.
+% (2) solveKApeSymmetric.m ("Bempty", no constraints) and the case without constraints in KKT_null_space_decomposition_chol.m: with
+% PARDISO the system is solved as "spd" (Cholesky; LDL' with the warning UaPardisoSolve:NotPositiveDefinite if not positive definite)
+% instead of "symmetric" (LDL'), as in the constrained case. For a 262k uv system (Amundsen Sea Embayment) the factorisation took
+% 0.09 s instead of 0.13 s, with about 500 MB instead of 540 MB peak memory. solveKApeSymmetric is also used for other symmetric systems
+% (eg mass matrices, dhduv.m, LevelSetEquationNewtonRaphson.m, fminconUa.m, lsqStepUa.m); without constraints these are now also tried
+% with Cholesky first, as they already were with constraints. The MATLAB route (H\g) is unchanged.
+% (3) UaPardisoSolve.m: the switch from "spd" to "symmetric" passes FactorIdToKeep on, so that a factorisation used with "solve"
+% keeps its number in this case as well (see the entry below).
+% Checked: nodal-constraint and unconstrained solves with SPD and indefinite 262k matrices, MATLAB and PARDISO (same solutions, LDL'
+% with a warning for the indefinite ones, previously an error with MATLAB); the HVB inversion and MismipPlus runs of the entry below
+% are unchanged (no fallbacks, same iterates).
+%
+% * PARDISO accuracy check and fallbacks (24 November 2026): UaPardisoSolve.m checked the relative residual ||A x-b||/||b|| against
+% CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10, and if that failed repeated the analysis and then used decomposition.
+% This test is not scale invariant, and for badly scaled systems no backward stable solver can pass it. In a logA, logC inversion
+% with -UaOptimisation-HessianVectorBased- (Amundsen Sea Embayment, 131k nodes, m=3, n=4) the SPD matrix K of the Hessian-vector
+% products had diagonal values from 1.5e3 to 5e12 and ||A|| ||x||/||b||=4e9: PARDISO gave relative residuals of 1e-10 to 1e-9 with
+% backward errors of about 2e-19, and decomposition, used as fallback, a larger relative residual (2.6e-10). More iterative refinement
+% steps, extended-precision refinement (iparm(8)<0), another ordering, or diagonal scaling did not change this. Changes:
+% (1) The normwise backward error eta = max_j ||A x_j-b_j||_inf/(||A||_inf ||x_j||_inf+||b_j||_inf) is checked instead, against the
+% new CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance (default 1e-12), which replaces ResidualTolerance (no longer used; if given,
+% a note is printed once). Observed values: up to 9e-18 (the inversion above), up to 7e-17 (MismipPlus transient uvh, PARDISO for all
+% sizes). The statistics give MaxBackwardError instead of MaxResidual.
+% (2) The analysis is only repeated if it depends on the values of A (scaling or matching, iparm(11) or iparm(13); by default the
+% nonsymmetric type only). For the symmetric types it only depends on the pattern, so that it gave the same factorisation again.
+% (3) Repeating the analysis gave the factorisation a new number, although it is of the same matrix. This made a factorisation
+% passed to "solve" mode stale, so that every following solve with it (eg all Hessian-vector products of the CG iteration) factorised
+% the matrix again and could fail the check again. The number is now kept, also when "solve" factorises the matrix again after the
+% factorisation was replaced by that of another matrix (new hidden seventh input FactorIdToKeep), so that the following solves reuse it.
+% (4) In "solve" mode, a failed check no longer leads to a new factorisation of the same matrix. If repeating the analysis does not
+% help (or is not done), decomposition is used, and kept (at most two) for the following solves with that factorisation (statistics:
+% FallbackReuses). Fac ("factor" mode) contains NormA=norm(A,inf).
+% Result for the inversion above (3 iterations): iterates unchanged, 0 instead of 11 fallbacks and 0 instead of 18 failed reuses of
+% factorisations, 58 s instead of 103 s. Checked also with forced fallbacks (BackwardErrorTolerance=1e-30), and for nonsymmetric
+% systems (repeated analysis, reuse after replacement, kept decomposition, several right-hand sides).
+% Ua2D_DefaultParameters.m: CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance=1e-12 instead of ResidualTolerance=1e-10.
+%
+% * Reports of A and C values set to their limits (20 November 2026): new function ReportClipping.m, which reports the number and
+% fraction of values outside given limits and how far beyond them they are (in orders of magnitude for A and C). Used in
+% TestSlipperinessInputValues.m (C outside [Cmin,Cmax], eg from GetSlipperyDistribution.m and for the start values of an inversion)
+% and GetAGlenDistribution.m (A outside [AGlenmin,AGlenmax]), which previously reported this only at CtrlVar.InfoLevel>=10, and with
+% incorrect formatting for values above the upper limits; now reported at CtrlVar.InfoLevel>=1, or CtrlVar.InfoLevelInverse>=1 in
+% inverse runs. Each report is printed once per run for a given caller, field and number of values (A and C are defined at every
+% time step in transient runs); all reports with InfoLevel>=10. ClearPersistentUaVariables.m clears the record at the start of a
+% run. InvertForModelParameters.m reports the start values of A, B and C that are outside the limits or already on them (A and C);
+% with the box transform such values start on the boundary of the box, where dp/dv is close to zero, and hardly change during the
+% inversion. SetSmoothFloorWidths.m also reports the percentage of the nodal values of C and A changed by more than 0.1% by the
+% smooth lower limits. Prompted by tests with large sliding-law exponents (m=9), where C values below the default Cmin=1e-20 were
+% set to Cmin without any message (Pine Island, nx50: 33 nodes, up to 6 orders of magnitude below Cmin).
+%
+% * ThinMeasurementsOnGrid.m: Options.SigmaCorrelated can be given for each measurement (17 November 2026):
+% Scalar or m x 1. If given for each measurement, the correlated (not averaging down) variance of a cell is the weighted mean of
+% SigmaCorrelated^2 over the measurements in the cell, with the same weights as the data. Used for errors common to many
+% measurements that differ between measurements, eg the uncertainty of an offset correction of a radar line or survey, or of the
+% correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
+% scalar SigmaCorrelated are unchanged.
+%
+% * KKT_null_space_decomposition_chol.m (23 November 2026): if the reduced Hessian is not positive definite, the Cholesky
+% factorisation raised an error that stopped the run (it bypassed the convergence test in SSTREAM2dNR2.m and the handling of
+% non-convergence in uv.m and JGH.m, which returns J=NaN). An LDL factorisation is now used instead (with a warning), so that
+% the existing convergence handling applies.
+%
+% * MATLAB optimisation toolbox (23 November 2026): the cost function passed to fmincon/fminunc is wrapped in
+% JGHforMatlabOptimisation.m (new; InvertForModelParameters.m): if the forward problem cannot be solved at a trial point (eg the
+% Cholesky factorisation in the velocity solve fails for extreme parameter values), J=Inf is returned and fmincon (interior-point)
+% tries a shorter step, instead of the inversion stopping with an error. Previously, the Inverse example in UaExamples stopped in
+% the second iteration with the default -MatlabOptimisation-GradientBased-.
+%
+% * Spatially correlated velocity errors (23 November 2026): Meas.uvCorr (Measurements.m; [] by default) with fields sigma and rho:
+% the velocity errors are the sum of a Matern field (alpha=2, on the mesh, SPDE precision Q_e) and the uncorrelated part usErr, vsErr.
+% CorrelatedPointDataMisfit.m (new) evaluates the misfit and its gradient with the Woodbury identity (K = Q_e + O' D^{-1} O factorised
+% once and kept); used in Misfit.m and Jq.m; the correction -A K^{-1} A to the Gauss-Newton Hessian is set up in
+% AssembleHessianBlocks.m (Blocks.KqqCorrU, KqqCorrV) and applied in HessianVectorProduct.m. Checked against the dense covariance
+% (misfit, gradient and Hessian-vector product to 1e-14) and by finite differences (adjoint gradient to 1e-6).
+%
+% * Inverse restart files during the inversion (23 November 2026): CtrlVar.Inverse.RestartFileWriteInterval (default 500; 0 switches it off): if > 0,
+% UaOptimisationHessianVectorBased.m, UaOptimisationGradientBased.m and UaOptimisationGradientBasedBounded.m write an inverse restart file
+% every this many iterations, with the
+% current iterate, through a
+% function handle set up in InvertForModelParameters.m (WriteInverseRestartFileDuringInversion.m: p2F, Vars2InvValues and
+% WriteAdjointRestartFile, on a local copy of the state, so that the inversion itself is not affected). UaOptimisation.m passes the
+% handle on (new optional tenth input). A stopped run can then be continued from the last restart file.
+%
+% * GetInputsForInverseRun.m (21 November 2026): Meas.dhdt (nodal values) is only required when inverting for B with the
+% "-nodal-integral-" dh/dt misfit; with "-points-" or "-blocks-" it may be left empty.
+%
+% * UaOptimisationHessianBased.m, UaOptimisationHessianEstimate.m, Matern_alpha_kappa_tau.m (20 November 2026): the maximum trust-region
+% radius uses an effective number of parameters Area/L^2, with L the Matern range rho for alpha>1 and 1/kappa for alpha=1 (local function
+% MaternRangeForTrustRegion), so that these optimisers also work with alpha=1, ie with the Tikhonov methodology (previously rho=0 for
+% alpha=1 and the run stopped with BadDeltaMax). Matern_alpha_kappa_tau returns rho=sigma=NaN for nu<=0 (alpha=1 in two dimensions),
+% where they are not defined (previously 0 and Inf).
+%
+% * Tikhonov regularisation (20 November 2026): Tikhonov2MaternParameters.m now gives tau=gs/sqrt(Area) (previously gs/sqrt(2*Area)), so
+% that with CtrlVar.Inverse.Methodology="-Tikhonov-" the regularisation term is R=(ga^2 dp'M dp + gs^2 dp'D dp)/(2 Area), as defined
+% (Regularisation.m computes R=dp'Q dp/2). Previously R was half of this, ie the regularisation half as strong as defined: inversions
+% with given ga and gs are now more strongly regularised (as with ga and gs larger by sqrt(2) before). Checked numerically (Hofsjokull
+% mesh): R from Q equals the Tikhonov formula. GetInputsForInverseRun.m: CtrlVar.Inverse.Regularize.Field with -AGlen- or -C- (regularisation
+% of AGlen and C rather than their logarithms, no longer supported) now gives an error.
+%
+% * F2p.m, Measurements.m (20 November 2026): optional node-wise bounds on B, Meas.BLowerBound and Meas.BUpperBound (new properties of
+% Measurements; NaN: no bound), combined with the
+% existing bounds (-5000 and s-ThickMin). Used for bounds from the grounded/floating mask (B >= b_f+eps where grounded, B <= b_f-w
+% where floating, away from the grounding line), which the projected Hessian-vector based optimiser respects.
+%
+% * SetSmoothFloorWidths.m (20 November 2026): the widths of the smooth lower limits of A and C (CtrlVar.AGlenminWidth, CminWidth) are
+% now relative to the median of F.AGlen and F.C instead of the mean. With estimates spanning many orders of magnitude the mean was
+% dominated by a few extreme values, so that the widths, the effective A and C close to the limits, and the cost function at the same
+% parameters changed between an inversion and its restart (Pine Island, nx150: J +9% on restart).
+%
+% * Gauss-Newton Hessian-vector products: dh/dt term without the residual part (18 November 2026):
+% JhdotBB.m and Jpp.m have an optional input GaussNewton (default false, unchanged). With GaussNewton=true the term
+% diag(J_h d2h/dB2) of the explicit second derivative of the dh/dt misfit with respect to B is omitted; it is proportional to the
+% residuals, and non-zero where the ice is thin (close to the minimum thickness), eg along the margins of an ice cap, where it made
+% the "Gauss-Newton" Hessian indefinite (Hofsjokull, synthetic B: smallest eigenvalue -0.06; after the change the data part of the
+% Hessian is positive semi-definite to 1e-13). AssembleHessianBlocks.m passes GaussNewton=(Type=="-GN-"); the "-full-" Hessian
+% and CalcDirectAdjointHessian.m are unchanged.
+%
+% * HelmholtzEquation.m: Dirichlet boundary conditions and ties (18 November 2026):
+% New optional input BCs (9th argument; a BoundaryConditions object): f is prescribed at BCs.hFixedNode (values BCs.hFixedValue),
+% and f(BCs.hTiedNodeA)=f(BCs.hTiedNodeB). The constraints are formed by BCs2MLC.m (MLC.hL, MLC.hRhs; 19 Nov 2026: replacing a
+% separate implementation with createLh.m and ScaleL.m, for consistency with the rest of the code) and imposed with Lagrange
+% multipliers (solveKApe.m), returned in lambda; BCs2MLC.m rejects nodes constrained more than once. Without BCs the results are
+% unchanged (natural boundary conditions). Tests: identical results without BCs; the correction field of HofsBedPrior.m (computed
+% by eliminating the boundary nodes) reproduced to 4e-14; a linear field reproduced to 2e-13 (exact for linear elements); a smooth
+% field with prescribed boundary values to 0.03 of an amplitude of 50 (discretisation error; 13 with natural conditions); ties
+% satisfied to 2e-13; duplicate constraints rejected.
+%
+% * Inversions: wall-clock limit and elapsed time per iteration; HessianVectorBased: cheaper steps (16 November 2026):
+% CtrlVar.Inverse.MaxWallClockTime (default inf): -UaOptimisation-GradientBased- and -UaOptimisation-HessianVectorBased- stop after the
+% first iteration ending after this time. RunInfo.Inverse.ElapsedTime: wall-clock time at the end of each iteration, from the start of
+% the iterations of the run (UaRunInfo.m: added with NaN to older RunInfo). HessianVectorBased: (1) the CG step is computed from x with
+% the variables at bounds fixed at their Cauchy values and the full trust region (previously from the Cauchy point within the trust
+% region remaining after the Cauchy step, which degenerated to steepest descent when the Cauchy step reached the trust-region boundary);
+% (2) no backtracking in the Cauchy step if no bound is reached; (3) MaxForcingTerm 0.5 -> 0.1; (4) RestrictedPreconditioner ("auto"
+% default): with at most 5% of the variables at bounds, the restriction of the factorisation of G is used instead of factorising G
+% restricted to the free variables; (5) AutoActivationRadius default [] (keep Delta at activation of the nodal scaling).
+%
+% * UaOptimisationHessianVectorBased.m: automatic nodal trust-region scaling (experimental, 16 November 2026):
+% CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling is now "off" (default), "on" or "auto" (true/false still accepted).
+% With "auto" the scaling is switched on when the trust region has collapsed (Delta < AutoCollapseFactor * largest Delta in the run,
+% default 1e-2), at least two of the last three steps failed (rho<0.25) with the step limited by the trust region, and the current
+% failure is localised. At activation Delta is set to AutoActivationRadius * largest Delta (default 0.1; [] keeps Delta). The scaling
+% is switched off again when all weights have decayed. In joint inversions only the B variables are weighted. The state (active,
+% largest Delta, weights) is kept for restart runs, and the number of weighted variables is stored in RunInfo.Inverse.WeightedVariables.
+%
+% * Hessian-vector products: symmetric (Cholesky) factorisation (16 November 2026):
+% If K is symmetric (SSTREAM with Weertman sliding) and the constraints are nodal, AssembleHessianBlocks.m now uses the same symmetric
+% reduction as the forward uv solve (solveKApeSymmetric.m, null-space method, KKT_null_space_decomposition_chol.m): x(c)=0 at the
+% constrained unknowns, and K(f,f) x(f)=r(f), with K(f,f) factorised once (PARDISO "spd", or MATLAB decomposition "chol") and used for
+% both the forward and the adjoint solves (Blocks.Reduced). Previously the general route of solveKApe was used, with row-only
+% elimination and an LU factorisation. Antarctica nx150: Hessian-vector product 0.29 -> 0.20 s. Otherwise the general route is used as
+% before. UaPardisoSolve.m: in "factor" mode, if a Cholesky factorisation ("spd") fails, a symmetric indefinite factorisation is now
+% returned (previously the fallback returned a solution instead of a factorisation).
+%
+% * UaOptimisationHessianVectorBased.m: trust-region state kept for restart runs (16 November 2026):
+% The trust-region radius, the forcing term and the nodal weights at the end of each iteration are stored in
+% RunInfo.Inverse.HessianVectorBasedState, and a restart run continues with them (if for the same number of parameters and the same
+% treatment of the bounds, and unless CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius is given). Previously each restart
+% began with Delta=sqrt(number of parameters). The trust-region radius is also stored for each iteration in the new field
+% RunInfo.Inverse.TrustRegionRadius (UaRunInfo.m: initialised as NaN, and added with NaN to RunInfo of older restart files).
+%
+% * UaOptimisationHessianVectorBased.m: factorisations of the restricted metric reused (16 November 2026):
+% With projected bounds, G (or M=G+diag(w)) restricted to the free variables was factorised in every iteration for the CG step, and
+% again (with backslash) for each projected gradient norm. Now (local function RestrictedSolver) the factorisation is kept and
+% reused while the set of free variables (and M) does not change, and if all variables are free the existing factorisation of G
+% (MUA.dG) is used directly. Antarctica nx150 (113,600 parameters, no variables at bounds): about 2.4 s less per iteration (no
+% restricted factorisations at all). The number of restricted factorisations is printed at the end of the inversion.
+%
+% * Hessian-vector products: dh/dt part of K_qq kept in factored form (16 November 2026):
+% For dh/dt measurements in the -points- and -blocks- formulations, AssembleHessianBlocks.m no longer forms the dh/dt part of K_qq,
+% (A G)' W (A G), but keeps A G and w (Blocks.KqqAG, Blocks.Kqqw), and HessianVectorProduct.m applies it as (A G)'(w.*(A G v)). For
+% block averages each row of A G contains all nodes of a block, so that the formed product couples all nodes within each block:
+% Antarctica nx150 with 40 km blocks, 1.8e8 non-zeros (about 3 GB), against 7.9e5 for the remaining K_qq. Hessian-vector product
+% 0.54 -> 0.24 s, assembly of the blocks 3.3 -> 1.6 s (nx150). Jqq.m itself (used by the full Hessian) is unchanged.
+%
+% * UaPardisoSolve.m: explicitly stored zeros (16 November 2026):
+% The fixed pattern now contains all stored entries of A, including explicitly stored zeros (local function StoredPattern; previously
+% (A~=0) was used). pardisoMex copies all stored entries into the pattern, so for a matrix with stored zeros (eg the assembled uv
+% Jacobian, which can contain a few) the pattern could not be extended to contain A, A was not factorised, and the solve failed with
+% "Call 'factorp' first". This did not affect the usual uv solves with boundary conditions, where the eliminated matrix is formed
+% by operations that drop stored zeros. If the extended pattern still does not contain A, an error is now given.
+%
+% * Jqq.m: the velocity-misfit Hessian is calculated once (16 November 2026):
+% The velocity part of J^{qq} (O' W O for -points-, the weighted mass matrices for -nodal-integral-) does not depend on the state. It is
+% now kept in a persistent variable and reused in subsequent calls with the same mesh, formulation, observation operator and errors,
+% identified by a key calculated from these (local function UvHessianKey). Nothing is stored in restart files; in a restart run (or
+% after "clear Jqq") it is calculated again at the first call. Antarctic nx50, -points- (2 million pixels): Jqq 0.71 s -> 0.19 s,
+% assembly of the Hessian blocks 1.30 s -> 0.81 s. The dh/dt part depends on the state and is calculated at every call as before.
+%
+% * Hessian-vector products: no additional forward solve (16 November 2026):
+% JGH.m returns the forward-model Jacobian K=dF/dq from its forward solve in JGHouts.dFduv. AssembleHessianBlocks.m has a new
+% optional input K, and then uses it directly instead of obtaining it from a further forward (uv) solve; HessianVectorProductSetup.m
+% and HessianMultiplyHVP.m pass JGHouts.dFduv. This also makes the Hessian-vector products use the same K as the adjoint solve of the
+% gradient. The products agree with those using a further forward solve to 1e-14 (nx50) and exactly (Hofsjokull).
+%
+% * Reuse of the factorisation of K in the Hessian-vector products, also with PARDISO (16 November 2026):
+% UaPardisoSolve.m (UaPardiso) has two new modes: Fac=UaPardisoSolve("factor",CtrlVar,A,...) does the analysis (if needed) and the
+% numerical factorisation, and x=UaPardisoSolve("solve",Fac,b) only the solve phase. Each factorisation has a unique number, and
+% "solve" checks that the factorisation is still the current one of its PARDISO state (it may have been replaced by that of another
+% matrix of the same size and type, eg a forward uv solve); if not, the matrix is factorised again (statistics: FactorReuses,
+% FactorReuseFailures). For small and diagonal systems Fac contains a MATLAB decomposition or the diagonal. solveKApe.m ("Bempty")
+% and ABfgPreEliminate.m ("EliminateBCsSolveSystemDirectly") now return, and accept, this factorisation as dA with
+% CtrlVar.LinearSolver.Type="PARDISO" (previously dA=[] was returned, and a given dA gave an error), so that reusing a decomposition
+% (eg modified Newton-Raphson) also works with PARDISO. In ABfgPreEliminate the fast path (31 Oct 2026) is not used when a decomposition
+% is requested, as the decomposition is reused with the scaling of the general path. AssembleHessianBlocks.m factorises K once (and K'
+% if K is not symmetric), and HessianVectorProduct.m reuses these factorisations, so that each Hessian-vector product only requires two
+% solve phases instead of two factorisations. HVP agree with the full Hessians to 1e-15 (Hofsjokull, no constraints; Antarctic nx50,
+% 410 constraints; MATLAB and PARDISO). Also corrected a typo in solveKApe.m (fMorm, an undefined variable, in a residual check).
+%
+% * "-UaOptimisation-NewtonCG-" renamed "-UaOptimisation-HessianVectorBased-" (15 November 2026):
+% The method is an inexact Gauss-Newton (default) or Newton trust-region method using Hessian-vector products, and not a
+% conjugate-gradient method (CG is only used to solve the trust-region subproblem). Renamed: UaOptimisationNewtonCG.m ->
+% UaOptimisationHessianVectorBased.m, NewtonCGHessianSetup.m -> HessianVectorProductSetup.m, CtrlVar.Inverse.NewtonCG ->
+% CtrlVar.Inverse.HessianVectorBased. The previous id and settings structure are still accepted (CtrlVarValidityCheck.m). Checks for
+% Hessian-based methods now test for "HessianBased" (so that the full Hessian is never calculated in JGH.m for this method).
+%
+% * UaOptimisationNewtonCG.m: forcing term of the inner CG iteration (15 November 2026):
+% The relative tolerance of the inner CG iteration is now given by the Eisenstat-Walker choice 1, eta=| |g_new| - |g_old+H s| |/|g_old|
+% (dual G norm, projected gradient), safeguarded (eta >= eta_old^1.618 if eta_old^1.618>0.1) and limited to [1e-6, MaxForcingTerm].
+% Previously eta=min(MaxForcingTerm,sqrt(|g|/|g0|)) with g0 the gradient at the start of the run, which in restart runs close to the
+% minimum gave far too loose tolerances (inner CG stopping after one or two iterations, and tiny steps).
+%
+% * UaOptimisationNewtonCG.m: nodal scaling of the trust region (experimental, 15 November 2026):
+% With CtrlVar.Inverse.NewtonCG.NodalTrustRegionScaling=true (default false) the trust region is ||s||_M<=Delta with M=G+diag(w). After
+% a failed step (rho<0.25), if the mismatch between the actual and the predicted change of the gradient is concentrated in a small
+% fraction of the variables (LocalisationFraction, LocalisationShare), the weights of these variables are increased (so that their
+% step alone would fill the trust region, at least four times the previous weight, at most 1e6 times diag(G)), and Delta is halved
+% instead of reduced to a quarter of the step. The weights are halved after good steps (rho>0.75). M is also used as the CG
+% preconditioner. Intended for problems where the model fails locally, eg close to flotation.
+%
+% * UaOptimisationNewtonCG.m: bounds imposed explicitly (projected Newton) (15 November 2026):
+% New setting CtrlVar.Inverse.NewtonCG.Bounds="-projected-" (default) or "-BoxTransform-". With "-projected-" the box transform is not
+% used (CtrlVarValidityCheck.m), and each step consists of a Cauchy step along the projected steepest-descent path (identifying the
+% variables at their bounds), a Steihaug-Toint CG step in the free variables (preconditioned with G restricted to the free variables),
+% and a projected search along that step (cf. TRON, Lin and More 1999). The quadratic model is then the Gauss-Newton (or full) model
+% in the physical parameters, avoiding the strong nonlinearity of the box transform close to the bounds, which limited the convergence.
+% The trust region is now also enlarged when the CG step ends on the trust-region boundary, and the output includes the cumulative
+% wall-clock time and (projected) the number of variables at their bounds.
+%
+% * Inversions using Hessian-vector products (15 November 2026):
+%
+% (1) CtrlVar.Inverse.HessianCalculation="-HVP-" with CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-HessianBased-": fmincon
+% (interior-point, SubproblemAlgorithm="cg") is given Hessian-vector products through HessianMultiplyFcn (new HessianMultiplyHVP.m)
+% instead of the Hessian. CtrlVar.Inverse.HVP.Type="-GN-" (default) or "-full-".
+%
+% (2) New CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-NewtonCG-" (new UaOptimisationNewtonCG.m): inexact Newton with a trust
+% region, the Newton system solved with CG preconditioned with the metric G and the trust region in the G norm (Steihaug-Toint), using
+% Hessian-vector products (Gauss-Newton by default). Box constraints through the box transform (CtrlVar.Inverse.BoxTransform=true is
+% set by CtrlVarValidityCheck.m); the chain rule for the box transform is applied to the Hessian-vector products (new
+% NewtonCGHessianSetup.m), and BoxTransform.m has a new mode "curvature" (d^2p/dv^2) for the full Hessian. Settings in
+% CtrlVar.Inverse.NewtonCG (MaxInnerIterations, InitialTrustRegionRadius, MaxForcingTerm). RunInfo.Inverse.InnerIterations (new)
+% stores the number of CG iterations per Newton step. InvertForModelParameters.m and UaOptimisation.m pass the function handle
+% HessianSetup to the new optimiser.
+%
+% * Hessian-vector products (15 November 2026):
+% New functions AssembleHessianBlocks.m and HessianVectorProduct.m calculate H*v without forming the sensitivity matrix xi=dq/dp or
+% the Hessian: one linearised forward solve and one adjoint solve with K=dF/dq per product (several vectors at once), plus sparse
+% matrix-vector products with the blocks K_qq, K_pq, K_pp and F_p, assembled once per state. Type="-GN-" (Gauss-Newton, default) or
+% "-full-". The products agree with the Hessians from CalcDirectAdjointHessian.m (HessianTerms="-xi Jqq xi-Jpp-" and "-all-") to
+% round-off (1e-15 to 1e-14), tested for B inversions (Hofsjokull, Antarctic nx50, with uv points, dh/dt blocks and B measurements) and a
+% logA-B-logC inversion (Hofsjokull, all cross terms).
+%
+% * Gauss-Newton Hessian corrected (15 November 2026):
+% With HessianTerms="-xi Jqq xi-Jpp-", CalcDirectAdjointHessian.m now includes the Gauss-Newton part of the mixed term J^{pq} xi +
+% (J^{pq} xi)^T, which is non-zero for B inversions with dh/dt measurements (J_hdot depends on both q=(u,v) and h(B)). Previously this
+% term was omitted. JhdotBq.m has a new optional input GaussNewton (default false) returning only the Gauss-Newton part, ie without
+% the term proportional to the dh/dt residuals.
+%
+% * Individual terms of the cost function printed and stored during gradient-based inversions (15 November 2026):
+% Misfit.m has a new (optional) output MisfitInfo with the fields Juv (velocity misfit) and Jhdot (dh/dt misfit), and
+% Regularisation.m a new (optional) output RegularisationInfo with the field JBobs (misfit with respect to direct measurements of B,
+% which is included in R). JGH.m passes these on in JGHouts.MisfitInfo and JGHouts.RegularisationInfo. UaOptimisationGradientBased.m
+% prints JBobs as an additional column in B inversions, and stores Juv, Jhdot and JBobs in the new fields RunInfo.Inverse.Juv,
+% RunInfo.Inverse.Jhdot and RunInfo.Inverse.JBobs. When loading older restart files, UaRunInfo.m adds these fields (NaN, with the
+% same length as RunInfo.Inverse.J), so that older inverse runs can be continued.
+%
+% * LineSearchWolfe.m: bracket-collapse test made scale independent (14 November 2026):
+% The test was Width <= xtol*max(1,gHigh), which is absolute (1e-8) for steps below one. Where the steps are small because the
+% gradient is large (eg gamma~1e-12 to 1e-8 with absolute data weights, see PointDataMisfit.m), the initial bracket [0,gammaStart] was
+% then already 'collapsed' when gammaStart failed the Armijo condition, and the search returned without trying any smaller step
+% (iExit=-2). On a steepest-descent direction UaOptimisationGradientBased then stopped (exit flag 4), far from the minimum. The test
+% is now Width <= xtol*gHigh. The number of evaluations remains limited by MaxFuncEvaluations.
+%
+% * Option to include the Hessian of the B-measurement misfit in the metric (14 November 2026):
+% With CtrlVar.Inverse.Metric.IncludeBobsHessian=true (default false), BuildMetricMatrix.m adds HBobs=O' inv(Sigma) O to the B block
+% of the metric G, ie G=blkdiag(QA,QB+HBobs,QC). HBobs is added to the metric only, and not to QB, which is also used to evaluate the
+% regularisation term. This affects the Riesz-mapped gradient and the Cholesky mapping of gradient-based inversions.
+%
+% * DhdtMisfitVersusBlockSize.m (14 November 2026): diagnostic for the "-blocks-" dh/dt misfit. For a given state (F with a uv
+% solution, eg the end of an inversion) and a list of block sizes L, returns the number of blocks, mean and RMS of the residuals,
+% standard deviations of the measured and modelled block averages, and chi2=2J/N for given errors (scalar, or a function of L and/or
+% the block centres), and the slope of log(RMS) against log(L). The blocks are defined exactly as in CreateDhdtBlockMeasurements.m.
+% Optional plot. Used to select the block size and the errors of the block averages.
+%
+% * New dh/dt misfit formulations: "-points-" and "-blocks-", the modelled dh/dt brought to the data (14 November 2026):
+%
+% Selected by CtrlVar.Inverse.DataMisfit.dhdt.Method (default "-nodal-integral-", the previous formulation, unchanged):
+%
+%   "-points-" : the modelled dh/dt is evaluated at the measurement locations, without averaging.
+%   "-blocks-" : the modelled dh/dt at the integration points is averaged over square blocks (eg several pixels of a gridded product),
+%                and compared with the block averages of the measurements.
+%
+% In both, J = 1/2 sum_k (A hdot - d)_k^2/err_k^2 with uncorrelated errors and no normalisation with the area of the domain (A is the
+% identity for "-points-", and the block-averaging operator for "-blocks-"). New functions: ShapeFunctionsAtPoints.m (form functions
+% and their x,y derivatives at arbitrary locations, derivatives by complex-step differentiation of sr_shape_fun along the gradients of
+% the barycentric coordinates, exact to round-off for nod=3, 6 and 10), ShapeFunctionsAtIntegrationPoints.m, dhdtAtPoints.m (hdot,
+% its Jacobians with respect to u, v and h, and the residual-weighted second derivatives), dhdtObservationMisfit.m (misfit, gradients
+% and the matrices for the Hessian terms), dhdtMisfitMethod.m, CreateDhdtPointMeasurements.m and CreateDhdtBlockMeasurements.m (data
+% preparation, new Measurements properties dhdtx, dhdty, dhdtData, dhdtErr, dhdtP, dhdtA, dhdtBlockSize). New branches in
+% EvaluateJhdotAndDerivatives.m (and hence Misfit.m and Jq.m), Jqq.m, JhdotBB.m and JhdotBq.m. TestMeas.m checks the new measurements.
+% Meas.dhdtP and Meas.dhdtA depend on the mesh (dhdtA also on the integration rule) and must be recreated if these change.
+% Tested on the Antarctic nx50 inversion (logA, B, logC, uv and dh/dt): the misfit agrees with independent evaluations to round-off,
+% the gradients, Jqq, JhdotBB and JhdotBq agree with finite differences, and the brute-force gradient test gives normalised differences
+% of 1.0e-7 ("-blocks-", L=40 km, 53 blocks) and 5.9e-7 ("-points-", 1123 pixels of a 10 km product).
+%
+% * New velocity misfit formulation: point measurements, mesh brought to the data (14 November 2026):
+%
+% The velocity misfit can now be evaluated in the same way as the misfit with respect to direct measurements of B, ie with the modelled
+% velocities evaluated at the measurement locations using the node-to-data operator O (BuildNode2DataMap.m):
+%
+%   I = 1/2 sum_k ((O u)_k - u_k)^2/err_k^2 + (same for v)
+%
+% Errors are treated as uncorrelated, and there is no normalisation with the area of the domain. The new formulation is selected by
+%
+%   CtrlVar.Inverse.DataMisfit.uv.Method="-points-" ;     % default: "-nodal-integral-", ie the previous formulation, unchanged
+%
+% and the measurements defined using the new function CreatePointMeasurements.m, which sets the new Measurements properties uvx, uvy,
+% usData, vsData, usErr, vsErr and uvO (discarding measurements outside the mesh or not finite). The misfit, its gradient and Hessian
+% are calculated by the new function PointDataMisfit.m, called from Misfit.m, Jq.m and Jqq.m. is_uv_points_misfit.m returns the
+% selected formulation (an undefined field, eg in an old restart file, gives the default). TestMeas.m checks the point measurements
+% if the new formulation is used. Spatially correlated errors can be accounted for approximately when defining the errors, by thinning
+% or an effective variance, see CreatePointMeasurements.m. Note that Meas.uvO depends on the mesh, and must be recreated if the mesh
+% changes. Tested on an Antarctic B, logA, logC inversion (nx50, 2e6 ITS_LIVE pixels): the misfit agrees with a direct evaluation to
+% round-off, Jqq agrees with finite differences of Jq to 2e-11, and the brute-force gradient test gives a normalised difference of 9e-8.
+%
+% * uv solver: the solution is now always updated by at least one Newton step (14 November 2026):
+%
+% In SSTREAM2dNR2.m the test of whether the initial state is already within tolerance was done with iteration=1 before any Newton
+% update had been made, so that CtrlVar.NRitmin=1 did not force an update. As rForce is a global measure, a local change in A, B or C
+% (eg at a single node) could give an initial rForce below CtrlVar.uvDesiredForceTolerance, and the warm-start velocities were then
+% returned unchanged although the Newton step had been calculated. In an inversion, cost function and gradient could then refer to
+% velocities of a previous parameter vector, and brute-force gradient tests gave wrong values (exactly zero changes in the misfit) for
+% local perturbations. The test now uses the number of completed iterations (iteration-1). CtrlVar.NRitmin=0 still allows the initial
+% state to be accepted without an update.
+%
+% * Brute-force gradient tests (14 November 2026):
+%
+% CalcBruteForceGradient.m now starts every function evaluation from the same initial state (the persistent warm start in JGH.m is
+% cleared before each evaluation), so that the results no longer depend on the order in which the elements of p are perturbed. Note
+% that this also resets the call counters in JGH.m. TestCorrectnessOfAdjointGradient.m: indexing of the nodal GF field with the index
+% into p=[A;B;C] corrected (failed when inverting for more than one field). With these changes, and the uv solver change above, the
+% adjoint gradients (logA, B, logC) agree with brute-force finite differences to 1e-7 (normalised) on the Antarctic nx50 test.
+%
+% * Velocity and dh/dt misfits with spatially variable errors (14 November 2026):
+%
+% The nodal-integral misfit terms now use a consistent discretisation of the integral of (r/err)^2, with the nodal weights w=1/err^2
+% interpolated to the integration points (weighted mass matrix, GeneralizedMassAndStiffnessAssembly.m for u and v). Previously the
+% residuals were divided by the nodal errors before the (unweighted) mass matrix was applied, which is only correct if the errors are
+% constant over each element. Changed consistently in Misfit.m, Jq.m, Jqq.m, EvaluateJhdotAndDerivatives.m, JhdotBB.m and JhdotBq.m.
+% Also, diag() replaces spdiags() when extracting the variances from the covariance matrices (spdiags with one output returns all
+% non-zero diagonals).
+%
+% * Wall-clock and CPU times in RunInfo corrected (12 November 2026):
+%
+% RunInfo.WallTime.Total and RunInfo.CPU.Total, and the assembly and solution timers RunInfo.CPU.Assembly.uv/uvh and
+% RunInfo.CPU.Solution.uv/uvh, were wrong:
+%
+%   - In restart runs, RunInfo is read from the restart file, including the tic values of the session that wrote it. The first update in
+%     Ua2D.m therefore added the calendar time since the restart file was written to WallTime.Total (eg 71 days after a chain of restarts),
+%     and the difference between the cputime of two different MATLAB processes to CPU.Total (which could decrease).
+%   - CreateOutputs.m calculated the wall-time increment but did not assign it, and then reset the tic, so that the wall time up to each
+%     output call was lost.
+%   - The assembly and solution timers were initialised as [] in UaRunInfo.m, and []+x is [], so that they were never accumulated.
+%   - RunInfo.CPU.Solution.uv was reset at the start of every uv solve (SSTREAM2dNR2.m).
+%
+% The updates are now done by two UaRunInfo methods, UpdateTotalTimes (adds the time since the last tic to the totals and resets the tic)
+% and RestartTimers (resets the tic only), used in Ua2D.m, CreateOutputs.m (time spent in DefineOutputs still excluded) and the restart
+% writers WriteForwardRunRestartFile.m and WriteAdjointRestartFile.m (so that the saved totals include the time up to the write). Ua2D.m
+% keeps the tic values of its own session and restores them after RunInfo has been read from a restart file. The totals accumulate over
+% a chain of restart runs, as before. The four assembly and solution timers are initialised as 0 (also when old files are loaded) and
+% accumulate over the run (and the chain of restarts); they are wall-clock times (tic/toc), even though they are in RunInfo.CPU.
+% Totals already in existing restart files may include the errors described above.
+%
+% * uvh non-convergence: rescue by increasing the grounding-line transition length before reducing the time step (12 November 2026):
+%
+% Cause (DeborahRheeConvergence, flow-line set-up, fixed dt=2, run step 1288): a row of integration points across the flow-line strip
+% (20 on each side, with identical h-hf) passes through the transition of the grounding-line mask G=(1+tanh((h-hf)/l))/2 within one time
+% step. The feedback between grounding (basal drag), velocity and thickness at these points folds the discrete problem when l is small: for
+% l=1 m the residual is not monotonic in h-hf at the row, with folds at h-hf=-0.91 and +0.31 m, and the root at +1.34 m. The explicit
+% estimate (+0.25 m) lay just below the upper fold, the Newton direction pointed away from the root, and the iteration ended at the lower
+% fold (the Jacobian nearly singular in that direction), where the line search failed. The root exists: it is found by continuation in
+% l (2 -> 1 m, two iterations per step), and the folds disappear for l>=1.75 m. The required l can not be predicted from dh/dt (0.33 m/yr
+% at the start of the time step), so the nodal transition length of 2 November 2026 (c*dt*|dh/dt|) does not prevent this.
+%
+% uvh2NotConvergent.m now has two rescue branches. (1) If integration points lie within the transition (|h-hf| < k*l at the start of the
+% time step or at the last iterate), l is doubled (at most to lmax) at the nodes of those elements, and the solve repeated from the start
+% of the time step with the same time step and the same active set (not reset, as the time step is unchanged), until it converges. If it converges, a final solve with the original l is done, starting from
+% that solution, and accepted if it converges (otherwise the solution with the increased l is kept). The increased l is used for the rest
+% of the time step only. (2) Only if (1) is not tried or does not converge is the time step reduced, as before. Each rescue is recorded in
+% RunInfo.Forward.uvhTransitionLengthRescueLog. In uvhRootFinding.m, the active-set loop continues after a rescue with an increased l,
+% as after a reduction of the time step. New options (Ua2D_DefaultParameters.m):
+%
+%   CtrlVar.GroundingLineTransition.Rescue.isOn=true;
+%   CtrlVar.GroundingLineTransition.Rescue.k=3;
+%   CtrlVar.GroundingLineTransition.Rescue.MaxIncreases=5;
+%   CtrlVar.GroundingLineTransition.Rescue.ReturnToDefault=true;
+%
+% The rescue is on by default. CtrlVarValidityCheck.m fills in missing Rescue fields with their default values (eg if
+% CtrlVar.GroundingLineTransition is set as a whole in the user input, which would otherwise switch the rescue off), with a message.
+%
+% DeborahRheeConvergence: step 1288 converges (l=2 m at 42 nodes, 6 iterations, then l=1 m from that solution, 3 iterations); the accepted
+% solution is the root for l=1 m. Steps 1289-1290 then converge in 2-3 iterations (previously 1290 stagnated after the unconverged 1288).
+% Thule (50 km mesh, restart at t=0.5, fixed dt, 300 steps, c=0 ie l=lmin as before 2 November): dt=0.05: 4 rescues (l=2 to 16 m;
+% three returned to l=1), no time-step reductions, t=15.5 reached (previously 2 reductions, dt=0.0125 from t=0.65, t=4.35 reached);
+% dt=0.1: 10 rescues (l=2 or 4 m, all returned to l=1), no reductions, t=30.5 reached (previously 8 reductions at the first step, to
+% dt=0.0004, t=0.62 reached). With the default c=0.5 no solve failed, and the runs are identical to those without the rescue.
+% Not yet included in the semi-implicit -uv-h- scheme (uvhSemiImplicit.m), which does not use uvh2NotConvergent.m.
+%
 % * UaFields.loadobj: objects saved with a different set of properties (2 November 2026):
 %
 % If a UaFields object was saved with a property that has since been removed (eg kHElement, in restart files written with the version of

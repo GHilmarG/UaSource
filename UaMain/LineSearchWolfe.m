@@ -96,11 +96,17 @@ function [gammaMin,Jmin,info]=LineSearchWolfe(slope0,gammaStart,J0,J1,Func,info)
 %                                     problem where a genuine bound exists, e.g.
 %                                     a trust-region radius or parameter bounds.
 %   info.xtol                 1e-8    bracket collapse tolerance, relative. The
-%                                     test is Width <= xtol*max(1,gHigh), so for
-%                                     a small step, gHigh<1, it is effectively
-%                                     absolute. Tightening it much below this
-%                                     makes the search give up on resolving a
-%                                     bracket it could not have resolved anyway.
+%                                     test is Width <= xtol*gHigh, ie relative to
+%                                     the upper end of the bracket, so the test is
+%                                     independent of the scale of the step.
+%                                     (Previously Width <= xtol*max(1,gHigh), which
+%                                     is absolute for gHigh<1. When the steps are
+%                                     small, eg gamma~1e-9 because the gradient is
+%                                     large, the initial bracket [0,gammaStart] was
+%                                     then already 'collapsed', and the search gave
+%                                     up without trying any smaller step. Changed
+%                                     14 November 2026.) The number of evaluations
+%                                     is limited by MaxFuncEvaluations in any case.
 %   info.slopeStart           []      phi'(gammaStart) if the caller already has
 %                                     it. Supplying it saves one evaluation.
 %   info.InfoLevel            0
@@ -346,7 +352,7 @@ end
             gLow=min(gLo,gHi) ; gHigh=max(gLo,gHi) ;
             Width=gHigh-gLow ;
 
-            if Width <= info.xtol*max(1,gHigh)
+            if Width <= info.xtol*gHigh     % relative, independent of the scale of the step (14 November 2026)
                 gamma=gammaBest ; J=JBest ; info.slopeMin=slopeBest ;
                 if gammaBest==0
                     % The bracket collapsed without any trial point beating phi(0), so the step returned is zero. That

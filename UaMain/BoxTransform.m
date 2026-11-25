@@ -5,6 +5,7 @@ function out=BoxTransform(Mode,x,Box)
 %   v = BoxTransform("forward" ,p,Box)     maps  p in (lb,ub)  ->  v in R
 %   p = BoxTransform("inverse" ,v,Box)     maps  v in R        ->  p in (lb,ub)
 %   D = BoxTransform("jacobian",v,Box)     returns dp/dv evaluated at v
+%   D2= BoxTransform("curvature",v,Box)    returns d^2p/dv^2 evaluated at v (central differences of the Jacobian, 15 November 2026)
 %
 % Change of variables used to eliminate two-sided box constraints. Box is built once by BoxTransformSetup.m, which
 % documents the two available maps and the reason the softplus box is the default.
@@ -47,6 +48,16 @@ x=x(:) ;
 
 if ~isstruct(Box) || ~isfield(Box,'Type')
     error('BoxTransform:BadBox','Box must be the structure returned by BoxTransformSetup.')
+end
+
+if lower(string(Mode))=="curvature"
+    % d^2p/dv^2, by central differences of the Jacobian. The step is a small fraction of the scale over which the Jacobian varies.
+    if Box.Type=="softplus" ; h=1e-4*Box.Width_s(:) ; else ; h=1e-4*Box.Width(:) ; end
+    h(~isfinite(h) | h<=0)=1e-6 ;
+    if isscalar(h) ; h=h+zeros(size(x)) ; end
+    out=(BoxTransform("jacobian",x+h,Box)-BoxTransform("jacobian",x-h,Box))./(2*h) ;
+    out(~Box.Ok)=0 ;
+    return
 end
 
 if numel(x)~=numel(Box.Ok)

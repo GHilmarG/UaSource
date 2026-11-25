@@ -249,7 +249,7 @@ CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ;
 
 [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);  % RHS with calculated velocities, i.e. difference between external and internal forces
 
-RunInfo.CPU.Solution.uv=0;
+% (12 Nov 2026) RunInfo.CPU.Solution.uv is no longer reset here: like the other timers it is the cumulative time over the run.
 
 
 
@@ -371,16 +371,26 @@ while true
     Func=@(gamma) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
     % (15 Oct 2026) The residual measures at gamma=0 are calculated from the residual assembled above (frhs, grhs), without a further
     % assembly. (Previously Func(0), ie a further assembly of the same residual.)
-    LineSearchMethod="rLineminUa3" ; if isfield(CtrlVar,"NewtonLineSearch") && isfield(CtrlVar.NewtonLineSearch,"Method") ; LineSearchMethod=string(CtrlVar.NewtonLineSearch.Method) ; end
+    LineSearchMethod="rLineminUa3" ;
+
+    if isfield(CtrlVar,"NewtonLineSearch") && isfield(CtrlVar.NewtonLineSearch,"Method")
+        LineSearchMethod=string(CtrlVar.NewtonLineSearch.Method) ;
+    end
+
     if LineSearchMethod=="rLineminUa2"   % the previous implementation, including a further assembly of the residual at gamma=0 (for comparison only)
         gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
     else
-    gamma=0 ; [rForce0,rWork0,D20]=uvResidualMeasures(frhs,grhs,fext0,dub,dvb,dl) ; r0=rForce0 ;
+        gamma=0 ; [rForce0,rWork0,D20]=uvResidualMeasures(frhs,grhs,fext0,dub,dvb,dl) ; r0=rForce0 ;
     end
 
     if iteration==1
         %           special case to check if initial state was already within tolerance
-        ResidualsCriteria=uvResidualsCriteria(CtrlVar,rForce0,rWork0,iteration,1) ;  % here I set gamma as an input to one, i.e. as if I had take a full step
+        % (14 Nov 2026) Pass the number of completed iterations, i.e. iteration-1=0, as no Newton update has been made yet. Previously
+        % 'iteration' (=1) was passed, which satisfied iteration>=CtrlVar.NRitmin before any update, so that NRitmin=1 did not force
+        % a Newton step. As rForce is a global measure, a local change in A, B or C (at a single node, say) can give an initial rForce
+        % below CtrlVar.uvDesiredForceTolerance, and the starting (warm-start) velocities were then returned unchanged, although the
+        % Newton step had already been calculated. With CtrlVar.NRitmin=0 the initial state can still be accepted without an update.
+        ResidualsCriteria=uvResidualsCriteria(CtrlVar,rForce0,rWork0,iteration-1,1) ;  % here I set gamma as an input to one, i.e. as if I had take a full step
 
         % save the first r value for plotting, etc
         rVector.gamma(1)=gamma;

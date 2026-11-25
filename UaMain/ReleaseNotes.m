@@ -1,11 +1,48 @@
 
 
 %%
-% 
+%
 % *Release Notes* _November 2026_
 %
+% * Hessian-Vector-Product inversion *
 %
-% * Grounding-line transition: 
+% An inexact Newton trust-region method with Hessian-vector product (HPV) can now be used in an inversion.  This
+% approach addresses the limitations of the existing "Hessian-based" approach which created the full Hessian. With the HPV
+% formulation only the produce of the Hessian with a vector is formed, without ever forming the full Hessian matrix.
+%
+% The method is inexact on purpose  to ensure that only terms that are by construction positive definite are included in the
+% Hessian. This approach is also sometimes referred to as Gauss-Newton method.
+%
+% The optimization problem is solved using an new Ua optimization option based on trust-region solver, a Steihaug–Toint CG
+% inner solver preconditioned with the prior, and projected bounds. Optionally it uses the full Newton Hessian instead.
+%
+%
+%
+%
+% The new option is activated by setting:
+%
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-" ;
+% 
+% The other options are:
+%
+% Conjugate gradients: 
+%
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-GradientBased-";
+%
+% Full Hessian:
+%
+%   CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianBased-" ;
+%
+%  Note: when using the full Hessian, the Ua optimization uses an exact two-dimensional sub-space minimization.
+%
+%
+% Using the MATLAB optimisation:
+%
+%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-GradientBased-"; ...        % gradient-based, MATLAB toolbox
+%  
+%   CtrlVar.Inverse.MinimisationMethod=  "-MatlabOptimisation-HessianBased-"; ...         % (full) Hessian-based, MATLAB toolbox
+%
+% * Grounding-line transition:
 %
 %
 % The grounding-line mask is now has a transition length-scale which now is nodal variable and varies across the domain as
@@ -30,6 +67,10 @@
 %   CtrlVar.kH
 %
 % is no longer used. Setting this field now produces an error.
+%
+% If a NR uvh iteration does not converge, l is increased until convergence is found (it is is found) and then decreased
+% again until a solution with the prescribed l has been found. Only if this fails, is a reduction in dt attempted. 
+%
 %
 % *Release Notes* _October 2026_
 %

@@ -1,4 +1,4 @@
-function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
+function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,InverseFileRestartWriter)
 
 %%
 % This is basically a non-linear conjugated-gradient minimizer.
@@ -36,7 +36,10 @@ function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInf
 %
 %%
 
-narginchk(8,8)
+narginchk(8,9)
+if nargin<9
+    InverseFileRestartWriter=[];   % (23 Nov 2026) function handle for writing inverse restart files during the inversion (InvertForModelParameters.m)
+end
 nargoutchk(3,3)
 
 
@@ -138,7 +141,23 @@ if isempty(RunInfo) ||  ~isfield(RunInfo.Inverse,"Iterations") || numel(RunInfo.
     RunInfo.Inverse.StepSize(1)=0;
     RunInfo.Inverse.Decrement(1)=Decrement;
     RunInfo.Inverse.GradNorm(1)=GradNorm;
+    [RunInfo.Inverse.Juv(1),RunInfo.Inverse.Jhdot(1),RunInfo.Inverse.JBobs(1)]=IndividualCostTerms(fOuts);
+    RunInfo.Inverse.ElapsedTime(1)=0;
 end
+
+% (15 November 2026) Individual terms of the cost function, the velocity misfit (Juv), the dh/dt misfit (Jhdot) and the misfit
+% with respect to direct measurements of B (JBobs, included in R). Make sure these fields exist, and have the same length as
+% RunInfo.Inverse.J, also if RunInfo does not contain them (eg RunInfo created before these fields were introduced).
+for ff=["Juv","Jhdot","JBobs","ElapsedTime"]
+    if ~isfield(RunInfo.Inverse,ff)
+        RunInfo.Inverse.(ff)=nan(size(RunInfo.Inverse.J));
+    elseif numel(RunInfo.Inverse.(ff))<numel(RunInfo.Inverse.J)
+        RunInfo.Inverse.(ff)=[RunInfo.Inverse.(ff)(:);nan(numel(RunInfo.Inverse.J)-numel(RunInfo.Inverse.(ff)),1)];
+    end
+end
+
+isBinversion=contains(CtrlVar.Inverse.InvertFor,"-B-");   % JBobs only printed in B inversions
+[~,~,JBobs0]=IndividualCostTerms(fOuts);
 
 RunInfo.Inverse.ConjGradUpdate=0;
 
@@ -189,17 +208,25 @@ gammaStart=gamma;
 
 %%
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g \t  decrement=%g \t \t gamma=%-g \n \n',J0,fOuts.I,fOuts.R,Decrement,gamma)
+if isBinversion
+    fprintf(' +++++++++++ At start of inversion:  \t JBobs=%-g (misfit with respect to direct measurements of B, included in R) \n \n',JBobs0)
+end
 
 It0=max(RunInfo.Inverse.Iterations);
 
-fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R           decrement  \t    gamma  \t SDratio    CGcorr \n')
+fprintf('\n   It\t #cgUpd F-count G-count   \t   J     \t   I    \t   R           decrement  \t    gamma  \t SDratio    CGcorr ')
+if isBinversion ; fprintf('\t     JBobs ') ; end
+fprintf('\n')
 
-fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f \n',...
+fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f ',...
     It0,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.I,fOuts.R,Decrement,gamma,nan,nan)
+if isBinversion ; fprintf('\t%15.10g',JBobs0) ; end
+fprintf('\n')
 
 %%
 
 ExitInfo=[];                              % state carried by CGExitCriteria
+tStartIterations=tic;                     % (16 Nov 2026) for RunInfo.Inverse.ElapsedTime and CtrlVar.Inverse.MaxWallClockTime
 
 for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
 
@@ -247,20 +274,28 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     Misfit=fOuts.I;
 
   
-    fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f \n',...
+    [Juv,Jhdot,JBobs]=IndividualCostTerms(fOuts);
+
+    fprintf('%5i\t%5i\t%5i\t%5i\t%15.10g\t%15.10g\t%15.10g\t  %15.10g \t %10g\t%8.4f %8.4f ',...
         Iteration,cgInfo.NumberOfConjGradUpdatesWithoutReset,nFuncEval,nGradEval,J0,fOuts.I,fOuts.R,...
         Decrement,gamma,cgInfo.SufficientDescentRatio,cgInfo.CGCorrectionRatio)
+    if isBinversion ; fprintf('\t%15.10g',JBobs) ; end
+    fprintf('\n')
 
     if numel(RunInfo.Inverse.Iterations) < Iteration
     
-            Padding=nan(CtrlVar.Inverse.Iterations,1);
-            RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations; Padding];
-            RunInfo.Inverse.J=[RunInfo.Inverse.J; Padding];
-            RunInfo.Inverse.R=[RunInfo.Inverse.R; Padding];
-            RunInfo.Inverse.I=[RunInfo.Inverse.I; Padding];
-            RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement; Padding];
-            RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm; Padding];
-            RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize; Padding];
+            Padding=nan(CtrlVar.Inverse.Iterations(:),1);
+            RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations(:); Padding];
+            RunInfo.Inverse.J=[RunInfo.Inverse.J(:); Padding];
+            RunInfo.Inverse.R=[RunInfo.Inverse.R(:); Padding];
+            RunInfo.Inverse.I=[RunInfo.Inverse.I(:); Padding];
+            RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement(:); Padding];
+            RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm(:); Padding];
+            RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize(:); Padding];
+            RunInfo.Inverse.Juv=[RunInfo.Inverse.Juv(:); Padding];
+            RunInfo.Inverse.Jhdot=[RunInfo.Inverse.Jhdot(:); Padding];
+            RunInfo.Inverse.JBobs=[RunInfo.Inverse.JBobs(:); Padding];
+            RunInfo.Inverse.ElapsedTime=[RunInfo.Inverse.ElapsedTime(:); Padding];
 
     end
 
@@ -271,6 +306,20 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     RunInfo.Inverse.Decrement(Iteration)=Decrement;
     RunInfo.Inverse.GradNorm(Iteration)=GradNorm;
     RunInfo.Inverse.StepSize(Iteration)=gamma;
+    RunInfo.Inverse.Juv(Iteration)=Juv;
+    RunInfo.Inverse.Jhdot(Iteration)=Jhdot;
+    RunInfo.Inverse.JBobs(Iteration)=JBobs;
+    RunInfo.Inverse.ElapsedTime(Iteration)=toc(tStartIterations);   % (16 Nov 2026)
+
+    % (23 Nov 2026) inverse restart file every CtrlVar.Inverse.RestartFileWriteInterval iterations, with the current iterate (the
+    % inversion can then be continued from it if the run is stopped; the final restart file is written as before, Ua2D.m). The state
+    % at p is not available here (func is called without it), so the writer uses the state of the start of the inversion with the
+    % current parameters (p2F); only the velocities in that state, used as the initial guess on restart, are not the current ones.
+    if ~isempty(InverseFileRestartWriter) && CtrlVar.Inverse.WriteRestartFile && isfield(CtrlVar.Inverse,"RestartFileWriteInterval") ...
+            && CtrlVar.Inverse.RestartFileWriteInterval>0 && mod(Iteration-It0,CtrlVar.Inverse.RestartFileWriteInterval)==0
+        InverseFileRestartWriter(p,[],J0,dJdp,fOuts,RunInfo) ;
+        fprintf("UaOptimisationGradientBased: restart file written at iteration %i (%s)\n",Iteration,CtrlVar.Inverse.NameOfRestartOutputFile)
+    end
 
 
 
@@ -279,6 +328,11 @@ for Iteration=1+It0:CtrlVar.Inverse.Iterations+It0
     if Exit
         fprintf('\n Inversion stopped after %i iterations, exit flag %i : %s \n',...
             Iteration,ExitInfo.Flag,ExitInfo.Message)
+        break
+    end
+
+    if isfield(CtrlVar.Inverse,"MaxWallClockTime") && toc(tStartIterations)>CtrlVar.Inverse.MaxWallClockTime   % (16 Nov 2026)
+        fprintf('\n Inversion stopped after %i iterations: maximum wall-clock time (%g s) reached. \n',Iteration,CtrlVar.Inverse.MaxWallClockTime)
         break
     end
 
@@ -393,6 +447,25 @@ switch lower(CtrlVar.Inverse.UaConjugatedGradients.UpdateMethod)
 
         error("CaseNotFound")
 
+end
+
+end
+
+function [Juv,Jhdot,JBobs]=IndividualCostTerms(fOuts)
+
+% (15 November 2026) Individual terms of the cost function from the additional outputs of the cost function (JGH.m): the velocity
+% misfit (Juv), the dh/dt misfit (Jhdot), and the misfit with respect to direct measurements of B (JBobs, which is included in R).
+% NaN if not available.
+
+Juv=NaN ; Jhdot=NaN ; JBobs=NaN ;
+
+if isstruct(fOuts) && isfield(fOuts,"MisfitInfo") && isstruct(fOuts.MisfitInfo)
+    if isfield(fOuts.MisfitInfo,"Juv") ; Juv=fOuts.MisfitInfo.Juv ; end
+    if isfield(fOuts.MisfitInfo,"Jhdot") ; Jhdot=fOuts.MisfitInfo.Jhdot ; end
+end
+
+if isstruct(fOuts) && isfield(fOuts,"RegularisationInfo") && isstruct(fOuts.RegularisationInfo)
+    if isfield(fOuts.RegularisationInfo,"JBobs") ; JBobs=fOuts.RegularisationInfo.JBobs ; end
 end
 
 end

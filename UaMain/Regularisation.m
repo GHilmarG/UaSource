@@ -1,10 +1,10 @@
 
 
 
-function [R,dRdp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
+function [R,dRdp,RegularisationInfo]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint)
 
 narginchk(8,8)
-nargoutchk(2,2)
+nargoutchk(2,3)
 
 %% Calculates the explicit terms of the cost function and their derivatives. (But not the Hessian)
 %
@@ -272,6 +272,8 @@ else
     dRdC=[];
 end
 
+JBobs=0;  % misfit with respect to direct measurements of B, included in RB below (15 November 2026)
+
 if isB
 
     %% B regularization
@@ -302,6 +304,11 @@ end
 
 
 R=full(RA+RB+RC);
+
+if nargout>2
+    % individual terms, eg for printing and storing in RunInfo (15 November 2026)
+    RegularisationInfo.JBobs=full(JBobs);   % misfit with respect to direct measurements of B (included in R)
+end
 dRdp=[dRdA;dRdB;dRdC];
 
 

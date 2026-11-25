@@ -44,7 +44,7 @@ if nargin==0
 
 end
 
-if nargin<2
+if nargin<2 || isempty(MUA)
     MUA="ITS-LIVE" ;
 end
 
@@ -110,22 +110,26 @@ if isstring(MUA)
 end
 
 
+if ~isempty(F)
+    if  isnumeric(F) && numel(F)==MUA.Nnodes
+        LSF=F;
+    else
+        LSF=F.LSF ;
+    end
 
-if  isnumeric(F) && numel(F)==MUA.Nnodes
-    LSF=F;
-else
-    LSF=F.LSF ;
+
+
+    if isempty(LSF)
+        xc=[] ; yc=[] ;
+        return
+    end
+
+    GF.node=LSF ;
+
 end
-
-if isempty(LSF)
-    xc=[] ; yc=[] ;
-    return
-end
-
 
 CtrlVar.LineUpGLs=true ;
 
-GF.node=LSF ;
 
 CtrlVar.GLthreshold=0;
 

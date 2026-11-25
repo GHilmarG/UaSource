@@ -23,13 +23,20 @@ if isB
         iSigma=sparse(1:nMeas,1:nMeas,1./BErr.^2,nMeas,nMeas);
         HBobs=O' * iSigma * O;
         HBobs=0.5*(HBobs+HBobs');
-        % QB=QB+HBobs;
+        % QB=QB+HBobs;   % HBobs is deliberately kept out of QB, as QB is also used to evaluate R and dR/dB in Regularisation.m
     end
 end
 
 
 
-G=blkdiag(QA,QB,QC);
+% The metric is the Hessian of the regularisation term, and optionally also includes the Hessian of the misfit with respect to the
+% direct measurements of B, HBobs (in the metric only, see above). (14 November 2026)
+if ~isempty(HBobs) && isfield(CtrlVar.Inverse,"Metric") && isfield(CtrlVar.Inverse.Metric,"IncludeBobsHessian") ...
+        && CtrlVar.Inverse.Metric.IncludeBobsHessian
+    G=blkdiag(QA,QB+HBobs,QC);
+else
+    G=blkdiag(QA,QB,QC);
+end
 
 
 end

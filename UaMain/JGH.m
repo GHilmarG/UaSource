@@ -131,8 +131,8 @@ end
 % Get the I and R terms, and the gradients if required. The Hessian is calculated later.
 
 
-[R,dRdp]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
-[I,dIdp,Psi_x,Psi_y,F,dFduv]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv);
+[R,dRdp,RegularisationInfo]=Regularisation(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+[I,dIdp,Psi_x,Psi_y,F,dFduv,MisfitInfo]=Misfit(CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,dFduv);
 
 if  CtrlVar.Inverse.CalcGrad  % gradient needed
     dJdp=dRdp+dIdp;
@@ -221,6 +221,9 @@ if nargout>3  % additional information needed as output
     JGHouts.ddRdpp=[];
     JGHouts.Psi_x=Psi_x;
     JGHouts.Psi_y=Psi_y;
+    JGHouts.dFduv=dFduv;     % (16 Nov 2026) forward-model Jacobian K=dF/dq at the current state, reused for the Hessian-vector products (AssembleHessianBlocks.m)
+    JGHouts.MisfitInfo=MisfitInfo;                  % individual misfit terms, Juv and Jhdot (15 November 2026)
+    JGHouts.RegularisationInfo=RegularisationInfo;  % individual terms included in R, JBobs (15 November 2026)
 
 else
     JGHouts=[];

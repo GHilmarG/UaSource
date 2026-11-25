@@ -45,6 +45,15 @@ if isempty(InvStartValues.C) ; save TestSave ; error('GetInputsForInverseRun:emp
 if isempty(InvStartValues.n) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.n is empty') ; end
 if isempty(InvStartValues.m) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.m is empty') ; end
 
+
+if isscalar(Priors.AGlen) 
+    Priors.AGlen=Priors.AGlen+zeros(MUA.Nnodes,1) ;
+end
+
+if isscalar(Priors.C) 
+    Priors.C=Priors.C+zeros(MUA.Nnodes,1) ;
+end
+
 if isempty(Priors.AGlenmax)
     Priors.AGlenmax=CtrlVar.AGlenmax;
 end
@@ -72,6 +81,13 @@ if isempty(Priors.Bmin)
 end
 
 %%
+% (20 Nov 2026) Regularisation of AGlen and C themselves (rather than of log10(AGlen) and log10(C)) is no longer supported:
+% Regularisation.m always regularises log10(AGlen) and log10(C), and only the Tikhonov parameters of logAGlen, logC and B are used.
+RegField=string(CtrlVar.Inverse.Regularize.Field) ;
+if contains(RegField,"-AGlen-") || contains(RegField,"-C-")
+    error("GetInputsForInverseRun:RegularizeField","CtrlVar.Inverse.Regularize.Field=%s: regularisation of AGlen and C (rather than log10(AGlen) and log10(C)) is no longer supported. Use '-logAGlen-logC-', '-logAGlen-' or '-logC-'.",RegField)
+end
+
 if CtrlVar.Inverse.Methodology=="-Tikhonov-"
     isE=false ;
     switch CtrlVar.Inverse.Regularize.Field
@@ -195,9 +211,11 @@ if isB
 
     end
 
-    if isempty(Meas.dhdt)
+    % (21 Nov 2026) Meas.dhdt (nodal) is only needed for the "-nodal-integral-" dh/dt misfit; for "-points-" and "-blocks-" the
+    % dh/dt data are in Meas.dhdtData etc.
+    if isempty(Meas.dhdt) && contains(CtrlVar.Inverse.Measurements,"-dhdt-") && dhdtMisfitMethod(CtrlVar)=="-nodal-integral-"
 
-        fprintf('Meas.dhdt can not be left empty when inverting for B.\n')
+        fprintf('Meas.dhdt can not be left empty when inverting for B with the -nodal-integral- dh/dt misfit.\n')
         error('GetInputsForInverseRun:Meas.dhdtIsNotDefined')
 
     end

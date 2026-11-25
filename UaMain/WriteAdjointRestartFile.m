@@ -6,6 +6,10 @@
 
 function WriteAdjointRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo,InvStartValues,Priors,Meas,BCsAdjoint,InvFinalValues)
 
+% (12 Nov 2026) The wall-time and CPU totals saved in the restart file include the time up to now (this changes only the local copy
+% of RunInfo; the caller adds the same interval to its own totals later). See UaRunInfo.m.
+RunInfo=UpdateTotalTimes(RunInfo) ;
+
 
 fprintf(CtrlVar.fidlog,'Saving inverse-run restart file: %s \n ',CtrlVar.Inverse.NameOfRestartOutputFile);
 

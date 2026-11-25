@@ -25,6 +25,15 @@ CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inver
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'StepTolerance',CtrlVar.Inverse.StepTolerance);
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);
 
+if CtrlVar.Inverse.HessianCalculation=="-HVP-"
+    % (15 November 2026) Hessian-vector products instead of the Hessian (see HessianMultiplyHVP.m). For the interior-point algorithm this
+    % requires SubproblemAlgorithm="cg", and the Hessian-vector products are then provided through HessianMultiplyFcn=@(x,lambda,v).
+    if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm~="interior-point"
+        error("InversionUsingMatlabOptimisationToolbox3:HVP","CtrlVar.Inverse.HessianCalculation=-HVP- is only implemented for the fmincon interior-point algorithm.")
+    end
+    CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[],'HessianMultiplyFcn',Hfunc,'SubproblemAlgorithm','cg');
+end
+
 if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-reflective"
 
 
@@ -94,7 +103,7 @@ else
         nonlcon = [];
 
 
-        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        if contains(CtrlVar.Inverse.MinimisationMethod,"HessianBased")
 
 
 
@@ -132,12 +141,13 @@ end
 [stop,Outs] = fminuncOutfun();
 
 
-RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+Outs.iteration];
+RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;max(RunInfo.Inverse.Iterations)+Outs.iteration];
 RunInfo.Inverse.J=[RunInfo.Inverse.J;Outs.fval];
 RunInfo.Inverse.StepSize=[RunInfo.Inverse.J;Outs.StepSize];
 RunInfo.Inverse.R=[RunInfo.Inverse.R;Outs.fval+NaN];
 RunInfo.Inverse.I=[RunInfo.Inverse.I;Outs.fval+NaN];
 RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;Outs.GradNorm];
+RunInfo.Inverse.Decrement=[RunInfo.Inverse.Decrement(:);Outs.GradNorm*0+nan];
 RunInfo.Inverse.p=Outs.p;
 % If I need some further info and want to update F
 

@@ -698,8 +698,11 @@ CtrlVar.LinearSolver.Type="MATLAB";                       % "MATLAB": decomposit
 CtrlVar.LinearSolver.PARDISO.Library="";                  % full path to the MKL runtime library mkl_rt (eg ...\Library\bin\mkl_rt.3.dll, as installed
                                                           % with pip install mkl); if empty, the environment variable UA_MKL_RT is used
 CtrlVar.LinearSolver.PARDISO.ThreadingLayer="TBB";        % "TBB" (multithreaded) or "SEQUENTIAL"; the OpenMP layer of MKL can not be used within MATLAB
-CtrlVar.LinearSolver.PARDISO.ResidualTolerance=1e-10;     % if the relative residual of the solution is larger, the analysis is repeated, and if that
-                                                          % does not help, decomposition is used instead
+CtrlVar.LinearSolver.PARDISO.BackwardErrorTolerance=1e-12;   % (24 Nov 2026) if the normwise backward error of the solution,
+                                                          % max ||A x-b||_1/(||A||_1 ||x||_1+||b||_1), is larger, the analysis is repeated
+                                                          % (nonsymmetric systems), and if that does not help, decomposition is used instead.
+                                                          % Replaces ResidualTolerance (relative residual, 1e-10), which is not scale invariant
+                                                          % and could not be reached for badly scaled systems by any solver (see UaPardisoSolve.m)
 CtrlVar.LinearSolver.PARDISO.MinimumSize=10000;          % systems with fewer unknowns are solved with mldivide (the analysis by PARDISO would cost
                                                           % more than it saves); diagonal systems are always solved directly
 CtrlVar.LinearSolver.PARDISO.StructuralPattern=true;     % use the structural sparsity pattern of the mesh (MUA.uvAssemblyPattern,
@@ -984,7 +987,8 @@ CtrlVar.Inverse.MinimisationMethodOptions=[...
     "-MatlabOptimisation-GradientBased-"; ...        % gradient-based, MATLAB toolbox
     "-MatlabOptimisation-HessianBased-"; ...         % Hessian-based, MATLAB toolbox
     "-UaOptimisation-GradientBased-"; ...            % gradient-based, Ua Optimisation toolbox
-    "-UaOptimisation-HessianBased-"     ];       % Hessian-based, Ua Optimisation toolbox
+    "-UaOptimisation-HessianBased-"; ...             % Hessian-based, Ua Optimisation toolbox
+    "-UaOptimisation-HessianVectorBased-"     ];     % inexact Newton (Hessian-vector products) with preconditioned CG and a trust region, Ua Optimisation toolbox
    
 % If a Hessian-based Optimisation is used, the the expressions for the Hessians can be selected as follows:
 
@@ -994,7 +998,40 @@ CtrlVar.Inverse.HessianTerms="-all-";  % only applies for the  HessianCalculatio
 
 CtrlVar.Inverse.HessianCalculationOptions=[...
     "-DirectAdjoint-";...
-    "-FiniteDifferences-"] ; 
+    "-FiniteDifferences-";...
+    "-HVP-"] ; 
+
+% (15 November 2026) Hessian-vector products (HVP)
+%
+% With CtrlVar.Inverse.HessianCalculation="-HVP-" and CtrlVar.Inverse.MinimisationMethod="-MatlabOptimisation-HessianBased-", fmincon
+% (interior-point, SubproblemAlgorithm="cg") is given Hessian-vector products (HessianMultiplyFcn) instead of the full Hessian, see
+% HessianMultiplyHVP.m. The Hessian is then never formed. The Hessian-vector products are calculated by HessianVectorProduct.m, from
+% the sparse blocks assembled by AssembleHessianBlocks.m, and are also used by CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-".
+%
+%   CtrlVar.Inverse.HVP.Type="-GN-"   : Gauss-Newton Hessian (positive semi-definite), default
+%   CtrlVar.Inverse.HVP.Type="-full-" : full Hessian (all second-order terms), in general indefinite
+%
+CtrlVar.Inverse.HVP.Type="-GN-" ;
+
+% (15 November 2026) Settings for CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-" (see UaOptimisationHessianVectorBased.m):
+% inexact Newton with Hessian-vector products, the Newton system solved approximately with conjugate gradients preconditioned with the
+% metric G (the Hessian of the regularisation term), and a trust region measured in the G norm (Steihaug-Toint). Box constraints are
+% imposed through the box transform (CtrlVar.Inverse.BoxTransform=true), so the Optimisation problem is unconstrained.
+CtrlVar.Inverse.HessianVectorBased.MaxInnerIterations=200;     % maximum number of CG iterations for each Newton step
+CtrlVar.Inverse.HessianVectorBased.InitialTrustRegionRadius=[];   % initial trust-region radius in the G norm. Default (empty): sqrt(number of parameters)
+CtrlVar.Inverse.HessianVectorBased.MaxForcingTerm=0.1;          % upper limit of the relative tolerance of the inner CG iteration (Eisenstat-Walker forcing term). (16 Nov 2026) 0.5 -> 0.1: Hessian-vector products are cheap compared with the work done once per Newton step
+CtrlVar.Inverse.HessianVectorBased.Bounds="-projected-";         % "-projected-": bounds imposed explicitly (projected Newton, no box transform), or "-BoxTransform-"
+CtrlVar.Inverse.HessianVectorBased.NodalTrustRegionScaling="off";  % "off", "on" or "auto" (experimental): trust region ||s||_M<=Delta with M=G+diag(w), the weights w increased where the model fails locally (eg close to flotation). "auto": switched on once the trust region has collapsed
+CtrlVar.Inverse.HessianVectorBased.AutoCollapseFactor=1e-2;    % "auto": the trust region is considered collapsed if Delta < AutoCollapseFactor * (largest Delta in the run)
+CtrlVar.Inverse.HessianVectorBased.AutoActivationRadius=[];    % "auto": at activation Delta is set to AutoActivationRadius * (largest Delta in the run), [] keeps Delta (default, 16 Nov 2026: faster in the nx50 tests)
+CtrlVar.Inverse.HessianVectorBased.RestrictedPreconditioner="auto";   % with variables at bounds: "exact" (factorise G restricted to the free variables), "approximate" (restriction of the factorisation of G), "auto" (approximate if at most 5% of the variables are at bounds)
+
+% (16 Nov 2026) Maximum wall-clock time (seconds) of the inverse iterations, for -UaOptimisation-GradientBased- and -UaOptimisation-HessianVectorBased-.
+% The inversion stops after the first iteration that ends after this time. The wall-clock time at the end of each iteration (from the
+% start of the inverse iterations of the run) is stored in RunInfo.Inverse.ElapsedTime.
+CtrlVar.Inverse.MaxWallClockTime=inf;
+CtrlVar.Inverse.HessianVectorBased.LocalisationFraction=0.01;    % model failure considered local if this fraction of the variables accounts for more than LocalisationShare of the gradient mismatch
+CtrlVar.Inverse.HessianVectorBased.LocalisationShare=0.5;
 
 
 % Should a Riesz-mapped gradient be used?
@@ -1007,9 +1044,15 @@ CtrlVar.Inverse.HessianCalculationOptions=[...
 %
 if contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
     CtrlVar.Inverse.RieszMapGradient=true;
-elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"HessianBased")
     CtrlVar.Inverse.RieszMapGradient=false;
 end
+
+% Should the metric (used for the Riesz-mapped gradient, and the Cholesky mapping) include the Hessian of the misfit with respect
+% to direct measurements of B, ie HBobs=O' inv(Sigma) O (see BuildMetricMatrix.m)?  By default the metric is the Hessian of the
+% regularisation term only. Including HBobs makes the metric closer to the Hessian of the full cost function where B is measured.
+% HBobs is only added to the metric, not to the regularisation term. (The Hessian-based method includes HBobs in any case, Jpp.m.)
+CtrlVar.Inverse.Metric.IncludeBobsHessian=false;
 
 
 CtrlVar.Inverse.Iterations=1; % Maximum number of inverse iterations
@@ -1018,6 +1061,8 @@ CtrlVar.Inverse.FunctionTolerance=1e-6 ;  % see MATLAB documentation on the use 
 CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab Optimisation toolbox
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
+CtrlVar.Inverse.RestartFileWriteInterval=500; % (23 Nov 2026) if > 0, an inverse restart file is also written every this many iterations during the
+                                            % inversion (-UaOptimisation-HessianVectorBased- and -GradientBased-), so that a stopped run can be continued
 CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 
@@ -1049,6 +1094,42 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 % The gradient of the objective function is calculated using the adjoint method.
 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint'}
+%
+% Formulation of the velocity misfit term:
+%
+%   "-nodal-integral-" : (default) the velocity measurements are given at the nodes (Meas.us, Meas.vs), with diagonal error
+%                        covariances (Meas.usCov, Meas.vsCov), and the misfit is evaluated as an integral over the mesh, normalised
+%                        by the area of the domain.
+%
+%   "-points-"         : the velocity measurements are given at arbitrary locations, for example the pixel centres of a gridded
+%                        product, and the modelled velocities are evaluated at those locations (the mesh is brought to the data), in
+%                        the same way as for direct measurements of B. Errors are treated as uncorrelated, and there is no
+%                        normalisation with the area of the domain:
+%
+%                           I = 1/2 sum_k ((O u)_k - u_k)^2/err_k^2 + (same for v)
+%
+%                        The measurements are defined using CreatePointMeasurements.m, which sets Meas.uvx, Meas.uvy, Meas.usData,
+%                        Meas.vsData, Meas.usErr, Meas.vsErr and Meas.uvO. (Meas.us and Meas.vs are then not used in the misfit,
+%                        but can still be defined, for example for plotting.)
+%
+CtrlVar.Inverse.DataMisfit.uv.Method="-nodal-integral-" ;   % {"-nodal-integral-","-points-"}
+%
+% Formulation of the dh/dt misfit term:
+%
+%   "-nodal-integral-" : (default) the dh/dt measurements are given at the nodes (Meas.dhdt), with a diagonal error covariance
+%                        (Meas.dhdtCov), and the misfit is evaluated as an integral over the mesh, normalised by the area of the
+%                        domain (EvaluateJhdotAndDerivatives.m).
+%
+%   "-points-"         : the modelled dh/dt is evaluated at the measurement locations, without averaging. Measurements defined
+%                        using CreateDhdtPointMeasurements.m.
+%
+%   "-blocks-"         : the modelled dh/dt is averaged over square blocks (eg several pixels of a gridded product), and compared with
+%                        the block averages of the measurements. Measurements defined using CreateDhdtBlockMeasurements.m.
+%
+%   In both "-points-" and "-blocks-" the errors are treated as uncorrelated, and there is no normalisation with the area of the
+%   domain: J = 1/2 sum_k (A hdot - d)_k^2/err_k^2, see dhdtObservationMisfit.m.
+%
+CtrlVar.Inverse.DataMisfit.dhdt.Method="-nodal-integral-" ;   % {"-nodal-integral-","-points-","-blocks-"}
 
 %% Inverse methodology: Select either Tikhonov or Matern 
 %
@@ -1253,7 +1334,7 @@ if license('test','Optimization_Toolbox')   % note, US spelling
         'PlotFcn',{@optimplotlogfval,@optimplotstepsize,@optimplotfirstorderopt},...
         'StepTolerance',CtrlVar.Inverse.StepTolerance,...
         'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
-        'UseParallel',true,...
+        'UseParallel',false,...
         'HessianApproximation',{'lbfgs',25},...
         'HessianFcn',[],...
         'HessianMultiplyFcn',[],...
@@ -1282,7 +1363,7 @@ if license('test','Optimization_Toolbox')   % note, US spelling
         'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
         'StepTolerance',CtrlVar.Inverse.StepTolerance,...
         'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
-        'UseParallel',true,...
+        'UseParallel',false,...
         'HessianFcn',Hfunc,...
         'HessianMultiplyFcn',[],...
         'InitBarrierParam',1e-7,...           % On a restart this might have to be reduced if objective function starts to increase
@@ -2590,6 +2671,20 @@ CtrlVar.MeshAdapt.CFrange=[];   % Example (see description above):  CtrlVar.Mesh
 CtrlVar.GroundingLineTransition.lmin=1;     % (m) smallest transition length (replaces 1/CtrlVar.kH)
 CtrlVar.GroundingLineTransition.lmax=25;    % (m) largest transition length
 CtrlVar.GroundingLineTransition.c=0.5;      % (dimensionless) factor on dt*|dh/dt|; c=0 gives l=lmin everywhere
+%
+% (12 Nov 2026) Rescue of a non-converged uvh solve by increasing the transition length (uvh2NotConvergent.m). If a uvh solve does not
+% converge, and integration points lie within the transition of the mask (|h-hf| < k*l at the start of the time step or at the last
+% iterate), l is first doubled (at most to lmax, and at most MaxIncreases times) at the nodes of these elements and the solve repeated
+% with the same time step. Only if this does not converge is the time step reduced. The increased l is used for the rest of the time
+% step only. If ReturnToDefault is true, a final solve with the original l is done, starting from the solution with the increased l, and
+% that solution is used if it converges. (The positive feedback between grounding, basal drag and thickness at a group of integration
+% points passing through the transition can fold the discrete problem if l is small, so that the Newton iteration does not find the root.)
+% The rescue is on by default. If CtrlVar.GroundingLineTransition (or its field Rescue) is set as a whole in the user input, missing
+% Rescue fields are filled in with the values below by CtrlVarValidityCheck.m.
+CtrlVar.GroundingLineTransition.Rescue.isOn=true;            % increase l before reducing the time step
+CtrlVar.GroundingLineTransition.Rescue.k=3;                 % integration points with |h-hf| < k*l are within the transition
+CtrlVar.GroundingLineTransition.Rescue.MaxIncreases=5;      % at most this many doublings of l per rescue (1 m -> 2, 4, 8, 16, 25 m)
+CtrlVar.GroundingLineTransition.Rescue.ReturnToDefault=true;% after convergence with the increased l, try again with the original l
                 %       So if your distance units is meters, the unit of hH is 1/meters.
                 %       You must make sure that kH is sufficiently large so that 1/kH corresponds to a (vertical) distance
                 %       that is small compared to other distances of interest.

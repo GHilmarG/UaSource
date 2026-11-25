@@ -176,15 +176,15 @@ end
 %
 % is subtle. fmincon with lBFGS update, selects a search direction as
 %
-% $$d=-M g_{L^2}$$
+% $$d=-H_{lBFGS} g_{L^2}$$
 %
-% where $M$ is its lBFGS approximation to the inverse Hessian. If we feed it with the Riez-mapped
+% where $H_{lBFGS}$ is its lBFGS approximation to the inverse Hessian. If we feed it with the Riez-mapped
 % gradient we get the search direction
 %
 %
-% $$d= -M G^{-1}  g_{l^2} $$
+% $$d= -H_{lBFGS} G^{-1}  g_{l^2} $$
 %
-% but while both $M$ and $G$ are SPD, the produce $M G^{1}$ need not be! Therefore $d$ is not guaranteed to be a descent
+% but while both $M$ and $G$ are SPD, the product $H_:lBFGS} G^{1}$ need not be! Therefore $d$ is not guaranteed to be a descent
 % direction.
 %
 %
@@ -279,6 +279,18 @@ F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
 % This mapping between A, B and C into the control variable is done by F2p
 
 % Make sure initial point is feasible
+% (20 Nov 2026) Start values outside the limits, or already set to them (eg in TestSlipperinessInputValues.m), are reported at
+% CtrlVar.InfoLevel>=1 (ReportClipping.m). With the box transform such values start on the boundary of the box, where dp/dv is close
+% to zero, and hardly change during the inversion. For B only values beyond the limits are reported, as B=s-ThickMin is common.
+if CtrlVar.Inverse.BoxTransform
+    BoxNote="   With the box transform these start values are on the boundary of the box, where dp/dv is close to zero, and will"+newline+...
+        "   change little during the inversion. Consider changing the limits or the start values." ;
+else
+    BoxNote="" ;
+end
+if isA ; ReportClipping(CtrlVar,"AGlen",F.AGlen,F.AGlenmin,F.AGlenmax,Inclusive=true,Note=BoxNote,Where="InvertForModelParameters (start values)") ; end
+if isB ; ReportClipping(CtrlVar,"B",F.B,F.Bmin,F.Bmax,Log=false,Note=BoxNote,Where="InvertForModelParameters (start values)") ; end
+if isC ; ReportClipping(CtrlVar,"C",F.C,F.Cmin,F.Cmax,Inclusive=true,Note=BoxNote,Where="InvertForModelParameters (start values)") ; end
 F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
 F.B=kk_proj(F.B,F.Bmax,F.Bmin) ;
 F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
@@ -378,7 +390,7 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % each call is p itself.  I need to decide at this stage if the Hessian will ever be needed.
 
 
-if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+if contains(CtrlVar.Inverse.MinimisationMethod,"HessianBased")   % (not -UaOptimisation-HessianVectorBased-, which never forms the Hessian)
     CtrlVar.JGH.CalcHessian=true;  % From now on I CAN use JGH to calculate the Hessian.
     % But JGH will only do so if the number of output arguments is ALSO 3 or greater.
     %
@@ -401,7 +413,25 @@ func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);   % returns
 %
 % But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the Hfunc is
 % not needed.
-Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method
+if CtrlVar.Inverse.HessianCalculation=="-HVP-"
+    % (15 November 2026) Hessian-vector products instead of the Hessian, used by fmincon (interior-point) as HessianMultiplyFcn
+    CtrlVar.JGH.CalcHessian=false;
+    func=@(p) JGH(p,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+    Hfunc=@(p,lambda,v) HessianMultiplyHVP(p,lambda,v,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint);
+else
+    Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint); % returns the Hessian (H) for the interior-point method
+end
+
+% (15 November 2026) For CtrlVar.Inverse.MinimisationMethod="-UaOptimisation-HessianVectorBased-": given the optimisation variables x, the
+% state F and the additional outputs of JGH at x, HessianSetup returns a function handle for Hessian-vector products with respect to x
+% (including the chain rule for the box transform), see HessianVectorProductSetup.m.
+HessianSetup=@(x,Fx,JGHoutsx) HessianVectorProductSetup(x,Fx,JGHoutsx,CtrlVar,MUA,BCs,l,Priors,Meas,BCsAdjoint);
+
+% (23 November 2026) For writing inverse restart files during the inversion, every CtrlVar.Inverse.RestartFileWriteInterval iterations
+% (used by -UaOptimisation-HessianVectorBased- and -UaOptimisation-GradientBased-): given the current iterate, the state (or [], then the
+% state at the start of the inversion is used), the cost function, gradient and
+% additional outputs, and RunInfo, writes a restart file (WriteInverseRestartFileDuringInversion.m).
+InverseFileRestartWriter=@(px,Fx,Jx,dJdpx,JGHoutsx,RunInfox) WriteInverseRestartFileDuringInversion(px,Fx,Jx,dJdpx,JGHoutsx,RunInfox,UserVar,CtrlVar,MUA,BCs,l,InvStartValues,Priors,Meas,BCsAdjoint,F);
 
 
 %%
@@ -430,12 +460,15 @@ else
 
     if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
 
-        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,HessianSetup,InverseFileRestartWriter);
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
 
-        clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-        [p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
+        clear fminconOutputFunction fminconHessianFcn fminuncOutfun HessianMultiplyHVP
+        % (23 Nov 2026) the cost function is wrapped, so that a failure of the forward solve at a trial point (eg for extreme parameter
+% values) returns J=Inf instead of stopping the inversion, see JGHforMatlabOptimisation.m
+funcMatlab=@(p) JGHforMatlabOptimisation(func,p);
+[p,RunInfo]=InversionUsingMatlabOptimisationToolbox3(UserVar,CtrlVar,RunInfo,MUA,funcMatlab,p0,plb,pub,Hfunc,Aineq,bineq);
 
     else
         error("CaseNotFound")

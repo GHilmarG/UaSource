@@ -140,15 +140,18 @@ switch CtrlVar.AsymmSolver
     case "Bempty"
 
         if isfield(CtrlVar,"LinearSolver") && isfield(CtrlVar.LinearSolver,"Type") && CtrlVar.LinearSolver.Type=="PARDISO"
-            % (16 Oct 2026) PARDISO (Intel oneMKL), see UaPardisoSolve.m. No decomposition is returned (dA=[]), and reusing a given
-            % decomposition (modified Newton-Raphson) is not supported.
-            if ~isempty(dA)
-                error("solveKApe:PARDISO","Reusing a decomposition (modified Newton-Raphson) is not supported with CtrlVar.LinearSolver.Type=""PARDISO"".")
+            % (16 Oct 2026) PARDISO (Intel oneMKL), see UaPardisoSolve.m. (16 Nov 2026) If a decomposition is requested or given, the
+            % factorisation is returned as dA (a structure identifying the PARDISO factorisation, see UaPardisoSolve.m), and reused
+            % if given, so that only the (much cheaper) solve phase is carried out.
+            if UseDecomposition
+                if isempty(dA) ; dA=UaPardisoSolve("factor",CtrlVar,A,A,"nonsymmetric",StructuralPattern) ; end
+                x=SolveWithFactorisation(dA,f); y=[];
+            else
+                x=UaPardisoSolve(CtrlVar,A,f,A,"nonsymmetric",StructuralPattern); y=[]; dA=[];
             end
-            x=UaPardisoSolve(CtrlVar,A,f,A,"nonsymmetric",StructuralPattern); y=[]; dA=[];
         elseif UseDecomposition   % (15 Oct 2026)
             if isempty(dA) ; dA=decomposition(A) ; end
-            x=dA\f; y=[];
+            x=SolveWithFactorisation(dA,f); y=[];
         else
             x=A\f; y=[];
         end
@@ -269,7 +272,7 @@ if  CtrlVar.TestKApeSolve
     else
         if fNorm>1e-10
             res1=norm(A*x+B'*y-f,"fro")/norm(B'*y-f,"fro");
-        elseif fMorm && (norm(x,"fro") > 0 || norm(y,"fro")>0)
+        elseif norm(x,"fro") > 0 || norm(y,"fro")>0    % (16 Nov 2026) was "elseif fMorm && (...)", fMorm undefined (typo)
             res1=norm(A*x+B'*y,"fro")/norm(B'*y,"fro");
         else
             res1=norm(A*x+B'*y-f,"fro");
@@ -437,3 +440,15 @@ end
 % 	end
 % end
 %
+
+function x=SolveWithFactorisation(dA,f)
+
+% (16 Nov 2026) solve with a given factorisation: a MATLAB decomposition object, or a PARDISO factorisation (see UaPardisoSolve.m)
+
+if isa(dA,"decomposition")
+    x=dA\f ;
+else
+    x=UaPardisoSolve("solve",dA,f) ;
+end
+
+end

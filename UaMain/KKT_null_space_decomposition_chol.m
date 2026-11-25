@@ -50,7 +50,7 @@ if isempty(A) || ( m==0 && n==0)   % In this case there is no A matrix and I jus
     % function even if there is not KKT system as such.
 
     if UsePardiso
-        x=UaPardisoSolve(CtrlVar,H,g,H,"symmetric",StructuralPattern); lambda=[];
+        x=UaPardisoSolve(CtrlVar,H,g,H,"spd",StructuralPattern); lambda=[];   % (24 Nov 2026) "spd" (Cholesky, LDL' if not positive definite) instead of "symmetric"
     else
         x=H\g; lambda=[];
     end
@@ -90,7 +90,21 @@ if numel(dVal)==m && numel(unique(iRow))==m && numel(unique(iCol))==m
             if isempty(StructuralPattern) ; SPf=[] ; else ; SPf=struct("Pattern",StructuralPattern,"Index",find(f)) ; end   % pattern of H(f,f)
             x(f,:)=UaPardisoSolve(CtrlVar,Hff,rhs_f,[],"spd",SPf) ;
         else
-            x(f,:)=decomposition(Hff,'chol')\rhs_f ;
+            % (24 Nov 2026) as for the reduced Hessian below (and with PARDISO, see UaPardisoSolve.m): if H(f,f) is not positive
+            % definite, an LDL factorisation is used instead, with a warning, rather than stopping the run with an error. For the uv
+            % system this should not happen (it is symmetric positive definite for a well-posed problem), but it can, eg for extreme
+            % parameter values at a trial point of an inversion, or for a singular problem.
+            try
+                dHff=decomposition(Hff,'chol') ;
+            catch ME
+                if ME.identifier=="MATLAB:decomposition:InvalidAForCholSPD"
+                    warning("KKT_null_space_decomposition_chol:NotSPD","H(f,f) not positive definite; using an LDL factorisation instead.")
+                    dHff=decomposition(Hff,'ldl') ;
+                else
+                    rethrow(ME)
+                end
+            end
+            x(f,:)=dHff\rhs_f ;
         end
     end
     lambda=(g(c,:)-H(c,:)*x)./d ;
@@ -115,7 +129,20 @@ xp   = A' * (dAAT \ b);             % n x 1 particular solution
 Hr  = Z' * (H * Z);                  % (n-m) x (n-m)
 Hr=(Hr+Hr')/2 ; % symmetrize as the reduced Hessian must be symmetrical by construction, but may not always be so due to rounding errors. 
 if ~UsePardiso
-    dHr = decomposition(Hr, 'chol');
+    % (23 Nov 2026) if the reduced Hessian is not positive definite (eg in a Newton iteration far from the solution, or for extreme
+    % parameter values at a trial point of an inversion), the Cholesky factorisation fails with an error. Then a symmetric indefinite
+    % (LDL) factorisation is used instead, so that the step can still be computed, and the convergence test and line search of the
+    % calling solver (eg SSTREAM2dNR2.m, with uv.m and JGH.m handling non-convergence) decide what happens next.
+    try
+        dHr = decomposition(Hr, 'chol');
+    catch ME
+        if ME.identifier=="MATLAB:decomposition:InvalidAForCholSPD"
+            warning("KKT_null_space_decomposition_chol:NotSPD","Reduced Hessian not positive definite; using an LDL factorisation instead.")
+            dHr = decomposition(Hr, 'ldl');
+        else
+            rethrow(ME)
+        end
+    end
 end
 
 % --- Step 4: Solve reduced system Hr * u = Z'*(g - H*xp) ---

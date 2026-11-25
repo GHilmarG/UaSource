@@ -33,13 +33,9 @@ InvFinalValues=InversionValues;
 RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
 
 %% Initialize run-time and cpu-time variables
-RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
-RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
-RunInfo.WallTime.Total=duration(RunInfo.WallTime.toc-RunInfo.WallTime.tic,Format="dd:hh:mm:ss.SSS") ;
-
-RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
-RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
-RunInfo.CPU.Total=RunInfo.CPU.toc-RunInfo.CPU.tic;
+% (12 Nov 2026) The tic values of this session are kept, as in restart runs RunInfo is replaced by the one in the restart file (see below).
+RunInfo=RestartTimers(RunInfo) ;
+SessionTimers=struct("Wall",RunInfo.WallTime.tic,"CPU",RunInfo.CPU.tic) ;
 %%
 
 
@@ -258,20 +254,13 @@ CtrlVar=SetSmoothFloorWidths(CtrlVar,F);
 F0=F;
 
 %% CPU and wall-time RunInfo variables
-if isempty(RunInfo.WallTime.tic)
-    RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
-end
-RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
-if isempty(RunInfo.WallTime.Total)
-    RunInfo.WallTime.Total=RunInfo.WallTime.toc-RunInfo.WallTime.tic;
-else
-    RunInfo.WallTime.Total=RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic;
-end
-RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
-
-RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
-RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic;
-RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+% (12 Nov 2026) In restart runs RunInfo has been read from the restart file, with the wall-time and CPU totals of the previous runs, and
+% the totals accumulate over the chain of restart runs. The intervals are, however, measured from the start of this run: the tic values in
+% the restart file are those of the session that wrote it, and using them added the time between the runs to the wall-time total, and the
+% difference between the cputime of two different MATLAB processes to the CPU total.
+RunInfo.WallTime.tic=SessionTimers.Wall ;
+RunInfo.CPU.tic=SessionTimers.CPU ;
+RunInfo=UpdateTotalTimes(RunInfo) ;
 
 
 %%
@@ -955,16 +944,7 @@ if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
 
 
 %% updating wall-time and cpu-time variables
-
-
-RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
-RunInfo.WallTime.Total=duration(RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic,Format="dd:hh:mm:ss.SSS");
-RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
-
-
-RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
-RunInfo.CPU.Total=RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; % increment in CPU time since last tic added to total sum
-RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;      % reset the CPU tic variable
+RunInfo=UpdateTotalTimes(RunInfo) ;   % (12 Nov 2026) see UaRunInfo.m
 %%
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
