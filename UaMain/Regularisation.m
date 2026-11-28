@@ -266,6 +266,16 @@ if isC
     dpC=log10(F.C)  -log10(Priors.C);
     RC=full(0.5*dpC'*QC*dpC);            % costs function term
     dRdC=(QC*dpC);                       % derivative,
+    % (25 Nov 2026) optional prior on the area mean of log10(C)-log10(C_prior), standard deviation
+    % CtrlVar.Inverse.Prior.logC.LevelSigma (in decades; [] or 0: not used). With Weertman sliding and the velocities fixed by the
+    % data, this is a prior on the geometric mean of the basal traction relative to the one implied by the prior mean of C.
+    % Its Hessian, the rank-one matrix w w'/sigma^2, is applied in HessianVectorProduct.m (AssembleHessianBlocks.m).
+    [wL,sL]=CLevelPrior(CtrlVar,MUA);
+    if ~isempty(wL)
+        Lev=wL'*dpC;
+        RC=RC+0.5*(Lev/sL)^2;
+        dRdC=dRdC+wL*(Lev/sL^2);
+    end
 else
 
     RC=0;

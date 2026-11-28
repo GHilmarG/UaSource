@@ -3069,6 +3069,18 @@ CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent=false;
  
  CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
+%% If you want/can use the PARDISO external linear solver, and compiled assembly set:
+
+CtrlVar.LinearSolver.Type="PARDISO";   
+
+
+CtrlVar.uvMatrixAssembly.CompiledKernel=true;
+CtrlVar.uvhMatrixAssembly.CompiledKernel=true;
+CtrlVar.hMatrixAssembly.CompiledKernel=true;
+CtrlVar.Parallel.uvAssembly.spmd.isOn=false; % the compiled assembly is parallel already
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
+
+
 
 end
 
