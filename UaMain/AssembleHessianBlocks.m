@@ -185,6 +185,9 @@ Blocks.Kqq=Kqq ; Blocks.KqqAG=KqqAG ; Blocks.Kqqw=Kqqw ; Blocks.Kpq=Kpq ; Blocks
 % (23 Nov 2026) spatially correlated velocity errors: the correction -A K^{-1} A to the velocity part of K_qq (for u and v), applied
 % in HessianVectorProduct.m, see CorrelatedPointDataMisfit.m (the same factors for u and v if the errors are equal)
 Blocks.KqqCorrU=[] ; Blocks.KqqCorrV=[] ;
+% (25 Nov 2026) optional prior on the area mean of log10(C): rank-one term w w'/sigma^2 in the C block (CLevelPrior.m)
+[Blocks.CLevelW,Blocks.CLevelSigma]=CLevelPrior(CtrlVar,MUA) ;
+Blocks.CLevelOffset=MUA.Nnodes*(contains(CtrlVar.Inverse.InvertFor,"logA")+contains(CtrlVar.Inverse.InvertFor,"-B-")) ;
 if contains(CtrlVar.Inverse.Measurements,"-uv-") && is_uv_points_misfit(CtrlVar) && ~isempty(Meas.uvCorr)
     [~,~,Blocks.KqqCorrU]=CorrelatedPointDataMisfit(CtrlVar,MUA,Meas.uvO,Meas.usData,Meas.usErr,F.ub+F.ud,Meas.uvCorr) ;
     [~,~,Blocks.KqqCorrV]=CorrelatedPointDataMisfit(CtrlVar,MUA,Meas.uvO,Meas.vsData,Meas.vsErr,F.vb+F.vd,Meas.uvCorr) ;

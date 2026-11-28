@@ -85,6 +85,11 @@
 % correction of radar ice thickness to the epoch of the surface elevation. New output Thinned.SigmaCorrelated. Results with a
 % scalar SigmaCorrelated are unchanged.
 %
+% * Prior on the area mean of log10(C) (25 November 2026): CtrlVar.Inverse.Prior.logC.LevelSigma (default [], not used): an
+% additional prior term 1/2 (w'(log10 C - log10 C_prior)/sigma)^2, w the normalised area weights (CLevelPrior.m, new). With Weertman
+% sliding and velocities fixed by the data this is a prior on the geometric mean of the basal traction. Added in Regularisation.m
+% (cost function and gradient); its rank-one Hessian in HessianVectorProduct.m (set up in AssembleHessianBlocks.m).
+%
 % * KKT_null_space_decomposition_chol.m (23 November 2026): if the reduced Hessian is not positive definite, the Cholesky
 % factorisation raised an error that stopped the run (it bypassed the convergence test in SSTREAM2dNR2.m and the handling of
 % non-convergence in uv.m and JGH.m, which returns J=NaN). An LDL factorisation is now used instead (with a warning), so that

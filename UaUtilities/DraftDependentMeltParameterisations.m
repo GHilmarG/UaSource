@@ -32,6 +32,10 @@ function [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 %   ab(~OceanNodes) = 0;
 %   dabdh(~OceanNodes)=0;
 %
+% See Also:
+%
+%   PlotDraftDependentMeltParameterisations()
+%
 %%
 
 

@@ -38,6 +38,12 @@ A=Blocks.Kqq*W+Blocks.Kpq'*V ;
 if isfield(Blocks,"KqqAG") && ~isempty(Blocks.KqqAG)
     A=A+Blocks.KqqAG'*(Blocks.Kqqw.*(Blocks.KqqAG*W)) ;   % dh/dt part of K_qq in factored form (16 Nov 2026)
 end
+if isfield(Blocks,"CLevelW") && ~isempty(Blocks.CLevelW)
+    % (25 Nov 2026) rank-one Hessian of the prior on the area mean of log10(C), w w'/sigma^2, see CLevelPrior.m (added below to Hv)
+    CLevelUsed=true;
+else
+    CLevelUsed=false;
+end
 if isfield(Blocks,"KqqCorrU") && ~isempty(Blocks.KqqCorrU)
     % (23 Nov 2026) spatially correlated velocity errors: -A K^{-1} A applied to the u and v parts, see CorrelatedPointDataMisfit.m
     Nn=size(Blocks.KqqCorrU.A,1) ;
@@ -55,6 +61,10 @@ end
 
 % 4)
 HV=-Blocks.Fp'*Y+Blocks.Kpq*W+Blocks.Kpp*V ;
+if CLevelUsed
+    iC=Blocks.CLevelOffset+(1:numel(Blocks.CLevelW)) ;
+    HV(iC,:)=HV(iC,:)+Blocks.CLevelW*((Blocks.CLevelW'*V(iC,:))/Blocks.CLevelSigma^2) ;
+end
 
 end
 

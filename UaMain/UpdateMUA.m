@@ -202,8 +202,10 @@ if MeshHasChanged
         MUA.hAssemblyPattern=[];
     end
 
-    if (CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh || (isfield(CtrlVar.MUA.AssemblyPattern,"h") && CtrlVar.MUA.AssemblyPattern.h)) && TopologyHasChanged   % (17 Oct 2026) the patterns only depend on the connectivity
-        [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);   % (31 Oct 2026) and the h pattern
+    if isfield(CtrlVar.MUA,"AssemblyPattern")
+        if (CtrlVar.MUA.AssemblyPattern.uv || CtrlVar.MUA.AssemblyPattern.uvh || (isfield(CtrlVar.MUA.AssemblyPattern,"h") && CtrlVar.MUA.AssemblyPattern.h)) && TopologyHasChanged   % (17 Oct 2026) the patterns only depend on the connectivity
+            [MUA.uvAssemblyPattern,MUA.uvhAssemblyPattern,MUA.hAssemblyPattern]=AssemblyPatternCache(CtrlVar,MUA);   % (31 Oct 2026) and the h pattern
+        end
     end
 
 
